@@ -34,9 +34,6 @@ const propTypes = {
     /** The ID of the associated request report */
     requestReportID: PropTypes.string.isRequired,
 
-    /** Is this IOUACTION the most recent? */
-    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
-
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: refPropTypes,
 
@@ -81,7 +78,6 @@ function MoneyRequestAction({
     action,
     chatReportID,
     requestReportID,
-    isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive,
     chatReport,
@@ -123,7 +119,6 @@ function MoneyRequestAction({
         !_.isEmpty(iouReport) &&
         !_.isEmpty(reportActions) &&
         chatReport.iouReportID &&
-        isMostRecentIOUReportAction &&
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         network.isOffline
     ) {
