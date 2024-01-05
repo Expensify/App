@@ -531,4 +531,4 @@ type OnyxValues = {
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
 
 export default ONYXKEYS;
-export type {OnyxKey, FormTest, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};

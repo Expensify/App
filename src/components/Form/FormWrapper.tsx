@@ -1,5 +1,5 @@
-import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
+import type {RefObject} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import {Keyboard, ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,7 +9,6 @@ import FormSubmit from '@components/FormSubmit';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +16,7 @@ import type {Form} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormProps} from './types';
+import type {FormProps, InputRefs} from './types';
 
 type FormWrapperOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
@@ -34,7 +33,7 @@ type FormWrapperProps = ChildrenProps &
         errors: Errors;
 
         /** Assuming refs are React refs */
-        inputRefs: RefObject<Record<string, RefObject<BaseTextInputRef>>>;
+        inputRefs: RefObject<InputRefs>;
     };
 
 function FormWrapper({

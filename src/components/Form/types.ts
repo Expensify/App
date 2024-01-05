@@ -1,6 +1,7 @@
-import type {ForwardedRef, ReactNode} from 'react';
+import type {FocusEvent, MutableRefObject, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/onyx';
 
@@ -8,7 +9,13 @@ type ValueType = 'string' | 'boolean' | 'date';
 
 type ValidInput = typeof TextInput;
 
-type InputProps<TInput extends ValidInput> = Parameters<TInput>[0];
+type InputProps<TInput extends ValidInput> = Parameters<TInput>[0] & {
+    shouldSetTouchedOnBlurOnly?: boolean;
+    onValueChange?: (value: unknown, key: string) => void;
+    onTouched?: (event: unknown) => void;
+    valueType?: ValueType;
+    onBlur: (event: FocusEvent | Parameters<NonNullable<Parameters<TInput>[0]['onBlur']>>[0]) => void;
+};
 
 type InputWrapperProps<TInput extends ValidInput> = InputProps<TInput> & {
     InputComponent: TInput;
@@ -53,4 +60,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type RegisterInput = <TInput extends ValidInput>(inputID: string, props: InputProps<TInput>) => InputProps<TInput>;
 
-export type {InputWrapperProps, ValidInput, FormProps, RegisterInput, ValueType, OnyxFormValues, OnyxFormValuesFields, InputProps, OnyxFormKeyWithoutDraft};
+type InputRef = BaseTextInputRef;
+type InputRefs = Record<string, MutableRefObject<InputRef>>;
+
+export type {InputWrapperProps, ValidInput, FormProps, RegisterInput, ValueType, OnyxFormValues, OnyxFormValuesFields, InputProps, InputRef, InputRefs, OnyxFormKeyWithoutDraft};

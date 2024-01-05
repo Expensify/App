@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
+import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef, ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -84,7 +84,7 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-    const inputRefs = useRef<InputRefs>({});
+    const inputRefs = useRef<InputRefs>({} as InputRefs);
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<GenericFormValues>(() => ({...draftValues}));
     const [errors, setErrors] = useState<Errors>({});
@@ -206,11 +206,10 @@ function FormProvider(
 
     const registerInput: RegisterInput = useCallback(
         (inputID, inputProps) => {
-            const newRef: InputRef = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+            const newRef: MutableRefObject<InputRef> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
-
             if (inputProps.value !== undefined) {
                 inputValues[inputID] = inputProps.value;
             } else if (inputProps.shouldSaveDraft && draftValues?.[inputID] !== undefined && inputValues[inputID] === undefined) {
@@ -220,7 +219,7 @@ function FormProvider(
                 inputValues[inputID] = inputProps.defaultValue;
             } else if (inputValues[inputID] === undefined) {
                 // We want to initialize the input value if it's undefined
-                inputValues[inputID] = inputProps.defaultValue === undefined ? getInitialValueByType(inputProps.valueType) : inputProps.defaultValue;
+                inputValues[inputID] = inputProps.defaultValue ?? getInitialValueByType(inputProps.valueType);
             }
 
             const errorFields = formState?.errorFields?.[inputID] ?? {};
@@ -237,7 +236,7 @@ function FormProvider(
                     typeof inputRef === 'function'
                         ? (node) => {
                               inputRef(node);
-                              if (typeof newRef !== 'function') {
+                              if (node && typeof newRef !== 'function') {
                                   newRef.current = node;
                               }
                           }
@@ -279,7 +278,7 @@ function FormProvider(
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
-                        const relatedTarget = 'nativeEvent' in event ? event?.nativeEvent?.relatedTarget : undefined;
+                        const relatedTarget = 'nativeEvent' in event && 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;
                         const relatedTargetId = relatedTarget && 'id' in relatedTarget && typeof relatedTarget.id === 'string' && relatedTarget.id;
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
@@ -301,7 +300,7 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                 },
-                onInputChange: (value, key) => {
+                onInputChange: (value: unknown, key?: string) => {
                     const inputKey = key ?? inputID;
                     setInputValues((prevState) => {
                         const newState = {
