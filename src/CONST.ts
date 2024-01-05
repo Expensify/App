@@ -441,6 +441,21 @@ const CONST = {
     },
     CURRENCY: {
         USD: 'USD',
+        AUD: 'AUD',
+        CAD: 'CAD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+        EUR: 'EUR',
+    },
+    get DIRECT_REIMBURSEMENT_CURRENCIES() {
+        return [
+            this.CURRENCY.USD,
+            this.CURRENCY.AUD,
+            this.CURRENCY.CAD,
+            this.CURRENCY.GBP,
+            this.CURRENCY.NZD,
+            this.CURRENCY.EUR,
+        ];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
