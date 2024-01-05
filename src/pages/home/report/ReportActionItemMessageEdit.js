@@ -270,16 +270,10 @@ function ReportActionItemMessageEdit(props) {
 
             draftRef.current = newDraft;
 
-            // This component is rendered only when draft is set to a non-empty string. In order to prevent component
-            // unmount when user deletes content of textarea, we set previous message instead of empty string.
-            if (newDraft.trim().length > 0) {
-                // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-                debouncedSaveDraft(_.escape(newDraft));
-            } else {
-                debouncedSaveDraft(props.action.message[0].html);
-            }
+            // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
+            debouncedSaveDraft(_.escape(newDraft));
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -292,7 +286,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action, '');
+        Report.deleteReportActionDraft(props.reportID, props.action);
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear();

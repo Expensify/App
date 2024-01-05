@@ -1,5 +1,6 @@
 import React, {Fragment} from 'react';
-import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
