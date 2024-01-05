@@ -8,6 +8,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
+import colors from '@styles/theme/colors';
+import ImageSVG from './ImageSVG';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
@@ -87,16 +90,28 @@ function ConfirmContent({
     promptStyles,
     contentStyles,
     iconAdditionalStyles,
-    image = null,
+    image,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const StyleUtils = useStyleUtils();
 
     const isCentered = shouldCenterContent;
-
+    
     return (
+        <>
+        {typeof image === 'function' && (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
+                <ImageSVG
+                    contentFit="contain"
+                    src={image}
+                    height={220}
+                    width={130}
+                />
+            </View>
+        )}
         <View style={[styles.m5, contentStyles]}>
             <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
                 {typeof iconSource === 'function' && (
@@ -161,6 +176,7 @@ function ConfirmContent({
                 </View>
             )}
         </View>
+        </>
     );
 }
 
