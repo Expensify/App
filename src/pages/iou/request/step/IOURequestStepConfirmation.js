@@ -115,6 +115,15 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    const defaultCategory = _.chain(policy)
+        .get('customUnits')
+        .find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE)
+        .get('defaultCategory')
+        .value();
+    useEffect(() => {
+        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+    }, [transactionID, defaultCategory]);
+
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
