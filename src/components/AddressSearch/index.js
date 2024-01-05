@@ -167,6 +167,7 @@ function AddressSearch({
     translate,
     value,
     locationBias,
+    selectTextOnFocus,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -517,7 +518,7 @@ function AddressSearch({
                             },
                             maxLength: maxInputLength,
                             spellCheck: false,
-                            selectTextOnFocus: true,
+                            selectTextOnFocus: selectTextOnFocus,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],

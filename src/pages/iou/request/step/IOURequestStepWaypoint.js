@@ -231,6 +231,7 @@ function IOURequestStepWaypoint({
                     <View>
                         <InputWrapperWithRef
                             InputComponent={AddressSearch}
+                            selectTextOnFocus={true}
                             locationBias={locationBias}
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}

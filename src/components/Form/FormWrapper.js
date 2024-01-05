@@ -97,6 +97,8 @@ function FormWrapper(props) {
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
+        inputProps,
+        inputValues
     } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
@@ -145,7 +147,13 @@ function FormWrapper(props) {
                             }
 
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                        
                             if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                const focusInputValue = inputValues[focusKey]
+                                const focusInputProps = inputProps[focusKey]
+                                if(focusInput.isFocused && focusInputValue && focusInputProps.selectTextOnFocus){
+                                    focusInput.setSelection(0, focusInputValue.length)
+                                }
                                 focusInput.focus();
                             }
                         }}
@@ -176,6 +184,8 @@ function FormWrapper(props) {
             styles.mt5,
             submitButtonStyles,
             submitButtonText,
+            inputProps,
+            inputValues
         ],
     );
 

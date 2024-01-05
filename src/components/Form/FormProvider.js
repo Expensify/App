@@ -115,6 +115,7 @@ const FormProvider = forwardRef(
         const touchedInputs = useRef({});
         const [inputValues, setInputValues] = useState(() => ({...draftValues}));
         const [errors, setErrors] = useState({});
+        const [inputProps, setInputProps] = useState({});
         const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 
         const onValidate = useCallback(
@@ -257,6 +258,13 @@ const FormProvider = forwardRef(
                 }
 
                 const errorFields = lodashGet(formState, 'errorFields', {});
+                setInputProps((prevState) => {
+                    const newState = {
+                        ...prevState,
+                        [inputID]: propsToParse,
+                    };
+                    return newState
+                });
                 const fieldErrorMessage =
                     _.chain(errorFields[inputID])
                         .keys()
@@ -378,6 +386,8 @@ const FormProvider = forwardRef(
                     onSubmit={submit}
                     inputRefs={inputRefs}
                     errors={errors}
+                    inputProps={inputProps}
+                    inputValues={inputValues}
                     enabledWhenOffline={enabledWhenOffline}
                 >
                     {_.isFunction(children) ? children({inputValues}) : children}
