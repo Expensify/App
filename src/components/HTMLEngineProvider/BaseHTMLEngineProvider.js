@@ -62,7 +62,7 @@ function BaseHTMLEngineProvider(props) {
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
             'next-step': defaultHTMLElementModels.span.extend({
                 tagName: 'next-step',
-                mixedUAStyles: {...styles.textLabelSupporting},
+                mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
             }),
             'next-step-email': defaultHTMLElementModels.span.extend({tagName: 'next-step-email'}),
             video: defaultHTMLElementModels.div.extend({
@@ -70,7 +70,7 @@ function BaseHTMLEngineProvider(props) {
                 mixedUAStyles: {whiteSpace: 'pre'},
             }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
+        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
     );
 
     // We need to memoize this prop to make it referentially stable.
