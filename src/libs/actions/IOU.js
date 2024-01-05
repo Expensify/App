@@ -322,6 +322,7 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
  * @param {Array} optimisticPolicyRecentlyUsedTags
  * @param {boolean} isNewChatReport
  * @param {boolean} isNewIOUReport
+ * @param {String} policyID
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
