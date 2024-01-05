@@ -13,7 +13,6 @@ import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} fro
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
@@ -27,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyRole = {
     /** The role of current user */
@@ -86,7 +85,7 @@ function TaskPreview({
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted = isNotEmptyObject(taskReport)
+    const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
