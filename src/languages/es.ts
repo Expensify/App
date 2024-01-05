@@ -2524,8 +2524,8 @@ export default {
     purposeForExpensify: {
         track: 'Seguimiento de los gastos de empresa para fines fiscales',
         submit: 'Reclamar gastos a mi empleador',
-        business: 'Gestionar los gastos de mi equipo',
-        chatSplit: 'Chatea y divide gastos con tus amigos',
+        manageTeam: 'Gestionar los gastos de mi equipo',
+        splitChat: 'Chatea y divide gastos con tus amigos',
         welcomeMessage: 'Bienvenido a Expensify',
         welcomeSubtitle: '¿Qué te gustaría hacer?',
     },

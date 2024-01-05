@@ -2037,8 +2037,8 @@ export default {
     purposeForExpensify: {
         track: 'Track business spend for taxes',
         submit: 'Get paid back by my employer',
-        business: "Manage my team's expenses",
-        chatSplit: 'Chat and split bills with friends',
+        manageTeam: "Manage my team's expenses",
+        splitChat: 'Chat and split bills with friends',
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What would you like to do?',
     },
