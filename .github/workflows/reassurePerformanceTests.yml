@@ -34,11 +34,6 @@ jobs:
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
           npm install --force
           npx reassure --branch
-      - name: Read output.json
-        id: reassure
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: .reassure/output.json
 
       - name: Validate output.json
         id: validateReassureOutput
@@ -46,5 +41,3 @@ jobs:
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
-          REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
-
