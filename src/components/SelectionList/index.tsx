@@ -17,6 +17,8 @@ function SelectionList(props: BaseSelectionListProps, ref: ForwardedRef<TextInpu
             return;
         }
 
+        // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
+        // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
         document.addEventListener('touchstart', touchStart);
         document.addEventListener('touchend', touchEnd);
 
@@ -32,6 +34,7 @@ function SelectionList(props: BaseSelectionListProps, ref: ForwardedRef<TextInpu
             {...props}
             ref={ref}
             onScroll={() => {
+                // Only dismiss the keyboard whenever the user scrolls the screen
                 if (!isScreenTouched) {
                     return;
                 }
@@ -41,6 +44,6 @@ function SelectionList(props: BaseSelectionListProps, ref: ForwardedRef<TextInpu
     );
 }
 
-SelectionList.displayName = 'SelectionListFunction';
+SelectionList.displayName = 'SelectionList';
 
 export default forwardRef(SelectionList);

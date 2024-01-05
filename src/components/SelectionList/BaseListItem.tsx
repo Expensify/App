@@ -128,7 +128,7 @@ function BaseListItem({
                         </View>
                     )}
                 </View>
-                {item.invitedSecondaryLogin && (
+                {!!item.invitedSecondaryLogin && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
                         {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
                     </Text>

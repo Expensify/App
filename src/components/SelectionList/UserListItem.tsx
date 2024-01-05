@@ -10,7 +10,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip}: User
     const styles = useThemeStyles();
     return (
         <>
-            {item.icons && item.icons?.length > 1 && (
+            {!!item.icons && item.icons?.length > 1 && (
                 <SubscriptAvatar
                     mainAvatar={item.icons[0]}
                     secondaryAvatar={item.icons[1]}

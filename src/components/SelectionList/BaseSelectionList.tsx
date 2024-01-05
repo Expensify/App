@@ -394,7 +394,21 @@ function BaseSelectionList(
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
-                                    ref={inputRef ?? textInputRef}
+                                    ref={(element) => {
+                                        textInputRef.current = element as RNTextInput;
+
+                                        if (!inputRef) {
+                                            return;
+                                        }
+
+                                        if (typeof inputRef === 'function') {
+                                            inputRef(element as RNTextInput);
+                                            return;
+                                        }
+
+                                        // eslint-disable-next-line no-param-reassign
+                                        inputRef.current = element as RNTextInput;
+                                    }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
                                     role={CONST.ROLE.PRESENTATION}
