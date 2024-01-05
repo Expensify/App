@@ -108,6 +108,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Whether we should overlay the 3 dots menu */
+    shouldOverlayDots?: boolean;
 };
 
 export default HeaderWithBackButtonProps;
