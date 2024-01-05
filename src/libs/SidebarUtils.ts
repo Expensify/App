@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
@@ -120,26 +120,23 @@ function getOrderedReportIDs(
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportAction[]>,
-    transactionViolations: TransactionViolations,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): string[] {
     const reportIDKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`;
     const reportActionCount = allReportActions?.[reportIDKey]?.length ?? 1;
 
     // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
-        (key, value: unknown) => {
-            /**
-             *  Exclude some properties not to overwhelm a cached key value with huge data,
-             *  which we don't need to store in a cacheKey
-             */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
-                return undefined;
-            }
+    const cachedReportsKey = JSON.stringify([currentReportId, allReports, betas, policies, priorityMode, reportActionCount], (key, value: unknown) => {
+        /**
+         *  Exclude some properties not to overwhelm a cached key value with huge data,
+         *  which we don't need to store in a cacheKey
+         */
+        if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
+            return undefined;
+        }
 
-            return value;
-        },
-    );
+        return value;
+    });
 
     // Check if the result is already in the cache
     const cachedIDs = reportIDsCache.get(cachedReportsKey);
@@ -245,7 +242,7 @@ function getOptionData(
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
-    transactionViolations: TransactionViolations,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
     canUseViolations: boolean,
 ): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
