@@ -31,7 +31,7 @@ const defaultProps = {
     isMini: false,
     isVisible: false,
     selection: '',
-    draftMessage: '',
+    draftMessage: undefined,
     onItemSelected: () => {},
 };
 

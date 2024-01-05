@@ -1,8 +1,8 @@
-import {ViewStyle} from 'react-native';
-import {ModalProps} from 'react-native-modal';
-import {ValueOf} from 'type-fest';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import CONST from '@src/CONST';
+import type {ViewStyle} from 'react-native';
+import type {ModalProps} from 'react-native-modal';
+import type {ValueOf} from 'type-fest';
+import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import type CONST from '@src/CONST';
 
 type PopoverAnchorPosition = {
     top?: number;
@@ -23,7 +23,7 @@ type BaseModalProps = WindowDimensionsProps &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose: () => void;
+        onClose: (ref?: React.RefObject<HTMLElement>) => void;
 
         /** State that determines whether to display the modal or not */
         isVisible: boolean;

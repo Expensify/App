@@ -74,7 +74,7 @@ function getId() {
  * Cache the focus state before the modal appears.
  *
  * @param {Number} id
- * @param {HTMLElement} container
+ * @param {any} container
  */
 function saveFocusState(id, container = undefined) {
     const activeInput = getActiveInput();

@@ -3,7 +3,8 @@ import {AppState} from 'react-native';
 import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
-import BaseModalProps, {ModalRef} from './types';
+import type BaseModalProps from './types';
+import type {ModalRef} from './types';
 
 // Only want to use useNativeDriver on Android. It has strange flashes issue on IOS
 // https://github.com/react-native-modal/react-native-modal#the-modal-flashes-in-a-weird-way-when-animating

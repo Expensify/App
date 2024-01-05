@@ -1,8 +1,9 @@
 import React, {forwardRef} from 'react';
-import {NativePointerEvent, NativeSyntheticEvent, Role} from 'react-native';
+import type {NativePointerEvent, NativeSyntheticEvent, Role} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import GenericPressable from './BaseGenericPressable';
-import PressableProps, {PressableRef} from './types';
+import type {PressableRef} from './types';
+import type PressableProps from './types';
 
 function saveFocusedInput(e: NativeSyntheticEvent<NativePointerEvent>) {
     const target = e.target as unknown as EventTarget;

@@ -1,20 +1,23 @@
-import React, {ForwardedRef, useEffect} from 'react';
+import type {Component, ForwardedRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {TextInput, TextInputProps} from 'react-native';
-import Animated, {AnimatedProps} from 'react-native-reanimated';
+import type {TextInputProps} from 'react-native';
+import {TextInput} from 'react-native';
+import type {AnimatedProps} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 
+type AnimatedTextInputRef = Component<AnimatedProps<TextInputProps>>;
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>) {
     const theme = useTheme();
 
     const inputRef = React.useRef<React.Component<AnimatedProps<TextInputProps>> | null>(null);
 
-    useEffect(() => () => ComposerFocusManager.releaseInput(inputRef.current), []);
+    React.useEffect(() => () => ComposerFocusManager.releaseInput(inputRef.current), []);
 
     return (
         <AnimatedTextInput
@@ -39,3 +42,5 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Compo
 RNTextInputWithRef.displayName = 'RNTextInputWithRef';
 
 export default React.forwardRef(RNTextInputWithRef);
+
+export type {AnimatedTextInputRef};
