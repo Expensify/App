@@ -1,5 +1,6 @@
 import React from 'react';
-import Search, {SearchProps} from '@components/Search';
+import type {SearchProps} from '@components/Search';
+import Search from '@components/Search';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

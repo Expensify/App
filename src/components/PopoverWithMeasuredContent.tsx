@@ -1,15 +1,17 @@
 import isEqual from 'lodash/isEqual';
 import React, {useMemo, useState} from 'react';
-import {LayoutChangeEvent, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import Popover from './Popover';
-import {PopoverProps} from './Popover/types';
+import type {PopoverProps} from './Popover/types';
+import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
-type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
+type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
 };
@@ -34,6 +36,12 @@ function PopoverWithMeasuredContent({
     },
     children,
     withoutOverlay = false,
+    fullscreen = true,
+    shouldCloseOnOutsideClick = false,
+    shouldSetModalVisibility = true,
+    statusBarTranslucent = true,
+    avoidKeyboard = false,
+    hideModalContentWhileAnimating = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -113,6 +121,12 @@ function PopoverWithMeasuredContent({
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}
             withoutOverlay={withoutOverlay}
+            fullscreen={fullscreen}
+            shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
+            shouldSetModalVisibility={shouldSetModalVisibility}
+            statusBarTranslucent={statusBarTranslucent}
+            avoidKeyboard={avoidKeyboard}
+            hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
