@@ -67,6 +67,9 @@ const propTypes = {
     /** Whether to stack the buttons */
     shouldStackButtons: PropTypes.bool,
 
+    /** Image to display with content */
+    image: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -88,6 +91,7 @@ const defaultProps = {
     promptStyles: [],
     shouldCenterContent: false,
     shouldStackButtons: true,
+    image: null,
 };
 
 function ConfirmModal(props) {
