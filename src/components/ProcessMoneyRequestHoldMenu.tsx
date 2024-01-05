@@ -4,9 +4,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import HoldMenuSectionList from './HoldMenuSectionList';
-import {PopoverAnchorPosition} from './Modal/types';
+import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
-import {AnchorAlignment} from './Popover/types';
+import type {AnchorAlignment} from './Popover/types';
 import Text from './Text';
 import TextPill from './TextPill';
 
