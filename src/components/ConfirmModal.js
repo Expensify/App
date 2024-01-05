@@ -123,6 +123,7 @@ function ConfirmModal(props) {
                 titleStyles={props.titleStyles}
                 promptStyles={props.promptStyles}
                 shouldStackButtons={props.shouldStackButtons}
+                image={props.image}
             />
         </Modal>
     );
