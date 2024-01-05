@@ -164,13 +164,13 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
 
     const saveComment = useCallback(
         ({comment: newComment}) => {
-            // Update comment only if it has changed
+            // Only update comment if it has changed
             if (newComment.trim() !== transactionDescription) {
                 IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
             }
             Navigation.dismissModal();
         }
-    )
+    );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
