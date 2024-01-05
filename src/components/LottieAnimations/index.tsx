@@ -53,8 +53,8 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
     },
     Upgrade: {
         file: require('@assets/animations/Upgrade.lottie'),
-        w: 853,
-        h: 480,
+        w: 390,
+        h: 240,
     },
 };
 
