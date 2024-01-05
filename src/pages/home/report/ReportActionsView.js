@@ -14,7 +14,6 @@ import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
@@ -87,8 +86,6 @@ function ReportActionsView(props) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
-    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
 
@@ -257,7 +254,6 @@ function ReportActionsView(props) {
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
