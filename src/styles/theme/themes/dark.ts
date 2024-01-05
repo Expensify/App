@@ -6,7 +6,6 @@ import SCREENS from '@src/SCREENS';
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    transparentAppBG: `${colors.productDark100}cc`,
     splashBG: colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
@@ -85,6 +84,7 @@ const darkTheme = {
     loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
     white: colors.white,
+    videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.

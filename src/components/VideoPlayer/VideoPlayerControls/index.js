@@ -118,7 +118,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
                         />
                     </View>
                 </View>
-                <View style={[styles.videoPlayerControlsRow]}>
+                <View style={styles.videoPlayerControlsRow}>
                     <ProgressBar
                         duration={duration}
                         position={position}

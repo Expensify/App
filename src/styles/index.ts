@@ -4151,7 +4151,7 @@ const styles = (theme: ThemeColors) =>
             bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
             left: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
             right: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
-            backgroundColor: theme.transparentAppBG,
+            backgroundColor: theme.videoPlayerBG,
             borderRadius: 8,
             flexDirection: 'column',
             overflow: 'visible',
@@ -4186,6 +4186,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             fontWeight: '700',
             lineHeight: 16,
+            color: theme.white,
         },
 
         volumeSliderContainer: {
@@ -4244,7 +4245,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         videoThumbnailPlayButton: {
-            backgroundColor: theme.transparentAppBG,
+            backgroundColor: theme.videoPlayerBG,
             borderRadius: 100,
             width: 72,
             height: 72,
@@ -4256,7 +4257,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             top: 10,
             right: 10,
-            backgroundColor: theme.transparentAppBG,
+            backgroundColor: theme.videoPlayerBG,
             borderRadius: 8,
             padding: 8,
         },

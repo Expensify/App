@@ -9,7 +9,6 @@ type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.
 type ThemeColors = {
     // Figma keys
     appBG: Color;
-    transparentAppBG: Color;
     splashBG: Color;
     highlightBG: Color;
     border: Color;
@@ -88,6 +87,7 @@ type ThemeColors = {
     loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    videoPlayerBG: Color;
     transparentWhite: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
