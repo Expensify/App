@@ -2,8 +2,8 @@ import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
-import flex from '../flex';
-import spacing from '../spacing';
+import flex from '@styles/utils/flex';
+import spacing from '@styles/utils/spacing';
 import type StyleUtilGenerator from './types';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
