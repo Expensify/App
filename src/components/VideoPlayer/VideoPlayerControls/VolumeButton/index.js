@@ -61,13 +61,14 @@ function VolumeButton({style, small}) {
     };
 
     useDerivedValue(() => {
+        runOnJS(updateVolume)(volume.value);
         runOnJS(updateIcon)(volume.value);
     }, [volume]);
 
     return (
         <Hoverable>
             {(isHovered) => (
-                <Animated.View style={[style]}>
+                <Animated.View style={[{cursor: isSliderBeingUsed ? 'grabbing' : 'pointer'}, style]}>
                     {(isSliderBeingUsed || isHovered) && (
                         <View style={[styles.volumeSliderContainer]}>
                             <GestureDetector gesture={pan}>
