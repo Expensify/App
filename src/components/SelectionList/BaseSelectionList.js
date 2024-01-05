@@ -78,7 +78,7 @@ function BaseSelectionList({
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialRender, setIsInitialRender] = useState(true);
-    const wrapperStyles = useMemo(() => ({opacity: isInitialRender ? 0 : 1}), [isInitialRender]);
+    const wrapperStyles = useMemo(() => ({opacity: isInitialRender && !showLoadingPlaceholder ? 0 : 1}), [isInitialRender, showLoadingPlaceholder]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
