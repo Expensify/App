@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {type OnyxEntry, withOnyx} from 'react-native-onyx';
+import type OnyxEntry from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
