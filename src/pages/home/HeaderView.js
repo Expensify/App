@@ -325,8 +325,8 @@ function HeaderView(props) {
                                     Session.checkIfActionIsAllowed(Task.deleteTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
                                 }}
                                 onCancel={() => setIsCancelTaskConfirmModalVisible(false)}
-                                title={translate('task.cancelTask')}
-                                prompt={translate('task.cancelConfirmation')}
+                                title={translate('task.deleteTask')}
+                                prompt={translate('task.deleteConfirmation')}
                                 confirmText={translate('common.delete')}
                                 cancelText={translate('common.cancel')}
                                 danger

@@ -1771,8 +1771,8 @@ export default {
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
         genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea, por favor, inténtalo más tarde.',
-        cancelTask: 'Cancelar tarea',
-        cancelConfirmation: '¿Estás seguro de que quieres cancelar esta tarea?',
+        deleteTask: 'Eliminar tarea',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     statementPage: {
         title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
