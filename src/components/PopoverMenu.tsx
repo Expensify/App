@@ -4,6 +4,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,8 +51,11 @@ type PopoverMenuProps = PopoverModalProps & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
-    /** Callback method fired when the modal is displayed */
+    /** Callback method fired when the modal is shown */
     onModalShow: () => void;
+
+    /** how to re-focus after the modal is dismissed */
+    restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
@@ -94,6 +98,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    restoreFocusType,
     onModalShow,
     headerText,
     fromSidebarMediumScreen,
@@ -138,6 +143,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={onClose}
             isVisible={isVisible}
+            restoreFocusType={restoreFocusType}
             onModalShow={onModalShow}
             onModalHide={() => {
                 setFocusedIndex(-1);

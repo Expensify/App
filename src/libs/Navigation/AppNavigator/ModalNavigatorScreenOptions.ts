@@ -13,6 +13,7 @@ const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles): StackNavigationO
     gestureDirection: 'horizontal',
     cardStyle: themeStyles.navigationScreenCardStyle,
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    keyboardHandlingEnabled: false,
 });
 
 export default ModalNavigatorScreenOptions;
