@@ -609,7 +609,7 @@ function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject):
  * Checks if the supplied report is an expense report in Open state and status.
  */
 function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
+    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
