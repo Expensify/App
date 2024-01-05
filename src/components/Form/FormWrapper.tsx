@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import {Keyboard, ScrollView} from 'react-native';
@@ -9,6 +9,7 @@ import FormSubmit from '@components/FormSubmit';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +17,7 @@ import type {Form} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormProps, InputRefs} from './types';
+import type {FormProps} from './types';
 
 type FormWrapperOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
@@ -33,7 +34,7 @@ type FormWrapperProps = ChildrenProps &
         errors: Errors;
 
         /** Assuming refs are React refs */
-        inputRefs: MutableRefObject<InputRefs>;
+        inputRefs: RefObject<Record<string, RefObject<BaseTextInputRef>>>;
     };
 
 function FormWrapper({
@@ -96,7 +97,7 @@ function FormWrapper({
                                 // We measure relative to the content root, not the scroll view, as that gives
                                 // consistent results across mobile and web
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                                focusInput?.measureLayout?.(formContentRef.current, (_x, y) =>
+                                focusInput?.measureLayout?.(formContentRef.current, (_x: number, y: number) =>
                                     formRef.current?.scrollTo({
                                         y: y - 10,
                                         animated: false,

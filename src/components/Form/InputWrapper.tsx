@@ -1,9 +1,11 @@
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import FormContext from './FormContext';
-import type {InputProps, InputRef, InputWrapperProps, ValidInput} from './types';
+import type {InputWrapperProps, ValidInput} from './types';
 
-function InputWrapper<TInput extends ValidInput>({InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput>, ref: InputRef) {
+function InputWrapper<TInput extends ValidInput>({InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput>, ref: ForwardedRef<BaseTextInputRef>) {
     const {registerInput} = useContext(FormContext);
 
     // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to

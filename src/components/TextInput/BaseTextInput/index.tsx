@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
@@ -57,7 +58,7 @@ function BaseTextInput(
         inputID,
         ...inputProps
     }: BaseTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();

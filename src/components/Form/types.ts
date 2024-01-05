@@ -51,9 +51,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     footerContent?: ReactNode;
 };
 
-type InputRef = ForwardedRef<ValidInput>;
-type InputRefs = Record<string, InputRef>;
-
 type RegisterInput = <TInput extends ValidInput>(inputID: string, props: InputProps<TInput>) => InputProps<TInput>;
 
-export type {InputWrapperProps, ValidInput, FormProps, InputRef, InputRefs, RegisterInput, ValueType, OnyxFormValues, OnyxFormValuesFields, InputProps, OnyxFormKeyWithoutDraft};
+export type {InputWrapperProps, ValidInput, FormProps, RegisterInput, ValueType, OnyxFormValues, OnyxFormValuesFields, InputProps, OnyxFormKeyWithoutDraft};

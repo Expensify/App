@@ -1,3 +1,4 @@
+import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,9 +11,9 @@ import * as styleConst from './styleConst';
 
 type RemoveVisibilityListener = () => void;
 
-function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
+function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
-    const textInputRef = useRef<HTMLElement | null>(null);
+    const textInputRef = useRef<HTMLFormElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
 
     useEffect(() => {
@@ -57,7 +58,7 @@ function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(element) => {
-                textInputRef.current = element as HTMLElement;
+                textInputRef.current = element as HTMLFormElement;
 
                 if (!ref) {
                     return;
