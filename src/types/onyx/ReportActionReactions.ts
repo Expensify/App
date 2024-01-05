@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type UserReaction = {
     /** ID of user reaction */
@@ -24,7 +24,7 @@ type ReportActionReaction = {
     users: UsersReactions;
 
     /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
+    pendingAction: OnyxCommon.PendingAction;
 };
 
 type ReportActionReactions = Record<string, ReportActionReaction>;
