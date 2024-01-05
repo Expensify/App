@@ -21,6 +21,7 @@ jobs:
         run: |
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
+
       - name: Run performance testing script
         shell: bash
         run: |
