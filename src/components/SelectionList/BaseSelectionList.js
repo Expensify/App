@@ -77,8 +77,6 @@ function BaseSelectionList({
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
-    const [isInitialRender, setIsInitialRender] = useState(true);
-    const wrapperStyles = useMemo(() => ({opacity: isInitialRender && !showLoadingPlaceholder ? 0 : 1}), [isInitialRender, showLoadingPlaceholder]);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
     /**
