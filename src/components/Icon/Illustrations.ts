@@ -57,6 +57,7 @@ import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustrati
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import ThreeLeggedLaptopWoman from '@assets/images/simple-illustrations/simple-illustration__three-legged-laptop-woman.svg';
 
 export {
     Abracadabra,
@@ -118,4 +119,5 @@ export {
     CommentBubbles,
     TrashCan,
     TeleScope,
+    ThreeLeggedLaptopWoman,
 };
