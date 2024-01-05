@@ -14,20 +14,7 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {
-    Beta,
-    Login,
-    PersonalDetails,
-    PersonalDetailsList,
-    Policy,
-    Report,
-    ReportAction,
-    ReportMetadata,
-    Session,
-    Transaction,
-    TransactionViolation,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -3490,7 +3477,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
 /**
  * Checks to see if a report contains a violation
  */
-function hasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
+function hasViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
     return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations));
 }
