@@ -1,5 +1,6 @@
+import CONST from '@src/CONST';
 import {Linking} from 'react-native';
 
 export default function updateApp() {
-    Linking.openURL('https://apps.apple.com/us/app/new-expensify/id1530278510');
+    Linking.openURL(CONST.APP_DOWNLOAD_LINKS.IOS);
 }
