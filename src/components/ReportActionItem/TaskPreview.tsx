@@ -141,7 +141,7 @@ function TaskPreview({
 
 TaskPreview.displayName = 'TaskPreview';
 
-export default compose(
+export default withCurrentUserPersonalDetails(
     withOnyx<TaskPreviewProps, TaskPreviewOnyxProps>({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
@@ -150,6 +150,5 @@ export default compose(
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '0'}`,
             selector: (policy: Policy | null) => ({role: policy?.role ?? ''}),
         },
-    }),
-    withCurrentUserPersonalDetails,
-)(TaskPreview);
+    })(TaskPreview),
+);
