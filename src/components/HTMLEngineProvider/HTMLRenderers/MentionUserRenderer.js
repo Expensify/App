@@ -16,6 +16,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import CONST from '@src/CONST';
+import * as LoginUtils from '@src/libs/LoginUtils';
 import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
@@ -37,15 +38,31 @@ function MentionUserRenderer(props) {
     let accountID;
     let displayNameOrLogin;
     let navigationRoute;
+    const tnode = props.tnode;
+
+    const getMentionDisplayText = (displayText, accountId, userLogin = '') => {
+        if (accountId && userLogin !== displayText) {
+            return displayText;
+        }
+        if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, props.currentUserPersonalDetails.login)) {
+            return displayText;
+        }
+
+        return displayText.split('@')[0];
+    };
 
     if (!_.isEmpty(htmlAttribAccountID)) {
         const user = lodashGet(personalDetails, htmlAttribAccountID);
         accountID = parseInt(htmlAttribAccountID, 10);
         displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || lodashGet(user, 'displayName', '') || translate('common.hidden');
+        displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID, lodashGet(user, 'login', ''));
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
-    } else if (!_.isEmpty(props.tnode.data)) {
+    } else if (!_.isEmpty(tnode.data)) {
+        displayNameOrLogin = tnode.data;
+        tnode.data = tnode.data.replace(displayNameOrLogin, getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID));
+
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
-        displayNameOrLogin = props.tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
+        displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID);
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
@@ -83,7 +100,7 @@ function MentionUserRenderer(props) {
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
                         >
-                            {!_.isEmpty(htmlAttribAccountID) ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={props.tnode} />}
+                            {!_.isEmpty(htmlAttribAccountID) ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>

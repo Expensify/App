@@ -59,4 +59,16 @@ function getPhoneLogin(partnerUserID: string): string {
     return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID));
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin};
+/**
+ * Check whether 2 emails have the same private domain
+ */
+function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean {
+    if (isEmailPublicDomain(email1) || isEmailPublicDomain(email2)) {
+        return false;
+    }
+    const emailDomain1 = Str.extractEmailDomain(email1).toLowerCase();
+    const emailDomain2 = Str.extractEmailDomain(email2).toLowerCase();
+    return emailDomain1 === emailDomain2;
+}
+
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain};
