@@ -24,21 +24,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {hideContextMenu, showContextMenu, showDeleteModal} from './ReportActionContextMenu';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-let currentUserAccountID = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserAccountID = val.accountID;
-    },
-});
 
 /**
  * Gets the HTML version of the message in an action.
@@ -248,7 +233,8 @@ export default [
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => type === CONST.CONTEXT_MENU_TYPES.LINK && !isMini,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) =>
+            type === CONST.CONTEXT_MENU_TYPES.LINK && !isMini,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -261,7 +247,8 @@ export default [
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => type === CONST.CONTEXT_MENU_TYPES.EMAIL && !isMini,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) =>
+            type === CONST.CONTEXT_MENU_TYPES.EMAIL && !isMini,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(EmailUtils.trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -331,7 +318,13 @@ export default [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return !isMini && Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
+            return (
+                !isMini &&
+                Permissions.canUseCommentLinking(betas) &&
+                type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                !isAttachmentTarget &&
+                !ReportActionsUtils.isMessageDeleted(reportAction)
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
@@ -349,7 +342,8 @@ export default [
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) =>
-            ((isMini && reportAction.actorAccountID !== currentUserAccountID) || !isMini) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+            (((isMini && reportAction.actorAccountID !== Report.getCurrentUserAccountID()) || !isMini) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) ||
+            (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.markCommentAsUnread(reportID, reportAction.created);
             if (closePopover) {
@@ -364,7 +358,8 @@ export default [
         textTranslateKey: 'reportActionContextMenu.markAsRead',
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat && !isMini,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat && !isMini,
         onPress: (closePopover, {reportID}) => {
             Report.readNewestAction(reportID);
             if (closePopover) {
@@ -493,17 +488,8 @@ export default [
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
         onPress: (closePopover, {reportAction, reportID, event, anchor, selection, draftMessage}) => {
             const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                anchor,
-                reportID,
-                reportAction.reportActionID,
-                originalReportID,
-                draftMessage,
-            );
+            showContextMenu(CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, event, selection, anchor, reportID, reportAction.reportActionID, originalReportID, draftMessage);
         },
         getDescription: () => {},
-    }
+    },
 ];

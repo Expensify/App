@@ -79,7 +79,7 @@ function BaseReportActionContextMenu(props) {
 
     const shouldEnableArrowNavigation = !props.isMini && (props.isVisible || shouldKeepOpen);
     let filteredContextMenuActions = _.filter(ContextMenuActions, shouldShowFilter);
-    filteredContextMenuActions = props.isMini ? [...filteredContextMenuActions.slice(0, 3), filteredContextMenuActions.at(-1)]  : filteredContextMenuActions;
+    filteredContextMenuActions = props.isMini ? [...filteredContextMenuActions.slice(0, 3), filteredContextMenuActions.at(-1)] : filteredContextMenuActions;
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
     const nonMenuItemActionIndexes = _.map(filteredContextMenuActions, (contextAction, index) => (_.isFunction(contextAction.renderContent) ? index : undefined));
     const disabledIndexes = _.filter(nonMenuItemActionIndexes, (index) => !_.isUndefined(index));

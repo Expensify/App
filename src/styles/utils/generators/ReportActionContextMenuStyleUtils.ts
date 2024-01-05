@@ -2,9 +2,9 @@ import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
-import type StyleUtilGenerator from './types';
 import flex from '../flex';
 import spacing from '../spacing';
+import type StyleUtilGenerator from './types';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
