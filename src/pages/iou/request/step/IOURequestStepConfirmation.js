@@ -115,11 +115,11 @@ function IOURequestStepConfirmation({
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
-    const defaultCategory = _.chain(policy)
-        .get('customUnits')
-        .find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE)
-        .get('defaultCategory')
-        .value();
+    const defaultCategory = lodashGet(
+        _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        'defaultCategory',
+        '',
+    );
     useEffect(() => {
         IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
     }, [transactionID, defaultCategory]);
