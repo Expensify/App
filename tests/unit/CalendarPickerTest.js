@@ -7,6 +7,7 @@ import DateUtils from '../../src/libs/DateUtils';
 const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
     useNavigation: () => ({navigate: jest.fn()}),
     createNavigationContainerRef: jest.fn(),
 }));
