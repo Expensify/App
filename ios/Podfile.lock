@@ -34,7 +34,7 @@ PODS:
   - DoubleConversion (1.1.6)
   - Expo (50.0.0-preview.7):
     - ExpoModulesCore
-  - ExpoImage (1.8.1):
+  - ExpoImage (1.10.1):
     - ExpoModulesCore
     - SDWebImage (~> 5.17.0)
     - SDWebImageAVIFCoder (~> 0.10.1)
@@ -1832,7 +1832,7 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
   Expo: cd2dc043dd1cc3d9e8e4e035fb9a41b421e8f13f
-  ExpoImage: e35fb1acb84c01575b4f5c5f6260906639a3320b
+  ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
   ExpoModulesCore: 01c0abfa6cd9c41c4bd76d8a1a079e6b591db10f
   FBLazyVector: 2296bacb2fa157a43991048b0a9d71c1c8b65083
   FBReactNativeSpec: df0ebe69acd14ce0be0269cf75b6e338a727259b
