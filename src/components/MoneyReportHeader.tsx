@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {type OnyxEntry, withOnyx} from 'react-native-onyx';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
@@ -16,8 +16,8 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as OnyxTypes from '@src/types/onyx';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
+import type * as OnyxTypes from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
