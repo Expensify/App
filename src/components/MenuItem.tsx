@@ -525,17 +525,19 @@ function MenuItem(
                                                 <Text style={[styles.textLabelError]}>{error}</Text>
                                             </View>
                                         )}
-                                        {furtherDetailsIcon && !!furtherDetails && (
+                                        {!!furtherDetails && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
-                                                <Icon
-                                                    src={furtherDetailsIcon}
-                                                    height={variables.iconSizeNormal}
-                                                    width={variables.iconSizeNormal}
-                                                    fill={theme.icon}
-                                                    inline
-                                                />
+                                                {!!furtherDetailsIcon && (
+                                                    <Icon
+                                                        src={furtherDetailsIcon}
+                                                        height={variables.iconSizeNormal}
+                                                        width={variables.iconSizeNormal}
+                                                        fill={theme.icon}
+                                                        inline
+                                                    />
+                                                )}
                                                 <Text
-                                                    style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                                                    style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
                                                     numberOfLines={2}
                                                 >
                                                     {furtherDetails}

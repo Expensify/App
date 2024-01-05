@@ -128,11 +128,17 @@ function getOrderedReportIDs(
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
-        /**
-         * Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' keys from the stringified
-         * objects to keep the size of the resulting key manageable.
-         */
-        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText'].includes(key) ? undefined : value),
+        (key, value: unknown) => {
+            /**
+             *  Exclude some properties not to overwhelm a cached key value with huge data,
+             *  which we don't need to store in a cacheKey
+             */
+            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
+                return undefined;
+            }
+
+            return value;
+        },
     );
 
     // Check if the result is already in the cache
@@ -309,7 +315,7 @@ function getOptionData(
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
-    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
+    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
