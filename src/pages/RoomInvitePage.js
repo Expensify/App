@@ -70,7 +70,10 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], [props.report]);
+    const excludedUsers = useMemo(
+        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'visibleChatMemberAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS],
+        [props.report],
+    );
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
@@ -93,13 +96,25 @@ function RoomInvitePage(props) {
         const sections = [];
         let indexOffset = 0;
 
+        // Filter all options that is a part of the search term or in the personal details
+        let filterSelectedOptions = selectedOptions;
+        if (searchTerm !== '') {
+            filterSelectedOptions = _.filter(selectedOptions, (option) => {
+                const accountID = lodashGet(option, 'accountID', null);
+                const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
+            });
+        }
+
         sections.push({
             title: undefined,
-            data: selectedOptions,
+            data: filterSelectedOptions,
             shouldShow: true,
             indexOffset,
         });
-        indexOffset += selectedOptions.length;
+        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
