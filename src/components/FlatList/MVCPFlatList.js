@@ -46,7 +46,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         return horizontal ? scrollRef.current.getScrollableNode().scrollLeft : scrollRef.current.getScrollableNode().scrollTop;
     }, [horizontal]);
 
-    const getContentView = React.useCallback(() => scrollRef.current?.getScrollableNode().childNodes[0], []);
+    const getContentView = React.useCallback(() => scrollRef.current?.getScrollableNode()?.childNodes[0], []);
 
     const scrollToOffset = React.useCallback(
         (offset, animated) => {

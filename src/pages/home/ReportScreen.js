@@ -1,8 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -173,7 +173,6 @@ function ReportScreen({
     const reactionListRef = useRef();
     const firstRenderRef = useRef(true);
     const prevReport = usePrevious(report);
-    const firstRenderLinkingLoaderRef = useRef(!!reportActionID);
     const [firstRenderLinkingLoader, setFirstRenderLinkingLoader] = useState(!!reportActionID);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
@@ -454,31 +453,24 @@ function ReportScreen({
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
-    // Use `useMemo` to prevent displaying stale information. The `useMemo` hook is preferred over `useEffect` here because it runs during the render phase, thus avoiding a flash of outdated content which could occur if state updates were scheduled asynchronously.
-    //
-    // This `useMemo` handles the state just after initial report actions have been loaded. It ensures that the loader state is set correctly during the initial rendering phase when linking to a report.
-    useMemo(() => {
-        if (reportMetadata.isLoadingInitialReportActions) {
+    useLayoutEffect(() => {
+        if (!reportActionID) {
             return;
         }
         requestAnimationFrame(() => {
-            firstRenderLinkingLoaderRef.current = true;
             setFirstRenderLinkingLoader(true);
         });
-    }, [route, setFirstRenderLinkingLoader]);
-    // This `useMemo` updates the loader state after the initial rendering phase is complete and the report actions are no longer loading, ensuring the loader is hidden at the correct time.
-    useMemo(() => {
-        if (!firstRenderLinkingLoaderRef || !firstRenderLinkingLoaderRef.current || reportMetadata.isLoadingInitialReportActions) {
+    }, [route, reportActionID]);
+    useEffect(() => {
+        if (!firstRenderLinkingLoader || reportMetadata.isLoadingInitialReportActions) {
             return;
         }
-        requestAnimationFrame(() => {
-            firstRenderLinkingLoaderRef.current = false;
-            setFirstRenderLinkingLoader(false);
-        });
-    }, [reportMetadata.isLoadingInitialReportActions, setFirstRenderLinkingLoader]);
+        setFirstRenderLinkingLoader(false);
+    }, [firstRenderLinkingLoader, reportMetadata.isLoadingInitialReportActions]);
+
     const shouldShowSkeleton = useMemo(
         () => firstRenderLinkingLoader || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
-        [isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions, firstRenderLinkingLoader],
+        [firstRenderLinkingLoader, isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions],
     );
     return (
         <ActionListContext.Provider value={actionListValue}>
