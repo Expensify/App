@@ -1,6 +1,6 @@
-import {AvatarSource} from '@libs/UserUtils';
-import TIMEZONES from '@src/TIMEZONES';
-import * as OnyxCommon from './OnyxCommon';
+import type {AvatarSource} from '@libs/UserUtils';
+import type TIMEZONES from '@src/TIMEZONES';
+import type * as OnyxCommon from './OnyxCommon';
 
 type SelectedTimezone = (typeof TIMEZONES)[number];
 
