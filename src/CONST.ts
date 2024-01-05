@@ -103,6 +103,10 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    REQUEST_PREVIEW: {
+        MAX_LENGTH: 83,
+    },
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -512,6 +516,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
@@ -594,6 +599,7 @@ const CONST = {
                     JOIN_ROOM: 'JOINROOM',
                 },
             },
+            THREAD_DISABLED: ['CREATED'],
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -718,6 +724,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -852,7 +859,7 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -978,6 +985,7 @@ const CONST = {
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
     CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_FOOTER_HORIZONTAL_PADDING: 40,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -2941,6 +2949,7 @@ const CONST = {
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
+    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
@@ -3047,6 +3056,42 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    VIOLATIONS: {
+        ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
+        AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
+        BILLABLE_EXPENSE: 'billableExpense',
+        CASH_EXPENSE_WITH_NO_RECEIPT: 'cashExpenseWithNoReceipt',
+        CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
+        CONVERSION_SURCHARGE: 'conversionSurcharge',
+        CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        DUPLICATED_TRANSACTION: 'duplicatedTransaction',
+        FIELD_REQUIRED: 'fieldRequired',
+        FUTURE_DATE: 'futureDate',
+        INVOICE_MARKUP: 'invoiceMarkup',
+        MAX_AGE: 'maxAge',
+        MISSING_CATEGORY: 'missingCategory',
+        MISSING_COMMENT: 'missingComment',
+        MISSING_TAG: 'missingTag',
+        MODIFIED_AMOUNT: 'modifiedAmount',
+        MODIFIED_DATE: 'modifiedDate',
+        NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
+        OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
+        OVER_CATEGORY_LIMIT: 'overCategoryLimit',
+        OVER_LIMIT: 'overLimit',
+        OVER_LIMIT_ATTENDEE: 'overLimitAttendee',
+        PER_DAY_LIMIT: 'perDayLimit',
+        RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
+        RECEIPT_REQUIRED: 'receiptRequired',
+        RTER: 'rter',
+        SMARTSCAN_FAILED: 'smartscanFailed',
+        SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
+        TAG_OUT_OF_POLICY: 'tagOutOfPolicy',
+        TAX_AMOUNT_CHANGED: 'taxAmountChanged',
+        TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
+        TAX_RATE_CHANGED: 'taxRateChanged',
+        TAX_REQUIRED: 'taxRequired',
     },
 
     /** Context menu types */

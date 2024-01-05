@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
-import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
+import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
+import React, {forwardRef} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {LocaleContext, LocaleContextProps} from './LocaleContextProvider';
+import type {LocaleContextProps} from './LocaleContextProvider';
+import {LocaleContext} from './LocaleContextProvider';
 
 const withLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */
