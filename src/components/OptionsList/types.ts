@@ -19,11 +19,6 @@ type Section = {
     isDisabled?: boolean;
 };
 
-type SelectedOptionData = OptionData & {
-    /** The name of selected option */
-    name: string;
-};
-
 type OptionsListProps = {
     /** option flexStyle for the options list container */
     listContainerStyles?: StyleProp<ViewStyle>;
@@ -44,7 +39,7 @@ type OptionsListProps = {
     focusedIndex?: number;
 
     /** Array of already selected options */
-    selectedOptions?: SelectedOptionData[];
+    selectedOptions?: OptionData[];
 
     /** Whether we can select multiple options or not */
     canSelectMultipleOptions?: boolean;
