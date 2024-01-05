@@ -10,6 +10,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
+import DotLottieAnimations from '@components/LottieAnimations';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
@@ -4135,6 +4136,21 @@ const styles = (theme: ThemeColors) =>
         },
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+
+        updateAnimation: {
+            width: DotLottieAnimations.Update.w,
+            height: DotLottieAnimations.Update.h,
+        },
+
+        updateRequiredView: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingBottom: 160,
+        },
+
+        updateRequiredViewTextContainer: {
+            width: 310,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

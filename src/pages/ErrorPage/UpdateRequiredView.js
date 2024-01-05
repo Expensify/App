@@ -19,16 +19,18 @@ function UpdateRequiredView() {
                     title="Update required"
                 />
             </View>
-            <View style={[styles.flex1, styles.h100, {alignItems: 'center', justifyContent: 'center', paddingBottom: 160}]}>
+            <View style={[styles.flex1, styles.h100, styles.updateRequiredView]}>
                 <Lottie
                     source={LottieAnimations.Upgrade}
-                    style={isSmallScreenWidth ? styles.w100 : {width: 390, height: 240}}
-                    webStyle={isSmallScreenWidth ? styles.w100 : {width: 390, height: 240}}
+
+                    // For small screens it looks better to have the arms from the animation come in from the edges of the screen.
+                    style={isSmallScreenWidth ? styles.w100 : styles.updateAnimation}
+                    webStyle={isSmallScreenWidth ? styles.w100 : styles.updateAnimation}
                     autoPlay
                     loop
                 />
                 <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
-                    <View style={[{maxWidth: 310}]}>
+                    <View style={styles.updateRequiredViewTextContainer}>
                         <View style={[styles.mb3]}>
                             <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>Please install the latest version of New Expensify</Text>
                         </View>
@@ -42,7 +44,7 @@ function UpdateRequiredView() {
                     large
                     onPress={() => AppUpdate.updateApp()}
                     text="Update"
-                    style={[{width: 310}]}
+                    style={styles.updateRequiredViewTextContainer}
                 />
             </View>
         </View>
