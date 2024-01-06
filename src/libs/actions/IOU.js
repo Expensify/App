@@ -177,8 +177,13 @@ function clearMoneyRequest(transactionID) {
  * @param {String} transactionID
  * @param {Number} amount
  * @param {String} currency
+ * @param {Boolean} [removeOriginalCurrency]
  */
-function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
+function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency, removeOriginalCurrency = false) {
+    if (removeOriginalCurrency) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
@@ -193,8 +198,13 @@ function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
 /**
  * @param {String} transactionID
  * @param {String} currency
+ * @param {Boolean} [removeOriginalCurrency]
  */
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency, removeOriginalCurrency = false) {
+    if (removeOriginalCurrency) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency, originalCurrency: null});
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
 }
 

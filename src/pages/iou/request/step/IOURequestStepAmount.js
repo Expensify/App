@@ -70,6 +70,7 @@ function IOURequestStepAmount({
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
     const isSaveButtonPressed = useRef(false);
+    const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
     const currency = selectedCurrency || currentCurrency;
 
@@ -89,12 +90,13 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
+        originalCurrency.current = currentCurrency;
         IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currentCurrency);
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
             }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction.originalCurrency);
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -120,7 +122,7 @@ function IOURequestStepAmount({
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
 
         if (backTo) {
             Navigation.goBack(backTo);
