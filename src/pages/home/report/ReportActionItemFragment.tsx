@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 
@@ -23,9 +22,6 @@ type ReportActionItemFragmentProps = {
 
     /** The message fragment needing to be displayed */
     fragment: Message;
-
-    /** If this fragment is attachment than has info? */
-    attachmentInfo?: EmptyObject | File;
 
     /** Message(text) of an IOU report action */
     iouMessage?: string;
@@ -62,6 +58,9 @@ type ReportActionItemFragmentProps = {
 };
 
 function ReportActionItemFragment({
+    pendingAction,
+    fragment,
+    accountID,
     iouMessage = '',
     isSingleLine = false,
     source = '',
@@ -72,22 +71,20 @@ function ReportActionItemFragment({
     isApprovedOrSubmittedReportAction = false,
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
-    ...props
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
-    const {fragment} = props;
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     switch (fragment.type) {
         case 'COMMENT': {
-            const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.
             // While offline we display the previous message with a strikethrough style. Once online we want to
             // immediately display "[Deleted message]" while the delete action is pending.
 
-            if ((!isOffline && isThreadParentMessage && isPendingDelete) || props.fragment.isDeletedParentAction) {
+            if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
@@ -105,7 +102,7 @@ function ReportActionItemFragment({
                 <TextCommentFragment
                     source={source}
                     fragment={fragment}
-                    styleAsDeleted={Boolean(isOffline && isPendingDelete)}
+                    styleAsDeleted={!!(isOffline && isPendingDelete)}
                     iouMessage={iouMessage}
                     displayAsGroup={displayAsGroup}
                     style={style}
@@ -118,11 +115,11 @@ function ReportActionItemFragment({
                     numberOfLines={isSingleLine ? 1 : undefined}
                     style={[styles.chatItemMessage, styles.colorMuted]}
                 >
-                    {isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                    {isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}
                 </Text>
             ) : (
                 <UserDetailsTooltip
-                    accountID={props.accountID}
+                    accountID={accountID}
                     delegateAccountID={delegateAccountID}
                     icon={actorIcon}
                 >
@@ -150,7 +147,7 @@ function ReportActionItemFragment({
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>props.fragment.text</Text>;
+            return <Text>fragment.text</Text>;
     }
 }
 

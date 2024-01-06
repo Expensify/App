@@ -65,13 +65,11 @@ function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentPro
         );
     }
 
-    const propsStyle = Array.isArray(props.style) ? props.style : [props.style];
-
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     return (
-        <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...propsStyle]}>
+        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, props.style]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={props.displayAsGroup}
@@ -80,17 +78,17 @@ function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentPro
                 style={[
                     containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                     styles.ltr,
-                    ...propsStyle,
+                    props.style,
                     styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                     !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
                 ]}
             >
                 {convertToLTR(message)}
             </Text>
-            {Boolean(fragment.isEdited) && (
+            {!!fragment.isEdited && (
                 <>
                     <Text
-                        style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.userSelectNone]}
+                        style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {' '}
@@ -98,7 +96,7 @@ function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentPro
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted ? styles.offlineFeedback.deleted : undefined, ...propsStyle]}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, props.style]}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>

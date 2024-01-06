@@ -1,6 +1,6 @@
 import type {ReactElement} from 'react';
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle, TextStyle} from 'react-native';
 import {Text, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,7 @@ type ReportActionItemMessageProps = {
     displayAsGroup: boolean;
 
     /** Additional styles to add after local styles. */
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle & TextStyle>;
 
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
@@ -74,7 +74,6 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 fragment={fragment}
                 iouMessage={iouMessage}
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
-                attachmentInfo={action.attachmentInfo}
                 pendingAction={action.pendingAction}
                 source={action.originalMessage as OriginalMessageSource}
                 accountID={action.actorAccountID ?? 0}
