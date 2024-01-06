@@ -1125,6 +1125,21 @@ function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
 }
 
 /**
+ * Updates the category of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} category
+ */
+function updateMoneyRequestCategory(transactionID, transactionThreadReportID, category) {
+    const transactionChanges = {
+        category,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestCategory', params, onyxData);
+}
+
+/**
  * Edits an existing distance request
  *
  * @param {String} transactionID
@@ -3588,6 +3603,7 @@ export {
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestTag,
+    updateMoneyRequestCategory,
     updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
     detachReceipt,
