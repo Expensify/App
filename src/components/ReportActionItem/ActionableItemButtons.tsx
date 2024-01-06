@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {TranslationPaths} from '@src/languages/types';
+import useLocalize from '@hooks/useLocalize';
 
 type ActionableItem = {
     isPrimary?: boolean;
@@ -12,12 +12,13 @@ type ActionableItem = {
     text: TranslationPaths;
 };
 
-type ActionableItemButtonsProps = WithLocalizeProps & {
+type ActionableItemButtonsProps = {
     items: ActionableItem[];
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <View style={[styles.flexRow, styles.gap4]}>
@@ -26,7 +27,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     key={item.key}
                     style={[styles.mt2]}
                     onPress={item.onPress}
-                    text={props.translate(item.text)}
+                    text={translate(item.text)}
                     small
                     success={item.isPrimary}
                 />
@@ -37,5 +38,5 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
 
 ActionableItemButtons.displayName = 'ActionableItemButtton';
 
-export default withLocalize(ActionableItemButtons);
+export default ActionableItemButtons;
 export type {ActionableItem};
