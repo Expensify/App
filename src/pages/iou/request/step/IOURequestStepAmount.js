@@ -90,8 +90,12 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
-        originalCurrency.current = currentCurrency;
-        IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currentCurrency);
+        if (transaction.originalCurrency) {
+            originalCurrency.current = transaction.originalCurrency;
+        } else {
+            originalCurrency.current = currentCurrency;
+            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currentCurrency);
+        }
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
