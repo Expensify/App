@@ -1,6 +1,6 @@
 import type {ReactElement} from 'react';
 import React from 'react';
-import type {StyleProp, ViewStyle, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Text, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
