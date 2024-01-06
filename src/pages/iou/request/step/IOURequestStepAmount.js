@@ -59,10 +59,10 @@ const getTaxAmount = (transaction, defaultTaxValue, amount) => {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transaction: {currency: currentCurrency},
+    transaction: {currency},
     policyTaxRates,
     policy,
 }) {
@@ -72,7 +72,6 @@ function IOURequestStepAmount({
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
-    const currency = selectedCurrency || currentCurrency;
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
@@ -93,8 +92,8 @@ function IOURequestStepAmount({
         if (transaction.originalCurrency) {
             originalCurrency.current = transaction.originalCurrency;
         } else {
-            originalCurrency.current = currentCurrency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currentCurrency);
+            originalCurrency.current = currency;
+            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
         }
         return () => {
             if (isSaveButtonPressed.current) {

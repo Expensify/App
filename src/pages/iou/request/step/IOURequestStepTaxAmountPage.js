@@ -53,10 +53,10 @@ const getTaxAmount = (transaction, defaultTaxValue) => {
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transaction: {currency: currentCurrency},
+    transaction: {currency},
     report,
     policyTaxRates,
 }) {
@@ -64,8 +64,6 @@ function IOURequestStepTaxAmountPage({
     const styles = useThemeStyles();
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
-
-    const currency = selectedCurrency || currentCurrency;
 
     const focusTimeoutRef = useRef(null);
 
@@ -76,8 +74,8 @@ function IOURequestStepTaxAmountPage({
         if (transaction.originalCurrency) {
             originalCurrency.current = transaction.originalCurrency;
         } else {
-            originalCurrency.current = currentCurrency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currentCurrency);
+            originalCurrency.current = currency;
+            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
         }
         return () => {
             if (isSaveButtonPressed.current) {
