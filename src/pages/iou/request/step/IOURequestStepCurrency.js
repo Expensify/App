@@ -82,9 +82,7 @@ function IOURequestStepCurrency({
      */
     const confirmCurrencySelection = (option) => {
         Keyboard.dismiss();
-        if (pageIndex !== 'confirm') {
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
-        }
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
         navigateBack(option.currencyCode);
     };
 

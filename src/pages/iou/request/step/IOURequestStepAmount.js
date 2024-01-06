@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -62,15 +62,16 @@ function IOURequestStepAmount({
         params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transaction,
-    transaction: {currency: originalCurrency},
+    transaction: {currency: currentCurrency},
     policyTaxRates,
     policy,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
+    const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
-    const currency = selectedCurrency || originalCurrency;
+    const currency = selectedCurrency || currentCurrency;
 
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
@@ -87,6 +88,17 @@ function IOURequestStepAmount({
         }, []),
     );
 
+    useEffect(() => {
+        IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currentCurrency);
+        return () => {
+            if (isSaveButtonPressed.current) {
+                return;
+            }
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction.originalCurrency);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
     };
@@ -99,6 +111,7 @@ function IOURequestStepAmount({
      * @param {Number} amount
      */
     const navigateToNextPage = ({amount}) => {
+        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {

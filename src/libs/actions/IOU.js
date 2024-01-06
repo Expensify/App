@@ -200,6 +200,14 @@ function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
 
 /**
  * @param {String} transactionID
+ * @param {String} originalCurrency
+ */
+function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, originalCurrency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
+}
+
+/**
+ * @param {String} transactionID
  * @param {String} comment
  */
 function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment) {
@@ -3566,6 +3574,7 @@ export {
     setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated_temporaryForRefactor,
     setMoneyRequestCurrency_temporaryForRefactor,
+    setMoneyRequestOriginalCurrency_temporaryForRefactor,
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
