@@ -90,9 +90,9 @@ type LinkMetadata = {
 };
 
 type Person = {
-    type: string;
+    type?: string;
     style?: string;
-    text: string;
+    text?: string;
 };
 
 type ReportActionBase = {
@@ -201,4 +201,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, Person};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata};

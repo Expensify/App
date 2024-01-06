@@ -21,7 +21,7 @@ type ReportActionItemFragmentProps = {
     accountID: number;
 
     /** The message fragment needing to be displayed */
-    fragment: Message;
+    fragment: Message,
 
     /** Message(text) of an IOU report action */
     iouMessage?: string;
