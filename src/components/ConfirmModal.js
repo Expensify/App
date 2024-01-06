@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ConfirmContent from './ConfirmContent';
 import sourcePropTypes from './Image/sourcePropTypes';
@@ -95,6 +97,7 @@ const defaultProps = {
 };
 
 function ConfirmModal(props) {
+    const styles = useThemeStyles();
     return (
         <Modal
             onSubmit={props.onConfirm}
@@ -103,6 +106,7 @@ function ConfirmModal(props) {
             shouldSetModalVisibility={props.shouldSetModalVisibility}
             onModalHide={props.onModalHide}
             type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            innerContainerStyle={!_.isNull(props.image) && styles.pt0}
         >
             <ConfirmContent
                 title={props.title}
