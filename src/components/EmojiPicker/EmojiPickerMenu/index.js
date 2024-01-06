@@ -374,11 +374,11 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             isUsingKeyboardMovement,
             highlightFirstEmoji,
             singleExecution,
-            styles.emojiHeaderContainer,
-            styles.mh4,
-            styles.textLabelSupporting,
             translate,
             onEmojiSelected,
+            isSmallScreenWidth,
+            windowWidth,
+            styles,
         ],
     );
 
