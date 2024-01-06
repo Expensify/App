@@ -1,19 +1,20 @@
 import Str from 'expensify-common/lib/str';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import {UseSubStep} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import BeneficialOwnerCheckUBO from './substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
@@ -29,6 +30,7 @@ type BeneficialOwnerInfoOnyxProps = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
+
 type BeneficialOwnerInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
@@ -40,8 +42,13 @@ type BeneficialOwnerInfoProps = {
     setIsBeneficialOwnerInfoSet: (newState: boolean) => void;
 } & BeneficialOwnerInfoOnyxProps;
 
-// @ts-expect-error TODO: fix later
-const BODY_CONTENT: UseSubStep['bodyContent'] = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
+const BODY_CONTENT: Array<React.ComponentType<SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>> = [
+    LegalNameUBO,
+    DateOfBirthUBO,
+    SocialSecurityNumberUBO,
+    AddressUBO,
+    ConfirmationUBO,
+];
 const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
@@ -115,7 +122,11 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         prevScreen,
         moveTo,
         resetScreenIndex,
-    } = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: handleBeneficialOwnerDetailsFormSubmit});
+    } = useSubStep<{beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>({
+        bodyContent: BODY_CONTENT,
+        startFrom: 0,
+        onFinished: handleBeneficialOwnerDetailsFormSubmit,
+    });
 
     const prepareBeneficialOwnerDetailsForm = () => {
         const beneficialOwnerID = Str.guid();
@@ -207,7 +218,6 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     };
 
     return (
-        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={BeneficialOwnerInfo.displayName}
             includeSafeAreaPaddingBottom={false}
@@ -246,7 +256,6 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
             {currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && (
                 <BeneficialOwnerDetailsForm
                     isEditing={isEditing}
-                    // @ts-expect-error TODO: fix later
                     beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
                     setBeneficialOwnerBeingModifiedID={setBeneficialOwnerBeingModifiedID}
                     onNext={nextScreen}

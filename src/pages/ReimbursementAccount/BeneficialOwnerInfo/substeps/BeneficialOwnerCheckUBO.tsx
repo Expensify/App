@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
-import RadioButtons, {Choice} from '@components/RadioButtons';
+import type {Choice} from '@components/RadioButtons';
+import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -21,12 +22,12 @@ type BeneficialOwnerCheckUBOProps = {
 function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: BeneficialOwnerCheckUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [value, setValue] = useState(defaultValue.toString());
+    const [value, setValue] = useState(defaultValue);
 
     const handleSubmit = () => {
-        onSelectedValue(value === 'true');
+        onSelectedValue(value);
     };
-    const handleSelectUBOValue = (newValue: string) => setValue(newValue);
+    const handleSelectUBOValue = (newValue: string) => setValue(newValue === 'true');
     const options = useMemo<Choice[]>(
         () => [
             {
@@ -42,11 +43,9 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
     );
 
     return (
-        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={BeneficialOwnerCheckUBO.displayName}
             style={[styles.pt0]}
-            scrollEnabled
         >
             {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider

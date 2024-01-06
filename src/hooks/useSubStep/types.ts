@@ -1,4 +1,4 @@
-import {ComponentType} from 'react';
+import type {ComponentType} from 'react';
 
 type SubStepProps = {
     /** value indicating whether user is editing one of the sub steps */
@@ -17,9 +17,9 @@ type SubStepProps = {
     prevScreen?: () => void;
 };
 
-type UseSubStep = {
+type UseSubStep<T = void> = {
     /** array of components that will become sub steps */
-    bodyContent: Array<ComponentType<SubStepProps>>;
+    bodyContent: Array<ComponentType<SubStepProps & T>>;
 
     /** called on last sub step  */
     onFinished: () => void;
