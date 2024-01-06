@@ -37,10 +37,9 @@ type TextCommentFragmentProps = {
     iouMessage?: string;
 };
 
-function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentProps) {
+function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {fragment, styleAsDeleted} = props;
     const {html = '', text} = fragment;
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -59,7 +58,7 @@ function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentPro
 
         return (
             <RenderCommentHTML
-                source={props.source}
+                source={source}
                 html={htmlWithTag}
             />
         );
@@ -69,16 +68,16 @@ function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentPro
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     return (
-        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, props.style]}>
+        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
             <ZeroWidthView
                 text={text}
-                displayAsGroup={props.displayAsGroup}
+                displayAsGroup={displayAsGroup}
             />
             <Text
                 style={[
                     containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                     styles.ltr,
-                    props.style,
+                    style,
                     styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                     !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
                 ]}
@@ -96,7 +95,7 @@ function TextCommentFragment({iouMessage = '', ...props}: TextCommentFragmentPro
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, props.style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>
