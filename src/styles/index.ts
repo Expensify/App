@@ -3311,6 +3311,7 @@ const styles = (theme: ThemeColors) =>
             marginRight: 4,
         },
 
+        // For a bug with FlashList https://github.com/Expensify/App/issues/33709
         stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
             ({
                 position: 'absolute',
