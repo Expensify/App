@@ -158,6 +158,15 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transactionTag, transaction.transactionID, report.reportID],
     );
 
+    const saveCategory = useCallback(
+        ({category: newCategory}) => {
+            let updatedCategory = newCategory === transactionCategory ? '' : newCategory;
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
+            Navigation.dismissModal();
+        },
+        [transactionCategory, transaction.transactionID, report.reportID],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -229,14 +238,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             <EditRequestCategoryPage
                 defaultCategory={transactionCategory}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedCategory = transactionChanges.category;
-                    // In case the same category has been selected, do reset of the category.
-                    if (transactionCategory === updatedCategory) {
-                        updatedCategory = '';
-                    }
-                    editMoneyRequest({category: updatedCategory});
-                }}
+                onSubmit={saveCategory}
             />
         );
     }
