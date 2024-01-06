@@ -1,18 +1,19 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
 import Picker from '@components/Picker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount} from '@src/types/onyx';
-import {FormValues} from '@src/types/onyx/Form';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccount} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type TypeBusinessOnyxProps = {
     /** Reimbursement account from ONYX */

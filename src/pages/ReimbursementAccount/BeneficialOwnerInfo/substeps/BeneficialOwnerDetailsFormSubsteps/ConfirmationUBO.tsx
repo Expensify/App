@@ -1,7 +1,7 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,13 +9,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 
 type ConfirmationUBOOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -33,11 +33,9 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
     const error = reimbursementAccount ? ErrorUtils.getLatestErrorMessage(reimbursementAccount) : '';
 
     return (
-        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={ConfirmationUBO.displayName}
             style={[styles.pt0]}
-            scrollEnabled
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>

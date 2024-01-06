@@ -1,7 +1,8 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import type {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,16 +11,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
-import {FormValues} from '@src/types/onyx/Form';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type ConfirmationBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -56,11 +57,9 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
     const defaultCheckboxState = reimbursementAccountDraft?.[businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
 
     return (
-        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript
         <ScreenWrapper
             testID={ConfirmationBusiness.displayName}
             style={[styles.pt0]}
-            scrollEnabled
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb0]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>

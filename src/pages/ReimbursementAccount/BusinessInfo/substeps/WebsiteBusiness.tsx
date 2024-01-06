@@ -1,21 +1,22 @@
 import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount, Session, User} from '@src/types/onyx';
-import {FormValues} from '@src/types/onyx/Form';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccount, Session, User} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type WebsiteBusinessOnyxProps = {
     /** Reimbursement account from ONYX */

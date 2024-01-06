@@ -1,7 +1,8 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import Button, {ButtonProps} from '@components/Button';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -15,7 +16,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 
 const reimbursementAccountDefault = {
     achData: {
@@ -101,11 +102,9 @@ function CompanyOwnersListUBO({
         });
 
     return (
-        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={CompanyOwnersListUBO.displayName}
             style={[styles.pt0]}
-            scrollEnabled
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textHeadline]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
