@@ -23,13 +23,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
@@ -58,9 +58,6 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Indicates whether the app is loading initial data */
-    isLoadingReportData: PropTypes.bool,
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user accountID */
@@ -73,7 +70,6 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    isLoadingReportData: true,
     session: {
         accountID: 0,
     },
@@ -104,7 +100,7 @@ function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
-    const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const originalFileName = lodashGet(details, 'originalFileName', '');
@@ -126,14 +122,14 @@ function ProfilePage(props) {
 
     const isCurrentUser = props.session.accountID === accountID;
     const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
+    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
-    const hasStatus = !!statusEmojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
@@ -148,10 +144,7 @@ function ProfilePage(props) {
     }, [accountID, hasMinimumDetails]);
 
     return (
-        <ScreenWrapper
-            testID={ProfilePage.displayName}
-            shouldEnableAutoFocus
-        >
+        <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -172,7 +165,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar
@@ -258,7 +251,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
@@ -291,12 +284,6 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         session: {
             key: ONYXKEYS.SESSION,

@@ -5,17 +5,18 @@ import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import useThemeStyles from '@styles/useThemeStyles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,7 +87,7 @@ function ReportWelcomeMessagePage(props) {
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
@@ -95,11 +96,12 @@ function ReportWelcomeMessagePage(props) {
                 >
                     <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el) => {
@@ -112,11 +114,10 @@ function ReportWelcomeMessagePage(props) {
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
-                            inputStyle={[styles.verticalAlignTop]}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

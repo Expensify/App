@@ -4,14 +4,14 @@ import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepCont
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import StepWrapperPropTypes from './StepWrapperPropTypes';
 
 function StepWrapper({
     title = '',
     stepCounter = null,
-    onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings,
+    onBackButtonPress = () => TwoFactorAuthActions.quitAndNavigateBack(),
     children = null,
     shouldEnableKeyboardAvoidingView = true,
     onEntryTransitionEnd,

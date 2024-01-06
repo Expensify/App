@@ -9,12 +9,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsList from '@components/OptionsList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,14 +56,15 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails, translate) =>
-    _.chain(ReportUtils.getParticipantsIDs(report))
+    _.chain(ReportUtils.getVisibleMemberIDs(report))
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
             return {
                 alternateText: userLogin,
-                displayName: userPersonalDetail.displayName,
+                displayName,
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
@@ -74,9 +76,9 @@ const getAllParticipants = (report, personalDetails, translate) =>
                 ],
                 keyForList: `${index}-${userLogin}`,
                 login: userLogin,
-                text: userPersonalDetail.displayName,
+                text: displayName,
                 tooltipText: userLogin,
-                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
+                participantsList: [{accountID, displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
