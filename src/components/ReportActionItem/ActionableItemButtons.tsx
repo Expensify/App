@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import useLocalize from '@hooks/useLocalize';
 
 type ActionableItem = {
