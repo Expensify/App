@@ -4,7 +4,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,7 +17,6 @@ import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -99,74 +98,68 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
-// Set a longer timeout for Safari on mobile due to FlatList issues.
-const TIMEOUT = Browser.isSafari() || Browser.isMobileSafari ? 200 : 100;
+let listIDCount = 1;
+const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
+    const [edgeID, setEdgeID] = useState();
+    const isCuttingForFirstRender = useRef(true);
 
-const useHandleList = (linkedID, messageArray, fetchFn, route) => {
-    const [edgeID, setEdgeID] = useState(linkedID);
-    const [listID, setListID] = useState(() => Math.round(Math.random() * 100));
-    const isFirstRender = useRef(true);
+    useLayoutEffect(() => {
+        setEdgeID();
+    }, [route, linkedID]);
+
+    const listID = useMemo(() => {
+        isCuttingForFirstRender.current = true;
+        listIDCount += 1;
+        return listIDCount;
+    }, [route]);
+
 
     const index = useMemo(() => {
         if (!linkedID) {
             return -1;
         }
 
-        return messageArray.findIndex((obj) => String(obj.reportActionID) === String(edgeID || linkedID));
-    }, [messageArray, linkedID, edgeID]);
-
-    useMemo(() => {
-        // Clear edgeID before navigating to a linked message
-        requestAnimationFrame(() => {
-            isFirstRender.current = true;
-            setEdgeID('');
-        });
-    }, [route, linkedID]);
+        const indx = messageArray.findIndex((obj) => String(obj.reportActionID) === String(isCuttingForFirstRender.current ? linkedID : edgeID));
+        return indx;
+    }, [messageArray, edgeID, linkedID]);
 
     const cattedArray = useMemo(() => {
-        if (!linkedID || index === -1) {
+        if (!linkedID) {
             return messageArray;
         }
-        if (isFirstRender.current) {
-            // On first render, position the view at the linked message
-            setListID((i) => i + 1);
+        if (isLoading || index === -1) {
+            return [];
+        }
+
+        if (isCuttingForFirstRender.current) {
             return messageArray.slice(index, messageArray.length);
-        } else if (edgeID) {
-            // On subsequent renders, load additional messages
-            const amountOfItemsBeforeLinkedOne = 20;
+        } else {
+            const amountOfItemsBeforeLinkedOne = 15;
             const newStartIndex = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
             return newStartIndex ? messageArray.slice(newStartIndex, messageArray.length) : messageArray;
         }
-        return messageArray;
-    }, [linkedID, messageArray, edgeID, index]);
+    }, [linkedID, messageArray, index, isLoading, edgeID]);
 
     const hasMoreCashed = cattedArray.length < messageArray.length;
-
-    const debouncedSetEdgeID = _.throttle((firstReportActionID) => {
-        setEdgeID(firstReportActionID);
-    }, 200);
 
     const paginate = useCallback(
         ({firstReportActionID}) => {
             // This function is a placeholder as the actual pagination is handled by cattedArray
             // It's here if you need to trigger any side effects during pagination
             if (!hasMoreCashed) {
-                // Fetch new messages if all current messages have been shown
+                isCuttingForFirstRender.current = false;
                 fetchFn();
-                setEdgeID(firstReportActionID);
-                return;
             }
-            if (isFirstRender.current) {
-                isFirstRender.current = false;
-                // Delay to ensure the linked message is displayed correctly.
-                setTimeout(() => {
+            if (isCuttingForFirstRender.current) {
+                isCuttingForFirstRender.current = false;
+                InteractionManager.runAfterInteractions(() => {
                     setEdgeID(firstReportActionID);
-                }, TIMEOUT);
+                });
             } else {
-                debouncedSetEdgeID(firstReportActionID);
+                setEdgeID(firstReportActionID);
             }
         },
-        [setEdgeID, fetchFn, hasMoreCashed],
+        [fetchFn, hasMoreCashed],
     );
 
     return {
@@ -216,8 +209,12 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, newestReportAction],
     );
 
-    const {cattedArray: reportActions, fetchFunc, linkedIdIndex, listID} = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route);
-
+    const {
+        cattedArray: reportActions,
+        fetchFunc,
+        linkedIdIndex,
+        listID,
+    } = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route, !!reportActionID && props.isLoadingInitialReportActions);
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
     const oldestReportAction = _.last(reportActions);
@@ -338,6 +335,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const handleLoadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         () => {
+            if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions) {
+                return;
+            }
             const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
             const SPACER = 30;
             const isContentSmallerThanList = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
