@@ -415,7 +415,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         );
     }
 
-    if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
+    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
