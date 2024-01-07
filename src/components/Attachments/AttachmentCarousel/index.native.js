@@ -131,7 +131,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 initialPage={page}
                                 scrollEnabled={isZoomedOut}
                                 activeSource={activeSource}
-                                onTap={() => setShouldShowArrows(!shouldShowArrows)}
+                                onTap={() => {
+                                    if (!isZoomedOut) {
+                                        return;
+                                    }
+                                    setShouldShowArrows(!shouldShowArrows);
+                                }}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                                 onScaleChanged={handleScaleChange}
                                 ref={pagerRef}
