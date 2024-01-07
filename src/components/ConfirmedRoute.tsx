@@ -1,6 +1,6 @@
 import React, {ReactNode, useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,9 +8,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {MapboxAccessToken, Transaction} from '@src/types/onyx';
-import {WaypointCollection} from '@src/types/onyx/Transaction';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
@@ -97,7 +97,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                         location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
                     }}
-                    directionCoordinates={coordinates}
+                    directionCoordinates={coordinates as [number, number][]}
                     style={[styles.mapView, styles.br4]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
