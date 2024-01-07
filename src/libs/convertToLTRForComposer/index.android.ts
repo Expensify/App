@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import ConvertToLTRForComposer from './types';
+import type ConvertToLTRForComposer from './types';
 
 /**
  * Android only - The composer can be converted to LTR if its content is the LTR character followed by an @ or space
