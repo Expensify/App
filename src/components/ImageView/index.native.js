@@ -31,7 +31,7 @@ function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zo
 
     return (
         <Lightbox
-            source={url}
+            uri={url}
             zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}

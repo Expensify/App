@@ -32,7 +32,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** The width and height of the content.
      *  This is needed in order to properly scale the content in the canvas
      */
-    contentSize: ContentSize;
+    contentSize?: ContentSize;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: ZoomRange;

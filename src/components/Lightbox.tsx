@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ImageSourcePropType, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Image from './Image';
 import MultiGestureCanvas, {defaultZoomRange} from './MultiGestureCanvas';
-import type {OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
+import type {ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
 import * as MultiGestureCanvasUtils from './MultiGestureCanvas/utils';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
@@ -17,27 +17,16 @@ const DEFAULT_IMAGE_DIMENSIONS = {
     height: DEFAULT_IMAGE_SIZE,
 };
 
-type LightboxImageDimension = {
-    lightboxSize?: {
-        width: number;
-        height: number;
-    };
-    fallbackSize?: {
-        width: number;
-        height: number;
-    };
-};
+const cachedImageDimensions = new Map<string, ContentSize | undefined>();
 
-const cachedDimensions = new Map<ImageSourcePropType, LightboxImageDimension>();
-
-type ImageOnLoadEvent = NativeSyntheticEvent<{width: number; height: number}>;
+type ImageOnLoadEvent = NativeSyntheticEvent<ContentSize>;
 
 type LightboxProps = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: boolean;
 
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: ImageSourcePropType;
+    /** URI to full-sized attachment, SVG function, or numeric static image on native platforms */
+    uri: string;
 
     /** Triggers whenever the zoom scale changes */
     onScaleChanged: OnScaleChangedCallback;
@@ -66,7 +55,7 @@ type LightboxProps = {
  */
 function Lightbox({
     isAuthTokenRequired = false,
-    source,
+    uri,
     onScaleChanged,
     onError,
     style,
@@ -77,25 +66,49 @@ function Lightbox({
 }: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
-    const [containerSize, setContainerSize] = useState({width: 0, height: 0});
-    const isContainerLoaded = containerSize.width !== 0 && containerSize.height !== 0;
-
-    const [imageDimensions, setInternalImageDimensions] = useState(() => cachedDimensions.get(source));
-    const setImageDimensions = useCallback(
-        (newDimensions: LightboxImageDimension) => {
-            setInternalImageDimensions(newDimensions);
-            cachedDimensions.set(source, newDimensions);
-        },
-        [source],
+    const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
+    const isCanvasLoaded = canvasSize.width !== 0 && canvasSize.height !== 0;
+    const updateCanvasSize = useCallback(
+        ({
+            nativeEvent: {
+                layout: {width, height},
+            },
+        }: LayoutChangeEvent) => setCanvasSize({width: PixelRatio.roundToNearestPixel(width), height: PixelRatio.roundToNearestPixel(height)}),
+        [],
     );
+
+    const [contentSize, setInternalContentSize] = useState(() => cachedImageDimensions.get(uri));
+    const setContentSize = useCallback(
+        (newContentSize: ContentSize | undefined) => {
+            setInternalContentSize(newContentSize);
+            cachedImageDimensions.set(uri, newContentSize);
+        },
+        [uri],
+    );
+    const updateContentSize = useCallback(
+        ({nativeEvent: {width, height}}: ImageOnLoadEvent) => setContentSize({width: width * PixelRatio.get(), height: height * PixelRatio.get()}),
+        [setContentSize],
+    );
+    const contentLoaded = contentSize != null;
 
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
-    const [isImageLoaded, setImageLoaded] = useState(false);
 
     const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
     const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
-    const [isFallbackLoaded, setFallbackLoaded] = useState(false);
+    const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
+    const fallbackSize = useMemo(() => {
+        if (!hasSiblingCarouselItems || contentSize == null || canvasSize.width === 0 || canvasSize.height === 0) {
+            return DEFAULT_IMAGE_DIMENSIONS;
+        }
+
+        const {minScale} = MultiGestureCanvasUtils.getCanvasFitScale({canvasSize, contentSize});
+
+        return {
+            width: PixelRatio.roundToNearestPixel(contentSize.width * minScale),
+            height: PixelRatio.roundToNearestPixel(contentSize.height * minScale),
+        };
+    }, [canvasSize, hasSiblingCarouselItems, contentSize]);
 
     const isLightboxInRange = useMemo(() => {
         // @ts-expect-error TS will throw an error here because -1 and the constantly set number have no overlap
@@ -108,31 +121,17 @@ function Lightbox({
         const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
         return !indexOutOfRange;
     }, [activeIndex, index]);
-    const [isLightboxLoaded, setLightboxLoaded] = useState(false);
-    const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
+    const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
+    const isLightboxVisible = isLightboxInRange && (isActive || isLightboxImageLoaded || isFallbackImageLoaded);
 
     // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
     // so that we don't see two overlapping images at the same time.
+    // We cannot NOT render it, because we need to render the Lightbox to get the correct dimensions for the fallback image.
     // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
     // because it's only going to be rendered after the fallback image is hidden.
     const shouldHideLightbox = hasSiblingCarouselItems && isFallbackVisible;
 
-    const isLoading = isActive && (!isContainerLoaded || !isImageLoaded);
-
-    const updateCanvasSize = useCallback(
-        ({nativeEvent}: LayoutChangeEvent) =>
-            setContainerSize({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)}),
-        [],
-    );
-
-    const updateContentSize = useCallback(
-        (e: ImageOnLoadEvent) => {
-            const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
-            const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
-            setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
-        },
-        [imageDimensions, setImageDimensions],
-    );
+    const isLoading = isActive && (!isCanvasLoaded || !contentLoaded);
 
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
@@ -149,8 +148,8 @@ function Lightbox({
         if (isLightboxVisible) {
             return;
         }
-        setImageLoaded(false);
-    }, [isLightboxVisible]);
+        setContentSize(undefined);
+    }, [isLightboxVisible, setContentSize]);
 
     useEffect(() => {
         if (!hasSiblingCarouselItems) {
@@ -158,64 +157,47 @@ function Lightbox({
         }
 
         if (isActive) {
-            if (isImageLoaded && isFallbackVisible) {
+            if (contentLoaded && isFallbackVisible) {
                 // We delay hiding the fallback image while image transformer is still rendering
                 setTimeout(() => {
                     setFallbackVisible(false);
-                    setFallbackLoaded(false);
+                    setFallbackImageLoaded(false);
                 }, 100);
             }
         } else {
-            if (isLightboxVisible && isLightboxLoaded) {
+            if (isLightboxVisible && isLightboxImageLoaded) {
                 return;
             }
 
             // Show fallback when the image goes out of focus or when the image is loading
             setFallbackVisible(true);
         }
-    }, [hasSiblingCarouselItems, isActive, isImageLoaded, isFallbackVisible, isLightboxLoaded, isLightboxVisible]);
-
-    const fallbackSize = useMemo(() => {
-        if (!hasSiblingCarouselItems || (imageDimensions?.lightboxSize == null && imageDimensions?.fallbackSize == null) || containerSize.width === 0 || containerSize.height === 0) {
-            return DEFAULT_IMAGE_DIMENSIONS;
-        }
-
-        // If the lightbox size is null, we know that fallback size must not be null, because otherwise we would have returned early
-        // TypeScript doesn't recognize that, so we need to use the non-null assertion operator
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const imageSize = imageDimensions?.lightboxSize ?? imageDimensions.fallbackSize!;
-
-        const {minScale} = MultiGestureCanvasUtils.getCanvasFitScale({canvasSize: containerSize, contentSize: imageSize});
-
-        return {
-            width: PixelRatio.roundToNearestPixel(imageSize.width * minScale),
-            height: PixelRatio.roundToNearestPixel(imageSize.height * minScale),
-        };
-    }, [containerSize, hasSiblingCarouselItems, imageDimensions]);
+    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible, contentLoaded]);
 
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
-            {isContainerLoaded && (
+            {isCanvasLoaded && (
                 <>
-                    {isLightboxVisible && imageDimensions?.lightboxSize != null && (
+                    {isLightboxVisible && (
                         <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
                                 onScaleChanged={onScaleChanged}
-                                canvasSize={containerSize}
-                                contentSize={imageDimensions.lightboxSize}
+                                canvasSize={canvasSize}
+                                contentSize={contentSize}
                                 zoomRange={zoomRange}
                             >
                                 <Image
-                                    source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize ?? {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
+                                    isActive={isActive}
+                                    source={{uri}}
+                                    style={contentSize ?? DEFAULT_IMAGE_DIMENSIONS}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoad={updateContentSize}
-                                    onLoadEnd={() => setLightboxLoaded(true)}
+                                    onLoadEnd={() => setLightboxImageLoaded(true)}
                                 />
                             </MultiGestureCanvas>
                         </View>
@@ -225,12 +207,12 @@ function Lightbox({
                     {isFallbackVisible && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             <Image
-                                source={{uri: source}}
+                                source={{uri}}
                                 resizeMode="contain"
                                 style={fallbackSize}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoad={updateContentSize}
-                                onLoadEnd={() => setFallbackLoaded(true)}
+                                onLoadEnd={() => setFallbackImageLoaded(true)}
                             />
                         </View>
                     )}
