@@ -94,7 +94,7 @@ function CarouselItem({item, onPress}) {
                 <AttachmentView
                     source={item.source}
                     file={item.file}
-                    onPresS={onPress}
+                    onPress={onPress}
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     transactionID={item.transactionID}
                 />
