@@ -2,6 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {RefObject} from 'react';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -36,6 +37,9 @@ type PopoverMenuItem = {
 
     /** Icon Height */
     iconHeight?: number;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
 
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor?: boolean;
@@ -158,6 +162,7 @@ function PopoverMenu({
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
+                        iconStyles={item.iconStyles}
                         contentFit={item.contentFit}
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
