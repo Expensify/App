@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
