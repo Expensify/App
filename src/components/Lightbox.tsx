@@ -1,82 +1,93 @@
-/* eslint-disable es/no-optional-chaining */
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {ImageSourcePropType, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
-import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
-import MultiGestureCanvas from './MultiGestureCanvas';
-import getCanvasFitScale from './MultiGestureCanvas/utils';
+import MultiGestureCanvas, {defaultZoomRange} from './MultiGestureCanvas';
+import type {OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
+import * as MultiGestureCanvasUtils from './MultiGestureCanvas/utils';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
 // The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
 // -1 means unlimited
 const NUMBER_OF_CONCURRENT_LIGHTBOXES = 3;
+const DEFAULT_IMAGE_SIZE = 200;
+const DEFAULT_IMAGE_DIMENSIONS = {
+    width: DEFAULT_IMAGE_SIZE,
+    height: DEFAULT_IMAGE_SIZE,
+};
 
-const cachedDimensions = new Map();
+type LightboxImageDimension = {
+    lightboxSize?: {
+        width: number;
+        height: number;
+    };
+    fallbackSize?: {
+        width: number;
+        height: number;
+    };
+};
+
+const cachedDimensions = new Map<ImageSourcePropType, LightboxImageDimension>();
+
+type ImageOnLoadEvent = NativeSyntheticEvent<{width: number; height: number}>;
+
+type LightboxProps = {
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: boolean;
+
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: ImageSourcePropType;
+
+    /** Triggers whenever the zoom scale changes */
+    onScaleChanged: OnScaleChangedCallback;
+
+    /** Handles errors while displaying the image */
+    onError: () => void;
+
+    /** Additional styles to add to the component */
+    style: StyleProp<ViewStyle>;
+
+    /** The index of the carousel item */
+    index: number;
+
+    /** The index of the currently active carousel item */
+    activeIndex: number;
+
+    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
+    hasSiblingCarouselItems: boolean;
+
+    /** Range of zoom that can be applied to the content by pinching or double tapping. */
+    zoomRange: ZoomRange;
+};
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-const propTypes = {
-    // TODO: Add TS types for zoom range
-    // ...zoomRangePropTypes,
-
-    /** Triggers whenever the zoom scale changes */
-    onScaleChanged: PropTypes.func,
-
-    /** Function for handle on press */
-    onPress: PropTypes.func,
-
-    /** Handles errors while displaying the image */
-    onError: PropTypes.func,
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-    /** Whether source url requires authentication */
-    isAuthTokenRequired: PropTypes.bool,
-
-    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
-    hasSiblingCarouselItems: PropTypes.bool,
-
-    /** The index of the carousel item */
-    index: PropTypes.number,
-
-    /** The index of the currently active carousel item */
-    activeIndex: PropTypes.number,
-
-    /** Additional styles to add to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-};
-
-const defaultProps = {
-    // TODO: Add TS default values
-    // ...zoomRangeDefaultProps,
-
-    isAuthTokenRequired: false,
-    index: 0,
-    activeIndex: 0,
-    hasSiblingCarouselItems: false,
-    onScaleChanged: () => {},
-    onPress: () => {},
-    onError: () => {},
-    style: {},
-};
-
-const DEFAULT_IMAGE_SIZE = 200;
-
-function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, index, activeIndex, hasSiblingCarouselItems, zoomRange}) {
+function Lightbox({
+    isAuthTokenRequired = false,
+    source,
+    onScaleChanged,
+    onError,
+    style,
+    index = 0,
+    activeIndex = 0,
+    hasSiblingCarouselItems = false,
+    zoomRange = defaultZoomRange,
+}: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
     const isContainerLoaded = containerSize.width !== 0 && containerSize.height !== 0;
 
-    const [imageDimensions, _setImageDimensions] = useState(() => cachedDimensions.get(source));
-    const setImageDimensions = (newDimensions) => {
-        _setImageDimensions(newDimensions);
-        cachedDimensions.set(source, newDimensions);
-    };
+    const [imageDimensions, setInternalImageDimensions] = useState(() => cachedDimensions.get(source));
+    const setImageDimensions = useCallback(
+        (newDimensions: LightboxImageDimension) => {
+            setInternalImageDimensions(newDimensions);
+            cachedDimensions.set(source, newDimensions);
+        },
+        [source],
+    );
 
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
@@ -86,8 +97,9 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
     const [isFallbackLoaded, setFallbackLoaded] = useState(false);
 
-    const isLightboxLoaded = imageDimensions?.lightboxSize != null;
     const isLightboxInRange = useMemo(() => {
+        // @ts-expect-error TS will throw an error here because -1 and the constantly set number have no overlap
+        // We can safely ignore this error, because we might change the value in the future
         if (NUMBER_OF_CONCURRENT_LIGHTBOXES === -1) {
             return true;
         }
@@ -96,6 +108,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
         return !indexOutOfRange;
     }, [activeIndex, index]);
+    const [isLightboxLoaded, setLightboxLoaded] = useState(false);
     const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
 
     // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
@@ -107,8 +120,18 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     const isLoading = isActive && (!isContainerLoaded || !isImageLoaded);
 
     const updateCanvasSize = useCallback(
-        ({nativeEvent}) => setContainerSize({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)}),
+        ({nativeEvent}: LayoutChangeEvent) =>
+            setContainerSize({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)}),
         [],
+    );
+
+    const updateContentSize = useCallback(
+        (e: ImageOnLoadEvent) => {
+            const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+            const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
+            setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
+        },
+        [imageDimensions, setImageDimensions],
     );
 
     // We delay setting a page to active state by a (few) millisecond(s),
@@ -154,15 +177,15 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || (imageDimensions?.lightboxSize == null && imageDimensions?.fallbackSize == null) || containerSize.width === 0 || containerSize.height === 0) {
-            return {
-                width: DEFAULT_IMAGE_SIZE,
-                height: DEFAULT_IMAGE_SIZE,
-            };
+            return DEFAULT_IMAGE_DIMENSIONS;
         }
 
-        const imageSize = imageDimensions.lightboxSize || imageDimensions.fallbackSize;
+        // If the lightbox size is null, we know that fallback size must not be null, because otherwise we would have returned early
+        // TypeScript doesn't recognize that, so we need to use the non-null assertion operator
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const imageSize = imageDimensions?.lightboxSize ?? imageDimensions.fallbackSize!;
 
-        const {minScale} = getCanvasFitScale({canvasSize: containerSize, contentSize: imageSize});
+        const {minScale} = MultiGestureCanvasUtils.getCanvasFitScale({canvasSize: containerSize, contentSize: imageSize});
 
         return {
             width: PixelRatio.roundToNearestPixel(imageSize.width * minScale),
@@ -172,32 +195,27 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     return (
         <View
-            onPress={onPress}
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
             {isContainerLoaded && (
                 <>
-                    {isLightboxVisible && (
+                    {isLightboxVisible && imageDimensions?.lightboxSize != null && (
                         <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
                                 onScaleChanged={onScaleChanged}
                                 canvasSize={containerSize}
-                                contentSize={imageDimensions?.lightboxSize}
+                                contentSize={imageDimensions.lightboxSize}
                                 zoomRange={zoomRange}
                             >
                                 <Image
                                     source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
+                                    style={imageDimensions?.lightboxSize ?? {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
-                                    onLoadEnd={() => setImageLoaded(true)}
-                                    onLoad={(e) => {
-                                        const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
-                                        const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
-                                        setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
-                                    }}
+                                    onLoad={updateContentSize}
+                                    onLoadEnd={() => setLightboxLoaded(true)}
                                 />
                             </MultiGestureCanvas>
                         </View>
@@ -211,17 +229,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                 resizeMode="contain"
                                 style={fallbackSize}
                                 isAuthTokenRequired={isAuthTokenRequired}
+                                onLoad={updateContentSize}
                                 onLoadEnd={() => setFallbackLoaded(true)}
-                                onLoad={(e) => {
-                                    const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
-                                    const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
-
-                                    if (imageDimensions?.lightboxSize != null) {
-                                        return;
-                                    }
-
-                                    setImageDimensions({...imageDimensions, fallbackSize: {width, height}});
-                                }}
                             />
                         </View>
                     )}
@@ -239,8 +248,6 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     );
 }
 
-Lightbox.propTypes = propTypes;
-Lightbox.defaultProps = defaultProps;
 Lightbox.displayName = 'Lightbox';
 
 export default Lightbox;
