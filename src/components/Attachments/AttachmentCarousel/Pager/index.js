@@ -98,6 +98,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, scrollEnable
             isPagerSwiping: isPagerSwipingState,
             onTap,
             onScaleChanged,
+            pagerRef,
         }),
         [activePageState, isPagerSwipingState, itemsMeta, onScaleChanged, onTap],
     );
