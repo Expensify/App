@@ -7,7 +7,6 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {defaultZoomRange} from './constants';
-import getCanvasFitScale from './getCanvasFitScale';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
@@ -95,7 +94,7 @@ function MultiGestureCanvas({canvasSize, contentSize: contentSizeProp, zoomRange
     // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors
     // to fit the content inside the canvas
     // We later use the lower of the two scale factors to fit the content inside the canvas
-    const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
+    const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => MultiGestureCanvasUtils.getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
 
     const zoomScale = useSharedValue(1);
 

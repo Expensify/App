@@ -1,5 +1,6 @@
 import {useCallback} from 'react';
 import type {WorkletFunction} from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
+import type {CanvasSize, ContentSize} from './types';
 
 // The spring config is used to determine the physics of the spring animation
 // Details and a playground for testing different configs can be found at
@@ -48,4 +49,16 @@ function useWorkletCallback<Args extends unknown[], ReturnValue = void>(
     return useCallback<(...args: Args) => ReturnValue>(callback, deps) as WorkletFunction<Args, ReturnValue>;
 }
 
-export {SPRING_CONFIG, zoomScaleBounceFactors, clamp, useWorkletCallback};
+type GetCanvasFitScale = (props: {canvasSize: CanvasSize; contentSize: ContentSize}) => {scaleX: number; scaleY: number; minScale: number; maxScale: number};
+
+const getCanvasFitScale: GetCanvasFitScale = ({canvasSize, contentSize}) => {
+    const scaleX = canvasSize.width / contentSize.width;
+    const scaleY = canvasSize.height / contentSize.height;
+
+    const minScale = Math.min(scaleX, scaleY);
+    const maxScale = Math.max(scaleX, scaleY);
+
+    return {scaleX, scaleY, minScale, maxScale};
+};
+
+export {SPRING_CONFIG, zoomScaleBounceFactors, clamp, useWorkletCallback, getCanvasFitScale};
