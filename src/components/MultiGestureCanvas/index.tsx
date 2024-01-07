@@ -6,6 +6,7 @@ import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyl
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {defaultZoomRange} from './constants';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
@@ -13,7 +14,7 @@ import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
 import * as MultiGestureCanvasUtils from './utils';
 
-type MultiGestureCanvasProps = React.PropsWithChildren<{
+type MultiGestureCanvasProps = ChildrenProps & {
     /**
      * Wheter the canvas is currently active (in the screen) or not.
      * Disables certain gestures and functionality
@@ -35,9 +36,16 @@ type MultiGestureCanvasProps = React.PropsWithChildren<{
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: ZoomRange;
-}>;
+};
 
-function MultiGestureCanvas({canvasSize, contentSize: contentSizeProp, zoomRange: zoomRangeProp, isActive = true, onScaleChanged: onScaleChangedProp, children}: MultiGestureCanvasProps) {
+function MultiGestureCanvas({
+    canvasSize,
+    contentSize = {width: 1, height: 1},
+    zoomRange: zoomRangeProp,
+    isActive = true,
+    onScaleChanged: onScaleChangedProp,
+    children,
+}: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -73,14 +81,6 @@ function MultiGestureCanvas({canvasSize, contentSize: contentSizeProp, zoomRange
             onScaleChangedContext(newScale);
         },
         [onScaleChangedContext, onScaleChangedProp],
-    );
-
-    const contentSize = useMemo(
-        () => ({
-            width: contentSizeProp?.width ?? 1,
-            height: contentSizeProp?.height ?? 1,
-        }),
-        [contentSizeProp?.height, contentSizeProp?.width],
     );
 
     const zoomRange = useMemo(
