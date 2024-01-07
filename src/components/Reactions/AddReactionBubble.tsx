@@ -1,81 +1,75 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {Emoji} from '@assets/emojis/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+import type {CloseContextMenuCallback, OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
 
-const propTypes = {
+type AddReactionBubbleProps = {
     /** Whether it is for context menu so we can modify its style */
-    isContextMenu: PropTypes.bool,
+    isContextMenu?: boolean;
 
     /**
      * Called when the user presses on the icon button.
      * Will have a function as parameter which you can call
      * to open the picker.
      */
-    onPressOpenPicker: PropTypes.func,
+    onPressOpenPicker?: (openPicker: OpenPickerCallback) => void;
 
     /**
      * Will get called the moment before the picker opens.
      */
-    onWillShowPicker: PropTypes.func,
+    onWillShowPicker?: (callback: CloseContextMenuCallback) => void;
 
     /**
      * Called when the user selects an emoji.
      */
-    onSelectEmoji: PropTypes.func.isRequired,
+    onSelectEmoji: (emoji: Emoji) => void;
 
     /**
      * ReportAction for EmojiPicker.
      */
-    reportAction: PropTypes.shape({
-        reportActionID: PropTypes.string.isRequired,
-    }),
-
-    ...withLocalizePropTypes,
+    reportAction: ReportAction;
 };
 
-const defaultProps = {
-    isContextMenu: false,
-    onWillShowPicker: () => {},
-    onPressOpenPicker: undefined,
-    reportAction: {},
-};
-
-function AddReactionBubble(props) {
+function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false}: AddReactionBubbleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef();
+    const ref = useRef<View | HTMLDivElement>(null);
+    const {translate} = useLocalize();
+
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
-        const openPicker = (refParam, anchorOrigin) => {
+        const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
-                    props.onSelectEmoji(emojiObject);
+                    onSelectEmoji(emojiObject);
                 },
-                refParam || ref,
+                refParam ?? ref,
                 anchorOrigin,
-                props.onWillShowPicker,
-                props.reportAction.reportActionID,
+                onWillShowPicker,
+                reportAction.reportActionID,
             );
         };
 
-        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
-            if (props.onPressOpenPicker) {
-                props.onPressOpenPicker(openPicker);
+        if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
+            if (onPressOpenPicker) {
+                onPressOpenPicker(openPicker);
             } else {
                 openPicker();
             }
@@ -85,21 +79,21 @@ function AddReactionBubble(props) {
     };
 
     return (
-        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
+        <Tooltip text={translate('emojiReactions.addReactionTooltip')}>
             <PressableWithFeedback
                 ref={ref}
-                style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
+                style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
-                onMouseDown={(e) => {
+                onMouseDown={(event) => {
                     // Allow text input blur when Add reaction is right clicked
-                    if (!e || e.button === 2) {
+                    if (!event || event.button === 2) {
                         return;
                     }
 
                     // Prevent text input blur when Add reaction is left clicked
-                    e.preventDefault();
+                    event.preventDefault();
                 }}
-                accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
+                accessibilityLabel={translate('emojiReactions.addReactionTooltip')}
                 role={CONST.ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
@@ -110,12 +104,12 @@ function AddReactionBubble(props) {
                         {/* This (invisible) text will make the view have the same size as a regular
                emoji reaction. We make the text invisible and put the
                icon on top of it. */}
-                        <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
+                        <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
                                 src={Expensicons.AddReaction}
-                                width={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                height={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                width={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                height={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
@@ -126,8 +120,6 @@ function AddReactionBubble(props) {
     );
 }
 
-AddReactionBubble.propTypes = propTypes;
-AddReactionBubble.defaultProps = defaultProps;
 AddReactionBubble.displayName = 'AddReactionBubble';
 
-export default withLocalize(AddReactionBubble);
+export default AddReactionBubble;

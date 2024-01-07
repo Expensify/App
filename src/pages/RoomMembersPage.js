@@ -174,7 +174,7 @@ function RoomMembersPage(props) {
     const getMemberOptions = () => {
         let result = [];
 
-        _.each(props.report.participantAccountIDs, (accountID) => {
+        _.each(props.report.visibleChatMemberAccountIDs, (accountID) => {
             const details = personalDetails[accountID];
 
             if (!details) {
