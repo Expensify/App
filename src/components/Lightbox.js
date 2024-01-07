@@ -187,7 +187,7 @@ function Lightbox({isAuthTokenRequired, source, onError, style, zoomRange}) {
                         <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
-                                areTransformationsEnabled={isPagerSwiping}
+                                areTransformationsEnabled={!isPagerSwiping}
                                 onTap={onTap}
                                 onScaleChanged={onScaleChanged}
                                 canvasSize={containerSize}
