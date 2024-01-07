@@ -25,7 +25,7 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoom
     return {contentSize, zoomRange};
 }
 
-function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, onScaleChanged, onTap, children, ...props}) {
+function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, onScaleChanged, onTap, children, pagerRef, ...props}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {contentSize, zoomRange} = getDeepDefaultProps(props);
@@ -123,7 +123,7 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
         panTranslateY,
         stopAnimation,
     })
-        .simultaneousWithExternalGesture(singleTapGesture, doubleTapGesture)
+        .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({

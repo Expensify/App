@@ -52,7 +52,7 @@ function Lightbox({isAuthTokenRequired, source, onError, style, zoomRange}) {
     const StyleUtils = useStyleUtils();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {isUsedInCarousel, isSingleCarouselItem, isPagerSwiping, page, activePage, onTap, onScaleChanged} = useMemo(() => {
+    const {isUsedInCarousel, isSingleCarouselItem, isPagerSwiping, page, activePage, onTap, onScaleChanged, pagerRef} = useMemo(() => {
         if (attachmentCarouselPagerContext == null) {
             return {
                 isUsedInCarousel: false,
@@ -193,6 +193,7 @@ function Lightbox({isAuthTokenRequired, source, onError, style, zoomRange}) {
                                 canvasSize={containerSize}
                                 contentSize={imageDimensions?.lightboxSize}
                                 zoomRange={zoomRange}
+                                pagerRef={pagerRef}
                             >
                                 <Image
                                     source={{uri: source}}
