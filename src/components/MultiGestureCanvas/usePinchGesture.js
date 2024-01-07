@@ -141,6 +141,8 @@ const usePinchGesture = ({
             }
 
             const triggerScaleChangeCallback = () => {
+                'worklet';
+
                 if (onScaleChanged == null) {
                     return;
                 }

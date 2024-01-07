@@ -65,12 +65,11 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
     /**
      * Resets the canvas to the initial state and animates back smoothly
      */
-    const reset = MultiGestureCanvasUtils.useWorkletCallback((animated) => {
-        pinchScale.value = 1;
+    const reset = MultiGestureCanvasUtils.useWorkletCallback((animated, callbackProp) => {
+        const callback = callbackProp || (() => {});
 
+        pinchScale.value = 1;
         stopAnimation();
-
-        pinchScale.value = 1;
 
         if (animated) {
             offsetX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
@@ -79,7 +78,7 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
             panTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
             pinchTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            zoomScale.value = withSpring(1, MultiGestureCanvasUtils.SPRING_CONFIG);
+            zoomScale.value = withSpring(1, MultiGestureCanvasUtils.SPRING_CONFIG, callback);
             return;
         }
 
@@ -90,6 +89,8 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
         pinchTranslateX.value = 0;
         pinchTranslateY.value = 0;
         zoomScale.value = 1;
+
+        callback();
     });
 
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({

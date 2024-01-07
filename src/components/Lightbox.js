@@ -24,9 +24,6 @@ const cachedDimensions = new Map();
 const propTypes = {
     ...zoomRangePropTypes,
 
-    /** Triggers whenever the zoom scale changes */
-    onScaleChanged: PropTypes.func,
-
     /** Handles errors while displaying the image */
     onError: PropTypes.func,
 
@@ -51,19 +48,20 @@ const defaultProps = {
 
 const DEFAULT_IMAGE_SIZE = 200;
 
-function Lightbox({isAuthTokenRequired, source, onScaleChanged, onError, style, zoomRange}) {
+function Lightbox({isAuthTokenRequired, source, onError, style, zoomRange}) {
     const StyleUtils = useStyleUtils();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {isUsedInCarousel, isSingleCarouselItem, page, activePage, onTap, isPagerSwiping} = useMemo(() => {
+    const {isUsedInCarousel, isSingleCarouselItem, isPagerSwiping, page, activePage, onTap, onScaleChanged} = useMemo(() => {
         if (attachmentCarouselPagerContext == null) {
             return {
                 isUsedInCarousel: false,
                 isSingleCarouselItem: true,
+                isPagerSwiping: false,
                 page: 0,
                 activePage: 0,
                 onTap: () => {},
-                isPagerSwiping: false,
+                onScaleChanged: () => {},
             };
         }
 
