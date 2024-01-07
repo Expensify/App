@@ -25,7 +25,7 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoom
     return {contentSize, zoomRange};
 }
 
-function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, onScaleChanged, onTap, children, pagerRef, ...props}) {
+function MultiGestureCanvas({canvasSize, isActive, onScaleChanged, onTap, children, isPagerSwiping, pagerRef, ...props}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {contentSize, zoomRange} = getDeepDefaultProps(props);
@@ -94,7 +94,6 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
     });
 
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
-        areTransformationsEnabled,
         canvasSize,
         contentSize,
         minContentScale,
@@ -108,11 +107,11 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
         stopAnimation,
         onScaleChanged,
         onTap,
+        isPagerSwiping,
     });
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGesture = usePanGesture({
-        areTransformationsEnabled,
         canvasSize,
         contentSize,
         zoomScale,
@@ -122,12 +121,12 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
         panTranslateX,
         panTranslateY,
         stopAnimation,
+        isPagerSwiping,
     })
         .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
-        areTransformationsEnabled,
         canvasSize,
         zoomScale,
         zoomRange,
@@ -138,6 +137,7 @@ function MultiGestureCanvas({canvasSize, isActive, areTransformationsEnabled, on
         pinchScale,
         stopAnimation,
         onScaleChanged,
+        isPagerSwiping,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 
     // Trigger a reset when the canvas gets inactive, but only if it was already mounted before

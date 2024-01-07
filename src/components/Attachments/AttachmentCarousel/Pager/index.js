@@ -3,7 +3,7 @@ import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from '
 import {View} from 'react-native';
 import {createNativeWrapper} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
-import Animated, {runOnJS, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
+import Animated, {useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
 import _ from 'underscore';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import refPropTypes from '@components/refPropTypes';
@@ -59,18 +59,10 @@ function AttachmentCarouselPager({items, activeSource, initialPage, scrollEnable
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
 
+    const isPagerSwiping = useSharedValue(false);
     const activePage = useSharedValue(initialPage);
     const [activePageState, setActivePageState] = useState(initialPage);
 
-    // Set active page initially and when initial page changes
-    useEffect(() => {
-        setActivePageState(initialPage);
-        activePage.value = initialPage;
-    }, [activePage, initialPage]);
-
-    const itemsMeta = useMemo(() => _.map(items, (item, index) => ({source: item.source, index, isActive: index === activePageState})), [activePageState, items]);
-
-    const isPagerSwiping = useSharedValue(false);
     const pageScrollHandler = usePageScrollHandler(
         {
             onPageScroll: (e) => {
@@ -83,24 +75,24 @@ function AttachmentCarouselPager({items, activeSource, initialPage, scrollEnable
         [],
     );
 
-    const [isPagerSwipingState, setPagerSwipingState] = useState(false);
-    useAnimatedReaction(
-        () => [isPagerSwiping.value],
-        (isSwiping) => {
-            runOnJS(setPagerSwipingState)(isSwiping);
-        },
-    );
+    // Set active page initially and when initial page changes
+    useEffect(() => {
+        setActivePageState(initialPage);
+        activePage.value = initialPage;
+    }, [activePage, initialPage]);
+
+    const itemsMeta = useMemo(() => _.map(items, (item, index) => ({source: item.source, index, isActive: index === activePageState})), [activePageState, items]);
 
     const contextValue = useMemo(
         () => ({
             itemsMeta,
             activePage: activePageState,
-            isPagerSwiping: isPagerSwipingState,
+            isPagerSwiping,
             onTap,
             onScaleChanged,
             pagerRef,
         }),
-        [activePageState, isPagerSwipingState, itemsMeta, onScaleChanged, onTap],
+        [activePageState, isPagerSwiping, itemsMeta, onScaleChanged, onTap],
     );
 
     useImperativeHandle(

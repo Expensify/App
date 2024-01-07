@@ -7,7 +7,6 @@ import * as MultiGestureCanvasUtils from './utils';
 const DOUBLE_TAP_SCALE = 3;
 
 const useTapGestures = ({
-    areTransformationsEnabled,
     canvasSize,
     contentSize,
     minContentScale,
@@ -20,6 +19,7 @@ const useTapGestures = ({
     stopAnimation,
     onScaleChanged,
     onTap,
+    isPagerSwiping,
 }) => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
@@ -105,7 +105,7 @@ const useTapGestures = ({
 
     const doubleTapGesture = Gesture.Tap()
         .onTouchesDown((_evt, state) => {
-            if (areTransformationsEnabled) {
+            if (!isPagerSwiping.value) {
                 return;
             }
 

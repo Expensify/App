@@ -187,13 +187,13 @@ function Lightbox({isAuthTokenRequired, source, onError, style, zoomRange}) {
                         <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
-                                areTransformationsEnabled={!isPagerSwiping}
                                 onTap={onTap}
                                 onScaleChanged={onScaleChanged}
                                 canvasSize={containerSize}
                                 contentSize={imageDimensions?.lightboxSize}
                                 zoomRange={zoomRange}
                                 pagerRef={pagerRef}
+                                isPagerSwiping={isPagerSwiping}
                             >
                                 <Image
                                     source={{uri: source}}

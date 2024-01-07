@@ -5,7 +5,6 @@ import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-na
 import * as MultiGestureCanvasUtils from './utils';
 
 const usePinchGesture = ({
-    areTransformationsEnabled,
     canvasSize,
     zoomScale,
     zoomRange,
@@ -16,6 +15,7 @@ const usePinchGesture = ({
     pinchScale,
     stopAnimation,
     onScaleChanged,
+    isPagerSwiping,
 }) => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
@@ -72,7 +72,7 @@ const usePinchGesture = ({
         .enabled(pinchEnabled)
         .onTouchesDown((_evt, state) => {
             // We don't want to activate pinch gesture when transformations are disabled
-            if (!areTransformationsEnabled) {
+            if (!isPagerSwiping.value) {
                 return;
             }
 
