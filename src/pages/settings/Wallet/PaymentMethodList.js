@@ -287,10 +287,11 @@ function PaymentMethodList({
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={styles.paymentMethod}
+                ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate],
+        [onPress, styles.paymentMethod, translate, buttonRef],
     );
 
     /**
@@ -344,10 +345,10 @@ function PaymentMethodList({
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
                     onContentSizeChange={onListContentSizeChange}
                     scrollEnabled={shouldEnableScroll}
                 />
+                {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>

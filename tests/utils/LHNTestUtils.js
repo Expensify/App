@@ -256,6 +256,8 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         lastModified: 1697323926777105,
         autoReporting: true,
         autoReportingFrequency: 'immediate',
+        isHarvestingEnabled: true,
+        submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
     };
