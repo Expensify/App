@@ -6,7 +6,21 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
 
-const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentScale, offsetX, offsetY, pinchScale, zoomScale, reset, stopAnimation, onScaleChanged, onTap}) => {
+const useTapGestures = ({
+    areTransformationsEnabled,
+    canvasSize,
+    contentSize,
+    minContentScale,
+    maxContentScale,
+    offsetX,
+    offsetY,
+    pinchScale,
+    zoomScale,
+    reset,
+    stopAnimation,
+    onScaleChanged,
+    onTap,
+}) => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
@@ -88,6 +102,13 @@ const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentSca
     );
 
     const doubleTapGesture = Gesture.Tap()
+        .onTouchesDown((_evt, state) => {
+            if (areTransformationsEnabled) {
+                return;
+            }
+
+            state.fail();
+        })
         .numberOfTaps(2)
         .maxDelay(150)
         .maxDistance(20)

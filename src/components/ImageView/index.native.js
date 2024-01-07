@@ -11,9 +11,6 @@ const propTypes = {
     ...imageViewPropTypes,
     ...zoomRangePropTypes,
 
-    /** Function for handle on press */
-    onPress: PropTypes.func,
-
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
@@ -26,20 +23,14 @@ const defaultProps = {
     style: {},
 };
 
-function ImageView({isAuthTokenRequired, url, onScaleChanged, onPress, style, zoomRange, onError, isUsedInCarousel, isSingleCarouselItem, carouselItemIndex, carouselActiveItemIndex}) {
-    const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
-
+function ImageView({isAuthTokenRequired, url, onScaleChanged, style, zoomRange, onError}) {
     return (
         <Lightbox
             source={url}
             zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}
-            onPress={onPress}
             onError={onError}
-            index={carouselItemIndex}
-            activeIndex={carouselActiveItemIndex}
-            hasSiblingCarouselItems={hasSiblingCarouselItems}
             style={style}
         />
     );

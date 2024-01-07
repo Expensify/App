@@ -29,6 +29,9 @@ const multiGestureCanvasPropTypes = {
      */
     isActive: PropTypes.bool,
 
+    /** Whether pan, pinch and double tap transformations are enabled */
+    areTransformationsEnabled: PropTypes.bool,
+
     /** Handles scale changed event */
     onScaleChanged: PropTypes.func,
 
@@ -64,6 +67,7 @@ const multiGestureCanvasPropTypes = {
 
 const multiGestureCanvasDefaultProps = {
     isActive: true,
+    areTransformationsEnabled: true,
     onScaleChanged: () => undefined,
     contentSize: undefined,
     contentScaling: undefined,

@@ -1,8 +1,10 @@
 /* eslint-disable es/no-optional-chaining */
+import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
+import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
@@ -25,9 +27,6 @@ const propTypes = {
     /** Triggers whenever the zoom scale changes */
     onScaleChanged: PropTypes.func,
 
-    /** Function for handle on press */
-    onPress: PropTypes.func,
-
     /** Handles errors while displaying the image */
     onError: PropTypes.func,
 
@@ -37,15 +36,6 @@ const propTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
-    hasSiblingCarouselItems: PropTypes.bool,
-
-    /** The index of the carousel item */
-    index: PropTypes.number,
-
-    /** The index of the currently active carousel item */
-    activeIndex: PropTypes.number,
-
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
@@ -54,19 +44,38 @@ const defaultProps = {
     ...zoomRangeDefaultProps,
 
     isAuthTokenRequired: false,
-    index: 0,
-    activeIndex: 0,
-    hasSiblingCarouselItems: false,
     onScaleChanged: () => {},
-    onPress: () => {},
     onError: () => {},
     style: {},
 };
 
 const DEFAULT_IMAGE_SIZE = 200;
 
-function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, index, activeIndex, hasSiblingCarouselItems, zoomRange}) {
+function Lightbox({isAuthTokenRequired, source, onScaleChanged, onError, style, zoomRange}) {
     const StyleUtils = useStyleUtils();
+
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {isUsedInCarousel, isSingleCarouselItem, page, activePage, onTap, isPagerSwiping} = useMemo(() => {
+        if (attachmentCarouselPagerContext == null) {
+            return {
+                isUsedInCarousel: false,
+                isSingleCarouselItem: true,
+                page: 0,
+                activePage: 0,
+                onTap: () => {},
+                isPagerSwiping: false,
+            };
+        }
+
+        const foundPageIndex = _.findIndex(attachmentCarouselPagerContext.itemsMeta, (item) => item.source === source);
+        return {
+            ...attachmentCarouselPagerContext,
+            isUsedInCarousel: true,
+            isSingleCarouselItem: attachmentCarouselPagerContext.itemsMeta.length === 1,
+            page: foundPageIndex,
+        };
+    }, [attachmentCarouselPagerContext, source]);
+    const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
 
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
     const isContainerLoaded = containerSize.width !== 0 && containerSize.height !== 0;
@@ -77,8 +86,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         cachedDimensions.set(source, newDimensions);
     };
 
-    const isItemActive = index === activeIndex;
-    const [isActive, setActive] = useState(isItemActive);
+    const isActivePage = page === activePage;
+    const [isActive, setActive] = useState(isActivePage);
     const [isImageLoaded, setImageLoaded] = useState(false);
 
     const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
@@ -92,9 +101,9 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         }
 
         const indexCanvasOffset = Math.floor((NUMBER_OF_CONCURRENT_LIGHTBOXES - 1) / 2) || 0;
-        const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
+        const indexOutOfRange = page > activePage + indexCanvasOffset || page < activePage - indexCanvasOffset;
         return !indexOutOfRange;
-    }, [activeIndex, index]);
+    }, [activePage, page]);
     const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
 
     // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
@@ -114,12 +123,12 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     // to prevent the image transformer from flashing while still rendering
     // Instead, we show the fallback image while the image transformer is loading the image
     useEffect(() => {
-        if (isItemActive) {
+        if (isActivePage) {
             setTimeout(() => setActive(true), 1);
         } else {
             setActive(false);
         }
-    }, [isItemActive]);
+    }, [isActivePage]);
 
     useEffect(() => {
         if (isLightboxVisible) {
@@ -171,7 +180,6 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     return (
         <View
-            onPress={onPress}
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
@@ -181,6 +189,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                         <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
+                                areTransformationsEnabled={isPagerSwiping}
+                                onTap={onTap}
                                 onScaleChanged={onScaleChanged}
                                 canvasSize={containerSize}
                                 contentSize={imageDimensions?.lightboxSize}
