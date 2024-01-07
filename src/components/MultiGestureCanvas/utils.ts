@@ -40,7 +40,7 @@ function clamp(value: number, lowerBound: number, upperBound: number) {
 // eslint-disable-next-line @typescript-eslint/ban-types
 function useWorkletCallback<Args extends unknown[], ReturnValue = void>(
     callback: Parameters<typeof useCallback<(...args: Args) => ReturnValue>>[0],
-    deps: Parameters<typeof useCallback<T>>[1] = [],
+    deps: Parameters<typeof useCallback<(...args: Args) => ReturnValue>>[1] = [],
 ): WorkletFunction<Args, ReturnValue> {
     'worklet';
 

@@ -8,38 +8,39 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {defaultZoomRange} from './constants';
 import getCanvasFitScale from './getCanvasFitScale';
-import type {ContentSize, MultiGestureCanvasProps, ZoomRange} from './types';
+import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
 import * as MultiGestureCanvasUtils from './utils';
 
-type Props = {
-    contentSize?: ContentSize;
-    zoomRange?: ZoomRange;
-};
-type PropsWithDefault = {
+type MultiGestureCanvasProps = React.PropsWithChildren<{
+    /**
+     * Wheter the canvas is currently active (in the screen) or not.
+     * Disables certain gestures and functionality
+     */
+    isActive: boolean;
+
+    /** Handles scale changed event */
+    onScaleChanged: OnScaleChangedCallback;
+
+    /** The width and height of the canvas.
+     *  This is needed in order to properly scale the content in the canvas
+     */
+    canvasSize: CanvasSize;
+
+    /** The width and height of the content.
+     *  This is needed in order to properly scale the content in the canvas
+     */
     contentSize: ContentSize;
-    zoomRange: Required<ZoomRange>;
-};
-const getDeepDefaultProps = ({contentSize: contentSizeProp, zoomRange: zoomRangeProp}: Props): PropsWithDefault => {
-    const contentSize = {
-        width: contentSizeProp?.width ?? 1,
-        height: contentSizeProp?.height ?? 1,
-    };
 
-    const zoomRange = {
-        min: zoomRangeProp?.min ?? defaultZoomRange.min,
-        max: zoomRangeProp?.max ?? defaultZoomRange.max,
-    };
+    /** Range of zoom that can be applied to the content by pinching or double tapping. */
+    zoomRange?: ZoomRange;
+}>;
 
-    return {contentSize, zoomRange};
-};
-
-function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged: onScaleChangedProp, children, ...props}: MultiGestureCanvasProps) {
+function MultiGestureCanvas({canvasSize, contentSize: contentSizeProp, zoomRange: zoomRangeProp, isActive = true, onScaleChanged: onScaleChangedProp, children}: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {contentSize, zoomRange} = getDeepDefaultProps({contentSize: props.contentSize, zoomRange: props.zoomRange});
 
     const pagerRefFallback = useRef<PagerView>(null);
     const shouldPagerScrollFallback = useSharedValue(false);
@@ -64,12 +65,31 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged: onScal
         [attachmentCarouselPagerContext, isSwipingInPagerFallback, shouldPagerScrollFallback],
     );
 
+    /**
+     * Calls the onScaleChanged callback from the both props and the pager context
+     */
     const onScaleChanged = useCallback(
         (newScale: number) => {
             onScaleChangedProp(newScale);
             onScaleChangedContext(newScale);
         },
         [onScaleChangedContext, onScaleChangedProp],
+    );
+
+    const contentSize = useMemo(
+        () => ({
+            width: contentSizeProp?.width ?? 1,
+            height: contentSizeProp?.height ?? 1,
+        }),
+        [contentSizeProp?.height, contentSizeProp?.width],
+    );
+
+    const zoomRange = useMemo(
+        () => ({
+            min: zoomRangeProp?.min ?? defaultZoomRange.min,
+            max: zoomRangeProp?.max ?? defaultZoomRange.max,
+        }),
+        [zoomRangeProp?.max, zoomRangeProp?.min],
     );
 
     // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors

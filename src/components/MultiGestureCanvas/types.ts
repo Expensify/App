@@ -18,30 +18,6 @@ type ZoomRange = {
 
 type OnScaleChangedCallback = (zoomScale: number) => void;
 
-type MultiGestureCanvasProps = React.PropsWithChildren<{
-    /**
-     * Wheter the canvas is currently active (in the screen) or not.
-     * Disables certain gestures and functionality
-     */
-    isActive: boolean;
-
-    /** Handles scale changed event */
-    onScaleChanged: OnScaleChangedCallback;
-
-    /** The width and height of the canvas.
-     * This is needed in order to properly scale the content in the canvas
-     */
-    canvasSize: CanvasSize;
-
-    /** The width and height of the content.
-     * This is needed in order to properly scale the content in the canvas
-     */
-    contentSize: ContentSize;
-
-    /** Range of zoom that can be applied to the content by pinching or double tapping. */
-    zoomRange?: ZoomRange;
-}>;
-
 type MultiGestureCanvasVariables = {
     minContentScale: number;
     maxContentScale: number;
@@ -60,4 +36,4 @@ type MultiGestureCanvasVariables = {
     onTap: () => void;
 };
 
-export type {MultiGestureCanvasProps, CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, MultiGestureCanvasVariables};
+export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, MultiGestureCanvasVariables};
