@@ -2,11 +2,12 @@ import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FrequentlyUsedEmoji} from '@src/types/onyx';
+import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SupportedLanguage} from './EmojiTrie';
@@ -48,13 +49,13 @@ const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): 
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: 'en' | 'es'): string => {
+const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
     const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-    return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
+    return (lang && Emojis.localeEmojis[lang]?.[emojiCode]?.name) ?? '';
 };
 
 /**
@@ -438,8 +439,8 @@ const getPreferredSkinToneIndex = (value: string | number | null): number => {
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
-const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string => {
-    if (emoji.types) {
+const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
+    if (emoji.types && typeof preferredSkinTone === 'number') {
         const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
 
         // Note: it can happen that preferredSkinTone has a outdated format,

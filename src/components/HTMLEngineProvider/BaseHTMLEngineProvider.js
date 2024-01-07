@@ -4,7 +4,7 @@ import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvide
 import _ from 'underscore';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import singleFontFamily from '@styles/utils/fontFamily/singleFontFamily';
+import FontUtils from '@styles/utils/FontUtils';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
@@ -82,7 +82,7 @@ function BaseHTMLEngineProvider(props) {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={_.values(singleFontFamily)}
+            systemFonts={_.values(FontUtils.fontFamily.single)}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),
