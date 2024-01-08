@@ -82,6 +82,12 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** Whether or not the policy requires tags */
+    requiresTag?: boolean;
+
+    /** Whether or not the policy requires categories */
+    requiresCategory?: boolean;
 };
 
 export default Policy;

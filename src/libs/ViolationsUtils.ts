@@ -1,5 +1,6 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -17,11 +18,7 @@ const ViolationsUtils = {
         policyTags: PolicyTags,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
-    ): {
-        onyxMethod: string;
-        key: string;
-        value: TransactionViolation[];
-    } {
+    ): OnyxUpdate {
         let newTransactionViolations = [...transactionViolations];
 
         if (policyRequiresCategories) {

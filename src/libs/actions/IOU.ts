@@ -27,8 +27,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
-import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import ViolationsUtils from '@libs/ViolationsUtils';
+import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -174,7 +174,7 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: Record<string, OnyxTypes.TransactionViolation | null> = {};
+let allTransactionViolations: Record<string, OnyxTypes.TransactionViolation[] | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -352,27 +352,7 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source, filename});
 }
 
-/**
- * Builds the Onyx data for a money request.
- *
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {Object} transaction
- * @param {Object} chatCreatedAction
- * @param {Object} iouCreatedAction
- * @param {Object} iouAction
- * @param {Object} optimisticPersonalDetailListAction
- * @param {Object} reportPreviewAction
- * @param {Array} optimisticPolicyRecentlyUsedCategories
- * @param {Array} optimisticPolicyRecentlyUsedTags
- * @param {boolean} isNewChatReport
- * @param {boolean} isNewIOUReport
- * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
- * @param {Array} policyTags
- * @param {Array} policyCategories
- * @param {Boolean} hasOutstandingChildRequest
- * @returns {Array} - An array containing the optimistic data, success data, and failure data.
- */
+/** Builds the Onyx data for a money request */
 function buildOnyxDataForMoneyRequest(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxTypes.Report,
@@ -386,9 +366,9 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags,
     isNewChatReport: boolean,
     isNewIOUReport: boolean,
-    policy,
-    policyTags,
-    policyCategories,
+    policy?: OnyxTypes.Policy | EmptyObject | undefined,
+    policyTags: OnyxTypes.PolicyTags = {},
+    policyCategories: OnyxTypes.PolicyCategories = {},
     hasOutstandingChildRequest = false,
 ): OnyxUpdate[][] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
@@ -644,18 +624,18 @@ function buildOnyxDataForMoneyRequest(
     ];
 
     // Policy won't be set for P2P cases for which we don't need to compute violations
-    if (!policy || !policy.id) {
+    if (!policy?.id) {
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTags, !!policy.requiresCategory, policyCategories);
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: [],
+            value: null,
         });
     }
 
@@ -681,9 +661,9 @@ function getMoneyRequestInformation(
     category?: string,
     tag?: string,
     billable?: boolean,
-    policy = undefined,
-    policyTags = undefined,
-    policyCategories = undefined,
+    policy?: OnyxTypes.Policy | EmptyObject,
+    policyTags?: OnyxTypes.PolicyTags,
+    policyCategories?: OnyxTypes.PolicyCategories,
 ): MoneyRequestInformation {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -717,10 +697,10 @@ function getMoneyRequestInformation(
     let needsToBeManuallySubmitted = false;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
-        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
 
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !(policy.isHarvestingEnabled || false);
+        needsToBeManuallySubmitted = isFromPaidPolicy && !(!!policy?.isHarvestingEnabled || false);
 
         // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
@@ -876,24 +856,7 @@ function getMoneyRequestInformation(
     };
 }
 
-/**
- * Requests money based on a distance (eg. mileage from a map)
- *
- * @param {Object} report
- * @param {Object} participant
- * @param {String} comment
- * @param {String} created
- * @param {String} [category]
- * @param {String} [tag]
- * @param {Number} amount
- * @param {String} currency
- * @param {String} merchant
- * @param {Boolean} [billable]
- * @param {Object} validWaypoints
- * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
- * @param {Array} policyTags
- * @param {Array} policyCategories
- */
+/** Requests money based on a distance (eg. mileage from a map) */
 function createDistanceRequest(
     report: OnyxTypes.Report,
     participant: Participant,
@@ -906,9 +869,9 @@ function createDistanceRequest(
     merchant: string,
     billable: boolean | undefined,
     validWaypoints: WaypointCollection,
-    policy,
-    policyTags,
-    policyCategories
+    policy: OnyxTypes.Policy | EmptyObject | undefined,
+    policyTags: OnyxTypes.PolicyTags,
+    policyCategories: OnyxTypes.PolicyCategories,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1055,7 +1018,7 @@ function getUpdateMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: {
-                    ...updatedReportAction,
+                    ...(updatedReportAction as OnyxTypes.ReportAction),
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
                 },
             },
@@ -1187,15 +1150,9 @@ function updateMoneyRequestDate(transactionID: string, transactionThreadReportID
     API.write('UpdateMoneyRequestDate', params, onyxData);
 }
 
-/**
- * Updates the created date of a money request
- *
- * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} tag
- */
-function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
-    const transactionChanges = {
+/** Updates the created date of a money request */
+function updateMoneyRequestTag(transactionID: string, transactionThreadReportID: string, tag: string) {
+    const transactionChanges: TransactionChanges = {
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
