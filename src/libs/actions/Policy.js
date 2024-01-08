@@ -1,4 +1,5 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import filter from 'lodash/filter';
@@ -110,13 +111,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedTags = val),
-});
-
-let networkStatus = {};
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    waitForCollectionCallback: true,
-    callback: (val) => (networkStatus = val),
 });
 
 /**
@@ -277,11 +271,19 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
+    // Everyone in special policy rooms is visible
+    const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
-            participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
+            participantAccountIDs,
+            visibleChatMemberAccountIDs: participantAccountIDs,
         },
     });
 
@@ -290,6 +292,7 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: announceReport.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -308,12 +311,17 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
     const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: [...remainUsers],
+            visibleChatMemberAccountIDs: [...remainUsers],
         },
     });
 
@@ -322,6 +330,7 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: announceReport.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -608,10 +617,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
 
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
-
-        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
-        // See https://github.com/Expensify/App/issues/20081 for more details.
-        welcomeNote,
+        welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
@@ -957,7 +963,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
@@ -1297,7 +1303,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                     value: {
-                        [_.keys(announceChatData)[0]]: {
+                        [announceCreatedReportActionID]: {
                             pendingAction: null,
                         },
                     },
@@ -1316,7 +1322,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                     value: {
-                        [_.keys(adminsChatData)[0]]: {
+                        [adminsCreatedReportActionID]: {
                             pendingAction: null,
                         },
                     },
@@ -1335,7 +1341,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: {
-                        [_.keys(expenseChatData)[0]]: {
+                        [expenseCreatedReportActionID]: {
                             pendingAction: null,
                         },
                     },

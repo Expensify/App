@@ -7,9 +7,6 @@ export default PropTypes.shape({
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
 
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: PropTypes.bool,
-
     /** List of icons for report participants */
     icons: PropTypes.arrayOf(avatarPropTypes),
 
@@ -31,7 +28,7 @@ export default PropTypes.shape({
     /** The time of the last message on the report */
     lastVisibleActionCreated: PropTypes.string,
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime: PropTypes.string,
 
     /** The current user's notification preference for this report */
@@ -49,6 +46,9 @@ export default PropTypes.shape({
 
     /** List of accountIDs of participants of the report */
     participantAccountIDs: PropTypes.arrayOf(PropTypes.number),
+
+    /** List of accountIDs of visible members of the report */
+    visibleChatMemberAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
     /** Linked policy's ID */
     policyID: PropTypes.string,

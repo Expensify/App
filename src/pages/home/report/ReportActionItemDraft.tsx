@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 function ReportActionItemDraft({children}: ChildrenProps) {
     const styles = useThemeStyles();

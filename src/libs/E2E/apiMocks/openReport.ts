@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import Response from '@src/types/onyx/Response';
+import type Response from '@src/types/onyx/Response';
 
 export default (): Response => ({
     onyxData: [
@@ -32,7 +32,6 @@ export default (): Response => ({
                 isOwnPolicyExpenseChat: false,
                 lastMessageHtml: 'terry+hightraffic@margelo.io owes \u20ac12.00',
                 iouReportID: '206636935813547',
-                hasOutstandingIOU: false,
                 hasOutstandingChildRequest: false,
                 policyName: null,
                 hasParentAccess: null,
