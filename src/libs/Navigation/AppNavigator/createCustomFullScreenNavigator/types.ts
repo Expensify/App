@@ -7,7 +7,6 @@ type FullScreenNavigatorConfig = {
 
 type FullScreenNavigatorRouterOptions = StackRouterOptions;
 
-type FullScreenNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> &
-    FullScreenNavigatorConfig;
+type FullScreenNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & FullScreenNavigatorConfig;
 
 export type {FullScreenNavigatorConfig, FullScreenNavigatorProps, FullScreenNavigatorRouterOptions};

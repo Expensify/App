@@ -31,12 +31,6 @@ function reduceReportRoutes(routes: Routes): Routes {
 }
 
 function FullScreenNavigator(props: FullScreenNavigatorProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    const isSmallScreenWidthRef = useRef<boolean>(isSmallScreenWidth);
-
-    isSmallScreenWidthRef.current = isSmallScreenWidth;
-
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
         FullScreenNavigatorRouterOptions,
