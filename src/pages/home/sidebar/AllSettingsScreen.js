@@ -1,9 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -102,20 +103,22 @@ function AllSettingsScreen() {
     const accountMenuItems = useMemo(() => getMenuItemsSection(menuItemsData), [menuItemsData, getMenuItemsSection]);
 
     return (
-        <>
-            <Breadcrumbs
-                breadcrumbs={[
-                    {
-                        type: CONST.BREADCRUMB_TYPE.ROOT,
-                    },
-                    {
-                        text: translate('common.settings'),
-                    },
-                ]}
-                style={[styles.pb5, styles.ph5]}
-            />
-            {accountMenuItems}
-        </>
+        <ScreenWrapper>
+            <ScrollView>
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
+                            type: CONST.BREADCRUMB_TYPE.ROOT,
+                        },
+                        {
+                            text: translate('common.settings'),
+                        },
+                    ]}
+                    style={[styles.pb5, styles.ph5]}
+                />
+                {accountMenuItems}
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 

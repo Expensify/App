@@ -63,7 +63,10 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
     const stateToRender = getStateToRender(state);
 
     return (
-        <ScreenWrapper testID={CustomBottomTabNavigator.displayName}>
+        <ScreenWrapper
+            testID={CustomBottomTabNavigator.displayName}
+            shouldShowOfflineIndicator={false}
+        >
             <View style={styles.flex1}>
                 <TopBar />
                 <NavigationContent>

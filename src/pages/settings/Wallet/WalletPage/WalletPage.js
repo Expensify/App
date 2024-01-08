@@ -333,7 +333,10 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             {shouldShowEmptyState ? (
                 <WalletEmptyState onAddPaymentMethod={paymentMethodPressed} />
             ) : (
-                <ScreenWrapper testID={WalletPage.displayName}>
+                <ScreenWrapper
+                    testID={WalletPage.displayName}
+                    isCentralPane
+                >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}

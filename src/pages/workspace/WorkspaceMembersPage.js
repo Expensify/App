@@ -420,6 +420,7 @@ function WorkspaceMembersPage(props) {
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={WorkspaceMembersPage.displayName}
+            isCentralPane
         >
             <FullPageNotFoundView
                 shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}

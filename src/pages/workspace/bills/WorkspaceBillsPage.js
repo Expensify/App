@@ -29,6 +29,7 @@ function WorkspaceBillsPage(props) {
             headerText={props.translate('workspace.common.bills')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
+            isCentralPane
         >
             {(hasVBA, policyID) => (
                 <View style={[styles.workspaceSection, styles.mt6]}>

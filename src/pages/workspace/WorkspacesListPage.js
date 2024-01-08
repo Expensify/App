@@ -332,7 +332,10 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
     }
 
     return (
-        <ScreenWrapper shouldEnablePickerAvoiding={false}>
+        <ScreenWrapper
+            shouldEnablePickerAvoiding={false}
+            isCentralPane
+        >
             <View style={{flex: 1}}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}

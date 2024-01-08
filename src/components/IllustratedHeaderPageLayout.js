@@ -23,15 +23,18 @@ const propTypes = {
 
     /** Overlay content to display on top of animation */
     overlayContent: PropTypes.func,
+
+    isCentralPane: PropTypes.bool,
 };
 
 const defaultProps = {
     backgroundColor: undefined,
     footer: null,
     overlayContent: null,
+    isCentralPane: false,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, isCentralPane, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const shouldLimitHeight = !propsToPassToHeader.shouldShowBackButton;
@@ -40,6 +43,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
         <HeaderPageLayout
             backgroundColor={backgroundColor || theme.appBG}
             title={propsToPassToHeader.title}
+            isCentralPane={isCentralPane}
             headerContent={
                 <>
                     <Lottie

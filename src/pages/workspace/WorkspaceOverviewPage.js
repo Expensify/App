@@ -69,6 +69,8 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             shouldShowLoading={false}
+            shouldUseScrollView
+            isCentralPane
         >
             {(hasVBA) => (
                 <>

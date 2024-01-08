@@ -105,6 +105,7 @@ function ProfilePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={ProfilePage.displayName}
+            isCentralPane
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}

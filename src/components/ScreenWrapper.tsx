@@ -86,6 +86,9 @@ type ScreenWrapperProps = {
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
     navigation?: StackNavigationProp<RootStackParamList>;
+
+    /** Is central pane */
+    isCentralPane?: boolean;
 };
 
 function ScreenWrapper(
@@ -106,6 +109,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        isCentralPane = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -238,6 +242,11 @@ function ScreenWrapper(
                                             : children
                                     }
                                     {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!isSmallScreenWidth && isCentralPane && (
+                                        <View style={[styles.offlineIndicatorRow, offlineIndicatorStyle]}>
+                                            <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow, styles.pl5]} />
+                                        </View>
+                                    )}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
