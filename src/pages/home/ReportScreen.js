@@ -202,6 +202,7 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const [didScreenTransitionEnd, setEntryTransitionEnd] = useState(false);
 
     useEffect(() => {
         if (!report || !report.reportID || shouldHideReport) {
@@ -429,6 +430,18 @@ function ReportScreen({
         };
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
+    useEffect(() => {
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            setEntryTransitionEnd(true);
+        });
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
+    }, []);
+
     const onListLayout = useCallback((e) => {
         setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
         if (!markReadyForHydration) {
@@ -464,7 +477,7 @@ function ReportScreen({
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
                 >
-                    {({didScreenTransitionEnd}) => (
+                    {() => (
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
                             subtitleKey="notFound.noAccess"
