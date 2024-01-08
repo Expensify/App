@@ -102,7 +102,7 @@ test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
                 },
             ],
         ]),
-    ) as unknown as OnyxCollection<ReportActions>;
+    ) as unknown as OnyxCollection<ReportAction[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
