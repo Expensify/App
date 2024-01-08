@@ -3496,7 +3496,6 @@ function shouldReportBeInOptionList(
     betas: Beta[],
     policies: OnyxCollection<Policy>,
     excludeEmptyChats = false,
-    allReportActions?: OnyxCollection<ReportAction[]>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ) {
     const isInDefaultMode = !isInGSDMode;

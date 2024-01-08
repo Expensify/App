@@ -4,7 +4,7 @@ import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -53,21 +53,35 @@ test('[SidebarUtils] getOptionData on 5k reports', async () => {
     const preferredLocale = 'en';
     const policy = createRandomPolicy(1);
     const parentReportAction = createRandomReportAction(1);
-    const transactionViolations = {} as TransactionViolations;
+    const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transactionViolations, false), {runs});
+
+    await measureFunction(
+        () =>
+            SidebarUtils.getOptionData({
+                report,
+                reportActions,
+                personalDetails,
+                preferredLocale,
+                policy,
+                parentReportAction,
+                transactionViolations,
+                canUseViolations: false,
+            }),
+        {runs},
+    );
 });
 
 test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
     const currentReportId = '1';
     const allReports = getMockedReports();
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
-    const transactionViolations = {} as TransactionViolations;
+    const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
     const policies = createCollection<Policy>(
         (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,

@@ -119,7 +119,7 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): string[] {
     const reportIDKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`;
@@ -152,7 +152,7 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true, allReportActions, transactionViolations),
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true, transactionViolations),
     );
 
     if (reportsToDisplay.length === 0) {
@@ -235,16 +235,25 @@ type ActorDetails = {
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
-function getOptionData(
-    report: Report,
-    reportActions: Record<string, ReportAction>,
-    personalDetails: Record<number, PersonalDetails>,
-    preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: Policy,
-    parentReportAction: ReportAction,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    canUseViolations: boolean,
-): ReportUtils.OptionData | undefined {
+function getOptionData({
+    report,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    policy,
+    parentReportAction,
+    transactionViolations,
+    canUseViolations,
+}: {
+    report: Report;
+    reportActions: Record<string, ReportAction>;
+    personalDetails: Record<number, PersonalDetails>;
+    preferredLocale: ValueOf<typeof CONST.LOCALES>;
+    policy: Policy;
+    parentReportAction: ReportAction;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    canUseViolations: boolean;
+}): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
