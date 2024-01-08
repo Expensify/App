@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import SearchPage from '@pages/SearchPage';
+import createRandomReport from '../utils/collections/reports';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -54,6 +55,23 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+const getMockedReportsMap = (length = 100) => {
+    const mockReports = Array.from({length}, (__, i) => {
+        const reportID = i + 1;
+        const report = createRandomReport(reportID)
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+
+        return {[reportKey]: report};
+    });
+
+    return _.assign({}, ...mockReports);
+};
+
+const mockedReports = getMockedReportsMap(500);
+const mockedBetas = _.values(CONST.BETAS);
+const mockedPersonalDetails = LHNTestUtils.fakePersonalDetails;
+
+
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
@@ -92,37 +110,28 @@ function SearchPageWrapper() {
 }
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
-test('[Search Page] should interact when text input changes', () => {
+ 
+ test('[Search Page] should interact when text input changes', () => {
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
 
         const input = screen.getByTestId('options-selector-input');
-
+        
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
 
     };
-
-    // TODO create util to generate many reports
-    const report = LHNTestUtils.getFakeReport();
-    const report2 = LHNTestUtils.getFakeReport();
-    const mockedReports = {
-        [`report_${report.reportID}`]: report,
-        [`report_${report2.reportID}`]: report2,
-    };
-    const mockedBetas = _.values(CONST.BETAS);
-    const mockedPersonalDetails = LHNTestUtils.fakePersonalDetails;
+    
 
     return waitForBatchedUpdates()
         .then(() =>
             Onyx.multiSet({
+                ...mockedReports,
                 [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
-                [`${ONYXKEYS.COLLECTION.REPORT}`]: mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [`${ONYXKEYS.IS_SEARCHING_FOR_REPORTS}`]: true,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() =>
@@ -131,12 +140,52 @@ test('[Search Page] should interact when text input changes', () => {
                 {scenario, runs},
             ),
         );
-});
+}); 
+
 
 test('[Search Page] should render options list', () => {
-    // TODO
+    const scenario = async () => {
+        await screen.findByTestId('SearchPage');
+        const input = screen.getByTestId('options-selector-input');
+
+        fireEvent.changeText(input, 'email5@test.com');
+        await screen.findByText('email5@test.com');
+    };
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+
+            }),
+        )
+        .then(() => measurePerformance(<SearchPageWrapper />, {scenario, runs}));
 });
 
 test('[Search Page] should click on list item', () => {
-    // TODO
+    const scenario = async () => {
+        await screen.findByTestId('SearchPage');
+        const input = screen.getByTestId('options-selector-input');
+
+        fireEvent.changeText(input, 'email6@test.com');
+        const optionButton = await screen.findByText('email6@test.com');
+
+        fireEvent.press(optionButton);
+    };
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() => measurePerformance(<SearchPageWrapper />, {scenario, runs}));
 });
