@@ -3304,18 +3304,18 @@ function detachReceipt(transactionID) {
  * @param {String} filePath
  */
 function replaceReceipt(transactionID, receipt, filePath) {
-    const transaction = lodashGet(allTransactions, 'transactionID', {});
+    const transaction = lodashGet(allTransactions, `transactions_${transactionID}`, {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
-
+    const receiptOptimistic = {
+        source: filePath,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                receipt: {
-                    source: filePath,
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
+                receipt: receiptOptimistic,
                 filename: receipt.name,
             },
         },
@@ -3328,6 +3328,7 @@ function replaceReceipt(transactionID, receipt, filePath) {
             value: {
                 receipt: oldReceipt,
                 filename: transaction.filename,
+                errors: getReceiptError(receiptOptimistic, receipt.name),
             },
         },
     ];
@@ -3538,6 +3539,10 @@ function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
+function clearError(transactionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3593,4 +3598,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    clearError,
 };

@@ -220,7 +220,14 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                 {hasReceipt && (
-                    <OfflineWithFeedback pendingAction={pendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={pendingAction}
+                        errors={transaction.errors}
+                        errorRowStyles={[styles.ml4]}
+                        onClose={() => {
+                            IOU.clearError(transaction.transactionID);
+                        }}
+                    >
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
