@@ -1,4 +1,4 @@
-import {isEmpty, isEqual} from 'lodash';
+import isEqual from 'lodash/isEqual';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useEffect, useRef} from 'react';
 import type {SectionListRenderItem} from 'react-native';
@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseOptionListProps, OptionsList, OptionsListData, Section} from './types';
@@ -173,7 +174,7 @@ function BaseOptionsList(
                 return true;
             }
 
-            if (isEmpty(option.name)) {
+            if (!option.name || StringUtils.isEmptyString(option.name)) {
                 return false;
             }
 
