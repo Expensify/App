@@ -1110,6 +1110,21 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 }
 
 /**
+ * Updates the merchant field of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} val
+ */
+function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, val) {
+    const transactionChanges = {
+        merchant: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestMerchant', params, onyxData);
+}
+
+/**
  * Updates the created tag of a money request
  *
  * @param {String} transactionID
@@ -3620,6 +3635,7 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
