@@ -142,7 +142,7 @@ function WorkspaceInvitePage(props) {
                 const accountID = lodashGet(option, 'accountID', null);
                 const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
 
-                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                const isPartOfSearchTerm = option.text.replaceAll(' ','').toLowerCase().includes(searchTerm.trim().toLowerCase());
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
