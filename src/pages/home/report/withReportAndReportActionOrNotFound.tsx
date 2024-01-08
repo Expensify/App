@@ -120,7 +120,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             parentReportAction: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
                 selector: (parentReportActions, props) => {
-                    const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
+                    const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
                         return {};
                     }
