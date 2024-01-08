@@ -939,7 +939,7 @@ export default {
         reportFraud: 'Report virtual card fraud',
         reviewTransaction: 'Review transaction',
         suspiciousBannerTitle: 'Suspicious transaction',
-        suspiciousBannerDescription: 'We noticed suspicious transaction on your card. Tap below to review.',
+        suspiciousBannerDescription: 'We noticed a suspicious transaction on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
         cardDetails: {
             cardNumber: 'Virtual card number',
