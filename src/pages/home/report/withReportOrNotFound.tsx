@@ -21,7 +21,7 @@ type WithReportOrNotFoundOnyxProps = {
 };
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
-    route: RouteProp<{params: {reportID: string}}>;
+    route: RouteProp<{params: {reportID: string; accountID: string}}>;
 };
 
 export default function (
@@ -88,4 +88,4 @@ export default function (
     };
 }
 
-export type {WithReportOrNotFoundOnyxProps, WithReportOrNotFoundProps};
+export type {WithReportOrNotFoundProps, WithReportOrNotFoundOnyxProps};
