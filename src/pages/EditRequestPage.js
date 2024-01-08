@@ -82,7 +82,10 @@ const defaultProps = {
     policy: {},
     policyTaxRates: {},
 };
-
+const getTaxAmount = (transaction, transactionTaxCode, policyTaxRates) => {
+    const percentage = (transactionTaxCode  ? policyTaxRates.taxes[transactionTaxCode].value : policyTaxRates.defaultValue) || '';
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transaction.amount)));
+};
 function EditRequestPage({report, policy, policyTaxRates, route, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
@@ -298,8 +301,8 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_AMOUNT && shouldShowTax) {
         return (
             <EditRequestTaxAmountPage
-                defaultAmount={transactionAmount}
-                defaultTaxAmount={transactionTaxAmount}
+                defaultAmount={transactionTaxAmount}
+                defaultTaxAmount={getTaxAmount(transaction, transactionTaxCode, policyTaxRates)}
                 defaultCurrency={defaultCurrency}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
