@@ -9,10 +9,15 @@ import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import withLocalize from '@components/withLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useLocalize from '@components/useLocalize';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import useStyleUtils from '@styles/useStyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
-import compose from '@libs/compose';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
@@ -33,10 +38,15 @@ const PAGE_BORDER = 9;
 const LARGE_SCREEN_SIDE_SPACING = 40;
 
 function PDFView(props) {
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const isKeyboardShown = useKeyboardState();
+    const StyleUtils = useStyleUtils();
     const [numPages, setNumPages] = null;
     const [pageViewports, setPageViewports] = [];
-    const [containerWidth, setContainerWidth] = props.windowWidth;
-    const [containerHeight, setContainerHeight] = props.windowHeight;
+    const [containerWidth, setContainerWidth] = windowWidth;
+    const [containerHeight, setContainerHeight] = windowHeight;
     const [shouldRequestPassword, setShouldRequestPassword] = false;
     const [isPasswordInvalid, setIsPasswordInvalid] = false;
     const [isKeyboardOpen, setIsKeyboardOpen] = false;
@@ -48,26 +58,27 @@ function PDFView(props) {
      * @param {Boolean} keyboardState True if keyboard is open
      */
     function toggleKeyboardOnSmallScreens(keyboardState) {
-        if (!props.isSmallScreenWidth) {
+        if (isSmallScreenWidth) {
             return;
         }
         setIsKeyboardOpen(keyboardState);
-        props.onToggleKeyboard(keyboardState);
+        onToggleKeyboard(keyboardState);
     }
 
-    function componentDidUpdate(prevProps) {
+    useEffect(() => {
+
         // Use window height changes to toggle the keyboard. To maintain keyboard state
         // on all platforms we also use focus/blur events. So we need to make sure here
         // that we avoid redundant keyboard toggling.
         // Minus 100px is needed to make sure that when the internet connection is
         // disabled in android chrome and a small 'No internet connection' text box appears,
         // we do not take it as a sign to open the keyboard
-        if (!isKeyboardOpen && props.windowHeight < prevProps.windowHeight - 100) {
+        if (!isKeyboardOpen && windowHeight < usePrevious(windowHeight) - 100) {
             toggleKeyboardOnSmallScreens(true);
-        } else if (isKeyboardOpen && props.windowHeight > prevProps.windowHeight) {
+        } else if (isKeyboardOpen && windowHeight > usePrevious(windowHeight)) {
             toggleKeyboardOnSmallScreens(false);
         }
-    }
+    });
 
     /**
      * Upon successful document load, combine an array of page viewports,
@@ -138,7 +149,7 @@ function PDFView(props) {
     function calculatePageWidth() {
         const pdfContainerWidth = containerWidth;
         const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
-        const pageWidth = props.isSmallScreenWidth ? containerWidth : pageWidthOnLargeScreen;
+        const pageWidth = isSmallScreenWidth ? containerWidth : pageWidthOnLargeScreen;
 
         return pageWidth + PAGE_BORDER * 2;
     }
@@ -248,7 +259,6 @@ function PDFView(props) {
     }
 
     renderPDFView() {
-        const styles = props.themeStyles;
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
@@ -274,7 +284,7 @@ function PDFView(props) {
                 }
                 >
                     <Document
-                        error={<Text style={props.errorLabelStyles}>{props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                        error={<Text style={props.errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={props.sourceURL}
                         options={{
@@ -289,7 +299,7 @@ function PDFView(props) {
                             <List
                                 outerRef={() => setListAttributes}
                                 style={styles.PDFViewList}
-                                width={props.isSmallScreenWidth ? pageWidth : containerWidth}
+                                width={isSmallScreenWidth ? pageWidth : containerWidth}
                                 height={containerHeight}
                                 estimatedItemSize={calculatePageHeight(0)}
                                 itemCount={() => numPages}
@@ -334,9 +344,6 @@ PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withThemeStyles,
     withOnyx({
         maxCanvasArea: {
             key: ONYXKEYS.MAX_CANVAS_AREA,
