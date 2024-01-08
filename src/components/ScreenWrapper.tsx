@@ -243,9 +243,10 @@ function ScreenWrapper(
                                     }
                                     {isSmallScreenWidth && shouldShowOfflineIndicatorSmallWidth && <OfflineIndicator style={offlineIndicatorStyle} />}
                                     {!isSmallScreenWidth && shouldShowOfflineIndicator && (
-                                        <View style={[styles.offlineIndicatorRow, offlineIndicatorStyle]}>
-                                            <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow, styles.pl5]} />
-                                        </View>
+                                        <OfflineIndicator
+                                            containerStyles={[]}
+                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                        />
                                     )}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
