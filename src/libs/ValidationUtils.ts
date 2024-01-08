@@ -4,8 +4,8 @@ import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import CONST from '@src/CONST';
-import {Report} from '@src/types/onyx';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {Report} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
@@ -317,7 +317,8 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+    const hasAccentedChars = Boolean(name.match(CONST.REGEX.ACCENT_LATIN_CHARS));
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
 }
 
 /**

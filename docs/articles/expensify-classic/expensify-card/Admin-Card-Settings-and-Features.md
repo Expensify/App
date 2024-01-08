@@ -148,7 +148,7 @@ Here are some reasons an Expensify Card transaction might be declined:
 5. The merchant is located in a restricted country
     - Some countries may be off-limits for transactions. If a merchant or their headquarters (billing address) are physically located in one of these countries, Expensify Card purchases will be declined. This list may change at any time, so be sure to check back frequently: Belarus, Burundi, Cambodia, Central African Republic, Democratic Republic of the Congo, Cuba, Iran, Iraq, North Korea, Lebanon, Libya, Russia, Somalia, South Sudan, Syrian Arab Republic, Tanzania, Ukraine, Venezuela, Yemen, and Zimbabwe.
 
-# FAQ 
+{% include faq-begin.md %} 
 ## What happens when I reject an Expensify Card expense?
 Rejecting an Expensify Card expense from an Expensify report will simply allow it to be reported on a different report. 
 
@@ -170,3 +170,5 @@ If a transaction is pending and has a receipt attached (excluding eReceipts), a 
 - Partial refunds:
 If a transaction is pending, a partial refund will reduce the amount of the transaction.
 - If a transaction is posted, a partial refund will create a negative transaction for the refund amount.
+
+{% include faq-end.md %}
