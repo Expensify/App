@@ -124,7 +124,7 @@ function FlagCommentPage(props) {
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = props.parentReportActions[`${props.report.parentReportActionID}`] || {};
+            reportAction = props.parentReportActions[props.report.parentReportActionID] || {};
         }
 
         return reportAction;
