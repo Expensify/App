@@ -26,13 +26,16 @@ type AmountTextInputProps = {
     style?: StyleProp<TextStyle>;
 
     /** Style for the container */
-    containerStyles?: StyleProp<ViewStyle>;
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: () => void;
 };
 
-function AmountTextInput({formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, containerStyles, onKeyPress}: AmountTextInputProps, ref: BaseTextInputRef) {
+function AmountTextInput(
+    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress}: AmountTextInputProps,
+    ref: BaseTextInputRef,
+) {
     const styles = useThemeStyles();
     return (
         <TextInput
@@ -51,7 +54,7 @@ function AmountTextInput({formattedAmount, onChangeAmount, placeholder, selectio
             onSelectionChange={onSelectionChange}
             role={CONST.ROLE.PRESENTATION}
             onKeyPress={onKeyPress}
-            containerStyles={containerStyles}
+            touchableInputWrapperStyle={touchableInputWrapperStyle}
         />
     );
 }
