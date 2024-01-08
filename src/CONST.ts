@@ -269,7 +269,6 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_COMMENT_LINKING: 'commentLinking',
-        POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
     },
@@ -1181,6 +1180,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',
