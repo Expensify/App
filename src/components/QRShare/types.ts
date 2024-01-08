@@ -1,6 +1,6 @@
-import {ImageSourcePropType} from 'react-native';
-import {Svg} from 'react-native-svg';
-import {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
+import type {ImageSourcePropType} from 'react-native';
+import type {Svg} from 'react-native-svg';
+import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
 
 type QRShareProps = {
     /**
