@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
 import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
@@ -33,7 +32,7 @@ const propTypes = {
     onError: PropTypes.func,
 
     /** URI to full-sized attachment, SVG function, or numeric static image on native platforms */
-    uri: AttachmentsPropTypes.string.isRequired,
+    uri: PropTypes.string.isRequired,
 
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
