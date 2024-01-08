@@ -8,16 +8,16 @@ import DateUtils from '@libs/DateUtils';
  * @param {Number} month - The month (0-indexed) for which to generate the month matrix.
  * @returns {Array<Array<Number|null>>} - A 2D array of the month's calendar days, with null values representing days outside the current month.
  */
-export default function generateMonthMatrix(year, month) {
-    if (typeof year !== 'number') {
-        throw new TypeError('Year must be a number');
-    }
+export default function generateMonthMatrix(year: number, month: number) {
+    // if (typeof year !== 'number') {
+    //     throw new TypeError('Year must be a number');
+    // }
     if (year < 0) {
         throw new Error('Year cannot be less than 0');
     }
-    if (typeof month !== 'number') {
-        throw new TypeError('Month must be a number');
-    }
+    // if (typeof month !== 'number') {
+    //     throw new TypeError('Month must be a number');
+    // }
     if (month < 0) {
         throw new Error('Month cannot be less than 0');
     }

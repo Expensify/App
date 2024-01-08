@@ -1,63 +1,86 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import {radioListItemPropTypes} from '@components/SelectionList/selectionListPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type RadioItem = {
+    /** Text to display */
+    text: string;
+
+    /** Alternate text to display */
+    alternateText?: string;
+
+    /** Key used internally by React */
+    keyForList: string;
+
+    /** Whether this option is selected */
+    isSelected?: boolean;
+
+    /** Element to show on the right side of the item */
+    rightElement?: undefined;
+
+    /** Whether this option is disabled for selection */
+    isDisabled?: undefined;
+
+    invitedSecondaryLogin?: undefined;
+
+    /** Errors that this user may contain */
+    errors?: undefined;
+
+    /** The type of action that's pending  */
+    pendingAction?: undefined;
+
+    sectionIndex: number; // smb throw this out
+
+    index: number; // mb throw this out
+};
+
+type YearPickerModalProps = {
     /** Whether the modal is visible */
-    isVisible: PropTypes.bool.isRequired,
+    isVisible: boolean;
 
     /** The list of years to render */
-    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes.item)).isRequired,
+    years: RadioItem[];
 
     /** Currently selected year */
-    currentYear: PropTypes.number,
+    currentYear?: number;
 
     /** Function to call when the user selects a year */
-    onYearChange: PropTypes.func,
+    onYearChange?: (year: number) => void;
 
     /** Function to call when the user closes the year picker */
-    onClose: PropTypes.func,
+    onClose?: () => void;
 };
 
-const defaultProps = {
-    currentYear: new Date().getFullYear(),
-    onYearChange: () => {},
-    onClose: () => {},
-};
-
-function YearPickerModal(props) {
+function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose}: YearPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? props.years : _.filter(props.years, (year) => year.text.includes(searchText));
+        const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
             sections: [{data: yearsList, indexOffset: 0}],
         };
-    }, [props.years, searchText, translate]);
+    }, [years, searchText, translate]);
 
     useEffect(() => {
-        if (props.isVisible) {
+        if (isVisible) {
             return;
         }
         setSearchText('');
-    }, [props.isVisible]);
+    }, [isVisible]);
 
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={props.isVisible}
-            onClose={props.onClose}
-            onModalHide={props.onClose}
+            isVisible={isVisible}
+            onClose={() => onClose?.()}
+            onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
         >
@@ -69,19 +92,19 @@ function YearPickerModal(props) {
             >
                 <HeaderWithBackButton
                     title={translate('yearPickerPage.year')}
-                    onBackButtonPress={props.onClose}
+                    onBackButtonPress={onClose}
                 />
                 <SelectionList
                     shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
-                    onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
+                    onChangeText={(text: string) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
-                    onSelectRow={(option) => props.onYearChange(option.value)}
-                    initiallyFocusedOptionKey={props.currentYear.toString()}
+                    onSelectRow={(option) => onYearChange?.(option.value)}
+                    initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
                 />
@@ -90,8 +113,6 @@ function YearPickerModal(props) {
     );
 }
 
-YearPickerModal.propTypes = propTypes;
-YearPickerModal.defaultProps = defaultProps;
 YearPickerModal.displayName = 'YearPickerModal';
 
 export default YearPickerModal;
