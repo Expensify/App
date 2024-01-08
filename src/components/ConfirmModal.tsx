@@ -14,7 +14,7 @@ type ConfirmModalProps = {
     onConfirm: () => void;
 
     /** A callback to call when the form has been closed */
-    onCancel?: (ref?: React.RefObject<HTMLElement> | undefined) => void;
+    onCancel?: (ref?: React.RefObject<HTMLElement>) => void;
 
     /** Modal visibility */
     isVisible: boolean;
@@ -50,15 +50,12 @@ type ConfirmModalProps = {
     iconSource?: IconAsset;
 
     /** Styles for title */
-    // eslint-disable-next-line react/forbid-prop-types
     titleStyles?: StyleProp<TextStyle>;
 
     /** Styles for prompt */
-    // eslint-disable-next-line react/forbid-prop-types
     promptStyles?: StyleProp<TextStyle>;
 
     /** Styles for icon */
-    // eslint-disable-next-line react/forbid-prop-types
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 
     /** Whether to center the icon / text content */
@@ -81,15 +78,16 @@ function ConfirmModal({
     title = '',
     iconSource,
     onModalHide = () => {},
-    titleStyles = [],
-    iconAdditionalStyles = [],
-    promptStyles = [],
+    titleStyles,
+    iconAdditionalStyles,
+    promptStyles,
     shouldCenterContent = false,
     shouldStackButtons = true,
     isVisible,
     onConfirm,
 }: ConfirmModalProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <Modal
             onSubmit={onConfirm}
