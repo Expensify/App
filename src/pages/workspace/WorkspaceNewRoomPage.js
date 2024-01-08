@@ -13,7 +13,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import withNavigationFocus from '@components/withNavigationFocus';
@@ -327,9 +326,9 @@ function WorkspaceNewRoomPage(props) {
                                         items={visibilityOptions}
                                         onValueChange={setVisibility}
                                         value={visibility}
+                                        furtherDetails={visibilityDescription}
                                     />
                                 </View>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                             </FormProvider>
                             {isSmallScreenWidth && <OfflineIndicator />}
                         </KeyboardAvoidingView>

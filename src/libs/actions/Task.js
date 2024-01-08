@@ -15,6 +15,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
 let currentUserEmail;
@@ -179,6 +180,12 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
         },
     );
+
+    // If needed, update optimistic data for parent report action of the parent report.
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (isNotEmptyObject(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({
@@ -490,8 +497,10 @@ function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccount
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
         const participants = lodashGet(report, 'participantAccountIDs', []);
-        if (!participants.includes(assigneeAccountID)) {
+        const visibleMembers = lodashGet(report, 'visibleChatMemberAccountIDs', []);
+        if (!visibleMembers.includes(assigneeAccountID)) {
             optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+            optimisticReport.visibleChatMemberAccountIDs = [...visibleMembers, assigneeAccountID];
         }
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
@@ -776,6 +785,19 @@ function deleteTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: optimisticReportActions,
         },
     ];
+
+    // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
+    const childVisibleActionCount = lodashGet(parentReportAction, 'childVisibleActionCount', 0);
+    if (childVisibleActionCount === 0) {
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            parentReport.reportID,
+            parentReport.lastVisibleActionCreated || '',
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (isNotEmptyObject(optimisticParentReportData)) {
+            optimisticData.push(optimisticParentReportData);
+        }
+    }
 
     const successData = [
         {
