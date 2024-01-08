@@ -58,7 +58,16 @@ type Attachment = {
     isReceipt: boolean;
 };
 
-type Data = DataTransferItem | File;
+type ImagePickerResponse = {
+    height: number;
+    name: string;
+    size: number;
+    type: string;
+    uri: string;
+    width: number;
+};
+
+type Data = File | ImagePickerResponse;
 
 type ChildrenProps = {
     displayFileInModal: (data: Data) => void;
@@ -158,7 +167,7 @@ function AttachmentModal({
      */
     const getModalType = useCallback(
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        (sourceURL: string, _file: File) =>
+        (sourceURL: string, _file: File | ImagePickerResponse) =>
             sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -295,14 +304,13 @@ function AttachmentModal({
                 setSourceState(inputSource);
                 setFile(updatedFile);
                 setModalType(inputModalType);
+            } else {
+                const inputModalType = getModalType(fileObject.uri, fileObject);
+                setIsModalOpen(true);
+                setSourceState(fileObject.uri);
+                setFile(fileObject);
+                setModalType(inputModalType);
             }
-            // } else {
-            //     const inputModalType = getModalType(fileObject.uri, fileObject);
-            //     setIsModalOpen(true);
-            //     setSourceState(fileObject.uri);
-            //     setFile(fileObject);
-            //     setModalType(inputModalType);
-            // }
         },
         [isValidFile, getModalType, isDirectoryCheck],
     );
