@@ -1,3 +1,4 @@
+import {truncate} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -151,8 +152,9 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
-    const description = requestComment;
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
@@ -208,7 +210,7 @@ function MoneyRequestPreview(props) {
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;

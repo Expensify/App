@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
+import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -31,7 +31,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import updatePropsPaperWorklet from '@libs/updatePropsPaperWorklet';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import SendButton from '@pages/home/report/ReportActionCompose/SendButton';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
@@ -205,10 +204,9 @@ function ComposerWithSuggestions({
         }
 
         runOnJS(handleSendMessage)();
-        const viewTag = animatedRef();
-        const viewName = 'RCTMultilineTextInputView';
-        const updates = {text: ''};
-        updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+        runOnJS(setIsCommentEmpty)(true);
+        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
     }, [animatedRef, handleSendMessage, isCommentEmpty]);
 
     /**
