@@ -1,7 +1,7 @@
 import React from 'react';
-import {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
-import {Svg} from 'react-native-svg';
+import type {Svg} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 

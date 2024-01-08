@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import type React from 'react';
+import {useCallback, useContext, useEffect, useState} from 'react';
+import type {View} from 'react-native';
 import {PopoverContext} from '@components/PopoverProvider';
 
 const COPY_DROP_EFFECT = 'copy';
@@ -30,18 +31,10 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = useContext(PopoverContext);
 
-    // This solution is borrowed from this SO: https://stackoverflow.com/questions/7110353/html5-dragleave-fired-when-hovering-a-child-element
-    // This is necessary because dragging over children will cause dragleave to execute on the parent.
-    // You can think of this counter as a stack. When a child is hovered over we push an element onto the stack.
-    // Then we only process the dragleave event if the count is 0, because it means that the last element (the parent) has been popped off the stack.
-    const dragCounter = useRef(0);
-
-    // If this component is out of focus or disabled, reset the drag state back to the default
     useEffect(() => {
         if (isFocused && !isDisabled) {
             return;
         }
-        dragCounter.current = 0;
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
 
@@ -82,7 +75,6 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     handleDragEvent(event);
                     break;
                 case DRAG_ENTER_EVENT:
-                    dragCounter.current++;
                     handleDragEvent(event);
                     if (isDraggingOver) {
                         return;
@@ -90,15 +82,17 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     setIsDraggingOver(true);
                     break;
                 case DRAG_LEAVE_EVENT:
-                    dragCounter.current--;
-                    if (!isDraggingOver || dragCounter.current > 0) {
+                    if (!isDraggingOver) {
+                        return;
+                    }
+                    // This is necessary because dragging over children will cause dragleave to execute on the parent.
+                    if ((event.currentTarget as HTMLElement | null)?.contains(event.relatedTarget as HTMLElement | null)) {
                         return;
                     }
 
                     setIsDraggingOver(false);
                     break;
                 case DROP_EVENT:
-                    dragCounter.current = 0;
                     setIsDraggingOver(false);
                     onDrop(event);
                     break;

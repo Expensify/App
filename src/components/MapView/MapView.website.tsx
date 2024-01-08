@@ -6,7 +6,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import Map, {MapRef, Marker} from 'react-map-gl';
+import type {MapRef} from 'react-map-gl';
+import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,10 +21,10 @@ import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
 import './mapbox.css';
-import {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import {ComponentProps, MapViewOnyxProps} from './types';
+import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(

@@ -1,5 +1,5 @@
 import type {GestureResponderEvent} from 'react-native';
-import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import type {ParsableStyle} from '@styles/utils/types';
 
 type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {

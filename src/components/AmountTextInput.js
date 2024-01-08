@@ -32,7 +32,7 @@ const propTypes = {
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Style for the container */
-    containerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    touchableInputWrapperStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Function to call to handle key presses in the text input */
     onKeyPress: PropTypes.func,
@@ -44,7 +44,7 @@ const defaultProps = {
     onSelectionChange: () => {},
     onKeyPress: () => {},
     style: {},
-    containerStyles: {},
+    touchableInputWrapperStyle: {},
 };
 
 function AmountTextInput(props) {
@@ -67,7 +67,7 @@ function AmountTextInput(props) {
             onSelectionChange={props.onSelectionChange}
             role={CONST.ROLE.PRESENTATION}
             onKeyPress={props.onKeyPress}
-            containerStyles={[...StyleUtils.parseStyleAsArray(props.containerStyles)]}
+            touchableInputWrapperStyle={props.touchableInputWrapperStyle}
         />
     );
 }
