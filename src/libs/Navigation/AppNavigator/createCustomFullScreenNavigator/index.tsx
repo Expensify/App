@@ -6,7 +6,7 @@ import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import SCREENS from '@src/SCREENS';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
-import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
+import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
 // TODO: Extract to utils with ./createCustomStackNavigator/index.tsx
 type Routes = StackNavigationState<ParamListBase>['routes'];
@@ -30,7 +30,7 @@ function reduceReportRoutes(routes: Routes): Routes {
     return result.reverse();
 }
 
-function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
+function FullScreenNavigator(props: FullScreenNavigatorProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isSmallScreenWidthRef = useRef<boolean>(isSmallScreenWidth);
@@ -39,7 +39,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
-        ResponsiveStackNavigatorRouterOptions,
+        FullScreenNavigatorRouterOptions,
         StackActionHelpers<ParamListBase>,
         StackNavigationOptions,
         StackNavigationEventMap
@@ -72,6 +72,6 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     );
 }
 
-ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
+FullScreenNavigator.displayName = 'FullScreenNavigator';
 
-export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator>(ResponsiveStackNavigator);
+export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof FullScreenNavigator>(FullScreenNavigator);

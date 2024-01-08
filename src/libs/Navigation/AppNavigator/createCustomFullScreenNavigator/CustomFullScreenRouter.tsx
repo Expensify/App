@@ -2,7 +2,7 @@ import type {NavigationState, ParamListBase, PartialState, RouterConfigOptions, 
 import {StackRouter} from '@react-navigation/native';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import SCREENS from '@src/SCREENS';
-import type {ResponsiveStackNavigatorRouterOptions} from './types';
+import type {FullScreenNavigatorRouterOptions} from './types';
 
 // TODO: export states to separate file
 type State = NavigationState | PartialState<NavigationState>;
@@ -29,7 +29,7 @@ const addCentralPaneNavigatorRoute = (state: State) => {
     (state.index as number) = state.routes.length - 1;
 };
 
-function CustomFullScreenRouter(options: ResponsiveStackNavigatorRouterOptions) {
+function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
     return {
