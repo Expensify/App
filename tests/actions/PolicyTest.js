@@ -124,7 +124,7 @@ describe('actions/Policy', () => {
             _.forEach([adminReportActions, announceReportActions, expenseReportActions], (actions) => {
                 expect(_.size(actions)).toBe(1);
             });
-            _.forEach(workspaceReportActions, (reportAction) => {
+            _.forEach([...adminReportActions, ...announceReportActions, ...expenseReportActions], (reportAction) => {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
