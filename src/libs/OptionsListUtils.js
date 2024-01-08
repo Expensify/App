@@ -536,7 +536,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         } else if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
