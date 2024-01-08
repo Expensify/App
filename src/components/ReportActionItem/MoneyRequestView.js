@@ -180,7 +180,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     let amountDescription = `${translate('iou.amount')}`;
 
     const saveBillable = useCallback(
-        ({billable: newBillable}) => {
+        (newBillable) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newBillable === TransactionUtils.getBillable(transaction)) {
                 Navigation.dismissModal();
