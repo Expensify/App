@@ -1,7 +1,10 @@
-import React, {Component, ForwardedRef} from 'react';
+import type {Component, ForwardedRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {TextInput, TextInputProps} from 'react-native';
-import Animated, {AnimatedProps} from 'react-native-reanimated';
+import type {TextInputProps} from 'react-native';
+import {TextInput} from 'react-native';
+import type {AnimatedProps} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 
 type AnimatedTextInputRef = Component<AnimatedProps<TextInputProps>>;

@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldEnableFocusTrap = false, ...rest}: BaseModalProps) {
     const styles = useThemeStyles();
