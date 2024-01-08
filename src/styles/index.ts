@@ -3708,7 +3708,8 @@ const styles = (theme: ThemeColors) =>
                 fontFamily: isSelected ? FontUtils.fontFamily.platform.EXP_NEUE_BOLD : FontUtils.fontFamily.platform.EXP_NEUE,
                 fontWeight: isSelected ? FontUtils.fontWeight.bold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
-                lineHeight: 14,
+                lineHeight: variables.lineHeightNormal,
+                fontSize: variables.fontSizeNormal,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
@@ -4066,6 +4067,21 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             gap: 12,
             marginBottom: 16,
+        },
+
+        holdRequestInline: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+
+            backgroundColor: colors.red,
+            borderRadius: variables.componentBorderRadiusMedium,
+            overflow: 'hidden',
+
+            paddingHorizontal: 8,
+            paddingVertical: 4,
         },
 
         walletCard: {
