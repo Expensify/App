@@ -1790,6 +1790,7 @@ export default {
         success: {
             title: 'Downloaded!',
             message: 'Attachment successfully downloaded!',
+            qrMessage: 'Check your photos or downloads folder for a copy of your QR code. \nProtip: Add it to a presentation for your audience to scan and connect with you directly.',
         },
         generalError: {
             title: 'Attachment Error',
