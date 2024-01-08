@@ -1,14 +1,16 @@
 import {useEffect} from 'react';
-import {StyleSheet, ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Video from 'react-native-video';
 import {splashVideoVariants} from '@components/VideoAnimations';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {setLastShownSplashScreenVideo} from '@libs/actions/Session';
 import BootSplash from '@libs/BootSplash';
-import styles from '@styles/styles';
 import type AnimatedSplashScreenProps from './types';
 
 function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: AnimatedSplashScreenProps) {
+    const styles = useThemeStyles();
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
     const opacity = useSharedValue(1);
     const randomIndex = Math.floor(Math.random() * splashVideoVariants.length);
