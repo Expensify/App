@@ -85,7 +85,7 @@ function GenericErrorPage({translate}) {
                                 src={LogoWordmark}
                                 height={30}
                                 width={80}
-                                fill={theme.textLight}
+                                fill={theme.text}
                             />
                         </View>
                     </View>
