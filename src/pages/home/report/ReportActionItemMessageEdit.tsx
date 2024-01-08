@@ -1,13 +1,10 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
+import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import _ from 'underscore';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -40,6 +37,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Modal, ReportAction as ReportActionType, Report as ReportType} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 
 type ReportActionItemMessageEditProps = {
@@ -72,23 +70,15 @@ const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
 
-function ReportActionItemMessageEdit({
-    action,
-    draftMessage,
-    reportID,
-    index,
-    shouldDisableEmojiPicker = false,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-    forwardedRef = () => {},
-}: ReportActionItemMessageEditProps & {
-    forwardedRef: ForwardedRef<TextInput & HTMLTextAreaElement>;
-}) {
+function ReportActionItemMessageEdit(
+    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
+    forwardedRef: ForwardedRef<TextInput & HTMLTextAreaElement>,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
-    // @ts-expect-error TODO: Remove this once useKeyboardState (https://github.com/Expensify/App/issues/24941) is migrated to TypeScript.
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -155,8 +145,7 @@ function ReportActionItemMessageEdit({
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                // eslint-disable-next-line you-dont-need-lodash-underscore/is-null
-                if (_.isNull(modalArg)) {
+                if (isEmptyObject(modalArg)) {
                     return;
                 }
                 setModal(modalArg);
@@ -166,8 +155,7 @@ function ReportActionItemMessageEdit({
         const unsubscribeOnyxFocused = onyxSubscribe({
             key: ONYXKEYS.INPUT_FOCUSED,
             callback: (modalArg) => {
-                // eslint-disable-next-line you-dont-need-lodash-underscore/is-null
-                if (_.isNull(modalArg)) {
+                if (isEmptyObject(modalArg)) {
                     return;
                 }
                 setOnyxFocused(modalArg);
@@ -234,7 +222,7 @@ function ReportActionItemMessageEdit({
      */
     const debouncedSaveDraft = useMemo(
         () =>
-            _.debounce((newDraft: string) => {
+            lodashDebounce((newDraft: string) => {
                 Report.saveReportActionDraft(reportID, action, newDraft);
             }, 1000),
         [reportID, action],
@@ -246,7 +234,7 @@ function ReportActionItemMessageEdit({
      */
     const debouncedUpdateFrequentlyUsedEmojis = useMemo(
         () =>
-            _.debounce(() => {
+            lodashDebounce(() => {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
                 insertedEmojis.current = [];
             }, 1000),
@@ -262,9 +250,9 @@ function ReportActionItemMessageEdit({
         (newDraftInput: string) => {
             const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
-            if (!_.isEmpty(emojis)) {
+            if (emojis && emojis.length > 0) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (!_.isEmpty(newEmojis)) {
+                if (newEmojis && newEmojis.length > 0) {
                     insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -284,7 +272,7 @@ function ReportActionItemMessageEdit({
             draftRef.current = newDraft;
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            debouncedSaveDraft(_.escape(newDraft));
+            debouncedSaveDraft(encodeURI(newDraft));
         },
         [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
     );
@@ -429,7 +417,7 @@ function ReportActionItemMessageEdit({
                                 textInputRef.current = el;
                                 if (typeof forwardedRef === 'function') {
                                     forwardedRef(el);
-                                } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                                } else if (forwardedRef) {
                                     // eslint-disable-next-line no-param-reassign
                                     forwardedRef.current = el;
                                 }
@@ -455,9 +443,8 @@ function ReportActionItemMessageEdit({
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
-                                const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-                                // eslint-disable-next-line you-dont-need-lodash-underscore/contains
-                                if (_.contains([messageEditInput, emojiButtonID], relatedTargetId)) {
+                                const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
+                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -505,12 +492,4 @@ function ReportActionItemMessageEdit({
 
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-const ReportActionItemMessageEditWithRef = React.forwardRef((props: ReportActionItemMessageEditProps, ref: ForwardedRef<TextInput & HTMLTextAreaElement>) => (
-    <ReportActionItemMessageEdit
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-export default ReportActionItemMessageEditWithRef;
+export default forwardRef(ReportActionItemMessageEdit);
