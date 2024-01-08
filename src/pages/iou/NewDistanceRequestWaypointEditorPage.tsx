@@ -1,10 +1,9 @@
-import {RouteProp} from '@react-navigation/native';
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import WaypointEditor from './WaypointEditor';
 
 type NewDistanceRequestWaypointEditorPageOnyxProps = {
@@ -19,14 +18,12 @@ function NewDistanceRequestWaypointEditorPage({transactionID = '', route}: NewDi
         <WaypointEditor
             // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
             // or editing an existing waypoint.
-            route={
-                {
-                    params: {
-                        ...route.params,
-                        transactionID,
-                    },
-                } as RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.EDIT_WAYPOINT>
-            }
+            route={{
+                params: {
+                    ...route.params,
+                    transactionID,
+                },
+            }}
         />
     );
 }

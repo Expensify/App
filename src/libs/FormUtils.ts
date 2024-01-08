@@ -1,4 +1,4 @@
-import {OnyxFormKey} from '@src/ONYXKEYS';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;

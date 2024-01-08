@@ -1,7 +1,8 @@
-import {RouteProp, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
-import {TextInput} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {TextInput} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -11,20 +12,20 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type {WaypointParams} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import * as OnyxTypes from '@src/types/onyx';
-import {Waypoint} from '@src/types/onyx/Transaction';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type Location = {
@@ -55,9 +56,15 @@ type WaypointEditorOnyxProps = {
 
     /** List of recent waypoints */
     recentWaypoints: OnyxEntry<MappedWaypoint[]>;
+
+    userLocation: OnyxEntry<OnyxTypes.UserLocation>;
 };
 
-type WaypointEditorProps = {route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.EDIT_WAYPOINT>} & WaypointEditorOnyxProps;
+type WaypointEditorProps = {
+    route: {
+        params: WaypointParams;
+    };
+} & WaypointEditorOnyxProps;
 
 function WaypointEditor({
     route: {
@@ -65,6 +72,7 @@ function WaypointEditor({
     },
     transaction,
     recentWaypoints = [],
+    userLocation,
 }: WaypointEditorProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -80,6 +88,7 @@ function WaypointEditor({
 
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => isNotEmptyObject(waypoint)).length;
+    const locationBias = useLocationBias(allWaypoints, userLocation);
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -162,7 +171,6 @@ function WaypointEditor({
     };
 
     return (
-        /* @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => {
@@ -212,6 +220,7 @@ function WaypointEditor({
                     <InputWrapper
                         /* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */
                         InputComponent={AddressSearch}
+                        locationBias={locationBias}
                         canUseCurrentLocation
                         inputID={`waypoint${waypointIndex}`}
                         ref={(e) => {
@@ -246,6 +255,9 @@ function WaypointEditor({
 WaypointEditor.displayName = 'WaypointEditor';
 
 export default withOnyx<WaypointEditorProps, WaypointEditorOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`,
     },
@@ -267,3 +279,5 @@ export default withOnyx<WaypointEditorProps, WaypointEditorOnyxProps>({
             })),
     },
 })(WaypointEditor);
+
+export type {Location};

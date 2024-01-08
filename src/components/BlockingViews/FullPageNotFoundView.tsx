@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
 

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type NAVIGATORS from '@src/NAVIGATORS';
+import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -39,6 +39,13 @@ type CentralPaneNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
     };
+};
+
+type WaypointParams = {
+    iouType: string;
+    transactionID: string;
+    waypointIndex: string;
+    threadReportID: string;
 };
 
 type SettingsNavigatorParamList = {
@@ -235,18 +242,8 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
-    [SCREENS.MONEY_REQUEST.WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: string;
-    };
+    [SCREENS.MONEY_REQUEST.WAYPOINT]: WaypointParams;
+    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: WaypointParams;
     [SCREENS.MONEY_REQUEST.DISTANCE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
@@ -331,6 +328,10 @@ type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: undefined;
 };
 
+type ProcessMoneyRequestHoldNavigatorParamList = {
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+};
+
 type PrivateNotesNavigatorParamList = {
     [SCREENS.PRIVATE_NOTES.VIEW]: {
         reportID: string;
@@ -372,6 +373,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: NavigatorScreenParams<FlagCommentNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: NavigatorScreenParams<EditRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SIGN_IN]: NavigatorScreenParams<SignInNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
@@ -460,4 +462,5 @@ export type {
     SignInNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    WaypointParams,
 };

@@ -1,7 +1,7 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import SCREENS from '@src/SCREENS';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 import WaypointEditor from './WaypointEditor';
 
 type MoneyRequestEditWaypointPageProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.EDIT_WAYPOINT>;
