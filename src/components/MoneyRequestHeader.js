@@ -76,13 +76,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
-    console.log('report: ', report);
-    console.log('parentReport: ', parentReport);
-    console.log('parentReportAction: ', parentReportAction);
-    console.log('transaction: ', transaction);
-    console.log("lodashGet(policy, 'role'): ", lodashGet(policy, 'role'));
-    console.log("lodashGet(policy, 'type'): ", lodashGet(policy, 'type'));
-
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
     const isPolicyAdmin = lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
