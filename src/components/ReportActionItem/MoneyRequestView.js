@@ -155,6 +155,12 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
+    const transactionTaxAmount = (transaction.taxAmount && transaction.taxAmount) || 0;
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
+
+    const transactionTaxCode = transaction.taxCode && transaction.taxCode;
+    const taxRateTitle = (transactionTaxCode && policyTaxRates.taxes[transactionTaxCode].name) || '';
+
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
@@ -181,7 +187,11 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const shouldShowTax =
+        isPolicyExpenseChat &&
+        policy &&
+        policy.isTaxTrackingEnabled &&
+        ((transactionTaxCode && transactionTaxAmount) || OptionsListUtils.hasEnabledOptionsForTaxRate(lodashValues(policyTaxRates.taxes)));
 
     const {getViolationsForField} = useViolations(transactionViolations);
     const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
@@ -359,7 +369,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 {shouldShowTax && (
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
-                            title="Default"
+                            title={taxRateTitle}
                             description={policyTaxRates.name}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
@@ -372,7 +382,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 {shouldShowTax && (
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
-                            title="0.00"
+                            title={formattedTaxAmount}
                             description={policyTaxRates.name}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
