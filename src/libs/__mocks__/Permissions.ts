@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import Beta from '@src/types/onyx/Beta';
+import type Beta from '@src/types/onyx/Beta';
 
 /**
  * This module is mocked in tests because all the permission methods call canUseAllBetas() and that will

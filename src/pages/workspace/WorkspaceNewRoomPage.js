@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,7 +12,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import withNavigationFocus from '@components/withNavigationFocus';
@@ -26,7 +24,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -48,9 +45,6 @@ const propTypes = {
         /** ID of the policy */
         policyID: PropTypes.string,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The list of policies the user has access to. */
     policies: PropTypes.objectOf(
@@ -85,7 +79,6 @@ const propTypes = {
     }),
 };
 const defaultProps = {
-    betas: [],
     reports: {},
     policies: {},
     formState: {
@@ -132,9 +125,7 @@ function WorkspaceNewRoomPage(props) {
             '',
             visibility,
             writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-
-            // The room might contain all policy members so notifying always should be opt-in only.
-            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
             parsedWelcomeMessage,
@@ -328,9 +319,9 @@ function WorkspaceNewRoomPage(props) {
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}
                                     value={visibility}
+                                    furtherDetails={visibilityDescription}
                                 />
                             </View>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                         </FormProvider>
                         {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
