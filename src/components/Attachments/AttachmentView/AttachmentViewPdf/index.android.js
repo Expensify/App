@@ -23,12 +23,12 @@ function AttachmentViewPdf(props) {
     // Without strict mode, it would just silently fail.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#description
     const isContextReady = attachmentCarouselPagerContext !== null;
-    const shouldPagerScroll = attachmentCarouselPagerContext.shouldPagerScroll;
+    const shouldPagerScroll = isContextReady ? attachmentCarouselPagerContext.shouldPagerScroll : undefined;
 
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0 && isContextReady) {
+            if (offsetX.value !== 0 && offsetY.value !== 0 && isContextReady && shouldPagerScroll !== undefined) {
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
