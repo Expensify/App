@@ -1319,7 +1319,7 @@ function getOptions(
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, (report) => {
-        const {parentReportID, parentReportActionID} = report ?? {};
+        const {parentReportID, parentReportActionID} = report || {};
         if (!parentReportID || !parentReportActionID || !allReportActions) {
             return false;
         }
