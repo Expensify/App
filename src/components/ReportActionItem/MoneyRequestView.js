@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -38,6 +38,7 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,6 +85,9 @@ const propTypes = {
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The policy the report is tied to */
+    ...policyPropTypes,
+
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -106,15 +110,16 @@ const propTypes = {
 const defaultProps = {
     parentReport: {},
     parentReportActions: {},
-    policyCategories: {},
     transaction: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
     transactionViolations: [],
+    policyCategories: {},
     policyTags: {},
     policyTaxRates: {},
+    ...policyDefaultProps,
 };
 
 function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, policyTaxRates, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolations}) {
@@ -153,12 +158,18 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
+
+    // Used for non-restricted fields such as: description, category, tag, billable, etc.
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const canEditAmount = ReportUtils.canEditMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, transaction) && !isSettled && !isCardTransaction;
-    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, moneyRequestReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+    const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
+    const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
+    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     // Fetches only the first tag, for now
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -202,18 +213,12 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         }
     }
 
-    // A temporary solution to hide the transaction detail
-    // This will be removed after we properly add the transaction as a prop
-    if (ReportActionsUtils.isDeletedAction(parentReportAction)) {
-        return null;
-    }
-
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+        hasErrors = canEditReceipt && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const pendingAction = lodashGet(transaction, 'pendingAction');
@@ -232,11 +237,12 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 isLocalFile={receiptURIs.isLocalFile}
                                 transaction={transaction}
                                 enablePreviewModal
+                                canEditReceipt={canEditReceipt}
                             />
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && !isSettled && canUseViolations && (
+                {!hasReceipt && canEditReceipt && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
@@ -278,8 +284,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
                             title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
-                            interactive={canEdit && !isSettled}
-                            shouldShowRightIcon={canEdit && !isSettled}
+                            interactive={canEditDistance}
+                            shouldShowRightIcon={canEditDistance}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                         />
@@ -289,8 +295,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
                             title={isEmptyMerchant ? '' : transactionMerchant}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditMerchant}
+                            shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                             brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
@@ -303,8 +309,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <MenuItemWithTopDescription
                         description={translate('common.date')}
                         title={transactionDate}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEditDate}
+                        shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
