@@ -1324,7 +1324,12 @@ function getOptions(
             currentReportId: Navigation.getTopmostReportId(),
             betas,
             policies,
-            transactionViolations,
+            doesReportTransactionThreadHaveViolations:
+                betas.included(CONST.BETAS.VIOLATIONS) &&
+                ReportUtils.doesTransactionThreadHaveViolations({
+                    report,
+                    transactionViolations,
+                }),
         }),
     );
 

@@ -53,7 +53,6 @@ test('[SidebarUtils] getOptionData on 5k reports', async () => {
     const preferredLocale = 'en';
     const policy = createRandomPolicy(1);
     const parentReportAction = createRandomReportAction(1);
-    const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
@@ -70,8 +69,7 @@ test('[SidebarUtils] getOptionData on 5k reports', async () => {
                 preferredLocale,
                 policy,
                 parentReportAction,
-                transactionViolations,
-                canUseViolations: false,
+                hasViolations: false,
             }),
         {runs},
     );

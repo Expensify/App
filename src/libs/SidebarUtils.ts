@@ -151,9 +151,18 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList({report, currentReportId: currentReportId ?? '', isInGSDMode, betas, policies, excludeEmptyChats: true, transactionViolations}),
-    );
+    const reportsToDisplay = allReportsDictValues.filter((report) => {
+        const doesReportTransactionThreadHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations({report, transactionViolations});
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '',
+            isInGSDMode,
+            betas,
+            policies,
+            excludeEmptyChats: true,
+            doesReportTransactionThreadHaveViolations,
+        });
+    });
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -242,8 +251,7 @@ function getOptionData({
     preferredLocale,
     policy,
     parentReportAction,
-    transactionViolations,
-    canUseViolations,
+    hasViolations,
 }: {
     report: Report;
     reportActions: Record<string, ReportAction>;
@@ -251,8 +259,7 @@ function getOptionData({
     preferredLocale: ValueOf<typeof CONST.LOCALES>;
     policy: Policy;
     parentReportAction: ReportAction;
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
-    canUseViolations: boolean;
+    hasViolations: boolean;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -295,7 +302,6 @@ function getOptionData({
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations);
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);

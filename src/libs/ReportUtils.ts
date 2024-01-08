@@ -3447,7 +3447,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is a money request that contains a violation
  */
-function doesTransactionThreadHaveViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]> | undefined): boolean {
+function doesTransactionThreadHaveViolations({report, transactionViolations}: {report: Report; transactionViolations?: OnyxCollection<TransactionViolation[]>}): boolean {
     const {parentReportActionID, parentReportID} = report;
 
     if (!parentReportID || !parentReportActionID) {
@@ -3455,10 +3455,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
     }
     const parentReportAction = reportActionsByReport?.[parentReportID]?.[parentReportActionID];
 
-    if (!parentReportAction) {
-        return false;
-    }
-    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+    if (!parentReportAction || parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
     const {IOUTransactionID, IOUReportID} = parentReportAction?.originalMessage;
@@ -3496,7 +3493,7 @@ function shouldReportBeInOptionList({
     betas,
     policies,
     excludeEmptyChats = false,
-    transactionViolations,
+    doesReportTransactionThreadHaveViolations,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
@@ -3504,7 +3501,7 @@ function shouldReportBeInOptionList({
     betas: Beta[];
     policies: OnyxCollection<Policy>;
     excludeEmptyChats?: boolean;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    doesReportTransactionThreadHaveViolations: boolean;
 }) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -3565,7 +3562,7 @@ function shouldReportBeInOptionList({
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && doesTransactionThreadHaveViolations(report, transactionViolations)) {
+    if (isExpenseRequest(report) && doesReportTransactionThreadHaveViolations) {
         return true;
     }
 
