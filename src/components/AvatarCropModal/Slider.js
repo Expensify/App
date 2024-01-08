@@ -67,7 +67,8 @@ function Slider(props) {
                             text={props.translate('common.zoom')}
                             shiftVertical={-2}
                         >
-                            <View style={[styles.sliderKnobTooltipView]} />
+                            {/* pointerEvents='none' is a workaround to make sure the pan gesture works correctly on mobile safari */}
+                            <View style={[styles.sliderKnobTooltipView]} pointerEvents='none' />
                         </Tooltip>
                     )}
                 </Animated.View>
