@@ -71,8 +71,8 @@ function ReferralDetailsPage({route, account}) {
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
-            <Text style={[styles.textHeadline, styles.mb3, styles.mt3, styles.ph4]}>{contentHeader}</Text>
-            <Text style={[styles.inlineSystemMessage, styles.ml0, styles.mb6, styles.ph4]}>{contentBody}</Text>
+            <Text style={[styles.textHeadline, styles.mb2, styles.ph4]}>{contentHeader}</Text>
+            <Text style={[styles.baseFontStyle, styles.ml0, styles.mb5, styles.ph4]}>{contentBody}</Text>
 
             {shouldShowClipboard && (
                 <ContextMenuItem
