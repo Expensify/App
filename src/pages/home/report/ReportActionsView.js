@@ -97,10 +97,15 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
+const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
+const SPACER = 30;
+const AMOUNT_OF_ITEMS_BEFORE_LINKED_ONE = 15;
+
 let listIDCount = 1;
 const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
     const [edgeID, setEdgeID] = useState();
     const isCuttingForFirstRender = useRef(true);
+    const isCuttingForFirstBatch = useRef(false);
 
     useLayoutEffect(() => {
         setEdgeID();
@@ -108,18 +113,18 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
 
     const listID = useMemo(() => {
         isCuttingForFirstRender.current = true;
+        isCuttingForFirstBatch.current = false;
         listIDCount += 1;
         return listIDCount;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route]);
-
 
     const index = useMemo(() => {
         if (!linkedID) {
             return -1;
         }
 
-        const indx = messageArray.findIndex((obj) => String(obj.reportActionID) === String(isCuttingForFirstRender.current ? linkedID : edgeID));
-        return indx;
+        return messageArray.findIndex((obj) => String(obj.reportActionID) === String(isCuttingForFirstRender.current ? linkedID : edgeID));
     }, [messageArray, edgeID, linkedID]);
 
     const cattedArray = useMemo(() => {
@@ -133,10 +138,13 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
         if (isCuttingForFirstRender.current) {
             return messageArray.slice(index, messageArray.length);
         } else {
-            const amountOfItemsBeforeLinkedOne = 15;
-            const newStartIndex = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
+            // Sometimes the layout is wrong. This helps get the slide right for one item.
+            const dynamicBatchSize = isCuttingForFirstBatch.current ? 1 : AMOUNT_OF_ITEMS_BEFORE_LINKED_ONE;
+            const newStartIndex = index >= dynamicBatchSize ? index - dynamicBatchSize : 0;
+            isCuttingForFirstBatch.current = false;
             return newStartIndex ? messageArray.slice(newStartIndex, messageArray.length) : messageArray;
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [linkedID, messageArray, index, isLoading, edgeID]);
 
     const hasMoreCashed = cattedArray.length < messageArray.length;
@@ -151,6 +159,7 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
             }
             if (isCuttingForFirstRender.current) {
                 isCuttingForFirstRender.current = false;
+                isCuttingForFirstBatch.current = true;
                 InteractionManager.runAfterInteractions(() => {
                     setEdgeID(firstReportActionID);
                 });
@@ -245,6 +254,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             return;
         }
         Report.openReport({reportID, reportActionID});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route]);
 
     useEffect(() => {
@@ -307,6 +317,8 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         contentListHeight.current = h;
     }, []);
 
+    const checkIfContentSmallerThanList = useCallback(() => windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current, [windowHeight]);
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -325,21 +337,28 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
     };
 
-    const firstReportActionID = useMemo(() => reportActions[0]?.reportActionID, [reportActions]);
+    const firstReportActionID = useMemo(() => lodashGet(newestReportAction, 'reportActionID'), [newestReportAction]);
     const handleLoadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         () => {
             if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions) {
                 return;
             }
-            const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
-            const SPACER = 30;
-            const isContentSmallerThanList = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
+            const isContentSmallerThanList = checkIfContentSmallerThanList();
             if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isContentSmallerThanList) || (!reportActionID && !hasNewestReportAction && !isContentSmallerThanList)) {
                 fetchFunc({firstReportActionID});
             }
         },
-        [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID, windowHeight],
+        [
+            props.isLoadingInitialReportActions,
+            props.isLoadingOlderReportActions,
+            checkIfContentSmallerThanList,
+            reportActionID,
+            linkedIdIndex,
+            hasNewestReportAction,
+            fetchFunc,
+            firstReportActionID,
+        ],
     );
 
     /**
