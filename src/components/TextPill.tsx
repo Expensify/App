@@ -10,7 +10,7 @@ type TextPillProps = {
     color?: string;
 
     /** Styles to apply to the text */
-    textStyles: StyleProp<TextStyle>;
+    textStyles?: StyleProp<TextStyle>;
 
     children: React.ReactNode;
 };
