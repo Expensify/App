@@ -95,7 +95,7 @@ function Hoverable(
             }
             setIsHovered(hovered);
         },
-        [disabled, shouldHandleScroll],
+        [disabled, shouldHandleScroll, setIsHovered],
     );
 
     useEffect(() => {
@@ -119,7 +119,7 @@ function Hoverable(
         });
 
         return () => scrollingListener.remove();
-    }, [shouldHandleScroll]);
+    }, [shouldHandleScroll, setIsHovered]);
 
     useEffect(() => {
         if (!DeviceCapabilities.hasHoverSupport()) {
@@ -147,14 +147,14 @@ function Hoverable(
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [isHovered]);
+    }, [isHovered, setIsHovered]);
 
     useEffect(() => {
         if (!disabled || !isHovered) {
             return;
         }
         setIsHovered(false);
-    }, [disabled, isHovered]);
+    }, [disabled, isHovered, setIsHovered]);
 
     useEffect(() => {
         if (disabled) {
@@ -209,7 +209,7 @@ function Hoverable(
                 child.props.onBlur(event);
             }
         },
-        [child.props],
+        [child.props, setIsHovered],
     );
 
     // We need to access the ref of a children from both parent and current component
