@@ -26,7 +26,7 @@ const defaultProps = {
 function ImageView({isAuthTokenRequired, url, onScaleChanged, style, zoomRange, onError}) {
     return (
         <Lightbox
-            source={url}
+            uri={url}
             zoomRange={zoomRange}
             isAuthTokenRequired={isAuthTokenRequired}
             onScaleChanged={onScaleChanged}
