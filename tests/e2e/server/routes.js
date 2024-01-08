@@ -10,4 +10,6 @@ module.exports = {
 
     // Commands to execute from the host machine (there are pre-defined types like scroll or type)
     testNativeCommand: '/test_native_command',
+
+    getOtpCode: '/get_otp_code',
 };

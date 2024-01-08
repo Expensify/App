@@ -89,10 +89,16 @@ const sendNativeCommand = (payload: NativeCommand) =>
             });
     });
 
+const getOTPCode = (): Promise<string> =>
+    fetch(`${SERVER_ADDRESS}${Routes.getOtpCode}`)
+        .then((res: Response): Promise<string> => res.json())
+        .then((otp: string) => otp);
+
 export default {
     submitTestResults,
     submitTestDone,
     getTestConfig,
     getCurrentActiveTestConfig,
     sendNativeCommand,
+    getOTPCode,
 };

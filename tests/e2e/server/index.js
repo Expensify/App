@@ -54,6 +54,39 @@ const createListenerState = () => {
     return [listeners, addListener];
 };
 
+const https = require('https');
+
+function simpleHttpRequest(url, method = 'GET') {
+    return new Promise((resolve, reject) => {
+        const req = https.request(url, {method}, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                resolve(data);
+            });
+        });
+        req.on('error', reject);
+        req.end();
+    });
+}
+
+const parseString = require('xml2js').parseString;
+
+function simpleXMLToJSON(xml) {
+    // using xml2js
+    return new Promise((resolve, reject) => {
+        parseString(xml, (err, result) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(result);
+        });
+    });
+}
+
 /**
  * The test result object that a client might submit to the server.
  * @typedef TestResult
@@ -143,6 +176,27 @@ const createServerInstance = () => {
                         res.statusCode = 500;
                         res.end('Error executing command');
                     });
+                break;
+            }
+
+            case Routes.getOtpCode: {
+                // Wait 10 seconds for the email to arrive
+                setTimeout(() => {
+                    simpleHttpRequest('https://www.trashmail.de/inbox-api.php?name=expensify.testuser')
+                        .then(simpleXMLToJSON)
+                        .then(({feed}) => {
+                            const firstEmailID = feed.entry[0].id;
+                            // Get email content:
+                            return simpleHttpRequest(`https://www.trashmail.de/mail-api.php?name=expensify.testuser&id=${firstEmailID}`).then(simpleXMLToJSON);
+                        })
+                        .then(({feed}) => {
+                            const content = feed.entry[0].content[0];
+                            // content is a string, find code using regex based on text "Use 259463 to sign"
+                            const otpCode = content.match(/Use (\d+) to sign/)[1];
+                            console.debug('otpCode', otpCode);
+                            res.end(otpCode);
+                        });
+                }, 10000);
                 break;
             }
 

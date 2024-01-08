@@ -69,5 +69,5 @@ E2EClient.getTestConfig()
 
 // start the usual app
 Performance.markStart('regularAppStart');
-import '../../../index';
+import '../../../appIndex';
 Performance.markEnd('regularAppStart');
