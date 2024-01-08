@@ -1,11 +1,11 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -41,7 +41,7 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, size = CONST.AVATAR_SIZE.
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={mainAvatar?.id ?? -1}
+                accountID={Number(mainAvatar?.id ?? -1)}
                 icon={mainAvatar}
             >
                 <View>
@@ -57,7 +57,7 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, size = CONST.AVATAR_SIZE.
             </UserDetailsTooltip>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={secondaryAvatar?.id ?? -1}
+                accountID={Number(secondaryAvatar?.id ?? -1)}
                 icon={secondaryAvatar}
             >
                 <View
