@@ -1,12 +1,12 @@
 import React, {useMemo} from 'react';
-import {TextProps} from 'react-native';
+import type {TextProps} from 'react-native';
 import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import singleFontFamily from '@styles/utils/fontFamily/singleFontFamily';
+import FontUtils from '@styles/utils/FontUtils';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
-import {HTMLEngineProviderProps} from './types';
+import type {HTMLEngineProviderProps} from './types';
 
 type BaseHTMLEngineProviderProps = HTMLEngineProviderProps & {
     /** Whether text elements should be selectable */
@@ -61,7 +61,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
-                mixedUAStyles: {...styles.textLabelSupporting},
+                mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
                 contentModel: HTMLContentModel.textual,
             }),
             'next-step-email': HTMLElementModel.fromCustomModel({tagName: 'next-step-email', contentModel: HTMLContentModel.textual}),
@@ -71,7 +71,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
             }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
+        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -84,7 +84,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={Object.values(singleFontFamily)}
+            systemFonts={Object.values(FontUtils.fontFamily.single)}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

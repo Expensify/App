@@ -1,4 +1,4 @@
-import OptionAlternateTextPlatformStyles from './types';
+import type OptionAlternateTextPlatformStyles from './types';
 
 const optionAlternateTextPlatformStyles: OptionAlternateTextPlatformStyles = {};
 

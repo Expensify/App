@@ -1,8 +1,9 @@
-import React, {ForwardedRef, forwardRef, MutableRefObject, ReactElement, RefAttributes, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactElement, RefAttributes} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import HoverableProps from './types';
+import type HoverableProps from './types';
 
 /**
  * Maps the children of a Hoverable component to
@@ -145,7 +146,7 @@ function Hoverable(
     // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
     useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => ref.current, []);
 
-    const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
+    const child = useMemo(() => React.Children.only(mapChildren(children as ReactElement, isHovered)), [children, isHovered]);
 
     const enableHoveredOnMouseEnter = useCallback(
         (event: MouseEvent) => {
