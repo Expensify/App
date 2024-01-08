@@ -1,7 +1,7 @@
 import {Image} from 'expo-image';
 import React from 'react';
-import {ImageSourcePropType} from 'react-native';
-import ImageSVGProps from './types';
+import type {ImageSourcePropType} from 'react-native';
+import type ImageSVGProps from './types';
 
 function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
