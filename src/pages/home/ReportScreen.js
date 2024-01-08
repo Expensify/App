@@ -303,17 +303,17 @@ function ReportScreen({
             if (!match) {
                 return false;
             }
-            const email = match[1] ? match[1].trim() : undefined;
             const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
-            if (title) {
-                let assignee = {};
-                if (email) {
-                    assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
-                }
-                Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
-                return true;
+            if (!title) {
+                return false;
             }
-            return false;
+            const email = match[1] ? match[1].trim() : undefined;
+            let assignee = {};
+            if (email) {
+                assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+            }
+            Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+            return true;
         },
         [allPersonalDetails, report.policyID, route],
     );
