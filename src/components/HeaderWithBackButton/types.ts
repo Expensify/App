@@ -1,5 +1,5 @@
-import {ReactNode} from 'react';
-import {OnyxEntry} from 'react-native-onyx';
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
