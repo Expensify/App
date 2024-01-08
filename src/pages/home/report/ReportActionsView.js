@@ -15,7 +15,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -173,7 +172,6 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
 function ReportActionsView({reportActions: allReportActions, fetchReport, ...props}) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const reportScrollManager = useReportScrollManager();
     const route = useRoute();
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
@@ -239,10 +237,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             return;
         }
         openReportIfNecessary();
-
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
-        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -391,7 +385,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
                 isLoadingOlderReportActions={props.isLoadingOlderReportActions}
                 isLoadingNewerReportActions={props.isLoadingNewerReportActions}
-                reportScrollManager={reportScrollManager}
                 policy={props.policy}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}

@@ -11,6 +11,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -139,7 +140,6 @@ function ReportActionsList({
     loadOlderChats,
     onLayout,
     isComposerFullSize,
-    reportScrollManager,
     listID,
     onContentSizeChange,
 }) {
@@ -158,6 +158,7 @@ function ReportActionsList({
     };
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+    const reportScrollManager = useReportScrollManager();
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
@@ -259,6 +260,13 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
     }, [report.reportID]);
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
