@@ -191,6 +191,29 @@ When any form field fails to validate in addition to the inline error below a fi
 
 ![form-alert](https://user-images.githubusercontent.com/22219519/156267105-861fbe81-32cc-479d-8eff-3760bd0585b1.png)
 
+
+### Handling Client Side Errors Not Related to Individual Fields
+
+Client side errors related to form submission and not related to individual fields should appear in the Form Alert above the submit button. They should not appear in growls or other kinds of alerts.
+
+Example:
+
+```jsx
+const getErrorMessage = () => {
+    if (!condition) {
+        return '';
+    }
+    return 'Error Message';
+};
+```
+
+```jsx
+<FormProvider
+    getErrorMessage={getErrorMessage}
+    // other props
+/>
+```
+
 ### Handling Server Errors
 
 Server errors related to form submission should appear in the Form Alert above the submit button. They should not appear in growls or other kinds of alerts. Additionally, as best practice moving forward server errors should never solely do the work that frontend validation can also do. This means that any error that can be validated in the frontend should be validated in the frontend and backend.
