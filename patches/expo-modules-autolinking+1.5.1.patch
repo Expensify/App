@@ -80,3 +80,21 @@ index bddfa0d..3ae2c6c 100644
        SUPPORT_SCRIPT
      end
  
+diff --git a/node_modules/expo-modules-autolinking/scripts/ios/react_import_patcher.rb b/node_modules/expo-modules-autolinking/scripts/ios/react_import_patcher.rb
+index 4acf193..b54ea94 100644
+--- a/node_modules/expo-modules-autolinking/scripts/ios/react_import_patcher.rb
++++ b/node_modules/expo-modules-autolinking/scripts/ios/react_import_patcher.rb
+@@ -10,11 +10,12 @@ module Expo
+     end
+ 
+     public def run!
++      autolinking_path = ENV['REACT_NATIVE_DIR'] ? "#{ENV['REACT_NATIVE_DIR']}/node_modules/expo-modules-autolinking" : "expo-modules-autolinking"
+       args = [
+         'node',
+         '--no-warnings',
+         '--eval',
+-        'require(\'expo-modules-autolinking\')(process.argv.slice(1))',
++        "require(\'#{autolinking_path}\')(process.argv.slice(1))",
+         'patch-react-imports',
+         '--pods-root',
+         File.expand_path(@root),
