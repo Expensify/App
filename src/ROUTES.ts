@@ -1,5 +1,5 @@
-import {IsEqual, ValueOf} from 'type-fest';
-import CONST from './CONST';
+import type {IsEqual, ValueOf} from 'type-fest';
+import type CONST from './CONST';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -322,8 +322,18 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        route: 'create/:iouType/taxRate/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAX_AMOUNT: {
+        route: 'create/:iouType/taxAmount/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_CATEGORY: {
-        route: 'create/:iouType/category/:transactionID/:reportID',
+        route: 'create/:iouType/category/:transactionID/:reportID?',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
@@ -348,9 +358,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_MERCHANT: {
-        route: 'create/:iouType/merchante/:transactionID/:reportID',
+        route: 'create/:iouType/merchant/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/merchante/${transactionID}/${reportID}`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: 'create/:iouType/participants/:transactionID/:reportID',
@@ -469,6 +479,7 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}` as const,
     },
+    PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 } as const;
 
 export {getUrlWithBackToParam};
