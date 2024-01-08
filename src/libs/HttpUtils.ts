@@ -5,9 +5,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+import * as AppUpdate from './actions/AppUpdate';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import * as AppUpdate from './actions/AppUpdate';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;

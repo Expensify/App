@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import updateApp from './updateApp';
 
 function triggerUpdateAvailable() {

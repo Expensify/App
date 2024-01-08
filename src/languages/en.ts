@@ -297,6 +297,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -767,6 +768,11 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please install the latest version of New Expensify',
+        toGetLatestChanges: 'To get the latest changes, please download and install the latest version.',
     },
     initialSettingsPage: {
         about: 'About',

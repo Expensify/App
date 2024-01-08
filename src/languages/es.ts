@@ -287,6 +287,7 @@ export default {
         showing: 'Mostrando',
         of: 'de',
         default: 'Predeterminado',
+        update: 'Actualizar',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -762,6 +763,11 @@ export default {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Actualización requerida',
+        pleaseInstall: 'Por favor, instala la última versión de Nuevo Expensify',
+        toGetLatestChanges: 'Para obtener los últimos cambios, descarga e instala la última versión.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
