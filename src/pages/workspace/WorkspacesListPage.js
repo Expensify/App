@@ -111,7 +111,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, currentUserPersonalDetails, reports}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -179,16 +179,15 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                             title={keyTitle}
                             menuItems={threeDotsMenuItems}
                             workspaceIcon={item.icon}
-                            ownerAccountID={currentUserPersonalDetails.accountID}
+                            ownerAccountID={item.ownerAccountID}
                             workspaceType={item.type}
-                            currentUserPersonalDetails={currentUserPersonalDetails}
                             layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                         />
                     </PressableWithoutFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [currentUserPersonalDetails, isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, translate],
+        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, translate],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -285,6 +284,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 reports: policy.reports,
                 adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
                 announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
+                ownerAccountID: policy.ownerAccountID,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
@@ -389,5 +389,4 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
-    withCurrentUserPersonalDetails,
 )(WorkspacesListPage);
