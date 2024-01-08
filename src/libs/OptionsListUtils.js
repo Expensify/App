@@ -1059,6 +1059,17 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 }
 
 /**
+ * Verifies that there is at least one enabled option
+ *
+ * @param {Object[]} options - an initial strings array
+ * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
+ * @returns {Boolean}
+ */
+function hasEnabledOptionsForTaxRate(options) {
+    return _.some(options, (option) => !option.isDisabled);
+}
+
+/**
  * Represents the data for a single tax rate.
  *
  * @property {string} name - The name of the tax rate.
@@ -1953,6 +1964,7 @@ export {
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
+    hasEnabledOptionsForTaxRate,
     sortCategories,
     getCategoryOptionTree,
     formatMemberForList,
