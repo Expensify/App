@@ -49,8 +49,8 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label, onBl
         setIsPickerVisible(true);
     };
 
-    const hidePickerModal = (isUpdateStateInput = false) => {
-        if (!isUpdateStateInput) {
+    const hidePickerModal = (shouldBlur = true) => {
+        if (shouldBlur) {
             onBlur();
         }
         setIsPickerVisible(false);
@@ -60,7 +60,9 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label, onBl
         if (state.value !== value) {
             onInputChange(state.value);
         }
-        hidePickerModal(true);
+        // If the user selects any state, call the hidePickerModal function with shouldBlur = false
+        // to prevent the onBlur function from being called.
+        hidePickerModal(false);
     };
 
     const title = value && _.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
