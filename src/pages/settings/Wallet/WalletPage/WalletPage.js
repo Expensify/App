@@ -83,6 +83,26 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
 
     const debounceSetShouldShowLoadingSpinner = _.debounce(updateShouldShowLoadingSpinner, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
 
+    useEffect(() => {
+        if (cardList[234523452345]) {
+            return;
+        }
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        window.Onyx.merge(`cardList`, {
+            234523452345: {
+                key: '234523452345',
+                cardID: 234523452345,
+                state: 2,
+                bank: 'Expensify Card',
+                availableSpend: 10000,
+                domainName: 'expensify.com',
+                lastFourPAN: '2345',
+                isVirtual: false,
+                fraud: null,
+            },
+        });
+    }, [cardList]);
+
     /**
      * Set position of the payment menu
      *
