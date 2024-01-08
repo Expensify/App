@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-pdf/index.js
+index c7c58d8..01e8377 100644
+--- a/node_modules/react-native-pdf/index.js
++++ b/node_modules/react-native-pdf/index.js
+@@ -276,9 +276,6 @@ export default class Pdf extends Component {
+                 if (this._mounted) {
+                     this.setState({progress: received / total});
+                 }
+-            })
+-            .catch(async (error) => {
+-                this._onError(error);
+             });
+ 
+         this.lastRNBFTask
