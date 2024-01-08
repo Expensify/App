@@ -1,5 +1,5 @@
-import {ViewProps} from 'react-native';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {ViewProps} from 'react-native';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type FocusTrapViewProps = ChildrenProps & {
     /**
