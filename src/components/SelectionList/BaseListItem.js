@@ -49,7 +49,7 @@ function BaseListItem({
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                testID={keyForList}
+                nativeID={keyForList}
             >
                 <View
                     style={[
@@ -89,8 +89,9 @@ function BaseListItem({
                         textStyles={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
+                            isUserItem || item.isSelected || item.alternateText ? styles.sidebarLinkTextBold : null,
                             styles.pre,
+                            item.alternateText ? styles.mb1 : null,
                         ]}
                         alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                         isDisabled={isDisabled}

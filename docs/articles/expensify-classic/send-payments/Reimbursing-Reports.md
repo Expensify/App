@@ -65,7 +65,7 @@ If either limit has been reached, you can expect funds deposited within your ban
 
 Rapid Reimbursement is not available for non-US-based reimbursement. If you are receiving a reimbursement to a non-US-based deposit account, you should expect to see the funds deposited in your bank account within four business days.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Who can reimburse reports? 
 Only a workspace admin who has added a verified business bank account to their Expensify account can reimburse employees.
@@ -77,3 +77,5 @@ Instead of a bulk reimbursement option, you can set up automatic reimbursement. 
 To set your manual reimbursement threshold, head to **Settings > Workspace > Group > _[Workspace Name]_ > Reimbursement > Manual Reimbursement**.
 
 ![Manual Reimbursement]({{site.url}}/assets/images/Reimbursing Manual.png){:width="100%"}
+
+{% include faq-end.md %}
