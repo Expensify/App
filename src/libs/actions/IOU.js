@@ -1125,7 +1125,6 @@ function updateMoneyRequestBillable(transactionID, transactionThreadReportID, va
 }
 
 /**
- * Edits an existing distance request
  * Updates the merchant field of a money request
  *
  * @param {String} transactionID
