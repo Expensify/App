@@ -243,10 +243,10 @@ function ReportPreview(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isGroupPolicy
-        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+    const isPayer = isPaidGroupPolicy
+        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
@@ -254,11 +254,11 @@ function ReportPreview(props) {
         [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
-        if (!isGroupPolicy) {
+        if (!isPaidGroupPolicy) {
             return false;
         }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
+    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
         <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>

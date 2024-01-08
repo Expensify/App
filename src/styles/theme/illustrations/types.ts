@@ -6,5 +6,4 @@ type IllustrationsType = {
     ExampleCheckEN: ImageSourcePropType;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export {type IllustrationsType};
+export default IllustrationsType;

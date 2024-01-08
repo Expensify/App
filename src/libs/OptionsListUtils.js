@@ -335,9 +335,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
-            const participantAccountIDs = report.participantAccountIDs || [];
-            for (let i = 0; i < participantAccountIDs.length; i++) {
-                const accountID = participantAccountIDs[i];
+            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs || [];
+            for (let i = 0; i < visibleChatMemberAccountIDs.length; i++) {
+                const accountID = visibleChatMemberAccountIDs[i];
 
                 if (allPersonalDetails[accountID] && allPersonalDetails[accountID].login) {
                     searchTerms = searchTerms.concat(allPersonalDetails[accountID].login);
@@ -519,7 +519,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs || []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
 
@@ -590,7 +590,7 @@ function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
     const option = createOption(
-        expenseReport.participantAccountIDs,
+        expenseReport.visibleChatMemberAccountIDs,
         allPersonalDetails,
         expenseReport,
         {},
@@ -1359,7 +1359,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.participantAccountIDs || [];
+        const accountIDs = report.visibleChatMemberAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
