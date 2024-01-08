@@ -13,7 +13,6 @@ import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
-import * as DemoActions from './libs/actions/DemoActions';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -110,6 +109,7 @@ function Expensify(props) {
     }, [props.isCheckingPublicRoom]);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+    const autoAuthState = useMemo(() => lodashGet(props.session, 'autoAuthState', ''), [props.session]);
 
     const contextValue = useMemo(
         () => ({
@@ -182,13 +182,11 @@ function Expensify(props) {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            DemoActions.runDemoByURL(url);
             Report.openReportFromDeepLink(url, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            DemoActions.runDemoByURL(state.url);
             Report.openReportFromDeepLink(state.url, isAuthenticated);
         });
 
@@ -207,7 +205,10 @@ function Expensify(props) {
     }
 
     return (
-        <DeeplinkWrapper isAuthenticated={isAuthenticated}>
+        <DeeplinkWrapper
+            isAuthenticated={isAuthenticated}
+            autoAuthState={autoAuthState}
+        >
             {shouldInit && (
                 <>
                     <GrowlNotification ref={Growl.growlRef} />

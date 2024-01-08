@@ -10,13 +10,13 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
@@ -111,6 +111,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Location bias for querying search results. */
+    locationBias: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -138,6 +141,7 @@ const defaultProps = {
     maxInputLength: undefined,
     predefinedPlaces: [],
     resultTypes: 'address',
+    locationBias: undefined,
 };
 
 function AddressSearch({
@@ -162,9 +166,11 @@ function AddressSearch({
     shouldSaveDraft,
     translate,
     value,
+    locationBias,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -178,11 +184,11 @@ function AddressSearch({
             language: preferredLocale,
             types: resultTypes,
             components: isLimitedToUSA ? 'country:us' : undefined,
+            ...(locationBias && {locationbias: locationBias}),
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA],
+        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
-
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
@@ -191,7 +197,7 @@ function AddressSearch({
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 onPress({
-                    address: lodashGet(details, 'description'),
+                    address: autocompleteData.description || lodashGet(details, 'description', ''),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
                     name: lodashGet(details, 'name'),
@@ -260,7 +266,7 @@ function AddressSearch({
 
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
-            address: lodashGet(details, 'formatted_address', ''),
+            address: autocompleteData.description || lodashGet(details, 'formatted_address', ''),
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -273,6 +279,11 @@ function AddressSearch({
         // So we use a secondary field (administrative_area_level_2) as a fallback
         if (country === CONST.COUNTRY.GB) {
             values.state = stateFallback;
+        }
+
+        // Set the state to be the same as the city in case the state is empty.
+        if (_.isEmpty(values.state)) {
+            values.state = values.city;
         }
 
         // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
@@ -338,6 +349,7 @@ function AddressSearch({
                     lat: successData.coords.latitude,
                     lng: successData.coords.longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
+                    name: CONST.YOUR_LOCATION_TEXT,
                 };
                 onPress(location);
             },
@@ -509,13 +521,7 @@ function AddressSearch({
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [
-                                StyleUtils.getGoogleListViewStyle(styles, displayListViewBorder),
-                                styles.overflowAuto,
-                                styles.borderLeft,
-                                styles.borderRight,
-                                !isFocused && {height: 0},
-                            ],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
@@ -532,7 +538,7 @@ function AddressSearch({
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
                             predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
-                                <View style={[StyleUtils.getGoogleListViewStyle(styles, true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={network.isOffline}

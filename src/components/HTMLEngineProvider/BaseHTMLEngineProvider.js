@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import singleFontFamily from '@styles/fontFamily/singleFontFamily';
-import useThemeStyles from '@styles/useThemeStyles';
+import FontUtils from '@styles/utils/FontUtils';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
@@ -60,21 +60,29 @@ function BaseHTMLEngineProvider(props) {
             }),
             'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
+            'next-step': defaultHTMLElementModels.span.extend({
+                tagName: 'next-step',
+                mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
+            }),
+            'next-step-email': defaultHTMLElementModels.span.extend({tagName: 'next-step-email'}),
+            video: defaultHTMLElementModels.div.extend({
+                tagName: 'video',
+                mixedUAStyles: {whiteSpace: 'pre'},
+            }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0],
+        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
     );
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
-
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={_.values(singleFontFamily)}
+            systemFonts={_.values(FontUtils.fontFamily.single)}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

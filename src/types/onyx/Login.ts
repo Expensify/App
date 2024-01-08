@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type Login = {
     /** Phone/Email associated with user */
@@ -17,4 +17,7 @@ type Login = {
     pendingFields?: OnyxCommon.PendingFields;
 };
 
+type LoginList = Record<string, Login>;
+
 export default Login;
+export type {LoginList};

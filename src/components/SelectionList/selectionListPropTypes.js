@@ -1,10 +1,17 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import CONST from '@src/CONST';
 
 const commonListItemPropTypes = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
+
+    /** Style to be applied to Text */
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to be applied on the alternate text */
+    alternateTextStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether this item is disabled */
     isDisabled: PropTypes.bool,
@@ -54,7 +61,7 @@ const userListItemPropTypes = {
         /** Icons for the user (can be multiple if it's a Workspace) */
         icons: PropTypes.arrayOf(
             PropTypes.shape({
-                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+                source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]).isRequired,
                 name: PropTypes.string,
                 type: PropTypes.string,
             }),

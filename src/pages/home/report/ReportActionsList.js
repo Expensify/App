@@ -12,12 +12,13 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import Visibility from '@libs/Visibility';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -131,7 +132,6 @@ function ReportActionsList({
     isSmallScreenWidth,
     personalDetailsList,
     currentUserPersonalDetails,
-    hasOutstandingIOU,
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -156,8 +156,14 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const reportActionSize = useRef(sortedReportActions.length);
+    const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
+
+    const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
+    const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
+    const reportActionSize = useRef(sortedVisibleReportActions.length);
+
+    const previousLastIndex = useRef(lastActionIndex);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -172,6 +178,14 @@ function ReportActionsList({
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
+
+    useEffect(() => {
+        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length) {
+            reportScrollManager.scrollToBottom();
+        }
+        previousLastIndex.current = lastActionIndex;
+        reportActionSize.current = sortedVisibleReportActions.length;
+    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -191,22 +205,22 @@ function ReportActionsList({
         }
 
         if (ReportUtils.isUnread(report)) {
-            if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
             } else {
                 readActionSkipped.current = true;
             }
         }
 
-        if (currentUnreadMarker || reportActionSize.current === sortedReportActions.length) {
+        if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
         }
 
         cacheUnreadMarkers.delete(report.reportID);
-        reportActionSize.current = sortedReportActions.length;
+        lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
+    }, [report.lastVisibleActionCreated, report.reportID]);
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
@@ -339,7 +353,10 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-                    shouldDisplay = reportAction.actorAccountID !== Report.getCurrentUserAccountID() && isWithinVisibleThreshold;
+                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    shouldDisplay =
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
+                        isWithinVisibleThreshold;
                 }
                 if (shouldDisplay) {
                     cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
@@ -380,14 +397,13 @@ function ReportActionsList({
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
-                sortedReportActions={sortedReportActions}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

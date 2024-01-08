@@ -112,13 +112,6 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedTags = val),
 });
 
-let networkStatus = {};
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    waitForCollectionCallback: true,
-    callback: (val) => (networkStatus = val),
-});
-
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -277,11 +270,19 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
+    // Everyone in special policy rooms is visible
+    const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
-            participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
+            participantAccountIDs,
+            visibleChatMemberAccountIDs: participantAccountIDs,
         },
     });
 
@@ -290,6 +291,7 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: announceReport.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -308,12 +310,17 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
     const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: [...remainUsers],
+            visibleChatMemberAccountIDs: [...remainUsers],
         },
     });
 
@@ -322,6 +329,7 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: announceReport.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -957,7 +965,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
