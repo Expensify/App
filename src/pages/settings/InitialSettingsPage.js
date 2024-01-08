@@ -31,7 +31,7 @@ import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPaneNam
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
-import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
+import CONTEXT_MENU_TYPES from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
