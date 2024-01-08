@@ -1318,8 +1318,10 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) =>
-        ReportUtils.shouldReportBeInOptionList({
+    const filteredReports = _.filter(reports, (report) => {
+        const parentReportAction = !report.parentReportID || !report.parentReportActionID ? {} : lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+
+        return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: Navigation.getTopmostReportId(),
             betas,
@@ -1329,9 +1331,10 @@ function getOptions(
                 ReportUtils.doesTransactionThreadHaveViolations({
                     report,
                     transactionViolations,
+                    parentReportAction,
                 }),
-        }),
-    );
+        });
+    });
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)

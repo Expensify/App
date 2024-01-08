@@ -92,7 +92,7 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions, reportActions]);
 
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations({report: fullReport, transactionViolations});
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations({report: fullReport, transactionViolations, parentReportAction});
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!

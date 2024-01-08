@@ -21,6 +21,7 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import reportActionPropTypes from './home/report/reportActionPropTypes';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
@@ -40,6 +41,7 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
 const defaultProps = {
@@ -47,11 +49,12 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
+    reportActions: {},
 };
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports, reportActions}) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);

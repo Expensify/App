@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -152,7 +153,9 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = allReportsDictValues.filter((report) => {
-        const doesReportTransactionThreadHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations({report, transactionViolations});
+        const parentReportAction = !report.parentReportID || !report.parentReportActionID ? {} : lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+        const doesReportTransactionThreadHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations({report, transactionViolations, parentReportAction});
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',

@@ -3447,15 +3447,16 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is a money request that contains a violation
  */
-function doesTransactionThreadHaveViolations({report, transactionViolations}: {report: Report; transactionViolations?: OnyxCollection<TransactionViolation[]>}): boolean {
-    const {parentReportActionID, parentReportID} = report;
-
-    if (!parentReportID || !parentReportActionID) {
-        return false;
-    }
-    const parentReportAction = reportActionsByReport?.[parentReportID]?.[parentReportActionID];
-
-    if (!parentReportAction || parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+function doesTransactionThreadHaveViolations({
+    report,
+    transactionViolations,
+    parentReportAction,
+}: {
+    report: Report;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    parentReportAction: ReportAction;
+}): boolean {
+    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
     const {IOUTransactionID, IOUReportID} = parentReportAction?.originalMessage;
