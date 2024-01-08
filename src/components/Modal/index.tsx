@@ -10,7 +10,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
-    
 
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
