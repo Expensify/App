@@ -9,6 +9,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
+const WORKSPACE_NAME = "Esh's Workspace";
 
 OnyxUpdateManager();
 describe('actions/Policy', () => {
@@ -27,13 +28,14 @@ describe('actions/Policy', () => {
         it('creates a new workspace', async () => {
             fetch.pause();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            const policyID = Policy.generatePolicyID();
+            await waitForBatchedUpdates();
+
             let adminReportID;
             let announceReportID;
             let expenseReportID;
+            const policyID = Policy.generatePolicyID();
 
-            await waitForBatchedUpdates();
-            Policy.createWorkspace(ESH_EMAIL, true, "Esh's Workspace", policyID);
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
             let policy = await new Promise((resolve) => {
@@ -49,7 +51,7 @@ describe('actions/Policy', () => {
 
             // check if policy was created with correct values
             expect(policy.id).toBe(policyID);
-            expect(policy.name).toBe("Esh's Workspace");
+            expect(policy.name).toBe(WORKSPACE_NAME);
             expect(policy.type).toBe(CONST.POLICY.TYPE.FREE);
             expect(policy.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy.owner).toBe(ESH_EMAIL);
