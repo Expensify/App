@@ -4388,6 +4388,14 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
+ * Checks if thread replies should be displayed
+ */
+function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
+    const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
+    return hasReplies && !!reportAction.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
+}
+
+/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4589,6 +4597,7 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    shouldDisplayThreadReplies,
     shouldDisableThread,
 };
 

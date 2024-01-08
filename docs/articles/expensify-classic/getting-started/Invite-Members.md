@@ -51,7 +51,7 @@ Here's how it works: If a colleague signs up with a work email address that matc
 To enable this feature, go to **Settings > Workspace > Group > *Workspace Name* > People**.
 
 
-# FAQ
+{% include faq-begin.md %}
 ## Who can invite members to Expensify
 Any Workspace Admin can add members to a Group Workspace using any of the above methods.
 
@@ -60,3 +60,5 @@ Under **Settings > Workspace > Group > *Workspace Name* > People > Invite** you 
 
 ## How can I invite members via the API? 
 If you would like to integrate an open API HR software, you can use our [Advanced Employee Updater API](https://integrations.expensify.com/Integration-Server/doc/employeeUpdater/) to invite members to your Workspace. 
+
+{% include faq-end.md %}

@@ -156,20 +156,6 @@ describe('Sidebar', () => {
                         const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     })
-
-                    // When the user is added to the policy rooms beta and the sidebar re-renders
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_ROOMS],
-                        }),
-                    )
-
-                    // Then the report is still rendered in the LHN
-                    .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(1);
-                    })
             );
         });
 
@@ -288,7 +274,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             // Given there are 6 boolean variables tested in the filtering logic:
             // 1. isArchived
@@ -490,7 +476,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             return (
                 waitForBatchedUpdates()
@@ -553,7 +539,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             return (
                 waitForBatchedUpdates()
@@ -611,7 +597,7 @@ describe('Sidebar', () => {
         };
 
         // Given the user is in all betas
-        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+        const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
         // Given there are 6 boolean variables tested in the filtering logic:
         // 1. isArchived
@@ -702,7 +688,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
@@ -753,7 +739,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
@@ -802,7 +788,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
@@ -847,7 +833,7 @@ describe('Sidebar', () => {
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
