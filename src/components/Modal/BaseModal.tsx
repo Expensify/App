@@ -4,16 +4,16 @@ import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function BaseModal(
     {
@@ -181,7 +181,7 @@ function BaseModal(
             onModalHide={hideModal}
             onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
-            onSwipeComplete={onClose}
+            onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}

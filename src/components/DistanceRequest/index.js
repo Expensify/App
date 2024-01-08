@@ -14,12 +14,12 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
@@ -206,7 +206,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
+        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || (isLoading && !isOffline)) {
             setHasError(true);
             return;
         }
@@ -216,7 +216,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         }
 
         onSubmit(waypoints);
-    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditingNewRequest, isEditingRequest]);
+    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditingNewRequest, isEditingRequest, isOffline]);
 
     const content = (
         <>

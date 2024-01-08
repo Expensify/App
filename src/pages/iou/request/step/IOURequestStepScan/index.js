@@ -13,17 +13,19 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
+import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -152,6 +154,11 @@ function IOURequestStepScan({
         const fileSource = URL.createObjectURL(imageFile);
         IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, imageFile.name);
 
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
         // When an existing transaction is being edited (eg. not the create transaction flow)
         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
             IOU.replaceReceipt(transactionID, imageFile, fileSource);
@@ -169,7 +176,7 @@ function IOURequestStepScan({
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [cameraRef, report, iouType, transactionID, reportID]);
+    }, [cameraRef, report, iouType, transactionID, reportID, backTo]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -341,4 +348,4 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default withWritableReportOrNotFound(IOURequestStepScan);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);

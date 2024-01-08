@@ -1,8 +1,9 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};

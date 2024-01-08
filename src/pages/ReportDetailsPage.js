@@ -16,12 +16,12 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,7 @@ function ReportDetailsPage(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
+    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 
@@ -105,7 +105,10 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && (!ReportUtils.isPublicRoom(props.report) || isPolicyMember))) {
+        // The Members page is only shown when:
+        // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
+        // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
+        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -212,7 +215,7 @@ function ReportDetailsPage(props) {
                                 <PressableWithoutFeedback
                                     style={[styles.w100]}
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));

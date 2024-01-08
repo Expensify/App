@@ -16,13 +16,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -265,7 +265,6 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
@@ -288,10 +287,11 @@ function PaymentMethodList({
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={styles.paymentMethod}
+                ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate],
+        [onPress, styles.paymentMethod, translate, buttonRef],
     );
 
     /**
@@ -317,7 +317,7 @@ function PaymentMethodList({
                     description={item.description}
                     icon={item.icon}
                     disabled={item.disabled}
-                    iconFill={item.iconFill}
+                    displayInDefaultIconColor
                     iconHeight={item.iconHeight || item.iconSize}
                     iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
@@ -345,10 +345,10 @@ function PaymentMethodList({
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
                     onContentSizeChange={onListContentSizeChange}
                     scrollEnabled={shouldEnableScroll}
                 />
+                {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>

@@ -3,7 +3,7 @@ import {splitBoxModelStyle} from 'react-native-render-html';
 import _ from 'underscore';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
-import useStyleUtils from '@styles/useStyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function CodeRenderer(props) {

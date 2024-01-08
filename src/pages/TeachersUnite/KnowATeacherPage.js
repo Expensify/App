@@ -11,12 +11,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +38,7 @@ const defaultProps = {
 function KnowATeacherPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
@@ -52,7 +54,9 @@ function KnowATeacherPage(props) {
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
 
-        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName);
+        const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        const publicRoomReportID = isProduction ? CONST.TEACHERS_UNITE.PROD_PUBLIC_ROOM_ID : CONST.TEACHERS_UNITE.TEST_PUBLIC_ROOM_ID;
+        TeachersUnite.referTeachersUniteVolunteer(contactMethod, firstName, lastName, policyID, publicRoomReportID);
     };
 
     /**
@@ -117,7 +121,7 @@ function KnowATeacherPage(props) {
                         name="fname"
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -129,7 +133,7 @@ function KnowATeacherPage(props) {
                         name="lname"
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -141,7 +145,7 @@ function KnowATeacherPage(props) {
                         name="partnerUserID"
                         label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />
