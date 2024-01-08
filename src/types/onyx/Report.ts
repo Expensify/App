@@ -121,6 +121,7 @@ type Report = {
     ownerAccountID?: number;
     ownerEmail?: string;
     participantAccountIDs?: number[];
+    visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
     parentReportActionIDs?: number[];

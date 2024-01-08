@@ -318,11 +318,15 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     }
 
     if (announceReport?.participantAccountIDs) {
+        // Everyone in special policy rooms is visible
+        const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
             value: {
-                participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
+                participantAccountIDs,
+                visibleChatMemberAccountIDs: participantAccountIDs,
             },
         });
     }
@@ -332,6 +336,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
             participantAccountIDs: announceReport?.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -358,6 +363,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
                 participantAccountIDs: [...remainUsers],
+                visibleChatMemberAccountIDs: [...remainUsers],
             },
         });
 
@@ -366,6 +372,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
                 participantAccountIDs: announceReport.participantAccountIDs,
+                visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
             },
         });
     }
