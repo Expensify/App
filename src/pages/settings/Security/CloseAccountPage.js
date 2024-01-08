@@ -94,12 +94,11 @@ function CloseAccountPage(props) {
     };
 
     const getErrorMessage = () => {
-        let error = '';
-        const hasSharedPolicies = PolicyUtils.hasSharedPolicies(props.policies, props.allPolicyMembers);
-        if (hasSharedPolicies) {
-            error = props.translate('closeAccountPage.hasSharedPolicies');
+        const hasSharedPoliciesFlag = PolicyUtils.hasSharedPoliciesFlag(props.policies, props.allPolicyMembers);
+        if (!hasSharedPoliciesFlag) {
+            return '';
         }
-        return error;
+        return props.translate('closeAccountPage.hasSharedPolicies');
     };
 
     const userEmailOrPhone = props.formatPhoneNumber(props.session.email);

@@ -200,7 +200,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 /**
  * Checks if the current user has a shared policy.
  */
-function hasSharedPolicies(policies: OnyxCollection<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): boolean {
+function hasSharedPoliciesFlag(policies: OnyxCollection<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): boolean {
     let found = false;
     if (policies && policyMembersCollection) {
         Object.keys(policies).forEach((policyKey) => {
@@ -241,6 +241,6 @@ export {
     getTagList,
     isPendingDeletePolicy,
     isPolicyMember,
-    hasSharedPolicies,
+    hasSharedPoliciesFlag,
     isPaidGroupPolicy,
 };
