@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
@@ -23,6 +24,8 @@ const propTypes = {
 
 function WorkspaceInvoicesPage(props) {
     const styles = useThemeStyles();
+    const {isMobileScreenWidth} = useWindowDimensions();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
@@ -32,7 +35,7 @@ function WorkspaceInvoicesPage(props) {
             isCentralPane
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.workspaceSection, styles.mt6]}>
+                <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceInvoicesVBAView policyID={policyID} />}
                 </View>

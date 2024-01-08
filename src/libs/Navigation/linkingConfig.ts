@@ -251,7 +251,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.KEYBOARD_SHORTCUTS]: {
                                 path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
-                            [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_NAME.route,
+                            [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {

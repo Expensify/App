@@ -7,14 +7,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
-import type {IconProps} from './Icon';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 type SubIcon = {
     /** Avatar source to display */
-    source: IconProps['src'];
+    source: IconAsset;
 
     /** Width of the icon */
     width?: number;

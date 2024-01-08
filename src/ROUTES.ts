@@ -448,6 +448,10 @@ const ROUTES = {
         route: 'workspace/:policyID/overview/currency',
         getRoute: (policyID: string) => `workspace/${policyID}/overview/currency` as const,
     },
+    WORKSPACE_OVERVIEW_NAME: {
+        route: 'workspace/:policyID/overview/name',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview/name` as const,
+    },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
         getRoute: (policyID: string) => `workspace/${policyID}/card` as const,
@@ -475,10 +479,6 @@ const ROUTES = {
     WORKSPACE_MEMBERS: {
         route: 'workspace/:policyID/members',
         getRoute: (policyID: string) => `workspace/${policyID}/members` as const,
-    },
-    WORKSPACE_NAME: {
-        route: 'workspace/:policyID/name',
-        getRoute: (policyID: string) => `workspace/${policyID}/name` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

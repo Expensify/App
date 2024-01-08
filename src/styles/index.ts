@@ -3305,7 +3305,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusCard,
             marginBottom: 20,
             marginHorizontal: 16,
-            padding: 20,
             width: 'auto',
             textAlign: 'left',
         },
@@ -4196,6 +4195,10 @@ const styles = (theme: ThemeColors) =>
 
         workspaceSection: {
             maxWidth: variables.workspaceSectionMaxWidth,
+        },
+
+        workspaceSectionMobile: {
+            width: '100%',
             alignSelf: 'center',
         },
 
