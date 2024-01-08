@@ -1,5 +1,5 @@
 import {TNode} from 'react-native-render-html';
-import { Predicate } from './types';
+import {Predicate} from './types';
 
 const MAX_IMG_DIMENSIONS = 512;
 
