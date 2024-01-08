@@ -8,9 +8,9 @@ import * as Localize from './Localize';
 
 type ErrorObject = Record<string, string | ImageSourcePropType | undefined>;
 
-type MicroSecondOnyxError = Record<number, string | null>;
+type MicroSecondOnyxError = Record<string, string | null>;
 
-type MicroSecondOnyxErrorObject = Record<number, ErrorObject>;
+type MicroSecondOnyxErrorObject = Record<string, ErrorObject>;
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {

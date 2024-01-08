@@ -25,7 +25,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | null;
+    errors?: OnyxCommon.SimpleErrors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
