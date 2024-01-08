@@ -289,7 +289,7 @@ function ReportScreen({
     /**
      * @param {String} text
      */
-    const onSubmitComment = useCallback(
+    const handleCreateTask = useCallback(
         (text) => {
             /**
              * Matching task rule by group
@@ -300,19 +300,31 @@ function ReportScreen({
             const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
 
             const match = text.match(taskRegex);
-            if (match) {
-                const email = match[1] ? match[1].trim() : undefined;
-                const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
-                if (title) {
-                    let assignee = {};
-                    if (email) {
-                        assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
-                    }
-                    Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
-                } else {
-                    Report.addComment(getReportID(route), text);
+            if (!match) {
+                return false;
+            }
+            const email = match[1] ? match[1].trim() : undefined;
+            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            if (title) {
+                let assignee = {};
+                if (email) {
+                    assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
                 }
-            } else {
+                Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+                return true;
+            }
+            return false;
+        },
+        [allPersonalDetails, report.policyID, route],
+    );
+
+    /**
+     * @param {String} text
+     */
+    const onSubmitComment = useCallback(
+        (text) => {
+            const isHandled = handleCreateTask(text);
+            if (!isHandled) {
                 Report.addComment(getReportID(route), text);
             }
 
@@ -323,7 +335,7 @@ function ReportScreen({
 
             return () => clearTimeout(refID);
         },
-        [route, allPersonalDetails, report.policyID],
+        [route, handleCreateTask],
     );
 
     // Clear notifications for the current report when it's opened and re-focused
