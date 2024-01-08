@@ -3459,14 +3459,14 @@ function doesTransactionThreadHaveViolations({
     if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
-    const {IOUTransactionID, IOUReportID} = parentReportAction?.originalMessage;
+    const {IOUTransactionID, IOUReportID} = parentReportAction.originalMessage ?? {};
     if (!IOUTransactionID || !IOUReportID) {
         return false;
     }
     if (!isCurrentUserSubmitter(IOUReportID)) {
         return false;
     }
-    if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
+    if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
         return false;
     }
     return hasViolation(IOUTransactionID, transactionViolations);
