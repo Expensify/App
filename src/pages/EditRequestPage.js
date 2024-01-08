@@ -139,6 +139,26 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
         Navigation.dismissModal(report.reportID);
     }
 
+    const updateTaxAmount = (transactionChanges) => {
+        if (transactionChanges.amount === transactionTaxAmount) {
+            return;
+        }
+
+        const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
+        IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount);
+        Navigation.dismissModal(report.reportID);
+    };
+
+    const updateTaxRate = (transactionChanges) => {
+        const newTaxCode = transactionChanges.data.code;
+        if (newTaxCode === transactionTaxCode) {
+            return;
+        }
+
+        IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode);
+        Navigation.dismissModal(report.reportID);
+    };
+
     const saveAmountAndCurrency = useCallback(
         ({amount, currency: newCurrency}) => {
             const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -285,7 +305,7 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
-                onSubmit={() => {}}
+                onSubmit={updateTaxAmount}
             />
         );
     }
@@ -295,7 +315,7 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
             <EditRequestTaxRatePage
                 defaultTaxRate={taxRateTitle}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={() => {}}
+                onSubmit={updateTaxRate}
             />
         );
     }
