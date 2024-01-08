@@ -27,6 +27,9 @@ type OnyxProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
+    /** The report's parentReportAction */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
@@ -112,6 +115,17 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             },
             reportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+                canEvict: false,
+            },
+            parentReportAction: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions, props) => {
+                    const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
+                    if (!parentReportActionID) {
+                        return {};
+                    }
+                    return parentReportActions[parentReportActionID];
+                },
                 canEvict: false,
             },
         }),
