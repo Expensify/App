@@ -418,12 +418,12 @@ function getSearchText(
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
         } else {
-            const participantAccountIDs = report.participantAccountIDs ?? [];
+            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
             if (allPersonalDetails) {
-                for (const accountID of participantAccountIDs) {
+                for (const accountID of visibleChatMemberAccountIDs) {
                     const login = allPersonalDetails[accountID]?.login;
                     if (login) {
-                        searchTerms.push(login);
+                        searchTerms = searchTerms.concat(login);
                     }
                 }
             }
@@ -599,7 +599,7 @@ function createOption(
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
@@ -674,7 +674,7 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
     const option = createOption(
-        expenseReport?.participantAccountIDs ?? [],
+        expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
         expenseReport ?? null,
         {},
@@ -1369,7 +1369,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.participantAccountIDs ?? [];
+        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;

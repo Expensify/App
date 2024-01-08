@@ -120,6 +120,7 @@ type Report = {
     lastActorAccountID?: number;
     ownerAccountID?: number;
     participantAccountIDs?: number[];
+    visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
     errors?: OnyxCommon.Errors;
