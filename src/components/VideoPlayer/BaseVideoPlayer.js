@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-import {useIsFocused} from '@react-navigation/native';
 import {ResizeMode, Video} from 'expo-av';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -64,7 +63,6 @@ function BaseVideoPlayer({
     shouldUseSmallVideoControls,
     isVideoHovered,
 }) {
-    const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
@@ -107,15 +105,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (!isFocused || shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isFocused]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (!isFocused || url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
+        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
             return;
         }
 
@@ -131,16 +129,7 @@ function BaseVideoPlayer({
             }
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFocused, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
-
-    useEffect(() => {
-        // pause and unload video player when screen is not focused
-        if (isFocused || !videoPlayerRef.current) {
-            return;
-        }
-        videoPlayerRef.current.setStatusAsync({shouldPlay: false});
-        videoPlayerRef.current.unloadAsync();
-    }, [isFocused]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <>
