@@ -22,6 +22,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
+import ViolationsUtils from '@libs/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -306,6 +307,27 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source, filename});
 }
 
+/**
+ * Builds the Onyx data for a money request.
+ *
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} transaction
+ * @param {Object} chatCreatedAction
+ * @param {Object} iouCreatedAction
+ * @param {Object} iouAction
+ * @param {Object} optimisticPersonalDetailListAction
+ * @param {Object} reportPreviewAction
+ * @param {Array} optimisticPolicyRecentlyUsedCategories
+ * @param {Array} optimisticPolicyRecentlyUsedTags
+ * @param {boolean} isNewChatReport
+ * @param {boolean} isNewIOUReport
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
+ * @param {Boolean} hasOutstandingChildRequest
+ * @returns {Array} - An array containing the optimistic data, success data, and failure data.
+ */
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
@@ -319,6 +341,9 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
+    policy,
+    policyTags,
+    policyCategories,
     hasOutstandingChildRequest = false,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
@@ -556,6 +581,22 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
+    // Policy won't be set for P2P cases for which we don't need to compute violations
+    if (!policy || !policy.id) {
+        return [optimisticData, successData, failureData];
+    }
+
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
+
+    if (violationsOnyxData) {
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+    }
+
     return [optimisticData, successData, failureData];
 }
 
@@ -577,6 +618,9 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
+ * @param {Object} [policy]
+ * @param {Object} [policyTags]
+ * @param {Object} [policyCategories]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -606,6 +650,9 @@ function getMoneyRequestInformation(
     category = undefined,
     tag = undefined,
     billable = undefined,
+    policy = undefined,
+    policyTags = undefined,
+    policyCategories = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -639,7 +686,6 @@ function getMoneyRequestInformation(
     let needsToBeManuallySubmitted = false;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
-        const policy = ReportUtils.getPolicy(chatReport.policyID);
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
 
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
@@ -774,6 +820,9 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        policy,
+        policyTags,
+        policyCategories,
         hasOutstandingChildRequest,
     );
 
@@ -808,9 +857,12 @@ function getMoneyRequestInformation(
  * @param {String} currency
  * @param {String} merchant
  * @param {Boolean} [billable]
- * @param {Obejct} validWaypoints
+ * @param {Object} validWaypoints
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function createDistanceRequest(report, participant, comment, created, category, tag, amount, currency, merchant, billable, validWaypoints) {
+function createDistanceRequest(report, participant, comment, created, category, tag, amount, currency, merchant, billable, validWaypoints, policy, policyTags, policyCategories) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
@@ -834,6 +886,9 @@ function createDistanceRequest(report, participant, comment, created, category, 
         category,
         tag,
         billable,
+        policy,
+        policyTags,
+        policyCategories,
     );
     API.write(
         'CreateDistanceRequest',
@@ -1055,6 +1110,21 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 }
 
 /**
+ * Updates the created date of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} tag
+ */
+function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
+    const transactionChanges = {
+        tag,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestTag', params, onyxData);
+}
+
+/**
  * Edits an existing distance request
  *
  * @param {String} transactionID
@@ -1089,6 +1159,9 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
  * @param {String} [taxCode]
  * @param {Number} [taxAmount]
  * @param {Boolean} [billable]
+ * @param {Object} [policy]
+ * @param {Object} [policyTags]
+ * @param {Object} [policyCategories]
  */
 function requestMoney(
     report,
@@ -1106,12 +1179,33 @@ function requestMoney(
     taxCode = '',
     taxAmount = 0,
     billable = undefined,
+    policy = undefined,
+    policyTags = undefined,
+    policyCategories = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
-        getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
+        getMoneyRequestInformation(
+            currentChatReport,
+            participant,
+            comment,
+            amount,
+            currency,
+            created,
+            merchant,
+            payeeAccountID,
+            payeeEmail,
+            receipt,
+            undefined,
+            category,
+            tag,
+            billable,
+            policy,
+            policyTags,
+            policyCategories,
+        );
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     API.write(
@@ -2343,7 +2437,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
     // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
-    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessage(transactionThreadID).lastMessageText.length === 0 : false;
+    const shouldDeleteTransactionThread = transactionThreadID ? lodashGet(reportAction, 'childVisibleActionCount', 0) === 0 : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
 
     // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
@@ -2534,7 +2628,10 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [reportPreviewAction.reportActionID]: reportPreviewAction,
+                [reportPreviewAction.reportActionID]: {
+                    ...reportPreviewAction,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                },
             },
         },
         ...(shouldDeleteIOUReport
@@ -3493,6 +3590,7 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
     detachReceipt,
