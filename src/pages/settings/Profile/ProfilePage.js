@@ -105,6 +105,7 @@ function ProfilePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={ProfilePage.displayName}
+            shouldShowOfflineIndicator
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}

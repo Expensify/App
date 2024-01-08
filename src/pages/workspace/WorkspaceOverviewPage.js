@@ -9,7 +9,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
@@ -69,6 +68,8 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             shouldShowLoading={false}
+            shouldUseScrollView
+            shouldShowOfflineIndicator
         >
             {(hasVBA) => (
                 <>
@@ -141,5 +142,4 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
-    withNetwork(),
 )(WorkspaceOverviewPage);

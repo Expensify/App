@@ -53,7 +53,7 @@ type SubscriptAvatarProps = {
     /** Subscript avatar URL or icon */
     secondaryAvatar?: SubAvatar;
 
-    /** Subscript icon type */
+    /** Subscript icon */
     subscriptIcon?: SubIcon;
 
     /** Removes margin from around the avatar, used for the chat view */

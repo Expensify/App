@@ -1,20 +1,19 @@
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Search from '@components/Search';
-import SubscriptAvatar from '@components/SubscriptAvatar';
+import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatarWithOptionalStatus';
 import * as Session from '@userActions/Session';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-// TODO-IDEAL: isCreateMenuOpen wasn't used before
-function TopBar({isCreateMenuOpen = false}) {
+type Props = {
+    isCreateMenuOpen?: boolean;
+};
+
+function TopBar({isCreateMenuOpen = false}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -32,30 +31,20 @@ function TopBar({isCreateMenuOpen = false}) {
             style={[styles.gap4, styles.flexRow, styles.ph5, styles.pv5, styles.justifyContentBetween, styles.alignItemsCenter]}
             dataSet={{dragArea: true}}
         >
-            <PressableWithFeedback role={CONST.ROLE.BUTTON}>
-                <SubscriptAvatar
-                    mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
-                    subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}
-                    showTooltip={false}
-                    noMargin
-                />
-            </PressableWithFeedback>
+            <WorkspaceSwitcherButton />
             <Search
                 placeholder={translate('sidebarScreen.buttonSearch')}
                 onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                 containerStyle={styles.flexGrow1}
             />
-            <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
+            <SignInOrAvatarWithOptionalStatus
+                // @ts-expect-error TODO: Remove this once Sidebar page (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
+                isCreateMenuOpen={isCreateMenuOpen}
+            />
         </View>
     );
 }
 
 TopBar.displayName = 'TopBar';
-TopBar.propTypes = {
-    isCreateMenuOpen: PropTypes.bool,
-};
-TopBar.defaultProps = {
-    isCreateMenuOpen: false,
-};
 
 export default TopBar;

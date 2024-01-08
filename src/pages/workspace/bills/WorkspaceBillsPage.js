@@ -24,7 +24,7 @@ const propTypes = {
 
 function WorkspaceBillsPage(props) {
     const styles = useThemeStyles();
-    const {isMobileScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <WorkspacePageWithSections
@@ -32,9 +32,10 @@ function WorkspaceBillsPage(props) {
             headerText={props.translate('workspace.common.bills')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
+            shouldShowOfflineIndicator
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
                 </View>

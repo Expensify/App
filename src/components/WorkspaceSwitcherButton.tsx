@@ -16,8 +16,8 @@ function WorkspaceSwitcherButton() {
             onPress={() => {}}
         >
             <SubscriptAvatar
-                mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
-                subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}
+                mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}}
+                subscriptIcon={{source: Expensicons.DownArrow, width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE, height: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE}}
                 showTooltip={false}
                 noMargin
             />

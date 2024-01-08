@@ -10,6 +10,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -204,7 +205,7 @@ function WorkspaceInitialPage(props) {
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     return (
-        <>
+        <ScreenWrapper testID={WorkspaceInitialPage.displayName}>
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 shouldShow={shouldShowNotFoundPage}
@@ -272,7 +273,7 @@ function WorkspaceInitialPage(props) {
                     danger
                 />
             </FullPageNotFoundView>
-        </>
+        </ScreenWrapper>
     );
 }
 

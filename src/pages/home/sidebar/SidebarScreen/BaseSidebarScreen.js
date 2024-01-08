@@ -33,16 +33,13 @@ function BaseSidebarScreen(props) {
             includePaddingTop={false}
         >
             {({insets}) => (
-                <>
-                    <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                            onLayout={props.onLayout}
-                        />
-                    </View>
-                    {props.children}
-                </>
+                <View style={[styles.flex1]}>
+                    <SidebarLinksData
+                        onLinkClick={startTimer}
+                        insets={insets}
+                        onLayout={props.onLayout}
+                    />
+                </View>
             )}
         </ScreenWrapper>
     );

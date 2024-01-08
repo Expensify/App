@@ -80,7 +80,10 @@ class ShareCodePage extends React.Component {
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
         return (
-            <ScreenWrapper testID={ShareCodePage.displayName}>
+            <ScreenWrapper
+                testID={ShareCodePage.displayName}
+                shouldShowOfflineIndicator
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS.ROOT)}
@@ -88,7 +91,7 @@ class ShareCodePage extends React.Component {
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
-                    <View style={[this.props.themeStyles.shareCodePage, {}]}>
+                    <View style={this.props.themeStyles.shareCodePage}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}

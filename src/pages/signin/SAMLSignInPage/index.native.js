@@ -59,7 +59,7 @@ function SAMLSignInPage({credentials}) {
 
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicatorSmallWidth={false}
             includeSafeAreaPaddingBottom={false}
             testID={SAMLSignInPage.displayName}
         >

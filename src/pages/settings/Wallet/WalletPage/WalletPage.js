@@ -41,7 +41,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth, isMobileScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -333,13 +333,16 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             {shouldShowEmptyState ? (
                 <WalletEmptyState onAddPaymentMethod={paymentMethodPressed} />
             ) : (
-                <ScreenWrapper testID={WalletPage.displayName}>
+                <ScreenWrapper
+                    testID={WalletPage.displayName}
+                    shouldShowOfflineIndicator
+                >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <View style={[styles.flex1, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <ScrollView>
                             <OfflineWithFeedback
                                 style={styles.flex1}

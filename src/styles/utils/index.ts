@@ -1300,6 +1300,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      *
      * @param buttonState - One of {'default', 'hovered', 'pressed'}
      * @param isMenuIcon - whether this icon is apart of a list
+     * @param isPane - whether this icon is in a pane, e.g. Account or Workspace Settings
      */
     getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false): string => {
         switch (buttonState) {

@@ -78,11 +78,11 @@ const defaultProps = {
 
 function Section({children, childrenStyles, containerStyles, icon, IconComponent, cardLayout, iconContainerStyles, menuItems, subtitle, subtitleStyles, subtitleMuted, title, titleStyles}) {
     const styles = useThemeStyles();
-    const {isMobileScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <>
-            <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles, isMobileScreenWidth ? styles.p5 : styles.p8]}>
+            <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles, isSmallScreenWidth ? styles.p5 : styles.p8]}>
                 {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                     <IconSection
                         icon={icon}

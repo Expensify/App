@@ -23,29 +23,33 @@ const propTypes = {
 
     /** Overlay content to display on top of animation */
     overlayContent: PropTypes.func,
+
+    shouldShowOfflineIndicator: PropTypes.bool,
 };
 
 const defaultProps = {
     backgroundColor: undefined,
     footer: null,
     overlayContent: null,
+    shouldShowOfflineIndicator: false,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, shouldShowOfflineIndicator, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const shouldUseMaxHeight = !propsToPassToHeader.shouldShowBackButton;
+    const shouldLimitHeight = !propsToPassToHeader.shouldShowBackButton;
 
     return (
         <HeaderPageLayout
             backgroundColor={backgroundColor || theme.appBG}
             title={propsToPassToHeader.title}
+            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
             headerContent={
                 <>
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={shouldUseMaxHeight ? styles.h100 : styles.w100}
+                        webStyle={shouldLimitHeight ? styles.h100 : styles.w100}
                         autoPlay
                         loop
                     />
@@ -53,7 +57,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                 </>
             }
             // TODO: move to variables
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldUseMaxHeight && styles.centralPaneAnimation]}
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldLimitHeight && styles.centralPaneAnimation]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}

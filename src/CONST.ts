@@ -3064,6 +3064,11 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    WORKSPACE_SWITCHER: {
+        NAME: 'Expensify',
+        SUBSCRIPT_ICON_SIZE: 8,
+    },
 } as const;
 
 export default CONST;
