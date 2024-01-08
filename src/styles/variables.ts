@@ -115,6 +115,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyWorkspaceIconWidth: 84,
+    emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,
@@ -140,7 +142,7 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
-    tabSelectorButtonHeight: 40,
+    tabSelectorButtonHeight: 42,
     tabSelectorButtonPadding: 12,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
@@ -194,4 +196,5 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
+    holdMenuIconSize: 64,
 } as const;

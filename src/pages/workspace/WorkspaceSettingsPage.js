@@ -99,6 +99,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
             headerText={translate('workspace.common.settings')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+            shouldShowLoading={false}
         >
             {(hasVBA) => (
                 <FormProvider
