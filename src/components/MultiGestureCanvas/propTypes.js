@@ -23,15 +23,6 @@ const zoomRangeDefaultProps = {
 const multiGestureCanvasPropTypes = {
     ...zoomRangePropTypes,
 
-    /**
-     * Wheter the canvas is currently active (in the screen) or not.
-     * Disables certain gestures and functionality
-     */
-    isActive: PropTypes.bool,
-
-    /** Handles scale changed event */
-    onScaleChanged: PropTypes.func,
-
     /** The width and height of the canvas.
      * This is needed in order to properly scale the content in the canvas
      */
@@ -48,15 +39,14 @@ const multiGestureCanvasPropTypes = {
         height: PropTypes.number,
     }),
 
-    /** The scale factors (scaleX, scaleY) that are used to scale the content (width/height) to the canvas size.
-     * `scaledWidth` and `scaledHeight` reflect the actual size of the content after scaling.
+    /**
+     * Wheter the canvas is currently active (in the screen) or not.
+     * Disables certain gestures and functionality
      */
-    contentScaling: PropTypes.shape({
-        scaleX: PropTypes.number,
-        scaleY: PropTypes.number,
-        scaledWidth: PropTypes.number,
-        scaledHeight: PropTypes.number,
-    }),
+    isActive: PropTypes.bool,
+
+    /** Handles scale changed event */
+    onScaleChanged: PropTypes.func,
 
     /** Content that should be transformed inside the canvas (images, pdf, ...) */
     children: PropTypes.node.isRequired,
@@ -67,7 +57,7 @@ const multiGestureCanvasDefaultProps = {
     onScaleChanged: () => undefined,
     contentSize: undefined,
     contentScaling: undefined,
-    zoomRange: undefined,
+    zoomRange: defaultZoomRange,
 };
 
 export {defaultZoomRange, zoomRangePropTypes, zoomRangeDefaultProps, multiGestureCanvasPropTypes, multiGestureCanvasDefaultProps};
