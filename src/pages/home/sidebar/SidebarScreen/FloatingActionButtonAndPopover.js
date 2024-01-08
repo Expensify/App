@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions from '@components/withWindowDimensions';

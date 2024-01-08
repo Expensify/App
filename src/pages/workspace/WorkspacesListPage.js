@@ -15,7 +15,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -66,15 +65,13 @@ const propTypes = {
 
     /** All reports shared with the user (coming from Onyx) */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     policies: {},
     allPolicyMembers: {},
     reimbursementAccount: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    reports: {},
 };
 
 const workspaceFeatures = [
