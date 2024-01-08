@@ -79,6 +79,7 @@ function ReportActionItemMessageEdit(
     const StyleUtils = useStyleUtils();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
+    // @ts-expect-error TODO: Remove this once useKeyboardState remove null value.
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -443,6 +444,7 @@ function ReportActionItemMessageEdit(
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
+                                // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
                                 if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
                                     return;
