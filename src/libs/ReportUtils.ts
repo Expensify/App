@@ -3489,15 +3489,23 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
  * filter out the majority of reports before filtering out very specific minority of reports.
  */
-function shouldReportBeInOptionList(
-    report: OnyxEntry<Report>,
-    currentReportId: string,
-    isInGSDMode: boolean,
-    betas: Beta[],
-    policies: OnyxCollection<Policy>,
+function shouldReportBeInOptionList({
+    report,
+    currentReportId,
+    isInGSDMode = false,
+    betas,
+    policies,
     excludeEmptyChats = false,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
-) {
+    transactionViolations,
+}: {
+    report: OnyxEntry<Report>;
+    currentReportId: string;
+    isInGSDMode?: boolean;
+    betas: Beta[];
+    policies: OnyxCollection<Policy>;
+    excludeEmptyChats?: boolean;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+}) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
