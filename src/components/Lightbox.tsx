@@ -4,9 +4,8 @@ import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Image from './Image';
 import MultiGestureCanvas, {defaultZoomRange} from './MultiGestureCanvas';
+import getCanvasFitScale from './MultiGestureCanvas/getCanvasFitScale';
 import type {ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
-import * as MultiGestureCanvasUtils from './MultiGestureCanvas/utils';
-import getCanvasFitScale from '@components/MultiGestureCanvas/getCanvasFitScale';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
 // The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
@@ -22,7 +21,7 @@ type LightboxImageDimensions = {
     lightboxSize?: ContentSize;
     fallbackSize?: ContentSize;
 };
-}
+
 const cachedDimensions = new Map<ImageSourcePropType, LightboxImageDimensions>();
 
 type ImageOnLoadEvent = NativeSyntheticEvent<ContentSize>;
@@ -91,7 +90,7 @@ function Lightbox({
     const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
     const [isFallbackLoaded, setFallbackLoaded] = useState(false);
 
-    const [isLightboxLoaded, setLightboxLoaded] = useState(false);
+    const isLightboxLoaded = imageDimensions?.lightboxSize != null;
     const isLightboxInRange = useMemo(() => {
         if (NUMBER_OF_CONCURRENT_LIGHTBOXES === -1) {
             return true;
@@ -103,7 +102,7 @@ function Lightbox({
     }, [activeIndex, index]);
     const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
 
-        // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
+    // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
     // so that we don't see two overlapping images at the same time.
     // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
     // because it's only going to be rendered after the fallback image is hidden.
@@ -171,7 +170,8 @@ function Lightbox({
 
         // If the lightbox size is undefined, th fallback size cannot be undefined,
         // because we already checked for that before and would have returned early.
-        const imageSize = imageDimensions.lightboxSize || imageDimensions.fallbackSize!;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const imageSize = imageDimensions.lightboxSize ?? imageDimensions.fallbackSize!;
 
         const {minScale} = getCanvasFitScale({canvasSize: containerSize, contentSize: imageSize});
 
