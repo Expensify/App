@@ -772,7 +772,7 @@ export default compose(
             key: ONYXKEYS.USER_WALLET,
         },
         parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || 0}`,
             canEvict: false,
         },
     }),
