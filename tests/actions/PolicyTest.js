@@ -24,7 +24,7 @@ describe('actions/Policy', () => {
     });
 
     describe('createWorkspace', () => {
-        it('creates a new workspace', () => {
+        it('creates a new workspace', async () => {
             fetch.pause();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const policyID = Policy.generatePolicyID();
@@ -32,166 +32,157 @@ describe('actions/Policy', () => {
             let announceReportID
             let expenseReportID;
 
-            return waitForBatchedUpdates()
-                .then(() => {
-                    Policy.createWorkspace(ESH_EMAIL, true, "Esh's Workspace", policyID);
-                    return waitForBatchedUpdates();
-                })
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                                waitForCollectionCallback: true,
-                                callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
+            await waitForBatchedUpdates();
+            Policy.createWorkspace(ESH_EMAIL, true, "Esh's Workspace", policyID);
+            await waitForBatchedUpdates();
 
-                                    // check if policy was created with correct values
-                                    expect(policy.id).toBe(policyID);
-                                    expect(policy.name).toBe("Esh's Workspace");
-                                    expect(policy.type).toBe(CONST.POLICY.TYPE.FREE);
-                                    expect(policy.role).toBe(CONST.POLICY.ROLE.ADMIN);
-                                    expect(policy.owner).toBe(ESH_EMAIL);
-                                    expect(policy.isPolicyExpenseChatEnabled).toBe(true);
-                                    expect(policy.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-                                waitForCollectionCallback: true,
-                                callback: (policyMembers) => {
-                                    Onyx.disconnect(connectionID);
-                                    // check if the user was added as an admin to the policy
-                                    expect(policyMembers[ESH_ACCOUNT_ID].role).toBe(CONST.POLICY.ROLE.ADMIN);
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
+            let policy = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    waitForCollectionCallback: true,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
 
-                                    // Three reports should be created: #announce, #admins and expense report
-                                    const workspaceReports = _.filter(allReports, (report) => report.policyID === policyID);
-                                    expect(_.size(workspaceReports)).toBe(3);
-                                    _.forEach(workspaceReports, (report) => {
-                                        expect(report.pendingFields.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                        expect(report.participantAccountIDs).toEqual([ESH_ACCOUNT_ID]);
-                                        switch (report.chatType) {
-                                            case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
-                                                adminReportID = report.reportID;
-                                                break;
-                                            }
-                                            case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE: {
-                                                announceReportID = report.reportID;
-                                                break;
-                                            }
-                                            case CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT: {
-                                                expenseReportID = report.reportID;
-                                                break;
-                                            }
-                                            default: break;
-                                        }
-                                    });
+            // check if policy was created with correct values
+            expect(policy.id).toBe(policyID);
+            expect(policy.name).toBe("Esh's Workspace");
+            expect(policy.type).toBe(CONST.POLICY.TYPE.FREE);
+            expect(policy.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policy.owner).toBe(ESH_EMAIL);
+            expect(policy.isPolicyExpenseChatEnabled).toBe(true);
+            expect(policy.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
-                                callback: (reportActions) => {
-                                    Onyx.disconnect(connectionID);
+            const policyMembers = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+                    waitForCollectionCallback: true,
+                    callback: (members) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(members);
+                    },
+                });
+            });
 
-                                    // Three report actions should have CREATED action: #announce, #admins and expense report
-                                    const adminReportActions = _.filter(reportActions, (reportAction) => reportAction.reportID === adminReportID);
-                                    const announceReportActions = _.filter(reportActions, (reportAction) => reportAction.reportID === announceReportID);
-                                    const expenseReportActions = _.filter(reportActions, (reportAction) => reportAction.reportID === expenseReportID);
-                                    const workspaceReportActions = _.concat(adminReportActions, announceReportActions, expenseReportActions);
-                                    _.forEach(workspaceReportActions, (reportAction) => {
-                                        expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
-                                        expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                        expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
-                                    });
+            // check if the user was added as an admin to the policy
+            expect(policyMembers[ESH_ACCOUNT_ID].role).toBe(CONST.POLICY.ROLE.ADMIN);
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(fetch.resume)
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.POLICY,
-                                waitForCollectionCallback: true,
-                                callback: (policy) => {
-                                    Onyx.disconnect(connectionID);
-                                    // Check if the pending action was cleared
-                                    expect(policy.pendingAction).toBeFalsy();
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT,
-                                waitForCollectionCallback: true,
-                                callback: (allReports) => {
-                                    Onyx.disconnect(connectionID);
-                                    // Check if the pending action and fields were cleared
-                                    _.forEach(allReports, (report) => {
-                                        expect(report.pendingAction).toBeFalsy();
-                                        expect(report.pendingFields.addWorkspaceRoom).toBeFalsy();
-                                    });
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                                waitForCollectionCallback: true,
-                                callback: (reportActions) => {
-                                    Onyx.disconnect(connectionID);
-                                    // Check if the pending action was cleared
-                                    const adminReportActions = _.filter(reportActions, (reportAction) => reportAction.reportID === adminReportID);
-                                    const announceReportActions = _.filter(reportActions, (reportAction) => reportAction.reportID === announceReportID);
-                                    const expenseReportActions = _.filter(reportActions, (reportAction) => reportAction.reportID === expenseReportID);
-                                    const workspaceReportActions = _.concat(adminReportActions, announceReportActions, expenseReportActions);
-                                    _.forEach(workspaceReportActions, (reportAction) => {
-                                        expect(reportAction.pendingAction).toBeFalsy();
-                                    });
+            let allReports = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(reports);
+                    },
+                });
+            });
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            // Three reports should be created: #announce, #admins and expense report
+            const workspaceReports = _.filter(allReports, (report) => report.policyID === policyID);
+            expect(_.size(workspaceReports)).toBe(3);
+            _.forEach(workspaceReports, (report) => {
+                expect(report.pendingFields.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                expect(report.participantAccountIDs).toEqual([ESH_ACCOUNT_ID]);
+                switch (report.chatType) {
+                    case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
+                        adminReportID = report.reportID;
+                        break;
+                    }
+                    case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE: {
+                        announceReportID = report.reportID;
+                        break;
+                    }
+                    case CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT: {
+                        expenseReportID = report.reportID;
+                        break;
+                    }
+                    default: break;
+                }
+            });
+
+            let reportActions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            // Each of the three reports should have a a `CREATED` action.
+            let adminReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`]);
+            let announceReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`]);
+            let expenseReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`]);
+            let workspaceReportActions = _.concat(adminReportActions, announceReportActions, expenseReportActions);
+            _.forEach([adminReportActions, announceReportActions, expenseReportActions], (actions) => {
+                expect(_.size(actions)).toBe(1);
+            });
+            _.forEach(workspaceReportActions, (reportAction) => {
+                expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
+                expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
+            });
+
+            // Check for success data
+            fetch.resume(); 
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.POLICY,
+                    waitForCollectionCallback: true,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the policy pending action was cleared
+            expect(policy.pendingAction).toBeFalsy();
+
+            allReports = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (reports) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(reports);
+                    },
+                });
+            });
+
+            // Check if the report pending action and fields were cleared
+            _.forEach(allReports, (report) => {
+                expect(report.pendingAction).toBeFalsy();
+                expect(report.pendingFields.addWorkspaceRoom).toBeFalsy();
+            });
+
+            reportActions = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    waitForCollectionCallback: true,
+                    callback: (actions) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(actions);
+                    },
+                });
+            });
+
+            // Check if the report action pending action was cleared
+            adminReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`]);
+            announceReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`]);
+            expenseReportActions = _.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`]);
+            workspaceReportActions = _.concat(adminReportActions, announceReportActions, expenseReportActions);
+            _.forEach(workspaceReportActions, (reportAction) => {
+                expect(reportAction.pendingAction).toBeFalsy();
+            });
         });
     });
 });

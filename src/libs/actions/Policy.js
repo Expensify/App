@@ -1298,7 +1298,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                     value: {
-                        [_.keys(announceChatData)[0]]: {
+                        [announceCreatedReportActionID]: {
                             pendingAction: null,
                         },
                     },
@@ -1317,7 +1317,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                     value: {
-                        [_.keys(adminsChatData)[0]]: {
+                        [adminsCreatedReportActionID]: {
                             pendingAction: null,
                         },
                     },
@@ -1336,7 +1336,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: {
-                        [_.keys(expenseChatData)[0]]: {
+                        [expenseCreatedReportActionID]: {
                             pendingAction: null,
                         },
                     },
