@@ -3,10 +3,11 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {NullishDeep} from 'react-native-onyx/lib/types';
-import {PartialDeep, ValueOf} from 'type-fest';
-import {Emoji} from '@assets/emojis/types';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {NullishDeep} from 'react-native-onyx/lib/types';
+import type {PartialDeep, ValueOf} from 'type-fest';
+import type {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -28,12 +29,16 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
-import {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
-import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
-import ReportAction, {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
+import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
+import type Report from '@src/types/onyx/Report';
+import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportAction from '@src/types/onyx/ReportAction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -935,6 +940,7 @@ function readNewestAction(reportID: string) {
     };
 
     API.write('ReadNewestAction', parameters, {optimisticData});
+    DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
 /**
@@ -2115,6 +2121,24 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         },
     ];
 
+    if (report.parentReportID && report.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: report.notificationPreference}},
+        });
+    }
+
     type LeaveRoomParameters = {
         reportID: string;
     };
@@ -2129,6 +2153,8 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
+            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }
@@ -2147,6 +2173,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
         (accountID): accountID is number => typeof accountID === 'number',
     );
+    const visibleMemberAccountIDsAfterInvitation = [...new Set([...(report?.visibleChatMemberAccountIDs ?? []), ...inviteeAccountIDs])].filter(
+        (accountID): accountID is number => typeof accountID === 'number',
+    );
 
     type PersonalDetailsOnyxData = {
         optimisticData: OnyxUpdate[];
@@ -2163,6 +2192,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
+                visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
@@ -2176,6 +2206,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: report.participantAccountIDs,
+                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
             },
         },
         ...newPersonalDetailsOnyxData.failureData,
@@ -2199,6 +2230,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = allReports?.[reportID];
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2206,6 +2238,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
             },
         },
     ];
@@ -2216,6 +2249,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
+                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
             },
         },
     ];
@@ -2228,6 +2262,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
             },
         },
     ];
@@ -2406,6 +2441,10 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 
 /** Fetches all the private notes for a given report */
 function getReportPrivateNote(reportID: string) {
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
     if (!reportID) {
         return;
     }

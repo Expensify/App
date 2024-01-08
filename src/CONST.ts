@@ -103,6 +103,10 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    REQUEST_PREVIEW: {
+        MAX_LENGTH: 83,
+    },
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
@@ -265,7 +269,6 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_COMMENT_LINKING: 'commentLinking',
-        POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
     },
@@ -1364,6 +1367,7 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
+        ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1421,6 +1425,7 @@ const CONST = {
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
+            REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
         },
 
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
@@ -2888,8 +2893,10 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '7470147100835202',
-        POLICY_ID: 'B795B6319125BDF2',
+        PROD_PUBLIC_ROOM_ID: '7470147100835202',
+        PROD_POLICY_ID: 'B795B6319125BDF2',
+        TEST_PUBLIC_ROOM_ID: '207591744844000',
+        TEST_POLICY_ID: 'ABD1345ED7293535',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2953,6 +2960,7 @@ const CONST = {
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
+        SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
@@ -3055,6 +3063,42 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    VIOLATIONS: {
+        ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
+        AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
+        BILLABLE_EXPENSE: 'billableExpense',
+        CASH_EXPENSE_WITH_NO_RECEIPT: 'cashExpenseWithNoReceipt',
+        CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
+        CONVERSION_SURCHARGE: 'conversionSurcharge',
+        CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        DUPLICATED_TRANSACTION: 'duplicatedTransaction',
+        FIELD_REQUIRED: 'fieldRequired',
+        FUTURE_DATE: 'futureDate',
+        INVOICE_MARKUP: 'invoiceMarkup',
+        MAX_AGE: 'maxAge',
+        MISSING_CATEGORY: 'missingCategory',
+        MISSING_COMMENT: 'missingComment',
+        MISSING_TAG: 'missingTag',
+        MODIFIED_AMOUNT: 'modifiedAmount',
+        MODIFIED_DATE: 'modifiedDate',
+        NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
+        OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
+        OVER_CATEGORY_LIMIT: 'overCategoryLimit',
+        OVER_LIMIT: 'overLimit',
+        OVER_LIMIT_ATTENDEE: 'overLimitAttendee',
+        PER_DAY_LIMIT: 'perDayLimit',
+        RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
+        RECEIPT_REQUIRED: 'receiptRequired',
+        RTER: 'rter',
+        SMARTSCAN_FAILED: 'smartscanFailed',
+        SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
+        TAG_OUT_OF_POLICY: 'tagOutOfPolicy',
+        TAX_AMOUNT_CHANGED: 'taxAmountChanged',
+        TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
+        TAX_RATE_CHANGED: 'taxRateChanged',
+        TAX_REQUIRED: 'taxRequired',
     },
 
     /** Context menu types */

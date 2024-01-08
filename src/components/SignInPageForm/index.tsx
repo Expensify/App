@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import type {View} from 'react-native';
 import FormElement from '@components/FormElement';
-import SignInPageFormProps from './types';
+import type SignInPageFormProps from './types';
 
 const preventFormDefault = (event: SubmitEvent) => {
     // When enter is pressed form is submitted to action url (POST /).

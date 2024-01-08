@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {LinkingOptions} from '@react-navigation/native';
+import type {LinkingOptions} from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from './types';
+import type {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
     prefixes: [
@@ -491,6 +491,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.RIGHT_MODAL.REFERRAL]: {
                         screens: {
                             [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                        },
+                    },
+                    ProcessMoneyRequestHold: {
+                        screens: {
+                            ProcessMoneyRequestHold_Root: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
                         },
                     },
                 },
