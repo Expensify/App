@@ -69,8 +69,8 @@ const propTypes = {
     /** All the report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** All the report action belonging the report's parent */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -108,7 +108,7 @@ const propTypes = {
 const defaultProps = {
     isSidebarLoaded: false,
     reportActions: {},
-    parentReportActions: {},
+    parentReportAction: {},
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -148,7 +148,7 @@ function ReportScreen({
     report,
     reportMetadata,
     reportActions,
-    parentReportActions,
+    parentReportAction,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -193,7 +193,6 @@ function ReportScreen({
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
-    const parentReportAction = parentReportActions[report.parentReportActionID];
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
@@ -578,14 +577,15 @@ export default compose(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
             },
-        },
-        true,
-    ),
-    withOnyx(
-        {
-            // This is added down here so that it can access the full report object fetched from Onyx in the previous withOnyx.
-            parentReportActions: {
+            parentReportAction: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions, props) => {
+                    const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
+                    if (!parentReportActionID) {
+                        return {};
+                    }
+                    return parentReportActions[parentReportActionID];
+                },
                 canEvict: false,
             },
         },
