@@ -24,7 +24,7 @@ const propTypes = {
 
 function WorkspaceTravelPage(props) {
     const styles = useThemeStyles();
-    const {isMobileScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <WorkspacePageWithSections
@@ -35,7 +35,7 @@ function WorkspaceTravelPage(props) {
             isCentralPane
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
                 </View>

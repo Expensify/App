@@ -25,7 +25,7 @@ const propTypes = {
 
 function WorkspaceCardPage(props) {
     const styles = useThemeStyles();
-    const {isMobileScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <WorkspacePageWithSections
@@ -36,7 +36,7 @@ function WorkspaceCardPage(props) {
             isCentralPane
         >
             {(hasVBA, policyID, isUsingECard) => (
-                <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
