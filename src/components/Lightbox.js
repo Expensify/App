@@ -90,12 +90,12 @@ function Lightbox({isAuthTokenRequired, uri, onError, style, zoomRange}) {
             };
         }
 
-        const foundPageIndex = _.findIndex(attachmentCarouselPagerContext.itemsMeta, (item) => item.source === uri);
+        const foundPage = _.findIndex(attachmentCarouselPagerContext.itemsMeta, (item) => item.source === uri);
         return {
             ...attachmentCarouselPagerContext,
             isUsedInCarousel: true,
             isSingleCarouselItem: attachmentCarouselPagerContext.itemsMeta.length === 1,
-            page: foundPageIndex,
+            page: foundPage,
         };
     }, [attachmentCarouselPagerContext, uri]);
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
