@@ -1,10 +1,10 @@
-import {ForwardedRef, SyntheticEvent} from 'react';
-import {NativeTouchEvent} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import {Route} from '@src/ROUTES';
-import {Report} from '@src/types/onyx';
+import type {ForwardedRef, SyntheticEvent} from 'react';
+import type {NativeTouchEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 
@@ -13,6 +13,18 @@ type TransferMethod = ValueOf<typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
 
 type DomRect = Pick<DOMRect, DOMRectProperties>;
+
+type AnchorAlignment = {
+    horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
+    vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
+};
+
+type AnchorPosition = {
+    anchorPositionVertical: number;
+    anchorPositionHorizontal: number;
+};
+
+type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
 type KYCWallProps = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -40,10 +52,7 @@ type KYCWallProps = {
     iouReport?: OnyxEntry<Report>;
 
     /** Where the popover should be positioned relative to the anchor points. */
-    anchorAlignment?: {
-        horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-        vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-    };
+    anchorAlignment?: AnchorAlignment;
 
     /** Whether the option to add a debit card should be included */
     shouldIncludeDebitCard?: boolean;
@@ -60,12 +69,5 @@ type KYCWallProps = {
     /** Children to build the KYC */
     children: (continueAction: (event: SyntheticEvent<NativeTouchEvent>, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
 };
-
-type AnchorPosition = {
-    anchorPositionVertical: number;
-    anchorPositionHorizontal: number;
-};
-
-type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect};
