@@ -73,6 +73,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
@@ -481,7 +482,12 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        iouTypes: {
+            send: 'send money',
+            split: 'split a bill',
+            request: 'request money',
+        },
     },
     reportAction: {
         asCopilot: 'as copilot for',
