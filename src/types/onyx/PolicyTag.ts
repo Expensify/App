@@ -16,5 +16,4 @@ type PolicyTags = {
     tags: Record<string, PolicyTag>;
 };
 
-export default PolicyTag;
-export type {PolicyTags};
+export type {PolicyTag, PolicyTags};

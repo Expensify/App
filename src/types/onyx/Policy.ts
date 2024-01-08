@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
 
@@ -68,11 +68,17 @@ type Policy = {
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
-    /** Whether the scheduled submit is enabled */
+    /** Whether the auto reporting is enabled */
     autoReporting: boolean;
 
     /** The scheduled submit frequency set up on the this policy */
     autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** Whether the scheduled submit is enabled */
+    isHarvestingEnabled: boolean;
+
+    /** The accountID of manager who the employee submits their expenses to on paid policies */
+    submitsTo?: number;
 
     /** The employee list of the policy */
     employeeList?: [];
