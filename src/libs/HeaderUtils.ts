@@ -7,7 +7,7 @@ import * as Session from './actions/Session';
 import * as Localize from './Localize';
 
 type MenuItem = {
-    icon: string | IconAsset;
+    icon: IconAsset;
     text: string;
     onSelected: () => void;
 };
