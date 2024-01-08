@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Search from '@components/Search';
@@ -10,8 +9,11 @@ import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatar
 import * as Session from '@userActions/Session';
 import ROUTES from '@src/ROUTES';
 
-// TODO-IDEAL: isCreateMenuOpen wasn't used before
-function TopBar({isCreateMenuOpen = false}) {
+type Props = {
+    isCreateMenuOpen?: boolean;
+};
+
+function TopBar({isCreateMenuOpen = false}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -35,17 +37,14 @@ function TopBar({isCreateMenuOpen = false}) {
                 onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                 containerStyle={styles.flexGrow1}
             />
-            <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
+            <SignInOrAvatarWithOptionalStatus
+                // @ts-expect-error TODO: Remove this once Sidebar page (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
+                isCreateMenuOpen={isCreateMenuOpen}
+            />
         </View>
     );
 }
 
 TopBar.displayName = 'TopBar';
-TopBar.propTypes = {
-    isCreateMenuOpen: PropTypes.bool,
-};
-TopBar.defaultProps = {
-    isCreateMenuOpen: false,
-};
 
 export default TopBar;
