@@ -323,7 +323,7 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
-        route: 'create/:iouType/taxRate/:transactionID/:reportID',
+        route: 'create/:iouType/taxRate/:transactionID/:reportID?',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
             getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
     },
@@ -333,7 +333,7 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
-        route: 'create/:iouType/category/:transactionID/:reportID?',
+        route: 'create/:iouType/category/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
