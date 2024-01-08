@@ -79,7 +79,6 @@ function ReportActionItemMessageEdit(
     const StyleUtils = useStyleUtils();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
-    // @ts-expect-error TODO: Remove this once useKeyboardState remove null value.
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
 
