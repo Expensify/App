@@ -15,7 +15,7 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
-    return '!!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas)';
+    return !!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas);
 }
 
 function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {

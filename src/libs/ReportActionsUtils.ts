@@ -217,45 +217,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     return sortedActions;
 }
 
-// /**
-//  * Given an object of reportActions, sorts them, and then adds the previousReportActionID to each item except the first.
-//  * @param {Object} reportActions
-//  * @returns {Array}
-//  */
-// function processReportActions(reportActions) { //TODO: remove after previousReportActionID is stable
-//     // Separate new and sorted reportActions
-//     const newReportActions = _.filter(reportActions, (action) => !action.previousReportActionID);
-//     const sortedReportActions = _.filter(reportActions, (action) => action.previousReportActionID);
-
-//     // Sort the new reportActions
-//     const sortedNewReportActions = getSortedReportActionsForDisplay(newReportActions);
-
-//     // Then, iterate through the sorted new reportActions and add the previousReportActionID to each item except the first
-//     const processedReportActions = sortedNewReportActions.map((action, index) => {
-//         if (index === sortedNewReportActions.length - 1) {
-//             return action; // Return the first item as is
-//         }
-//         return {
-//             ...action,
-//             previousReportActionID: sortedNewReportActions[index + 1].reportActionID,
-//         };
-//     });
-
-//     if (processedReportActions[processedReportActions.length - 1]?.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-//         processedReportActions.pop();
-//     }
-
-//     // Determine the order of merging based on reportActionID values
-//     const lastSortedReportActionID = _.last(sortedReportActions)?.reportActionTimestamp || 0;
-//     const firstProcessedReportActionID = _.first(processedReportActions)?.reportActionTimestamp || Infinity;
-
-//     if (firstProcessedReportActionID > lastSortedReportActionID) {
-//         return [...sortedReportActions, ...processedReportActions];
-//     } else {
-//         return [...processedReportActions, ...sortedReportActions];
-//     }
-// }
-
 /**
  * Returns the range of report actions from the given array which include current id
  * the range is consistent
@@ -562,9 +523,7 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
 function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
-    const filteredReportActions = Object.entries(reportActions ?? {})
-        // .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
-        .map((entry) => entry[1]);
+    const filteredReportActions = Object.entries(reportActions ?? {}).map((entry) => entry[1]);
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
 }

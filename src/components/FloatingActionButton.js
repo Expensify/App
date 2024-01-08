@@ -6,7 +6,6 @@ import Svg, {Path} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CheckForPreviousReportActionIDClean from '@libs/migrations/CheckForPreviousReportActionIDClean';
 import variables from '@styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
@@ -107,9 +106,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                         fabPressable.current.blur();
                         onPress(e);
                     }}
-                    onLongPress={() => {
-                        CheckForPreviousReportActionIDClean();
-                    }}
+                    onLongPress={() => {}}
                     style={[styles.floatingActionButton, animatedStyle]}
                 >
                     <Svg

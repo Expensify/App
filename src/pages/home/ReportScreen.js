@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -100,7 +100,6 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    // sortedReportActions: [],
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -616,12 +615,6 @@ export default compose(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
             },
-            // sortedReportActions: {
-            //     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            //     canEvict: false,
-            //     selector: ReportActionsUtils.getSortedReportActionsForDisplay,
-            //     // selector: ReportActionsUtils.processReportActions,
-            // },
         },
         true,
     ),
