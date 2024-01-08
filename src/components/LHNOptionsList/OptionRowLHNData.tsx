@@ -7,7 +7,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
-import {OptionRowLHNDataProps} from './types';
+import type {OptionRowLHNDataProps} from './types';
 
 /*
  * This component gets the data from onyx for the actual
@@ -17,7 +17,7 @@ import {OptionRowLHNDataProps} from './types';
  */
 function OptionRowLHNData({
     isFocused = false,
-    fullReport = null,
+    fullReport,
     reportActions,
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
@@ -30,7 +30,7 @@ function OptionRowLHNData({
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
 
-    const optionItemRef = useRef<OptionData | undefined>(undefined);
+    const optionItemRef = useRef<OptionData>();
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = sortedReportActions[0];

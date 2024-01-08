@@ -1,5 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
-import React, {ReactElement, useCallback} from 'react';
+import type {ReactElement} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
@@ -11,7 +12,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHNData from './OptionRowLHNData';
-import {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
+import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: string) => `report_${item}`;
 

@@ -1,10 +1,10 @@
 import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
-import {type StyleProp, TextStyle, View, type ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -32,6 +32,7 @@ type LHNOptionsListOnyxProps = {
     /** List of draft comments */
     draftComments: OnyxCollection<string>;
 };
+
 type CustomLHNOptionsListProps = {
     /** Wrapper style for the section list */
     style?: StyleProp<ViewStyle>;
@@ -56,22 +57,22 @@ type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextVal
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
-    isFocused: boolean;
+    isFocused?: boolean;
 
     /** List of users' personal details */
-    personalDetails: PersonalDetailsList;
+    personalDetails?: PersonalDetailsList;
 
     /** The preferred language for the app */
-    preferredLocale: OnyxEntry<Locale>;
+    preferredLocale?: OnyxEntry<Locale>;
 
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
     /** The policy which the user has access to and which the report could be tied to */
-    policy: OnyxEntry<Policy>;
+    policy?: OnyxEntry<Policy>;
 
     /** The action from the parent report */
-    parentReportAction: OnyxEntry<ReportAction>;
+    parentReportAction?: OnyxEntry<ReportAction>;
 
     /** The transaction from the parent report action */
     transaction: OnyxEntry<Transaction>;
@@ -90,11 +91,22 @@ type OptionRowLHNDataProps = {
 };
 
 type OptionRowLHNProps = {
+    /** The ID of the report that the option is for */
     reportID: string;
+
+    /** Whether this option is currently in focus so we can modify its style */
     isFocused?: boolean;
+
+    /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+
+    /** Toggle between compact and default view */
     viewMode?: OptionMode;
+
+    /** Additional style props */
     style?: StyleProp<TextStyle>;
+
+    /** The item that should be rendered */
     optionItem?: OptionData;
 };
 

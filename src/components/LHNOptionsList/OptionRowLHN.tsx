@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {GestureResponderEvent, StyleSheet, TextInput, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -25,7 +26,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import {OptionRowLHNProps} from './types';
+import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -90,8 +91,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
             '',
-            // @ts-expect-error TODO: Remove this once ReportActionContextMenu (https://github.com/Expensify/App/pull/32670) is migrated to TypeScript.
-            popoverAnchor,
+            popoverAnchor.current,
             reportID,
             '0',
             reportID,
@@ -101,14 +101,14 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             false,
             false,
             optionItem.isPinned,
-            optionItem.isUnread,
+            optionItem.isUnread ?? undefined,
         );
     };
 
-    const emojiCode = typeof optionItem.status === 'object' ? optionItem.status?.emojiCode : '';
-    const statusText = typeof optionItem.status === 'object' ? optionItem.status?.text : '';
-    const statusClearAfterDate = typeof optionItem.status === 'object' ? optionItem.status?.clearAfter : '';
-    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate ?? '');
+    const emojiCode = optionItem.status?.emojiCode ?? '';
+    const statusText = optionItem.status?.text ?? '';
+    const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(isNotEmptyObject(report) ? report : null);
@@ -148,7 +148,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                             showPopover(event);
                             // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
                             if (DomUtils.getActiveElement()) {
-                                (DomUtils.getActiveElement() as HTMLElement | TextInput)?.blur();
+                                (DomUtils.getActiveElement() as HTMLElement)?.blur();
                             }
                         }}
                         withoutFocusOnSecondaryInteraction
