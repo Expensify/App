@@ -1,7 +1,7 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -10,6 +10,8 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
@@ -43,221 +45,196 @@ const defaultProps = {
     onSelected: () => {},
 };
 
-class CalendarPicker extends React.PureComponent {
-    constructor(props) {
-        super(props);
+function CalendarPicker(props) {
+    const themeStyles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const [currentDateView, setCurrentDateView] = useState(props.value === 'string' ? parseISO(props.value) : new Date(props.value));
+    const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
 
-        if (props.minDate >= props.maxDate) {
-            throw new Error('Minimum date cannot be greater than the maximum date.');
-        }
-        let currentDateView = typeof props.value === 'string' ? parseISO(props.value) : new Date(props.value);
+    const minYear = getYear(new Date(props.minDate));
+    const maxYear = getYear(new Date(props.maxDate));
+
+    const [years, setYears] = useState(
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((value) => ({
+            text: value.toString(),
+            value,
+            keyForList: value.toString(),
+            isSelected: value === currentDateView.getFullYear(),
+        })),
+    );
+
+    useEffect(() => {
         if (props.maxDate < currentDateView) {
-            currentDateView = props.maxDate;
+            setCurrentDateView(props.maxDate);
         } else if (props.minDate > currentDateView) {
-            currentDateView = props.minDate;
+            setCurrentDateView(props.minDate);
         }
+    }, []);
 
-        const minYear = getYear(new Date(this.props.minDate));
-        const maxYear = getYear(new Date(this.props.maxDate));
-
-        this.state = {
-            currentDateView,
-            isYearPickerVisible: false,
-            years: _.map(
-                Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
-                (value) => ({
-                    text: value.toString(),
-                    value,
-                    keyForList: value.toString(),
-                    isSelected: value === currentDateView.getFullYear(),
-                }),
-            ),
-        };
-
-        this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
-        this.moveToNextMonth = this.moveToNextMonth.bind(this);
-        this.onDayPressed = this.onDayPressed.bind(this);
-        this.onYearSelected = this.onYearSelected.bind(this);
-    }
-
-    onYearSelected(year) {
-        this.setState((prev) => {
-            const newCurrentDateView = setYear(new Date(prev.currentDateView), year);
-
-            return {
-                currentDateView: newCurrentDateView,
-                isYearPickerVisible: false,
-                years: _.map(prev.years, (item) => ({
+    const onYearSelected = (year) => {
+        setIsYearPickerVisible(false);
+        setCurrentDateView((prev) => {
+            const newCurrentDateView = setYear(new Date(prev), year);
+            setYears((prevYears) =>
+                // eslint-disable-next-line rulesdir/prefer-underscore-method
+                prevYears.map((item) => ({
                     ...item,
                     isSelected: item.value === newCurrentDateView.getFullYear(),
                 })),
-            };
+            );
+            return newCurrentDateView;
         });
-    }
+    };
 
     /**
      * Calls the onSelected function with the selected date.
      * @param {Number} day - The day of the month that was selected.
      */
-    onDayPressed(day) {
-        this.setState(
-            (prev) => ({
-                currentDateView: setDate(new Date(prev.currentDateView), day),
-            }),
-            () => this.props.onSelected(format(new Date(this.state.currentDateView), CONST.DATE.FNS_FORMAT_STRING)),
-        );
-    }
+    const onDayPressed = (day) => {
+        setCurrentDateView((prev) => {
+            const newCurrentDateView = setDate(new Date(prev), day);
+            props.onSelected(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
+            return newCurrentDateView;
+        });
+    };
 
     /**
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
-    moveToPrevMonth() {
-        this.setState((prev) => ({currentDateView: subMonths(new Date(prev.currentDateView), 1)}));
-    }
+    const moveToPrevMonth = () => {
+        setCurrentDateView((prev) => subMonths(new Date(prev), 1));
+    };
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
-    moveToNextMonth() {
-        this.setState((prev) => ({currentDateView: addMonths(new Date(prev.currentDateView), 1)}));
-    }
+    const moveToNextMonth = () => {
+        setCurrentDateView((prev) => addMonths(new Date(prev), 1));
+    };
 
-    render() {
-        const monthNames = _.map(DateUtils.getMonthNames(this.props.preferredLocale), Str.recapitalize);
-        const daysOfWeek = _.map(DateUtils.getDaysOfWeek(this.props.preferredLocale), (day) => day.toUpperCase());
-        const currentMonthView = this.state.currentDateView.getMonth();
-        const currentYearView = this.state.currentDateView.getFullYear();
-        const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = startOfDay(new Date(this.props.maxDate)) > endOfMonth(new Date(this.state.currentDateView));
-        const hasAvailableDatesPrevMonth = endOfDay(new Date(this.props.minDate)) < startOfMonth(new Date(this.state.currentDateView));
+    const monthNames = _.map(DateUtils.getMonthNames(props.preferredLocale), Str.recapitalize);
+    const daysOfWeek = _.map(DateUtils.getDaysOfWeek(props.preferredLocale), (day) => day.toUpperCase());
+    const currentMonthView = currentDateView.getMonth();
+    const currentYearView = currentDateView.getFullYear();
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const hasAvailableDatesNextMonth = startOfDay(new Date(props.maxDate)) > endOfMonth(new Date(currentDateView));
+    const hasAvailableDatesPrevMonth = endOfDay(new Date(props.minDate)) < startOfMonth(new Date(currentDateView));
 
-        return (
-            <View>
-                <View
-                    style={[
-                        this.props.themeStyles.calendarHeader,
-                        this.props.themeStyles.flexRow,
-                        this.props.themeStyles.justifyContentBetween,
-                        this.props.themeStyles.alignItemsCenter,
-                        this.props.themeStyles.ph4,
-                        this.props.themeStyles.pr1,
-                    ]}
-                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+    return (
+        <View>
+            <View
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph4, themeStyles.pr1]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <PressableWithFeedback
+                    onPress={() => setIsYearPickerVisible(true)}
+                    style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}
+                    wrapperStyle={[themeStyles.alignItemsCenter]}
+                    hoverDimmingValue={1}
+                    testID="currentYearButton"
+                    accessibilityLabel={props.translate('common.currentYear')}
                 >
+                    <Text
+                        style={themeStyles.sidebarLinkTextBold}
+                        testID="currentYearText"
+                        accessibilityLabel={props.translate('common.currentYear')}
+                    >
+                        {currentYearView}
+                    </Text>
+                    <ArrowIcon />
+                </PressableWithFeedback>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd]}>
+                    <Text
+                        style={themeStyles.sidebarLinkTextBold}
+                        testID="currentMonthText"
+                        accessibilityLabel={props.translate('common.currentMonth')}
+                    >
+                        {monthNames[currentMonthView]}
+                    </Text>
                     <PressableWithFeedback
-                        onPress={() => this.setState({isYearPickerVisible: true})}
-                        style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentStart]}
-                        wrapperStyle={[this.props.themeStyles.alignItemsCenter]}
+                        shouldUseAutoHitSlop={false}
+                        testID="prev-month-arrow"
+                        disabled={!hasAvailableDatesPrevMonth}
+                        onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
-                        testID="currentYearButton"
-                        accessibilityLabel={this.props.translate('common.currentYear')}
+                        accessibilityLabel={props.translate('common.previous')}
                     >
-                        <Text
-                            style={this.props.themeStyles.sidebarLinkTextBold}
-                            testID="currentYearText"
-                            accessibilityLabel={this.props.translate('common.currentYear')}
-                        >
-                            {currentYearView}
-                        </Text>
-                        <ArrowIcon />
-                    </PressableWithFeedback>
-                    <View style={[this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flexRow, this.props.themeStyles.flex1, this.props.themeStyles.justifyContentEnd]}>
-                        <Text
-                            style={this.props.themeStyles.sidebarLinkTextBold}
-                            testID="currentMonthText"
-                            accessibilityLabel={this.props.translate('common.currentMonth')}
-                        >
-                            {monthNames[currentMonthView]}
-                        </Text>
-                        <PressableWithFeedback
-                            shouldUseAutoHitSlop={false}
-                            testID="prev-month-arrow"
+                        <ArrowIcon
                             disabled={!hasAvailableDatesPrevMonth}
-                            onPress={this.moveToPrevMonth}
-                            hoverDimmingValue={1}
-                            accessibilityLabel={this.props.translate('common.previous')}
-                        >
-                            <ArrowIcon
-                                disabled={!hasAvailableDatesPrevMonth}
-                                direction={CONST.DIRECTION.LEFT}
-                            />
-                        </PressableWithFeedback>
-                        <PressableWithFeedback
-                            shouldUseAutoHitSlop={false}
-                            testID="next-month-arrow"
-                            disabled={!hasAvailableDatesNextMonth}
-                            onPress={this.moveToNextMonth}
-                            hoverDimmingValue={1}
-                            accessibilityLabel={this.props.translate('common.next')}
-                        >
-                            <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
-                        </PressableWithFeedback>
-                    </View>
-                </View>
-                <View style={this.props.themeStyles.flexRow}>
-                    {_.map(daysOfWeek, (dayOfWeek) => (
-                        <View
-                            key={dayOfWeek}
-                            style={[
-                                this.props.themeStyles.calendarDayRoot,
-                                this.props.themeStyles.flex1,
-                                this.props.themeStyles.justifyContentCenter,
-                                this.props.themeStyles.alignItemsCenter,
-                            ]}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                        >
-                            <Text style={this.props.themeStyles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
-                        </View>
-                    ))}
-                </View>
-                {_.map(calendarDaysMatrix, (week) => (
-                    <View
-                        key={`week-${week}`}
-                        style={this.props.themeStyles.flexRow}
+                            direction={CONST.DIRECTION.LEFT}
+                        />
+                    </PressableWithFeedback>
+                    <PressableWithFeedback
+                        shouldUseAutoHitSlop={false}
+                        testID="next-month-arrow"
+                        disabled={!hasAvailableDatesNextMonth}
+                        onPress={moveToNextMonth}
+                        hoverDimmingValue={1}
+                        accessibilityLabel={props.translate('common.next')}
                     >
-                        {_.map(week, (day, index) => {
-                            const currentDate = new Date(currentYearView, currentMonthView, day);
-                            const isBeforeMinDate = currentDate < startOfDay(new Date(this.props.minDate));
-                            const isAfterMaxDate = currentDate > startOfDay(new Date(this.props.maxDate));
-                            const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                            const isSelected = !!day && isSameDay(parseISO(this.props.value), new Date(currentYearView, currentMonthView, day));
-                            return (
-                                <PressableWithoutFeedback
-                                    key={`${index}_day-${day}`}
-                                    disabled={isDisabled}
-                                    onPress={() => this.onDayPressed(day)}
-                                    style={this.props.themeStyles.calendarDayRoot}
-                                    accessibilityLabel={day ? day.toString() : undefined}
-                                    tabIndex={day ? 0 : -1}
-                                    accessible={Boolean(day)}
-                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <View
-                                            style={[
-                                                this.props.themeStyles.calendarDayContainer,
-                                                isSelected ? this.props.themeStyles.buttonDefaultBG : {},
-                                                !isDisabled ? this.props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
-                                            ]}
-                                        >
-                                            <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
-                                        </View>
-                                    )}
-                                </PressableWithoutFeedback>
-                            );
-                        })}
+                        <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
+                    </PressableWithFeedback>
+                </View>
+            </View>
+            <View style={themeStyles.flexRow}>
+                {_.map(daysOfWeek, (dayOfWeek) => (
+                    <View
+                        key={dayOfWeek}
+                        style={[themeStyles.calendarDayRoot, themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        <Text style={themeStyles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                     </View>
                 ))}
-                <YearPickerModal
-                    isVisible={this.state.isYearPickerVisible}
-                    years={this.state.years}
-                    currentYear={currentYearView}
-                    onYearChange={this.onYearSelected}
-                    onClose={() => this.setState({isYearPickerVisible: false})}
-                />
             </View>
-        );
-    }
+            {_.map(calendarDaysMatrix, (week) => (
+                <View
+                    key={`week-${week}`}
+                    style={themeStyles.flexRow}
+                >
+                    {_.map(week, (day, index) => {
+                        const currentDate = new Date(currentYearView, currentMonthView, day);
+                        const isBeforeMinDate = currentDate < startOfDay(new Date(props.minDate));
+                        const isAfterMaxDate = currentDate > startOfDay(new Date(props.maxDate));
+                        const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
+                        const isSelected = !!day && isSameDay(parseISO(props.value), new Date(currentYearView, currentMonthView, day));
+                        return (
+                            <PressableWithoutFeedback
+                                key={`${index}_day-${day}`}
+                                disabled={isDisabled}
+                                onPress={() => onDayPressed(day)}
+                                style={themeStyles.calendarDayRoot}
+                                accessibilityLabel={day ? day.toString() : undefined}
+                                tabIndex={day ? 0 : -1}
+                                accessible={Boolean(day)}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                {({hovered, pressed}) => (
+                                    <View
+                                        style={[
+                                            themeStyles.calendarDayContainer,
+                                            isSelected ? themeStyles.buttonDefaultBG : {},
+                                            !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
+                                        ]}
+                                    >
+                                        <Text style={isDisabled ? themeStyles.buttonOpacityDisabled : themeStyles.dayText}>{day}</Text>
+                                    </View>
+                                )}
+                            </PressableWithoutFeedback>
+                        );
+                    })}
+                </View>
+            ))}
+            <YearPickerModal
+                isVisible={isYearPickerVisible}
+                years={years}
+                currentYear={currentYearView}
+                onYearChange={onYearSelected}
+                onClose={() => setIsYearPickerVisible(false)}
+            />
+        </View>
+    );
 }
 
 CalendarPicker.propTypes = propTypes;
