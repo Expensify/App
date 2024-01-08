@@ -1,18 +1,18 @@
 import React, {useCallback} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ExampleCheckImage from '@pages/ReimbursementAccount/ExampleCheck';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount} from '@src/types/onyx';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
 type ManualOnyxProps = {
     /** Reimbursement account from ONYX */

@@ -69,4 +69,13 @@ type BeneficialOwnerDraftData = Record<`beneficialOwner_${string}_${string}`, st
 type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps & BeneficialOwnerDraftData;
 
 export default ReimbursementAccountDraft;
-export type {ACHContractStepProps, BeneficialOwnersStepDraftProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps};
+export type {
+    ACHContractStepProps,
+    BeneficialOwnersStepDraftProps,
+    RequestorStepProps,
+    OnfidoData,
+    BankAccountStepProps,
+    CompanyStepProps,
+    ReimbursementAccountProps,
+    BeneficialOwnerDraftData,
+};

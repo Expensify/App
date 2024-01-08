@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {CompanyStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {CompanyStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 

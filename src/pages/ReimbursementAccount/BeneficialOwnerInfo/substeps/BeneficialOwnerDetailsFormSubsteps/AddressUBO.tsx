@@ -1,40 +1,33 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const propTypes = {
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    /** ID of the beneficial owner that is being modified */
-    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
-
-    ...subStepPropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccountDraft: {},
-};
+import type {ReimbursementAccountDraft} from '@src/types/onyx';
+import type {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const BENEFICIAL_OWNER_INFO_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
+type AddressUBOOnyxProps = {
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+type AddressUBOProps = SubStepProps & AddressUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
+type FormValues = BeneficialOwnerDraftData;
+
+function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}: AddressUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const INPUT_KEYS = {
+    const INPUT_KEYS: Record<string, keyof FormValues> = {
         street: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.STREET}`,
         city: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.CITY}`,
         state: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.STATE}`,
@@ -44,13 +37,13 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
     const REQUIRED_FIELDS = [INPUT_KEYS.street, INPUT_KEYS.city, INPUT_KEYS.state, INPUT_KEYS.zipCode];
 
     const defaultValues = {
-        street: lodashGet(reimbursementAccountDraft, INPUT_KEYS.street, ''),
-        city: lodashGet(reimbursementAccountDraft, INPUT_KEYS.city, ''),
-        state: lodashGet(reimbursementAccountDraft, INPUT_KEYS.state, ''),
-        zipCode: lodashGet(reimbursementAccountDraft, INPUT_KEYS.zipCode, ''),
+        street: reimbursementAccountDraft?.[INPUT_KEYS.street] ?? '',
+        city: reimbursementAccountDraft?.[INPUT_KEYS.city] ?? '',
+        state: reimbursementAccountDraft?.[INPUT_KEYS.state] ?? '',
+        zipCode: reimbursementAccountDraft?.[INPUT_KEYS.zipCode] ?? '',
     };
 
-    const validate = (values) => {
+    const validate = (values: FormValues) => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values[INPUT_KEYS.street] && !ValidationUtils.isValidAddress(values[INPUT_KEYS.street])) {
@@ -65,6 +58,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -86,11 +80,9 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
     );
 }
 
-AddressUBO.propTypes = propTypes;
-AddressUBO.defaultProps = defaultProps;
 AddressUBO.displayName = 'AddressUBO';
 
-export default withOnyx({
+export default withOnyx<AddressUBOProps, AddressUBOOnyxProps>({
     reimbursementAccountDraft: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },

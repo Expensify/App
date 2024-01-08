@@ -1,21 +1,22 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import AddressBusiness from './substeps/AddressBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
@@ -98,7 +99,6 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
     };
 
     return (
-        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript
         <ScreenWrapper
             testID={BusinessInfo.displayName}
             includeSafeAreaPaddingBottom={false}
