@@ -3,6 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -12,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import * as Session from './Session';
 
 type FirstAndLastName = {
     firstName: string;
@@ -262,6 +264,10 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
     if (!currentUserAccountID) {
         return;
     }
@@ -269,9 +275,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
     type UpdateAutomaticTimezoneParams = {
         timezone: string;
     };
-
+    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(timezone),
+        timezone: JSON.stringify(formatedTimezone),
     };
 
     API.write('UpdateAutomaticTimezone', parameters, {
@@ -281,7 +287,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone,
+                        timezone: formatedTimezone,
                     },
                 },
             },
