@@ -76,6 +76,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
+    console.log('report: ', report);
+    console.log('parentReport: ', parentReport);
+    console.log('parentReportAction: ', parentReportAction);
+    console.log('transaction: ', transaction);
+    console.log("lodashGet(policy, 'role'): ", lodashGet(policy, 'role'));
+    console.log("lodashGet(policy, 'type'): ", lodashGet(policy, 'type'));
+
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
     const isPolicyAdmin = lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
@@ -88,7 +95,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
 
-    const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isRequestModifiable = !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
+    const canModifyRequest = isActionOwner && isRequestModifiable;
 
     const changeMoneyRequestStatus = () => {
         if (!isOnHold) {
@@ -113,14 +121,25 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
         setIsDeleteModalVisible(false);
     }, [canModifyRequest]);
+
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
-    if ((isPolicyAdmin || isActionOwner) && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Stopwatch,
-            text: !isOnHold ? translate('iou.holdRequest') : translate('iou.unholdRequest'),
-            onSelected: () => changeMoneyRequestStatus(),
-        });
+    if (isRequestModifiable) {
+        if (isOnHold && (ReportUtils.isHoldCreator(transaction, lodashGet(report, 'reportID')) || isPolicyAdmin)) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Stopwatch,
+                text: translate('iou.unholdRequest'),
+                onSelected: () => changeMoneyRequestStatus(),
+            });
+        }
+        if (!isOnHold && (lodashGet(parentReport, 'type') === 'iou' || isPolicyAdmin || isActionOwner)) {
+            threeDotsMenuItems.push({
+                icon: Expensicons.Stopwatch,
+                text: translate('iou.holdRequest'),
+                onSelected: () => changeMoneyRequestStatus(),
+            });
+        }
     }
+
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({

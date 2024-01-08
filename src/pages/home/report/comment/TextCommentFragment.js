@@ -50,7 +50,7 @@ function TextCommentFragment(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {fragment, styleAsDeleted} = props;
-    const {html, text} = fragment;
+    const {html = '', text} = fragment;
 
     // If the only difference between fragment.text and fragment.html is <br /> tags
     // we render it as text, not as html.

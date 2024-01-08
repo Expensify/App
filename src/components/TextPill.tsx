@@ -14,7 +14,7 @@ type TextPillProps = {
 function TextPill({color, children}: TextPillProps) {
     const styles = useThemeStyles();
 
-    return <Text style={[{backgroundColor: color ?? colors.red, borderRadius: 6}, styles.overflowHidden, styles.textStrong, styles.ph2, styles.pv1]}>{children}</Text>;
+    return <Text style={[{backgroundColor: color ?? colors.red, borderRadius: 6}, styles.overflowHidden, styles.textStrong, styles.ph2, styles.pv1, styles.flexShrink0]}>{children}</Text>;
 }
 
 TextPill.displayName = 'TextPill';

@@ -65,6 +65,9 @@ const propTypes = {
     /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
     isApprovedOrSubmittedReportAction: PropTypes.bool,
 
+    /** Whether the report action type is 'UNHOLD' or 'HOLD'. Used to style messages related to hold requests */
+    isHoldReportAction: PropTypes.bool,
+
     /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
     isFragmentContainingDisplayName: PropTypes.bool,
 
@@ -89,6 +92,7 @@ const defaultProps = {
     actorIcon: {},
     isThreadParentMessage: false,
     isApprovedOrSubmittedReportAction: false,
+    isHoldReportAction: false,
     isFragmentContainingDisplayName: false,
     displayAsGroup: false,
 };
@@ -131,14 +135,29 @@ function ReportActionItemFragment(props) {
             );
         }
         case 'TEXT': {
-            return props.isApprovedOrSubmittedReportAction ? (
-                <Text
-                    numberOfLines={props.isSingleLine ? 1 : undefined}
-                    style={[styles.chatItemMessage, styles.colorMuted]}
-                >
-                    {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
-                </Text>
-            ) : (
+            if (props.isApprovedOrSubmittedReportAction) {
+                return (
+                    <Text
+                        numberOfLines={props.isSingleLine ? 1 : undefined}
+                        style={[styles.chatItemMessage, styles.colorMuted]}
+                    >
+                        {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                    </Text>
+                );
+            }
+
+            if (props.isHoldReportAction) {
+                return (
+                    <Text
+                        numberOfLines={props.isSingleLine ? 1 : undefined}
+                        style={[styles.chatItemMessage]}
+                    >
+                        {props.isFragmentContainingDisplayName ? convertToLTR(props.fragment.text) : props.fragment.text}
+                    </Text>
+                );
+            }
+
+            return (
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}

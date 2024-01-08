@@ -3457,8 +3457,7 @@ function getIOUReportID(iou, route) {
  */
 function putOnHold(transactionID, comment, reportID) {
     const createdDate = new Date();
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(createdDate);
-    const createdCommentReportAction = ReportUtils.buildOptimisticHoldReportActionComment(comment, new Date(createdDate.getTime() + 1));
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment, DateUtils.getDBTime(createdDate));
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
@@ -3468,7 +3467,6 @@ function putOnHold(transactionID, comment, reportID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: createdReportAction,
-                [createdCommentReportAction.reportActionID]: createdCommentReportAction,
             },
         },
         {
@@ -3478,6 +3476,16 @@ function putOnHold(transactionID, comment, reportID) {
                 comment: {
                     hold: createdReportAction.reportActionID,
                 },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
             },
         },
     ];
@@ -3501,7 +3509,7 @@ function putOnHold(transactionID, comment, reportID) {
             transactionID,
             comment,
         },
-        {optimisticData, successData: [], failureData},
+        {optimisticData, successData, failureData},
     );
 }
 
@@ -3535,6 +3543,13 @@ function unholdRequest(transactionID, reportID) {
     ];
 
     const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
