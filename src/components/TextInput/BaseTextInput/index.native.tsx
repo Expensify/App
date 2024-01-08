@@ -247,6 +247,8 @@ function BaseTextInput(
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles)?.maxHeight;

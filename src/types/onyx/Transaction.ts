@@ -1,7 +1,7 @@
-import {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import {Participant} from './IOU';
+import type {Participant} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
 

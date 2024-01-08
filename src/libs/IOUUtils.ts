@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

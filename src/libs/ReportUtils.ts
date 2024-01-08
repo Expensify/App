@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Errors, Icon, PendingAction, SimpleErrors} from '@src/types/onyx/OnyxCommon';
+import type {Icon, PendingAction, SimpleErrors} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';

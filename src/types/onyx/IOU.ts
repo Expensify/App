@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import {Icon} from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type {Icon} from './OnyxCommon';
 
 type Participant = {
     accountID?: number;
