@@ -118,7 +118,7 @@ const propTypes = {
     /** The user's wallet account */
     userWallet: userWalletPropTypes,
 
-    /** All the report action belonging the report's parent */
+    /** All the report actions belonging to the report's parent */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
