@@ -123,6 +123,7 @@ type Report = {
     lastActorAccountID?: number;
     ownerAccountID?: number;
     participantAccountIDs?: number[];
+    visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
     parentReportActionIDs?: number[];
