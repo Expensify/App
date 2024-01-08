@@ -9,7 +9,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
@@ -143,5 +142,4 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
-    withNetwork(),
 )(WorkspaceOverviewPage);
