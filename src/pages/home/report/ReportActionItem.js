@@ -487,9 +487,8 @@ function ReportActionItem(props) {
             );
         }
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
-        const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(props.action, props.report.reportID);
         const oldestFourAccountIDs = _.map(lodashGet(props.action, 'childOldestFourAccountIDs', '').split(','), (accountID) => Number(accountID));
         const draftMessageRightAlign = !_.isUndefined(props.draftMessage) ? styles.chatItemReactionsDraftRight : {};
 
