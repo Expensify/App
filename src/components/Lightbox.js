@@ -67,9 +67,9 @@ function Lightbox({isAuthTokenRequired, uri, onError, style, zoomRange}) {
 
     const [contentSize, setInternalContentSize] = useState(() => cachedImageDimensions.get(uri));
     const setContentSize = useCallback(
-        (newDimensions) => {
-            setInternalContentSize(newDimensions);
-            cachedImageDimensions.set(uri, newDimensions);
+        (newContentSize) => {
+            setInternalContentSize(newContentSize);
+            cachedImageDimensions.set(uri, newContentSize);
         },
         [uri],
     );
