@@ -1,4 +1,4 @@
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
 const personalInfoKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;

@@ -1,4 +1,5 @@
-import React, {ForwardedRef, forwardRef, useImperativeHandle, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';

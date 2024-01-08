@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
-import {BeneficialOwnersStepDraftProps, CompanyStepProps} from './ReimbursementAccountDraft';
+import type {BeneficialOwnersStepDraftProps, CompanyStepProps} from './ReimbursementAccountDraft';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 

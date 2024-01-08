@@ -221,6 +221,7 @@ function ScreenWrapper(
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
+                                    // @ts-expect-error Remove once react-native-picker-select is updated
                                     style={styles.flex1}
                                     enabled={shouldEnablePickerAvoiding}
                                 >

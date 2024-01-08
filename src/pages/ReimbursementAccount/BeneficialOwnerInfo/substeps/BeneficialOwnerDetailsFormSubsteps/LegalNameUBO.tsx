@@ -1,7 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
-import Form from '@components/Form';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';

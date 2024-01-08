@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccountDraft} from '@src/types/onyx';
 
 type BeneficialOwnerValues = {
     firstName: string;

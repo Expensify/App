@@ -1,4 +1,4 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import getDefaultValueForReimbursementAccountField from './getDefaultValueForReimbursementAccountField';
 
