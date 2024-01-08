@@ -1,10 +1,12 @@
-import React, {ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler} from 'react';
-import {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
+import type {ForwardedRef, KeyboardEventHandler, MouseEventHandler} from 'react';
+import React, {forwardRef} from 'react';
+import type {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import Text, {TextProps} from './Text';
+import type {TextProps} from './Text';
+import Text from './Text';
 
 type LinkProps = {
     /** Link to open in new tab */
