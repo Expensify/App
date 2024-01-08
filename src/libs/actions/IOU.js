@@ -2658,7 +2658,10 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [reportPreviewAction.reportActionID]: reportPreviewAction,
+                [reportPreviewAction.reportActionID]: {
+                    ...reportPreviewAction,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                },
             },
         },
         ...(shouldDeleteIOUReport

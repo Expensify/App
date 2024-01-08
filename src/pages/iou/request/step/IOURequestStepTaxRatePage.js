@@ -47,7 +47,7 @@ const getTaxAmount = (taxRates, selectedTaxRate, amount) => {
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {iouType, reportID, backTo},
+        params: {backTo},
     },
     policyTaxRates,
     transaction,
@@ -67,7 +67,7 @@ function IOURequestStepTaxRatePage({
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
 
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     return (
