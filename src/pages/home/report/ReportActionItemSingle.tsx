@@ -26,7 +26,6 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import lodashGet from 'lodash/get';
 
 type ReportActionItemSingleProps = ChildrenProps & {
     /** All the data of the action */
@@ -244,7 +243,7 @@ function ReportActionItemSingle({
                                     delegateAccountID={action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
-                                    moderationDecision={lodashGet(action, 'message[0].moderationDecision.decision')}
+                                    moderationDecision={action.message?.[0].moderationDecision?.decision}
                                 />
                             ))}
                         </PressableWithoutFeedback>
