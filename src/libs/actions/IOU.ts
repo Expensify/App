@@ -97,6 +97,20 @@ type UpdateMoneyRequestData = {
     onyxData: OnyxData;
 };
 
+type PayMoneyRequestParams = {
+    iouReportID: string;
+    chatReportID: string;
+    reportActionID: string;
+    paymentMethodType: PaymentMethodType;
+};
+
+type PayMoneyRequestData = {
+    params: PayMoneyRequestParams;
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
+};
+
 type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type SendMoneyParams = {
@@ -2634,14 +2648,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText:
-                    iouReport && reportPreviewAction
-                        ? ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID ?? '', {[reportPreviewAction.reportActionID]: null}).lastMessageText
-                        : '',
-                lastVisibleActionCreated:
-                    iouReport && reportPreviewAction
-                        ? lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID ?? '', {[reportPreviewAction.reportActionID]: null}), 'created')
-                        : 'created',
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null}).lastMessageText,
+                lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null}), 'created'),
             },
         });
     }
@@ -2941,6 +2949,7 @@ function getSendMoneyParams(
                 [recipientAccountID]: {
                     accountID: recipientAccountID,
                     avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     displayName: recipient.displayName || recipient.login,
                     login: recipient.login,
                 },
@@ -2983,18 +2992,11 @@ function getSendMoneyParams(
     };
 }
 
-/**
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {Object} recipient
- * @param {String} paymentMethodType
- * @returns {Object}
- */
-function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
+function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        -iouReport.total,
-        iouReport.currency,
+        -(iouReport.total ?? 0),
+        iouReport.currency ?? '',
         '',
         [recipient],
         '',
@@ -3013,7 +3015,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
 
     const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`, null);
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -3023,8 +3025,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
+                lastMessageText: optimisticIOUReportAction.message?.[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
             },
         },
         {
@@ -3032,7 +3034,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    ...optimisticIOUReportAction,
+                    ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -3042,8 +3044,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
+                lastMessageText: optimisticIOUReportAction.message?.[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
@@ -3051,11 +3053,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: {[iouReport.policyID]: paymentMethodType},
+            value: {[iouReport.policyID ?? '']: paymentMethodType},
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
@@ -3067,7 +3069,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
@@ -3079,7 +3081,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
     ];
 
-    if (!_.isNull(currentNextStep)) {
+    if (currentNextStep !== null) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
@@ -3347,13 +3349,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     API.write('SubmitReport', parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * @param {String} paymentType
- * @param {Object} chatReport
- * @param {Object} iouReport
- * @param {String} reimbursementBankAccountState
- */
-function payMoneyRequest(paymentType, chatReport, iouReport) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report) {
     const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
