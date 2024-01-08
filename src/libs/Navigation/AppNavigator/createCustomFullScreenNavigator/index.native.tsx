@@ -2,18 +2,10 @@ import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@rea
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useRef} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
 function FullScreenNavigator(props: FullScreenNavigatorProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
-
-    isSmallScreenWidthRef.current = isSmallScreenWidth;
-
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
         FullScreenNavigatorRouterOptions,

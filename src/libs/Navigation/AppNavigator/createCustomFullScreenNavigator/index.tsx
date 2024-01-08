@@ -2,13 +2,12 @@ import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@rea
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useMemo, useRef} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
-// TODO: Extract to utils with ./createCustomStackNavigator/index.tsx
+// TODO-IDEAL: Extract to utils with ./createCustomStackNavigator/index.tsx
 type Routes = StackNavigationState<ParamListBase>['routes'];
 function reduceReportRoutes(routes: Routes): Routes {
     const result: Routes = [];
