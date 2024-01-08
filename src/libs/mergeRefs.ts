@@ -1,4 +1,4 @@
-import {LegacyRef, MutableRefObject, RefCallback} from 'react';
+import type {LegacyRef, MutableRefObject, RefCallback} from 'react';
 
 /**
  * Assigns element reference to multiple refs.
