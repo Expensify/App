@@ -190,12 +190,12 @@ function FloatingActionButtonAndPopover(props) {
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
-                        text: props.translate('sidebarScreen.fabNewChat'),
+                        text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
-                        text: props.translate('iou.requestMoney'),
+                        text: translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 Navigation.navigate(
@@ -207,19 +207,19 @@ function FloatingActionButtonAndPopover(props) {
                     },
                     {
                         icon: Expensicons.Send,
-                        text: props.translate('iou.sendMoney'),
+                        text: translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
                     ...[
                         {
                             icon: Expensicons.Task,
-                            text: props.translate('newTaskPage.assignTask'),
+                            text: translate('newTaskPage.assignTask'),
                             onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                         },
                     ],
                     {
                         icon: Expensicons.Heart,
-                        text: props.translate('sidebarScreen.saveTheWorld'),
+                        text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
@@ -230,8 +230,8 @@ function FloatingActionButtonAndPopover(props) {
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,
-                                  text: props.translate('workspace.new.newWorkspace'),
-                                  description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                  text: translate('workspace.new.newWorkspace'),
+                                  description: translate('workspace.new.getTheExpensifyCardAndMore'),
                                   onSelected: () => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()),
                               },
                           ]
@@ -266,7 +266,6 @@ const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
 FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
 
 export default compose(
-    withLocalize,
     withNavigation,
     withNavigationFocus,
     withWindowDimensions,
