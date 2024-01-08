@@ -1,14 +1,17 @@
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import {GestureResponderEvent, Pressable, View} from 'react-native';
+import {Pressable} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import PressableProps from './types';
+import type {PressableRef} from './types';
+import type PressableProps from './types';
 
 function GenericPressable(
     {
@@ -34,9 +37,10 @@ function GenericPressable(
         accessible = true,
         ...rest
     }: PressableProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
@@ -124,7 +128,7 @@ function GenericPressable(
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
-            ref={ref}
+            ref={ref as ForwardedRef<View>}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}

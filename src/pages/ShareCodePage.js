@@ -55,7 +55,7 @@ class ShareCodePage extends React.Component {
         }
         if (ReportUtils.isMoneyRequestReport(this.props.report)) {
             // generate subtitle from participants
-            return _.map(ReportUtils.getParticipantsIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
+            return _.map(ReportUtils.getVisibleMemberIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
         }
 
         if (isReport) {
@@ -100,18 +100,12 @@ class ShareCodePage extends React.Component {
                     <View style={{marginTop: 36}}>
                         <ContextMenuItem
                             isAnonymousAction
-                            text={this.props.translate('qrCodes.copyUrlToClipboard')}
+                            text={this.props.translate('qrCodes.copy')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
                             successIcon={Expensicons.Checkmark}
                             successText={this.props.translate('qrCodes.copied')}
                             onPress={() => Clipboard.setString(url)}
-                        />
-
-                        <MenuItem
-                            title={this.props.translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
-                            icon={Expensicons.Cash}
-                            onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
                         />
 
                         {isNative && (
@@ -123,6 +117,12 @@ class ShareCodePage extends React.Component {
                                 onPress={() => this.qrCodeRef.current?.download()}
                             />
                         )}
+
+                        <MenuItem
+                            title={this.props.translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                            icon={Expensicons.Cash}
+                            onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE))}
+                        />
                     </View>
                 </ScrollView>
             </ScreenWrapper>

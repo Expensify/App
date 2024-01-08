@@ -8,9 +8,9 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +38,7 @@ function SaveTheWorldPage(props) {
         <IllustratedHeaderPageLayout
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SAVE_THE_WORLD.ROOT]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
             onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             illustration={LottieAnimations.SaveTheWorld}
         >

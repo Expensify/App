@@ -1,4 +1,5 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import filter from 'lodash/filter';
@@ -91,11 +92,25 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCategories = val),
 });
 
-let networkStatus = {};
+let allPolicyTags = {};
 Onyx.connect({
-    key: ONYXKEYS.NETWORK,
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
-    callback: (val) => (networkStatus = val),
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+let allRecentlyUsedTags = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedTags = val),
 });
 
 /**
@@ -256,11 +271,19 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
+    // Everyone in special policy rooms is visible
+    const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
-            participantAccountIDs: [...announceReport.participantAccountIDs, ...accountIDs],
+            participantAccountIDs,
+            visibleChatMemberAccountIDs: participantAccountIDs,
         },
     });
 
@@ -269,6 +292,7 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: announceReport.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -287,12 +311,17 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
     const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: [...remainUsers],
+            visibleChatMemberAccountIDs: [...remainUsers],
         },
     });
 
@@ -301,6 +330,7 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
             participantAccountIDs: announceReport.participantAccountIDs,
+            visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
         },
     });
     return announceRoomMembers;
@@ -587,10 +617,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID)
 
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
-
-        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
-        // See https://github.com/Expensify/App/issues/20081 for more details.
-        welcomeNote,
+        welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
@@ -936,7 +963,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
@@ -1053,8 +1080,10 @@ function generateCustomUnitID() {
  * @returns {Object}
  */
 function buildOptimisticCustomUnits() {
+    const currency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
+
     const customUnits = {
         [customUnitID]: {
             customUnitID,
@@ -1067,6 +1096,7 @@ function buildOptimisticCustomUnits() {
                     customUnitRateID,
                     name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
                     rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                    currency,
                 },
             },
         },
@@ -1076,6 +1106,7 @@ function buildOptimisticCustomUnits() {
         customUnits,
         customUnitID,
         customUnitRateID,
+        outputCurrency: currency,
     };
 }
 
@@ -1089,7 +1120,7 @@ function buildOptimisticCustomUnits() {
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits} = buildOptimisticCustomUnits();
+    const {customUnits, outputCurrency} = buildOptimisticCustomUnits();
 
     const optimisticData = [
         {
@@ -1102,7 +1133,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 isPolicyExpenseChatEnabled: true,
-                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
@@ -1135,7 +1166,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -1181,7 +1212,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
                         isPolicyExpenseChatEnabled: true,
-                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
                     },
@@ -1469,6 +1500,27 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
     const policyRecentlyUsedCategories = lodashGet(allRecentlyUsedCategories, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, []);
 
     return lodashUnion([category], policyRecentlyUsedCategories);
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} tag
+ * @returns {Object}
+ */
+function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
+    if (!policyID || !tag) {
+        return {};
+    }
+
+    const policyTags = lodashGet(allPolicyTags, `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {});
+    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
+    const tagListKey = _.first(_.keys(policyTags));
+    const policyRecentlyUsedTags = lodashGet(allRecentlyUsedTags, `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {});
+
+    return {
+        ...policyRecentlyUsedTags,
+        [tagListKey]: lodashUnion([tag], lodashGet(policyRecentlyUsedTags, [tagListKey], [])),
+    };
 }
 
 /**
@@ -1900,6 +1952,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
 };

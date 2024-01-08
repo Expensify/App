@@ -2,24 +2,25 @@ import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +42,15 @@ const propTypes = {
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
         }),
+    }),
+
+    /* Current location coordinates of the user */
+    userLocation: PropTypes.shape({
+        /** Latitude of the location */
+        latitude: PropTypes.number,
+
+        /** Longitude of the location */
+        longitude: PropTypes.number,
     }),
 
     recentWaypoints: PropTypes.arrayOf(
@@ -74,9 +84,10 @@ const defaultProps = {
     route: {},
     recentWaypoints: [],
     transaction: {},
+    userLocation: undefined,
 };
 
-function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints, userLocation}) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -91,7 +102,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
-
+    const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
@@ -134,7 +145,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transactionID, waypointIndex);
+            Transaction.removeWaypoint(transaction, waypointIndex);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -144,6 +155,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                 lat: null,
                 lng: null,
                 address: waypointValue,
+                name: null,
             };
             saveWaypoint(waypoint);
         }
@@ -153,7 +165,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transactionID, waypointIndex);
+        Transaction.removeWaypoint(transaction, waypointIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
@@ -163,7 +175,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
             lat: values.lat,
             lng: values.lng,
             address: values.address,
-            name: values.name,
+            name: values.name || null,
         };
         saveWaypoint(waypoint);
 
@@ -208,7 +220,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
@@ -218,33 +230,33 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
                 >
-                    <View>
-                        <AddressSearch
-                            canUseCurrentLocation
-                            inputID={`waypoint${waypointIndex}`}
-                            ref={(e) => (textInput.current = e)}
-                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
-                            containerStyles={[styles.mt3]}
-                            label={translate('distance.address')}
-                            defaultValue={waypointAddress}
-                            onPress={selectWaypoint}
-                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                            renamedInputKeys={{
-                                address: `waypoint${waypointIndex}`,
-                                city: null,
-                                country: null,
-                                street: null,
-                                street2: null,
-                                zipCode: null,
-                                lat: null,
-                                lng: null,
-                                state: null,
-                            }}
-                            predefinedPlaces={recentWaypoints}
-                            resultTypes=""
-                        />
-                    </View>
-                </Form>
+                    <InputWrapper
+                        InputComponent={AddressSearch}
+                        locationBias={locationBias}
+                        canUseCurrentLocation
+                        inputID={`waypoint${waypointIndex}`}
+                        ref={(e) => (textInput.current = e)}
+                        hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
+                        containerStyles={[styles.mt3]}
+                        label={translate('distance.address')}
+                        defaultValue={waypointAddress}
+                        onPress={selectWaypoint}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        renamedInputKeys={{
+                            address: `waypoint${waypointIndex}`,
+                            city: null,
+                            country: null,
+                            street: null,
+                            street2: null,
+                            zipCode: null,
+                            lat: null,
+                            lng: null,
+                            state: null,
+                        }}
+                        predefinedPlaces={recentWaypoints}
+                        resultTypes=""
+                    />
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
@@ -254,9 +266,11 @@ WaypointEditor.displayName = 'WaypointEditor';
 WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
-        selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     recentWaypoints: {
         key: ONYXKEYS.NVP_RECENT_WAYPOINTS,

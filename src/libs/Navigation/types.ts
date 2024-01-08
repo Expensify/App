@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type NAVIGATORS from '@src/NAVIGATORS';
+import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -37,318 +37,348 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
         reportID: string;
+        openOnAdminRoom?: boolean;
     };
 };
 
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
-    Settings_Share_Code: undefined;
+    [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    Settings_Profile: undefined;
-    Settings_Pronouns: undefined;
-    Settings_Display_Name: undefined;
-    Settings_Timezone: undefined;
-    Settings_Timezone_Select: undefined;
-    Settings_PersonalDetails_Initial: undefined;
-    Settings_PersonalDetails_LegalName: undefined;
-    Settings_PersonalDetails_DateOfBirth: undefined;
-    Settings_PersonalDetails_Address: undefined;
-    Settings_PersonalDetails_Address_Country: undefined;
-    Settings_ContactMethods: undefined;
-    Settings_ContactMethodDetails: undefined;
-    Settings_NewContactMethod: undefined;
-    [SCREENS.SETTINGS.PREFERENCES]: undefined;
-    Settings_Preferences_PriorityMode: undefined;
-    Settings_Preferences_Language: undefined;
-    Settings_Preferences_Theme: undefined;
-    Settings_Close: undefined;
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
+    [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    Settings_About: undefined;
-    Settings_App_Download_Links: undefined;
-    Settings_Lounge_Access: undefined;
-    Settings_Wallet: undefined;
-    Settings_Wallet_Cards_Digital_Details_Update_Address: undefined;
-    Settings_Wallet_DomainCard: undefined;
-    Settings_Wallet_ReportVirtualCardFraud: undefined;
-    Settings_Wallet_Card_Activate: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: undefined;
-    Settings_Wallet_Transfer_Balance: undefined;
-    Settings_Wallet_Choose_Transfer_Account: undefined;
-    Settings_Wallet_EnablePayments: undefined;
-    Settings_Add_Debit_Card: undefined;
-    Settings_Add_Bank_Account: undefined;
-    [SCREENS.SETTINGS.STATUS]: undefined;
-    Settings_Status_Set: undefined;
-    Workspace_Initial: undefined;
-    Workspace_Settings: undefined;
-    Workspace_Settings_Currency: undefined;
-    Workspace_Card: {
+    [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.LOUNGE_ACCESS]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: undefined;
+    [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
+    [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
+    [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.WORKSPACE.INITIAL]: undefined;
+    [SCREENS.WORKSPACE.SETTINGS]: undefined;
+    [SCREENS.WORKSPACE.CURRENCY]: undefined;
+    [SCREENS.WORKSPACE.CARD]: {
         policyID: string;
     };
-    Workspace_Reimburse: {
+    [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
-    Workspace_RateAndUnit: undefined;
-    Workspace_Bills: {
+    [SCREENS.WORKSPACE.RATE_AND_UNIT]: undefined;
+    [SCREENS.WORKSPACE.BILLS]: {
         policyID: string;
     };
-    Workspace_Invoices: {
+    [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
-    Workspace_Travel: {
+    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
-    Workspace_Members: {
+    [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
-    Workspace_Invite: {
+    [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
     };
-    Workspace_Invite_Message: {
+    [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
     };
-    ReimbursementAccount: {
+    [SCREENS.REIMBURSEMENT_ACCOUNT]: {
         stepToOpen: string;
         policyID: string;
     };
-    GetAssistance: {
+    [SCREENS.GET_ASSISTANCE]: {
         taskID: string;
     };
-    Settings_TwoFactorAuth: undefined;
-    Settings_ReportCardLostOrDamaged: undefined;
-    KeyboardShortcuts: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
+    [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
 };
 
 type NewChatNavigatorParamList = {
-    NewChat_Root: undefined;
+    [SCREENS.NEW_CHAT.ROOT]: undefined;
 };
 
 type SearchNavigatorParamList = {
-    Search_Root: undefined;
+    [SCREENS.SEARCH_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
-    Details_Root: {
+    [SCREENS.DETAILS_ROOT]: {
         login: string;
         reportID: string;
     };
 };
 
 type ProfileNavigatorParamList = {
-    Profile_Root: {
+    [SCREENS.PROFILE_ROOT]: {
         accountID: string;
         reportID: string;
     };
 };
 
 type ReportDetailsNavigatorParamList = {
-    Report_Details_Root: undefined;
-    Report_Details_Share_Code: {
+    [SCREENS.REPORT_DETAILS.ROOT]: undefined;
+    [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
     };
 };
 
 type ReportSettingsNavigatorParamList = {
-    Report_Settings_Root: undefined;
-    Report_Settings_Room_Name: undefined;
-    Report_Settings_Notification_Preferences: undefined;
-    Report_Settings_Write_Capability: undefined;
+    [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
+    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
 };
 
 type ReportWelcomeMessageNavigatorParamList = {
-    Report_WelcomeMessage_Root: {reportID: string};
+    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: {reportID: string};
 };
 
 type ParticipantsNavigatorParamList = {
-    ReportParticipants_Root: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS_ROOT]: {reportID: string};
 };
 
 type RoomMembersNavigatorParamList = {
-    RoomMembers_Root: undefined;
+    [SCREENS.ROOM_MEMBERS_ROOT]: undefined;
 };
 
 type RoomInviteNavigatorParamList = {
-    RoomInvite_Root: undefined;
+    [SCREENS.ROOM_INVITE_ROOT]: undefined;
 };
 
 type MoneyRequestNavigatorParamList = {
-    Money_Request: undefined;
-    Money_Request_Amount: undefined;
-    Money_Request_Participants: {
+    [SCREENS.MONEY_REQUEST.ROOT]: undefined;
+    [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
+    [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
     };
-    Money_Request_Confirmation: {
+    [SCREENS.MONEY_REQUEST.CONFIRMATION]: {
         iouType: string;
         reportID: string;
     };
-    Money_Request_Currency: {
+    [SCREENS.MONEY_REQUEST.CURRENCY]: {
         iouType: string;
         reportID: string;
         currency: string;
         backTo: string;
     };
-    Money_Request_Date: {
+    [SCREENS.MONEY_REQUEST.DATE]: {
         iouType: string;
         reportID: string;
         field: string;
         threadReportID: string;
     };
-    Money_Request_Description: {
+    [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
         iouType: string;
         reportID: string;
         field: string;
         threadReportID: string;
     };
-    Money_Request_Category: {
+    [SCREENS.MONEY_REQUEST.CATEGORY]: {
         iouType: string;
         reportID: string;
     };
-    Money_Request_Tag: {
+    [SCREENS.MONEY_REQUEST.TAG]: {
         iouType: string;
         reportID: string;
     };
-    Money_Request_Merchant: {
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
+        iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
+        iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.MERCHANT]: {
         iouType: string;
         reportID: string;
         field: string;
         threadReportID: string;
     };
-    IOU_Send_Enable_Payments: undefined;
-    IOU_Send_Add_Bank_Account: undefined;
-    IOU_Send_Add_Debit_Card: undefined;
-    Money_Request_Waypoint: {
+    [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
+    [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
+    [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
+    [SCREENS.MONEY_REQUEST.WAYPOINT]: {
         iouType: string;
         transactionID: string;
         waypointIndex: string;
         threadReportID: number;
     };
-    Money_Request_Edit_Waypoint: {
+    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
         iouType: string;
         transactionID: string;
         waypointIndex: string;
         threadReportID: number;
     };
-    Money_Request_Distance: {
+    [SCREENS.MONEY_REQUEST.DISTANCE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
     };
-    Money_Request_Receipt: {
+    [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;
         reportID: string;
     };
 };
 
 type NewTaskNavigatorParamList = {
-    NewTask_Root: undefined;
-    NewTask_TaskAssigneeSelector: undefined;
-    NewTask_TaskShareDestinationSelector: undefined;
-    NewTask_Details: undefined;
-    NewTask_Title: undefined;
-    NewTask_Description: undefined;
+    [SCREENS.NEW_TASK.ROOT]: undefined;
+    [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: undefined;
+    [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: undefined;
+    [SCREENS.NEW_TASK.DETAILS]: undefined;
+    [SCREENS.NEW_TASK.TITLE]: undefined;
+    [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
 };
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
-    I_Know_A_Teacher: undefined;
-    Intro_School_Principal: undefined;
-    I_Am_A_Teacher: undefined;
+    [SCREENS.I_KNOW_A_TEACHER]: undefined;
+    [SCREENS.INTRO_SCHOOL_PRINCIPAL]: undefined;
+    [SCREENS.I_AM_A_TEACHER]: undefined;
 };
 
 type TaskDetailsNavigatorParamList = {
-    Task_Title: undefined;
-    Task_Description: undefined;
-    Task_Assignee: {
+    [SCREENS.TASK.TITLE]: undefined;
+    [SCREENS.TASK.DESCRIPTION]: undefined;
+    [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
     };
 };
 
 type EnablePaymentsNavigatorParamList = {
-    EnablePayments_Root: undefined;
+    [SCREENS.ENABLE_PAYMENTS_ROOT]: undefined;
 };
 
 type SplitDetailsNavigatorParamList = {
-    SplitDetails_Root: {
+    [SCREENS.SPLIT_DETAILS.ROOT]: {
         reportActionID: string;
     };
-    SplitDetails_Edit_Request: undefined;
-    SplitDetails_Edit_Currency: undefined;
+    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: undefined;
+    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
 type AddPersonalBankAccountNavigatorParamList = {
-    AddPersonalBankAccount_Root: undefined;
+    [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: undefined;
+};
+
+type ReimbursementAccountNavigatorParamList = {
+    [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
+        stepToOpen: string;
+        policyID: string;
+    };
 };
 
 type WalletStatementNavigatorParamList = {
-    WalletStatement_Root: undefined;
+    [SCREENS.WALLET_STATEMENT_ROOT]: undefined;
 };
 
 type FlagCommentNavigatorParamList = {
-    FlagComment_Root: {
+    [SCREENS.FLAG_COMMENT_ROOT]: {
         reportID: string;
         reportActionID: string;
     };
 };
 
 type EditRequestNavigatorParamList = {
-    EditRequest_Root: {
+    [SCREENS.EDIT_REQUEST.ROOT]: {
         field: string;
         threadReportID: string;
     };
-    EditRequest_Currency: undefined;
+    [SCREENS.EDIT_REQUEST.CURRENCY]: undefined;
 };
 
 type SignInNavigatorParamList = {
-    SignIn_Root: undefined;
+    [SCREENS.SIGN_IN_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {
-    Referral_Details: undefined;
+    [SCREENS.REFERRAL_DETAILS]: undefined;
+};
+
+type ProcessMoneyRequestHoldNavigatorParamList = {
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
 };
 
 type PrivateNotesNavigatorParamList = {
-    PrivateNotes_View: {
+    [SCREENS.PRIVATE_NOTES.VIEW]: {
         reportID: string;
         accountID: string;
     };
-    PrivateNotes_List: {
+    [SCREENS.PRIVATE_NOTES.LIST]: {
         reportID: string;
         accountID: string;
     };
-    PrivateNotes_Edit: {
+    [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
     };
 };
 
+type LeftModalNavigatorParamList = {
+    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+};
+
 type RightModalNavigatorParamList = {
-    Settings: NavigatorScreenParams<SettingsNavigatorParamList>;
-    NewChat: NavigatorScreenParams<NewChatNavigatorParamList>;
-    Search: NavigatorScreenParams<SearchNavigatorParamList>;
-    Details: NavigatorScreenParams<DetailsNavigatorParamList>;
-    Profile: NavigatorScreenParams<ProfileNavigatorParamList>;
-    Report_Details: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
-    Report_Settings: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
-    Report_WelcomeMessage: NavigatorScreenParams<ReportWelcomeMessageNavigatorParamList>;
-    Participants: NavigatorScreenParams<ParticipantsNavigatorParamList>;
-    RoomMembers: NavigatorScreenParams<RoomMembersNavigatorParamList>;
-    RoomInvite: NavigatorScreenParams<RoomInviteNavigatorParamList>;
-    MoneyRequest: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
-    NewTask: NavigatorScreenParams<NewTaskNavigatorParamList>;
-    TeachersUnite: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
-    Task_Details: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
-    EnablePayments: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
-    SplitDetails: NavigatorScreenParams<SplitDetailsNavigatorParamList>;
-    AddPersonalBankAccount: NavigatorScreenParams<AddPersonalBankAccountNavigatorParamList>;
-    Wallet_Statement: NavigatorScreenParams<WalletStatementNavigatorParamList>;
-    Flag_Comment: NavigatorScreenParams<FlagCommentNavigatorParamList>;
-    EditRequest: NavigatorScreenParams<EditRequestNavigatorParamList>;
-    SignIn: NavigatorScreenParams<SignInNavigatorParamList>;
-    Referral: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
-    Private_Notes: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: NavigatorScreenParams<ReportWelcomeMessageNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: NavigatorScreenParams<SplitDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT]: NavigatorScreenParams<AddPersonalBankAccountNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.WALLET_STATEMENT]: NavigatorScreenParams<WalletStatementNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: NavigatorScreenParams<FlagCommentNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: NavigatorScreenParams<EditRequestNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SIGN_IN]: NavigatorScreenParams<SignInNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
 
 type PublicScreensParamList = {
@@ -364,8 +394,8 @@ type PublicScreensParamList = {
         validateCode: string;
     };
     [SCREENS.UNLINK_LOGIN]: {
-        accountID: string;
-        validateCode: string;
+        accountID?: string;
+        validateCode?: string;
     };
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
@@ -391,11 +421,48 @@ type AuthScreensParamList = {
         source: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [CONST.DEMO_PAGES.MONEY2020]: undefined;
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
 
-export type {NavigationRef, StackNavigationAction, CentralPaneNavigatorParamList, RootStackParamList, StateOrRoute, NavigationStateRoute, NavigationRoot};
+export type {
+    NavigationRef,
+    StackNavigationAction,
+    CentralPaneNavigatorParamList,
+    RootStackParamList,
+    StateOrRoute,
+    NavigationStateRoute,
+    NavigationRoot,
+    AuthScreensParamList,
+    LeftModalNavigatorParamList,
+    RightModalNavigatorParamList,
+    PublicScreensParamList,
+    MoneyRequestNavigatorParamList,
+    SplitDetailsNavigatorParamList,
+    DetailsNavigatorParamList,
+    ProfileNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    TaskDetailsNavigatorParamList,
+    ReportWelcomeMessageNavigatorParamList,
+    ParticipantsNavigatorParamList,
+    RoomMembersNavigatorParamList,
+    RoomInviteNavigatorParamList,
+    SearchNavigatorParamList,
+    NewChatNavigatorParamList,
+    NewTaskNavigatorParamList,
+    TeachersUniteNavigatorParamList,
+    SettingsNavigatorParamList,
+    EnablePaymentsNavigatorParamList,
+    AddPersonalBankAccountNavigatorParamList,
+    WalletStatementNavigatorParamList,
+    FlagCommentNavigatorParamList,
+    EditRequestNavigatorParamList,
+    PrivateNotesNavigatorParamList,
+    SignInNavigatorParamList,
+    ReferralDetailsNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+};

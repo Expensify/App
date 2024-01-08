@@ -6,7 +6,8 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -17,11 +18,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -144,7 +145,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                 </View>
             )}
             {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
@@ -156,29 +157,32 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         <Text style={[styles.mb2]}>{translate('validationStep.descriptionCTA')}</Text>
                     </View>
                     <View style={[styles.mv5]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="amount1"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (
@@ -186,7 +190,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             <Enable2FAPrompt policyID={policyID} />
                         </View>
                     )}
-                </Form>
+                </FormProvider>
             )}
             {isVerifying && (
                 <ScrollView style={[styles.flex1]}>

@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import {AvatarSource} from '@libs/UserUtils';
-import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
@@ -10,12 +10,14 @@ type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | un
 
 type Errors = Record<string, string>;
 
+type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+
 type Icon = {
     /** Avatar source to display */
     source: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    type: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name: string;
@@ -27,4 +29,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};
