@@ -1,10 +1,10 @@
 import {ForwardedRef, SyntheticEvent} from 'react';
 import {NativeTouchEvent} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import {Route} from '@src/ROUTES';
 import {Report} from '@src/types/onyx';
-import { OnyxEntry } from 'react-native-onyx';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 
