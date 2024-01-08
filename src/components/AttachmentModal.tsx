@@ -43,10 +43,19 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  */
 
 type AttachmentModalOnyxProps = {
+    /** The transaction associated with the receipt attachment, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** The report associated with the receipt attachment, if any */
     parentReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The policy associated with the receipt attachment, if any */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The list of report actions associated with the receipt attachment, if any */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+
+    /** Current user session */
     // eslint-disable-next-line react/no-unused-prop-types
     session: OnyxEntry<OnyxTypes.Session>;
 };
@@ -75,21 +84,49 @@ type ChildrenProps = {
 };
 
 type AttachmentModalProps = AttachmentModalOnyxProps & {
+    /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: string;
+
+    /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: Partial<File>) => void) | null;
+
+    /** Whether the modal should be open by default */
     defaultOpen?: boolean;
+
+    /** Optional original filename when uploading */
     originalFileName?: string;
+
+    /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
+
+    /** Determines if download Button should be shown or not */
     allowDownload?: boolean;
+
+    /** Title shown in the header of the modal */
     headerTitle?: string;
+
+    /** The report that has this attachment */
     report?: OnyxTypes.Report;
+
+    /** Optional callback to fire when we want to do something after modal show. */
     onModalShow?: () => void;
+
+    /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide?: () => void;
+
+    /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+
+    /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
+
+    /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
+
+    /** A function as a child to pass modal launching methods to */
     children?: React.FC<ChildrenProps>;
-    fallbackSource?: string | AvatarSource | number;
+
+    fallbackSource?: AvatarSource | number;
 };
 
 function AttachmentModal({
