@@ -1055,7 +1055,7 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 }
 
 /**
- * Updates the created date of a money request
+ * Updates the tag of a money request
  *
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
@@ -1067,6 +1067,21 @@ function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestTag', params, onyxData);
+}
+
+/**
+ * Updates the waypoints of a distance money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} waypoints
+ */
+function updateMoneyRequestDistance(transactionID, transactionThreadReportID, waypoints) {
+    const transactionChanges = {
+        waypoints,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestDistance', params, onyxData);
 }
 
 /**
@@ -3509,6 +3524,7 @@ export {
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestTag,
+    updateMoneyRequestDistance,
     updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
     detachReceipt,
