@@ -1,5 +1,7 @@
-import React, {ForwardedRef} from 'react';
-import {PressableStateCallbackType, View} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React from 'react';
+import type {PressableStateCallbackType} from 'react-native';
+import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DomUtils from '@libs/DomUtils';
