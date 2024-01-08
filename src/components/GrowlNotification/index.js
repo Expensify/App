@@ -99,7 +99,7 @@ function GrowlNotification(_, ref) {
         .runOnJS(true)
         .onStart(() => {
             fling();
-        })
+        });
 
     return (
         <View style={[styles.growlNotificationWrapper]}>
@@ -115,7 +115,7 @@ function GrowlNotification(_, ref) {
                                 fill={types[type].iconColor}
                             />
                             <Text style={styles.growlNotificationText}>{bodyText}</Text>
-                    </View>
+                        </View>
                     </GestureDetector>
                 </PressableWithoutFeedback>
             </GrowlNotificationContainer>

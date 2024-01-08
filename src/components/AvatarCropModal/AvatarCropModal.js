@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, View} from 'react-native';
-import {GestureHandlerRootView, Gesture} from 'react-native-gesture-handler';
+import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
@@ -203,13 +203,12 @@ function AvatarCropModal(props) {
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
-    const panGesture = Gesture.Pan()
-        .onChange((event) => {
-            const newX = translateX.value + event.changeX;
-            const newY = translateY.value + event.changeY;
+    const panGesture = Gesture.Pan().onChange((event) => {
+        const newX = translateX.value + event.changeX;
+        const newY = translateY.value + event.changeY;
 
-            updateImageOffset(newX, newY);
-        });
+        updateImageOffset(newX, newY);
+    });
 
     // This effect is needed to recalculate the maximum offset values
     // when the browser window is resized.
@@ -264,7 +263,7 @@ function AvatarCropModal(props) {
             'worklet';
 
             isPressableEnabled.value = true;
-        }
+        },
     };
 
     // This effect is needed to prevent the incorrect position of

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, runOnJS} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,9 +20,15 @@ const propTypes = {
 
 const defaultProps = {
     gestureCallbacks: {
-        onBegin: () => {'worklet';},
-        onChange: () => {'worklet';},
-        onFinalize: () => {'worklet';},
+        onBegin: () => {
+            'worklet';
+        },
+        onChange: () => {
+            'worklet';
+        },
+        onFinalize: () => {
+            'worklet';
+        },
     },
     sliderValue: {},
 };
@@ -42,14 +48,14 @@ function Slider(props) {
     const panGesture = Gesture.Pan()
         .minDistance(5)
         .onBegin(() => {
-            runOnJS(setTooltipIsVisible)(false)
+            runOnJS(setTooltipIsVisible)(false);
             props.gestureCallbacks.onBegin();
         })
         .onChange((event) => {
             props.gestureCallbacks.onChange(event);
         })
         .onFinalize(() => {
-            runOnJS(setTooltipIsVisible)(true)
+            runOnJS(setTooltipIsVisible)(true);
             props.gestureCallbacks.onFinalize();
         });
 
@@ -68,7 +74,10 @@ function Slider(props) {
                             shiftVertical={-2}
                         >
                             {/* pointerEvents='none' is a workaround to make sure the pan gesture works correctly on mobile safari */}
-                            <View style={[styles.sliderKnobTooltipView]} pointerEvents='none' />
+                            <View
+                                style={[styles.sliderKnobTooltipView]}
+                                pointerEvents="none"
+                            />
                         </Tooltip>
                     )}
                 </Animated.View>
