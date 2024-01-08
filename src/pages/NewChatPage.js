@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -61,6 +61,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -208,6 +209,21 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
+    useEffect(() => {
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return interactionTask.cancel;
+    }, []);
+
+    useEffect(() => {
+        if (!didScreenTransitionEnd) {
+            return;
+        }
+        updateOptions();
+    }, [didScreenTransitionEnd, updateOptions]);
+
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
         Report.searchInServer(text);
@@ -224,9 +240,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
-            onEntryTransitionEnd={updateOptions}
         >
-            {({safeAreaPaddingBottomStyle, didScreenTransitionEnd, insets}) => (
+            {({safeAreaPaddingBottomStyle, insets}) => (
                 <KeyboardAvoidingView
                     style={{height: '100%'}}
                     behavior="padding"
