@@ -1,10 +1,13 @@
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import {AppState, AppStateStatus} from 'react-native';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {AppStateStatus} from 'react-native';
+import {AppState} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as Browser from '@libs/Browser';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,9 +16,10 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
-import * as OnyxTypes from '@src/types/onyx';
-import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
 import * as Session from './Session';
@@ -444,6 +448,8 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
             selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
         };
     }
+
+    newTimezoneData = DateUtils.formatToSupportedTimezone(newTimezoneData);
 
     type OpenProfileParams = {
         timezone: string;

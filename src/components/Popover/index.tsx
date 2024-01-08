@@ -5,7 +5,7 @@ import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
-import {PopoverWithWindowDimensionsProps} from './types';
+import type {PopoverWithWindowDimensionsProps} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.

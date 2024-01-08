@@ -1,8 +1,9 @@
-import Airship, {PushPayload} from '@ua/react-native-airship';
+import type {PushPayload} from '@ua/react-native-airship';
+import Airship from '@ua/react-native-airship';
 import Log from '@libs/Log';
-import {NotificationData} from '@libs/Notification/PushNotification/NotificationType';
+import type {NotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import CONST from '@src/CONST';
-import ClearReportNotifications from './types';
+import type ClearReportNotifications from './types';
 
 const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     let payload = pushPayload.extras.payload;

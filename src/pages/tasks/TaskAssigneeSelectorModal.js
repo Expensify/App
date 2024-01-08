@@ -104,7 +104,7 @@ function TaskAssigneeSelectorModal(props) {
             false,
             {},
             [],
-            false,
+            true,
         );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
@@ -192,8 +192,6 @@ function TaskAssigneeSelectorModal(props) {
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
         if (!props.route.params && option.accountID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack(ROUTES.NEW_TASK);
         }
@@ -228,7 +226,6 @@ function TaskAssigneeSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
@@ -266,8 +263,11 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+    }),
+    withOnyx({
         rootParentReportPolicy: {
-            key: ({report}) => {
+            key: ({reports, route}) => {
+                const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID || '0'}`];
                 const rootParentReport = ReportUtils.getRootParentReport(report);
                 return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
             },
