@@ -15,6 +15,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -68,6 +69,7 @@ const defaultProps = {
 function WorkspaceReimburseView(props) {
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
+    const {isMobileScreenWidth} = useWindowDimensions();
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
@@ -103,7 +105,7 @@ function WorkspaceReimburseView(props) {
     }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <View style={[styles.workspaceSection, styles.mt6]}>
+        <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}

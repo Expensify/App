@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
@@ -23,6 +24,8 @@ const propTypes = {
 
 function WorkspaceTravelPage(props) {
     const styles = useThemeStyles();
+    const {isMobileScreenWidth} = useWindowDimensions();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
@@ -31,7 +34,7 @@ function WorkspaceTravelPage(props) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.workspaceSection, styles.mt6]}>
+                <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
                 </View>

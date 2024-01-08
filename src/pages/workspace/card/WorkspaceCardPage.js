@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
@@ -24,6 +25,8 @@ const propTypes = {
 
 function WorkspaceCardPage(props) {
     const styles = useThemeStyles();
+    const {isMobileScreenWidth} = useWindowDimensions();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
@@ -32,7 +35,7 @@ function WorkspaceCardPage(props) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
         >
             {(hasVBA, policyID, isUsingECard) => (
-                <View style={[styles.workspaceSection, styles.mt6]}>
+                <View style={[styles.mt6, isMobileScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
