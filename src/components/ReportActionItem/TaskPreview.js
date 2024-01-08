@@ -123,7 +123,10 @@ function TaskPreview(props) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportpolicy, 'role', ''))}
+                        disabled={
+                            _.isEmpty(props.taskReport) ||
+                            !Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportpolicy, 'role', ''))
+                        }
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(props.taskReport);
