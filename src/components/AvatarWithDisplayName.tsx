@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -65,7 +66,6 @@ function AvatarWithDisplayName({
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
-    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
@@ -118,7 +118,7 @@ function AvatarWithDisplayName({
                                 backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
-                                size={defaultSubscriptSize}
+                                size={size}
                             />
                         ) : (
                             <MultipleAvatars
