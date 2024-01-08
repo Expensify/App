@@ -77,7 +77,7 @@ type ScreenWrapperProps = {
     shouldEnableMinHeight?: boolean;
 
     /** Whether to show offline indicator */
-    shouldShowOfflineIndicator?: boolean;
+    shouldShowOfflineIndicatorSmallWidth?: boolean;
 
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
@@ -88,7 +88,7 @@ type ScreenWrapperProps = {
     navigation?: StackNavigationProp<RootStackParamList>;
 
     /** Is central pane */
-    isCentralPane?: boolean;
+    shouldShowOfflineIndicator?: boolean;
 };
 
 function ScreenWrapper(
@@ -102,14 +102,14 @@ function ScreenWrapper(
         shouldEnablePickerAvoiding = true,
         headerGapStyles,
         children,
-        shouldShowOfflineIndicator = true,
+        shouldShowOfflineIndicatorSmallWidth = true,
         offlineIndicatorStyle,
         style,
         shouldDismissKeyboardBeforeClose = true,
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
-        isCentralPane = false,
+        shouldShowOfflineIndicator = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -202,7 +202,7 @@ function ScreenWrapper(
                 }
 
                 // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
+                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicatorSmallWidth)) {
                     paddingStyle.paddingBottom = paddingBottom;
                 }
 
@@ -241,8 +241,8 @@ function ScreenWrapper(
                                               })
                                             : children
                                     }
-                                    {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                    {!isSmallScreenWidth && isCentralPane && (
+                                    {isSmallScreenWidth && shouldShowOfflineIndicatorSmallWidth && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!isSmallScreenWidth && shouldShowOfflineIndicator && (
                                         <View style={[styles.offlineIndicatorRow, offlineIndicatorStyle]}>
                                             <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow, styles.pl5]} />
                                         </View>

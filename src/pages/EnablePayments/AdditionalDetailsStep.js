@@ -149,7 +149,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
-                shouldShowOfflineIndicator={false}
+                shouldShowOfflineIndicatorSmallWidth={false}
                 style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
                 testID={AdditionalDetailsStep.displayName}

@@ -104,20 +104,18 @@ function AllSettingsScreen() {
 
     return (
         <ScreenWrapper>
-            <ScrollView>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.ROOT,
-                        },
-                        {
-                            text: translate('common.settings'),
-                        },
-                    ]}
-                    style={[styles.pb5, styles.ph5]}
-                />
-                {accountMenuItems}
-            </ScrollView>
+            <Breadcrumbs
+                breadcrumbs={[
+                    {
+                        type: CONST.BREADCRUMB_TYPE.ROOT,
+                    },
+                    {
+                        text: translate('common.settings'),
+                    },
+                ]}
+                style={[styles.pb5, styles.ph5]}
+            />
+            <ScrollView>{accountMenuItems}</ScrollView>
         </ScreenWrapper>
     );
 }

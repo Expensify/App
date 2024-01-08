@@ -82,7 +82,7 @@ class ShareCodePage extends React.Component {
         return (
             <ScreenWrapper
                 testID={ShareCodePage.displayName}
-                isCentralPane
+                shouldShowOfflineIndicator
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}

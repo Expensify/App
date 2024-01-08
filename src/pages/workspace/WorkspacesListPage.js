@@ -334,7 +334,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            isCentralPane
+            shouldShowOfflineIndicator
         >
             <View style={{flex: 1}}>
                 <HeaderWithBackButton

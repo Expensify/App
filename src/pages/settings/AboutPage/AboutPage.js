@@ -101,7 +101,7 @@ function AboutPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={AboutPage.displayName}
-            isCentralPane
+            shouldShowOfflineIndicator
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>

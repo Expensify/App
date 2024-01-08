@@ -40,7 +40,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     childrenContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    isCentralPane: PropTypes.bool,
+    shouldShowOfflineIndicator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -50,7 +50,7 @@ const defaultProps = {
     scrollViewContainerStyles: [],
     childrenContainerStyles: [],
     footer: null,
-    isCentralPane: false,
+    shouldShowOfflineIndicator: false,
 };
 
 function HeaderPageLayout({
@@ -62,7 +62,7 @@ function HeaderPageLayout({
     childrenContainerStyles,
     style,
     headerContent,
-    isCentralPane,
+    shouldShowOfflineIndicator,
     ...propsToPassToHeader
 }) {
     const theme = useTheme();
@@ -86,7 +86,7 @@ function HeaderPageLayout({
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
             testID={HeaderPageLayout.displayName}
-            isCentralPane={isCentralPane}
+            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>

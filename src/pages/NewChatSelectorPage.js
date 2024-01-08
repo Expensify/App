@@ -30,7 +30,7 @@ function NewChatSelectorPage(props) {
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={false}
-            shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicatorSmallWidth={false}
             shouldEnableMaxHeight
             testID={NewChatSelectorPage.displayName}
         >
