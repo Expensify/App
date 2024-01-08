@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
-import React, {ComponentType, createContext, ForwardedRef, forwardRef, ReactElement, RefAttributes, useEffect, useMemo, useState} from 'react';
+import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
+import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
