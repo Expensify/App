@@ -1,10 +1,11 @@
-import React, {ForwardedRef, forwardRef, useImperativeHandle} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useImperativeHandle} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
 import MenuItem from './MenuItem';

@@ -6,7 +6,7 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import OnyxRequest from '@src/types/onyx/Request';
+import type OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;

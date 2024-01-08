@@ -1,4 +1,4 @@
-import OverflowXHiddenStyles from './types';
+import type OverflowXHiddenStyles from './types';
 
 const overflowXHidden: OverflowXHiddenStyles = {};
 

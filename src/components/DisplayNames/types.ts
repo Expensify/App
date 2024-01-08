@@ -1,4 +1,4 @@
-import {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
