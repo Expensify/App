@@ -2,14 +2,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import type {ImageSourcePropType} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
 import type {ValueOf} from 'type-fest';
-import _ from 'underscore';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -259,7 +257,7 @@ function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCr
         amount: 0,
         comment,
         created,
-        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        currency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -1054,7 +1052,7 @@ function getUpdateMoneyRequestParams(
             iouReport?.policyID,
             transactionChanges.tag,
         ) as OptimisticPolicyRecentlyUsedTags;
-        if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+        if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport?.policyID}`,
@@ -1439,9 +1437,9 @@ function createSplitsAndOnyxData(
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
         // For Control policy expense chats, if the report is already approved, create a new expense report
-        let oneOnOneIOUReport = oneOnOneChatReport.iouReportID ? lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined) : undefined;
+        let oneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] ?? undefined : undefined;
         const shouldCreateNewOneOnOneIOUReport =
-            _.isUndefined(oneOnOneIOUReport) || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+            oneOnOneIOUReport === undefined || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
         if (shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
@@ -1506,6 +1504,7 @@ function createSplitsAndOnyxData(
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
@@ -2072,9 +2071,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID] : []);
         }
 
-        let oneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`, undefined) : undefined;
+        let oneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] ?? undefined : undefined;
         const shouldCreateNewOneOnOneIOUReport =
-            _.isUndefined(oneOnOneIOUReport) || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+            oneOnOneIOUReport === undefined || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
         if (shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
@@ -2547,7 +2546,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
 
         updatedReportPreviewAction = reportPreviewAction ? {...reportPreviewAction} : null;
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
@@ -2648,8 +2647,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null}).lastMessageText,
-                lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null}), 'created'),
+                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null})?.lastMessageText,
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null})?.created,
             },
         });
     }
@@ -3013,7 +3012,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
         optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
 
-    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`, null);
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3256,8 +3255,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
-                lastMessageText: lodashGet(optimisticSubmittedReportAction, 'message.0.text', ''),
-                lastMessageHtml: lodashGet(optimisticSubmittedReportAction, 'message.0.html', ''),
+                lastMessageText: optimisticSubmittedReportAction.message?.[0].text ?? '',
+                lastMessageHtml: optimisticSubmittedReportAction.message?.[0].html ?? '',
                 state: CONST.REPORT.STATE.SUBMITTED,
                 stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                 statusNum: CONST.REPORT.STATUS.SUBMITTED,
