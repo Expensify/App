@@ -198,9 +198,8 @@ function Lightbox({
                                 zoomRange={zoomRange}
                             >
                                 <Image
-                                    isActive={isActive}
                                     source={{uri: source}}
-                                    style={imageDimensions ?? {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
+                                    style={imageDimensions?.lightboxSize ?? {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
