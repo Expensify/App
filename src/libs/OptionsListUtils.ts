@@ -439,7 +439,7 @@ function getSearchText(
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    let reportActionErrors = Object.values(reportActions ?? {}).reduce(
+    const reportActionErrors: OnyxCommon.Errors = Object.values(reportActions ?? {}).reduce(
         (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
         {},
     );
@@ -450,14 +450,14 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
-            reportActionErrors = {...reportActionErrors, smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')};
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage') as string;
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
         if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
-            reportActionErrors = {...reportActionErrors, smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')};
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage') as string;
         }
     } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
-        reportActionErrors = {...reportActionErrors, smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')};
+        reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage') as string;
     }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
@@ -1664,20 +1664,20 @@ function getFilteredOptions(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
-    selectedOptions = [],
-    excludeLogins = [],
+    selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
+    excludeLogins: string[] = [],
     includeOwnedWorkspaceChats = false,
     includeP2P = true,
     includeCategories = false,
-    categories = {},
-    recentlyUsedCategories = [],
+    categories: PolicyCategories = {},
+    recentlyUsedCategories: string[] = [],
     includeTags = false,
-    tags = {},
-    recentlyUsedTags = [],
+    tags: Record<string, Tag> = {},
+    recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
-    policyTaxRates = {} as PolicyTaxRateWithDefault,
+    policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1711,8 +1711,8 @@ function getShareDestinationOptions(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
-    selectedOptions = [],
-    excludeLogins = [],
+    selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
+    excludeLogins: string[] = [],
     includeOwnedWorkspaceChats = true,
     excludeUnknownUsers = true,
 ) {
