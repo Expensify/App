@@ -31,4 +31,6 @@ type TransactionViolation = {
     };
 };
 
-export type {TransactionViolation, ViolationName};
+type TransactionViolations = TransactionViolation[];
+
+export type {TransactionViolation, TransactionViolations, ViolationName};

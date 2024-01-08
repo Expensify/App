@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
@@ -58,6 +57,8 @@ type MoneyRequestRoute = StackScreenProps<
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+
 type MoneyRequestInformation = {
     payerAccountID: number;
     payerEmail: string;
@@ -109,8 +110,6 @@ type PayMoneyRequestData = {
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
 };
-
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type SendMoneyParams = {
     iouReportID: string;
@@ -174,7 +173,7 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: Record<string, OnyxTypes.TransactionViolation[] | null> = {};
+let allTransactionViolations: Record<string, OnyxTypes.TransactionViolations | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -235,7 +234,7 @@ Onyx.connect({
 /**
  * Initialize money request info
  * @param reportID to attach the transaction to
- * @param [iouRequestType] one of manual/scan/distance
+ * @param iouRequestType one of manual/scan/distance
  */
 function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
@@ -258,7 +257,7 @@ function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCr
         amount: 0,
         comment,
         created,
-        currency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+        currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -328,7 +327,7 @@ function resetMoneyRequestInfo(id = '') {
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
-        currency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+        currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         comment: '',
         participants: [],
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -360,13 +359,13 @@ function buildOnyxDataForMoneyRequest(
     chatCreatedAction: OptimisticCreatedReportAction,
     iouCreatedAction: OptimisticCreatedReportAction,
     iouAction: OptimisticIOUReportAction,
-    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList | undefined,
+    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList,
     reportPreviewAction: ReportAction,
     optimisticPolicyRecentlyUsedCategories: OptimisticPolicyRecentlyUsedCategories,
     optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags,
     isNewChatReport: boolean,
     isNewIOUReport: boolean,
-    policy?: OnyxTypes.Policy | EmptyObject | undefined,
+    policy?: OnyxTypes.Policy | EmptyObject,
     policyTags: OnyxTypes.PolicyTags = {},
     policyCategories: OnyxTypes.PolicyCategories = {},
     hasOutstandingChildRequest = false,
@@ -711,7 +710,7 @@ function getMoneyRequestInformation(
     if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
-            if (iouReport?.currency === currency && iouReport.total) {
+            if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we substract the total from the amount
                 iouReport.total -= amount;
             }
@@ -749,8 +748,10 @@ function getMoneyRequestInformation(
         billable,
     );
 
+    // TODO: Remove this type once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category) as OptimisticPolicyRecentlyUsedCategories;
 
+    // TODO: Remove this type once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag) as OptimisticPolicyRecentlyUsedTags;
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -812,7 +813,7 @@ function getMoneyRequestInformation(
                   isOptimisticPersonalDetail: true,
               },
           }
-        : undefined;
+        : {};
 
     // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
     // so the employee has to submit to their manager manually.
@@ -959,14 +960,7 @@ function getUpdateMoneyRequestParams(
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
-    const errorFields = Object.fromEntries(
-        Object.keys(pendingFields).map((key) => [
-            key,
-            {
-                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage'),
-            },
-        ]),
-    );
+    const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
 
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -1066,7 +1060,8 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCategories: OptimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(
+        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(
             iouReport?.policyID,
             transactionChanges.category,
         ) as OptimisticPolicyRecentlyUsedCategories;
@@ -1081,10 +1076,8 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(
-            iouReport?.policyID,
-            transactionChanges.tag,
-        ) as OptimisticPolicyRecentlyUsedTags;
+        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag) as OptimisticPolicyRecentlyUsedTags;
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1509,7 +1502,7 @@ function createSplitsAndOnyxData(
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', currentUserAccountID, splitAmount, currency)
                 : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
-            if (oneOnOneIOUReport?.total) {
+            if (typeof oneOnOneIOUReport?.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
@@ -1562,7 +1555,7 @@ function createSplitsAndOnyxData(
         );
 
         // Add optimistic personal details for new participants
-        const oneOnOnePersonalDetailListAction: OnyxTypes.PersonalDetailsList | undefined = shouldCreateOptimisticPersonalDetails
+        const oneOnOnePersonalDetailListAction: OnyxTypes.PersonalDetailsList = shouldCreateOptimisticPersonalDetails
             ? {
                   [accountID]: {
                       accountID,
@@ -1573,7 +1566,7 @@ function createSplitsAndOnyxData(
                       isOptimisticPersonalDetail: true,
                   },
               }
-            : undefined;
+            : {};
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport?.reportID ?? '');
         if (oneOnOneReportPreviewAction) {
@@ -1585,13 +1578,15 @@ function createSplitsAndOnyxData(
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        const optimisticPolicyRecentlyUsedCategories: OptimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat
-            ? (Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) as OptimisticPolicyRecentlyUsedCategories)
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat
+            ? // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+              (Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) as OptimisticPolicyRecentlyUsedCategories)
             : [];
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        const optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
-            ? (Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) as OptimisticPolicyRecentlyUsedTags)
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
+            ? // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+              (Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) as OptimisticPolicyRecentlyUsedTags)
             : {};
 
         // STEP 5: Build Onyx Data
@@ -2143,7 +2138,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport?.reportID ?? '', participant.policyID ?? '', sessionAccountID, splitAmount, currency ?? '')
                 : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? -1, splitAmount, oneOnOneChatReport?.reportID ?? '', currency ?? '');
         } else if (isPolicyExpenseChat) {
-            if (oneOnOneIOUReport?.total) {
+            if (typeof oneOnOneIOUReport?.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
@@ -2291,7 +2286,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
     const updatedChatReport = {...chatReport};
     const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
     if (updatedTransaction?.currency === iouReport?.currency && updatedTransaction?.modifiedAmount && diff !== 0) {
-        if (ReportUtils.isExpenseReport(iouReport) && updatedMoneyRequestReport.total) {
+        if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
             updatedMoneyRequestReport.total += diff;
         } else {
             updatedMoneyRequestReport = iouReport
@@ -2315,7 +2310,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
 
         // Update the last message of the chat report
-        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID); // There was an error before - wrong value was sent
+        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
             payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID ?? -1).login ?? '',
             amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
@@ -2386,6 +2381,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
+        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
         const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(
             iouReport?.policyID,
             transactionChanges.category,
@@ -2401,6 +2397,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
 
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
+        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
         const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag) as OptimisticPolicyRecentlyUsedTags;
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
@@ -2593,7 +2590,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         if (iouReport && ReportUtils.isExpenseReport(iouReport)) {
             updatedIOUReport = {...iouReport};
 
-            if (updatedIOUReport.total) {
+            if (typeof updatedIOUReport.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we add the total from the amount
                 updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
             }

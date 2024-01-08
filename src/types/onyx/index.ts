@@ -56,7 +56,7 @@ import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionDraft} from './Transaction';
-import type {TransactionViolation, ViolationName} from './TransactionViolation';
+import type {TransactionViolation, TransactionViolations, ViolationName} from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserWallet from './UserWallet';
@@ -127,6 +127,7 @@ export type {
     Transaction,
     TransactionDraft,
     TransactionViolation,
+    TransactionViolations,
     User,
     UserLocation,
     UserWallet,
