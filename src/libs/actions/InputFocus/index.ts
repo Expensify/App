@@ -1,4 +1,4 @@
-import type { Modal } from "@src/types/onyx";
+import type {Modal} from '@src/types/onyx';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
 function inputFocusChange(_focus: boolean) {}

@@ -3,11 +3,12 @@ import Str from 'expensify-common/lib/str';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import type {ForwardedRef} from 'react';
-import React, { useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import _ from 'underscore';
+import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -38,33 +39,31 @@ import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Report as ReportType, ReportAction as ReportActionType, Modal} from '@src/types/onyx';
-import type { Emoji } from '@assets/emojis/types';
+import type {Modal, ReportAction as ReportActionType, Report as ReportType} from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
-    action: ReportActionType,
+    action: ReportActionType;
 
     /** Draft message */
-    draftMessage: string,
+    draftMessage: string;
 
     /** ReportID that holds the comment we're editing */
-    reportID: string,
+    reportID: string;
 
     /** Position index of the report action in the overall report FlatList view */
-    index: number,
+    index: number;
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types
-    report: ReportType,
+    report: ReportType;
 
     /** Whether or not the emoji picker is disabled */
-    shouldDisableEmojiPicker: boolean,
+    shouldDisableEmojiPicker: boolean;
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: number,
-
+    preferredSkinTone: number;
 };
 
 // native ids
@@ -74,17 +73,16 @@ const messageEditInput = 'messageEditInput';
 const isMobileSafari = Browser.isMobileSafari();
 
 function ReportActionItemMessageEdit({
-        action,
-        draftMessage,
-        reportID,
-        index,
-        shouldDisableEmojiPicker= false,
-        preferredSkinTone= CONST.EMOJI_DEFAULT_SKIN_TONE,
-        forwardedRef=() => {}
-    }: ReportActionItemMessageEditProps & {
-        forwardedRef: ForwardedRef<TextInput & HTMLTextAreaElement>;
-    },
-) {
+    action,
+    draftMessage,
+    reportID,
+    index,
+    shouldDisableEmojiPicker = false,
+    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
+    forwardedRef = () => {},
+}: ReportActionItemMessageEditProps & {
+    forwardedRef: ForwardedRef<TextInput & HTMLTextAreaElement>;
+}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -121,8 +119,8 @@ function ReportActionItemMessageEdit({
         return initialDraft;
     });
     const [selection, setSelection] = useState<{
-          start: number;
-          end: number;
+        start: number;
+        end: number;
     }>(getInitialSelection);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
@@ -138,7 +136,7 @@ function ReportActionItemMessageEdit({
     const draftRef = useRef(draft);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || action.message && draftMessage === action.message[0].html) {
+        if (ReportActionsUtils.isDeletedAction(action) || (action.message && draftMessage === action.message[0].html)) {
             return;
         }
         setDraft(Str.htmlDecode(draftMessage));
@@ -201,8 +199,9 @@ function ReportActionItemMessageEdit({
             });
 
             // Scroll content of textInputRef to bottom
-            if (textInputRef.current)
-            {textInputRef.current.scrollTop = textInputRef.current.scrollHeight;}
+            if (textInputRef.current) {
+                textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
+            }
         }
 
         return () => {
@@ -336,12 +335,12 @@ function ReportActionItemMessageEdit({
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
             ReportActionContextMenu.showDeleteModal(
-                reportID, 
+                reportID,
                 action,
-                true, 
+                true,
                 deleteDraft,
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                () => InteractionManager.runAfterInteractions(() => textInputRef.current?.focus())
+                () => InteractionManager.runAfterInteractions(() => textInputRef.current?.focus()),
             );
             return;
         }
@@ -426,7 +425,7 @@ function ReportActionItemMessageEdit({
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
-                            ref={(el:TextInput & HTMLTextAreaElement) => {
+                            ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
                                 if (typeof forwardedRef === 'function') {
                                     forwardedRef(el);
