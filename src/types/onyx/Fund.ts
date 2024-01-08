@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
-import {BankName} from './Bank';
-import * as OnyxCommon from './OnyxCommon';
+import type CONST from '@src/CONST';
+import type {BankName} from './Bank';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isBillingCard?: boolean;
