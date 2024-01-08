@@ -314,7 +314,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 boldStyle
                 shouldShowConfirmButton={shouldShowSplitBillErrorMessage && isAllowedToSplit}
                 confirmButtonText={translate('iou.addToSplit')}
-                onConfirmSelection={onFinish}
+                onConfirmSelection={handleConfirmSelection}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
