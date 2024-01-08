@@ -131,6 +131,10 @@ function IOURequestStepDistance({
             return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
+        if (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) {
+            return {0: translate('iou.error.duplicateWaypointsErrorMessage')};
+        }
+
         if (_.size(validatedWaypoints) < 2) {
             return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
@@ -158,12 +162,12 @@ function IOURequestStepDistance({
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
+        if (_.size(validatedWaypoints) < 2 || (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) || hasRouteError || isLoadingRoute || isLoading) {
             setHasError(true);
             return;
         }
         navigateToNextStep();
-    }, [setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
+    }, [setHasError, waypoints, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, navigateToNextStep]);
 
     return (
         <StepScreenWrapper
@@ -204,7 +208,7 @@ function IOURequestStepDistance({
                 </View>
                 <View style={[styles.w100, styles.pt2]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                    {((hasError && _.size(validatedWaypoints) < 2) || hasRouteError) && (
+                    {((hasError && _.size(validatedWaypoints) < 2) || (_.keys(waypoints).length > 2 && _.size(validatedWaypoints) !== _.keys(waypoints).length) || hasRouteError) && (
                         <DotIndicatorMessage
                             style={[styles.mh4, styles.mv3]}
                             messages={getError()}
