@@ -1,8 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {ThemeColors} from '@styles/theme/types';
-import flex from '@styles/utils/flex';
-import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
 import type StyleUtilGenerator from './types';
 
@@ -14,9 +12,9 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
     styles.flexRow,
     getDefaultWrapperStyle(theme),
     {
-        ...flex.alignItemsCenter,
-        ...flex.justifyContentCenter,
-        ...spacing.ph1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 4,
         height: 36,
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,

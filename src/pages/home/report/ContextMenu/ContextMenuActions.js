@@ -127,7 +127,7 @@ export default [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
-        icon: Expensicons.ChatBubble,
+        icon: Expensicons.ChatBubbleAdd,
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
@@ -343,7 +343,7 @@ export default [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
-        icon: Expensicons.Mail,
+        icon: Expensicons.ChatBubbleUnread,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) =>
             (((isMini && reportAction.actorAccountID !== Report.getCurrentUserAccountID()) || !isMini) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) ||

@@ -130,6 +130,8 @@ import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Zoom from '@assets/images/zoom.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
+import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 
 export {
     ActiveRoomAvatar,
@@ -264,4 +266,6 @@ export {
     Podcast,
     Linkedin,
     Instagram,
+    ChatBubbleAdd,
+    ChatBubbleUnread,
 };
