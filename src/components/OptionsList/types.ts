@@ -2,6 +2,9 @@ import type {RefObject} from 'react';
 import type {SectionList, SectionListData, StyleProp, View, ViewStyle} from 'react-native';
 import type {OptionData} from '@libs/ReportUtils';
 
+type OptionsList = SectionList<OptionData, Section>;
+type OptionsListData = SectionListData<OptionData, Section>;
+
 type Section = {
     /** Title of the section */
     title: string;
@@ -33,7 +36,7 @@ type OptionsListProps = {
     sectionHeaderStyle?: StyleProp<ViewStyle>;
 
     /** Sections for the section list */
-    sections: Array<SectionListData<OptionData, Section>>;
+    sections: OptionsListData[];
 
     /** Index for option to focus on */
     focusedIndex?: number;
@@ -128,6 +131,4 @@ type BaseOptionListProps = OptionsListProps & {
     listStyles?: StyleProp<ViewStyle>;
 };
 
-type OptionsList = SectionList<OptionData, Section>;
-
-export type {OptionsListProps, BaseOptionListProps, Section, OptionsList};
+export type {OptionsListProps, BaseOptionListProps, Section, OptionsList, OptionsListData};

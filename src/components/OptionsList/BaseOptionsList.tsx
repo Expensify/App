@@ -1,7 +1,7 @@
 import {isEmpty, isEqual} from 'lodash';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useEffect, useRef} from 'react';
-import type {SectionListData, SectionListRenderItem} from 'react-native';
+import type {SectionListRenderItem} from 'react-native';
 import {View} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {BaseOptionListProps, OptionsList, Section} from './types';
+import type {BaseOptionListProps, OptionsList, OptionsListData, Section} from './types';
 
 function BaseOptionsList(
     {
@@ -60,7 +60,7 @@ function BaseOptionsList(
             offset: number;
         }>
     >([]);
-    const previousSections = usePrevious<Array<SectionListData<OptionData, Section>>>(sections);
+    const previousSections = usePrevious<OptionsListData[]>(sections);
     const didLayout = useRef(false);
 
     const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
@@ -133,7 +133,7 @@ function BaseOptionsList(
      * @returns
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const getItemLayout = (_data: Array<SectionListData<OptionData, Section>> | null, flatDataArrayIndex: number) => {
+    const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
@@ -207,7 +207,7 @@ function BaseOptionsList(
     /**
      * Function which renders a section header component
      */
-    const renderSectionHeader = ({section: {title, shouldShow}}: {section: SectionListData<OptionData, Section>}) => {
+    const renderSectionHeader = ({section: {title, shouldShow}}: {section: OptionsListData}) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
