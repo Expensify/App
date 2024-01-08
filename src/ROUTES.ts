@@ -1,5 +1,5 @@
-import {IsEqual, ValueOf} from 'type-fest';
-import CONST from './CONST';
+import type {IsEqual, ValueOf} from 'type-fest';
+import type CONST from './CONST';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -322,6 +322,16 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}/`, backTo),
     },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        route: 'create/:iouType/taxRate/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAX_AMOUNT: {
+        route: 'create/:iouType/taxAmount/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: 'create/:iouType/category/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
@@ -348,9 +358,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}/`, backTo),
     },
     MONEY_REQUEST_STEP_MERCHANT: {
-        route: 'create/:iouType/merchante/:transactionID/:reportID/',
+        route: 'create/:iouType/merchant/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/merchante/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/merchant/${transactionID}/${reportID}/`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: 'create/:iouType/participants/:transactionID/:reportID/',
@@ -371,6 +381,12 @@ const ROUTES = {
         route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+    },
+    // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
+    // straight to those flows without needing to have optimistic transaction and report IDs.
+    MONEY_REQUEST_START: {
+        route: 'start/:iouType/:iouRequestType',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => `start/${iouType}/${iouRequestType}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',
@@ -463,11 +479,7 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}` as const,
     },
-
-    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
-    SAASTR: 'saastr',
-    SBE: 'sbe',
-    MONEY2020: 'money2020',
+    PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 } as const;
 
 export {getUrlWithBackToParam};

@@ -1,5 +1,6 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
