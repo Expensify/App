@@ -454,7 +454,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: null,
-            },
+            }, 
         },
 
         {
