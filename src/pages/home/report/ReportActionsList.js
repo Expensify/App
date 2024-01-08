@@ -262,6 +262,9 @@ function ReportActionsList({
     }, [report.reportID]);
 
     useEffect(() => {
+        if (linkedReportActionID) {
+            return;
+        }
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
