@@ -1,9 +1,12 @@
-/* eslint-disable es/no-optional-chaining */
 import {last} from 'lodash';
 import {TextInput} from 'react-native';
 import CONST from '@src/CONST';
 
 let focusedInput = null;
+let uniqueModalId = 1;
+const focusMap = new Map();
+const activeModals = [];
+const promiseMap = new Map();
 
 function getActiveInput() {
     return TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField();
@@ -24,27 +27,10 @@ function clearFocusedInput() {
     if (!focusedInput) {
         return;
     }
+
     // we have to use timeout because of measureLayout
     setTimeout(() => (focusedInput = null), CONST.ANIMATION_IN_TIMING);
 }
-
-let uniqueModalId = 1;
-const focusMap = new Map();
-const activeModals = [];
-const promiseMap = new Map();
-
-// TODO:debug
-global.demo = new Proxy(
-    {
-        obj: () => [...focusMap.values()],
-        arr: () => activeModals,
-        promise: () => [...promiseMap],
-        el: () => focusedInput,
-    },
-    {
-        get: (target, key) => target[key] && target[key](),
-    },
-);
 
 /**
  * When a TextInput is unmounted, we also should release the reference here to avoid potential issues.
@@ -71,7 +57,7 @@ function getId() {
 }
 
 /**
- * Cache the focus state before the modal appears.
+ * Save the focus state when opening the modal.
  *
  * @param {Number} id
  * @param {any} container
@@ -88,7 +74,6 @@ function saveFocusState(id, container = undefined) {
     if (!input) {
         return;
     }
-    // TODO: can we refine this logic?
     if (container && container.contains(input)) {
         return;
     }
@@ -123,40 +108,31 @@ function focus(input, shouldIgnoreFocused = false) {
  * @param {Boolean} shouldIgnoreFocused
  */
 function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, shouldIgnoreFocused = false) {
-    // TODO:del
-    console.debug(`restore ${id}, type is ${type}, active modals are`, activeModals.join());
     if (!id) {
-        // TODO:del
-        console.debug('todo id empty');
         return;
     }
+
+    // The stack is empty
     if (activeModals.length < 1) {
-        // TODO:del
-        console.debug('stack is empty');
         return;
     }
     const index = activeModals.indexOf(id);
+
+    // This id has been removed from the stack.
     if (index < 0) {
-        // TODO:del
-        console.debug('activeModals does not contain this id');
         return;
     }
     activeModals.splice(index, 1);
     if (type === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
-        // TODO:del
-        console.debug('preserve input focus');
         return;
     }
     if (type === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
-        // TODO:del
-        console.debug('delete, no restore');
         focusMap.delete(id);
         return;
     }
+
+    // This modal is not the topmost one, do not restore it.
     if (activeModals.length > index) {
-        // this modal is not the topmost one, do not restore it.
-        // TODO:del
-        console.debug('modal is not the topmost one');
         return;
     }
     const input = focusMap.get(id);
@@ -166,33 +142,21 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, sh
         return;
     }
 
+    // Try to find the topmost one and restore it
     if (focusMap.size < 1) {
-        // TODO:del
-        console.debug('obj is also empty, so return');
         return;
     }
-
-    // find the topmost one
     const [lastId, lastInput] = last([...focusMap]);
-    if (!lastInput) {
-        // TODO:del
-        console.error('no, impossible');
-        return;
-    }
+
+    // The previous modal is still active
     if (activeModals.indexOf(lastId) >= 0) {
-        // TODO:del
-        console.debug('the previous modal is still active');
         return;
     }
-    // TODO:del
-    console.debug('ok, try to restore topmost');
     focus(lastInput, shouldIgnoreFocused);
     focusMap.delete(lastId);
 }
 
 function resetReadyToFocus(id) {
-    // TODO:del
-    console.debug('reset ready to focus', id);
     const obj = {};
     obj.ready = new Promise((resolve) => {
         obj.resolve = resolve;
@@ -213,8 +177,6 @@ function getKey(id) {
 function setReadyToFocus(id) {
     const key = getKey(id);
     const promise = promiseMap.get(key);
-    // TODO:del
-    console.debug('set ready to focus', id, key);
     if (!promise) {
         return;
     }
@@ -223,8 +185,6 @@ function setReadyToFocus(id) {
 }
 
 function removePromise(id) {
-    // TODO:del
-    console.debug('remove promise', id);
     const key = getKey(id);
     promiseMap.delete(key);
 }
@@ -232,8 +192,6 @@ function removePromise(id) {
 function isReadyToFocus(id) {
     const key = getKey(id);
     const promise = promiseMap.get(key);
-    // TODO:del
-    console.debug('is ready to focus', id, key, promise);
     if (!promise) {
         return Promise.resolve();
     }
@@ -249,7 +207,6 @@ function tryRestoreFocusByExternal() {
         return;
     }
     const [key, input] = last([...focusMap]);
-    console.debug('oh, try to restore by external');
     input.focus();
     focusMap.delete(key);
 }
