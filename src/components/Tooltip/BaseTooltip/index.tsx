@@ -222,21 +222,30 @@ function Tooltip(
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                 />
             )}
-            <BoundsObserver
-                enabled={isVisible}
-                onBoundsChange={updateBounds}
-                ref={ref}
-            >
-                <Hoverable
-                    onHoverIn={showTooltip}
-                    onHoverOut={hideTooltip}
-                    shouldHandleScroll={shouldHandleScroll}
-                >
-                    {React.cloneElement(children, {
-                        onMouseEnter: updateTargetPositionOnMouseEnter,
-                    })}
-                </Hoverable>
-            </BoundsObserver>
+
+            {
+                // Checks if valid element so we can wrap the BoundsObserver around it
+                // If not, we just return the primitive children
+                React.isValidElement(children) ? (
+                    <BoundsObserver
+                        enabled={isVisible}
+                        onBoundsChange={updateBounds}
+                        ref={ref}
+                    >
+                        <Hoverable
+                            onHoverIn={showTooltip}
+                            onHoverOut={hideTooltip}
+                            shouldHandleScroll={shouldHandleScroll}
+                        >
+                            {React.cloneElement(children as React.ReactElement, {
+                                onMouseEnter: updateTargetPositionOnMouseEnter,
+                            })}
+                        </Hoverable>
+                    </BoundsObserver>
+                ) : (
+                    children
+                )
+            }
         </>
     );
 }

@@ -1,7 +1,9 @@
-import type {ReactNode} from 'react';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {ReactElement, ReactNode} from 'react';
 
-type TooltipProps = ChildrenProps & {
+type TooltipProps = {
+    /** The children to render the tooltip for. On web it has to be proper HTML element to attach event handlers to. */
+    children: ReactElement<HTMLElement> | ReactNode;
+
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
     text?: string;
 
