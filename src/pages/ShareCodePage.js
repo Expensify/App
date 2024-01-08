@@ -91,7 +91,7 @@ class ShareCodePage extends React.Component {
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
-                    <View style={[this.props.themeStyles.shareCodePage, {}]}>
+                    <View style={this.props.themeStyles.shareCodePage}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}
