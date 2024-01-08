@@ -9,7 +9,6 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
@@ -52,11 +51,11 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {
-                reportAction = ReportActionsUtils.getParentReportAction(props.report);
+                reportAction = props?.parentReportAction ?? {};
             }
 
             return reportAction;
-        }, [props.report, props.reportActions, props.route.params.reportActionID]);
+        }, [props.reportActions, props.route.params.reportActionID, props.parentReportAction]);
 
         const reportAction = getReportAction();
 
