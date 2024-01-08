@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -60,7 +60,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
 
     return (
         // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
@@ -82,7 +82,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
                 shouldSaveDraft
                 inputMode={CONST.INPUT_MODE.URL}
             />
-        </Form>
+        </FormProvider>
     );
 }
 
