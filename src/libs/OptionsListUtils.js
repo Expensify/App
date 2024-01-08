@@ -545,6 +545,11 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
 
         const lastAction = visibleReportActionItems[report.reportID];
+        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU
+
+        if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
+            lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
+        }
 
         if (result.isThread || result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
@@ -552,8 +557,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
-        } else if (lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
