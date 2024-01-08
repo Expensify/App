@@ -135,7 +135,7 @@ function Lightbox({
             return;
         }
         setImageLoaded(false);
-    }, [isLightboxVisible, setImageDimensions]);
+    }, [isLightboxVisible]);
 
     useEffect(() => {
         if (!hasSiblingCarouselItems) {
@@ -158,7 +158,7 @@ function Lightbox({
             // Show fallback when the image goes out of focus or when the image is loading
             setFallbackVisible(true);
         }
-    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxLoaded, isLightboxVisible, isImageLoaded]);
+    }, [hasSiblingCarouselItems, isActive, isImageLoaded, isFallbackVisible, isLightboxLoaded, isLightboxVisible]);
 
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || (imageDimensions?.lightboxSize == null && imageDimensions?.fallbackSize == null) || containerSize.width === 0 || containerSize.height === 0) {
