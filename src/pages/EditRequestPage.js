@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import categoryPropTypes from '@components/categoryPropTypes';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
+import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -66,6 +67,10 @@ const propTypes = {
         /** Is Tax tracking Enabled */
         isTaxTrackingEnabled: PropTypes.bool,
     }),
+
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
@@ -75,9 +80,10 @@ const defaultProps = {
     parentReportActions: {},
     transaction: {},
     policy: {},
+    policyTaxRates: {},
 };
 
-function EditRequestPage({report, policy, route, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, policy, policyTaxRates, route, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -91,6 +97,11 @@ function EditRequestPage({report, policy, route, policyCategories, policyTags, p
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+
+    const transactionTaxAmount = (transaction.taxAmount && transaction.taxAmount) || 0;
+
+    const transactionTaxCode = transaction.taxCode && transaction.taxCode;
+    const taxRateTitle = (transactionTaxCode && policyTaxRates.taxes[transactionTaxCode].name) || '';
 
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -267,10 +278,13 @@ function EditRequestPage({report, policy, route, policyCategories, policyTags, p
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_AMOUNT && shouldShowTax) {
         return (
             <EditRequestTaxAmountPage
-                defaultAmount={0}
-                defaultTaxAmount={3.49}
-                defaultCurrency="NGN"
-                onNavigateToCurrency={() => {}}
+                defaultAmount={transactionAmount}
+                defaultTaxAmount={transactionTaxAmount}
+                defaultCurrency={defaultCurrency}
+                onNavigateToCurrency={() => {
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
+                }}
                 onSubmit={() => {}}
             />
         );
@@ -279,7 +293,7 @@ function EditRequestPage({report, policy, route, policyCategories, policyTags, p
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_RATE && shouldShowTax) {
         return (
             <EditRequestTaxRatePage
-                defaultTaxRate=""
+                defaultTaxRate={taxRateTitle}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={() => {}}
             />
@@ -335,6 +349,9 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        policyTaxRates: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report.policyID}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
