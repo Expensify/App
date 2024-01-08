@@ -4153,8 +4153,8 @@ const styles = (theme: ThemeColors) =>
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         updateAnimation: {
-            width: DotLottieAnimations.Update.w,
-            height: DotLottieAnimations.Update.h,
+            width: variables.updateAnimationW,
+            height: variables.updateAnimationW,
         },
 
         updateRequiredView: {
