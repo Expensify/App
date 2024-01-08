@@ -29,7 +29,7 @@ describe('actions/Policy', () => {
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const policyID = Policy.generatePolicyID();
             let adminReportID;
-            let announceReportID
+            let announceReportID;
             let expenseReportID;
 
             await waitForBatchedUpdates();
@@ -100,7 +100,8 @@ describe('actions/Policy', () => {
                         expenseReportID = report.reportID;
                         break;
                     }
-                    default: break;
+                    default:
+                        break;
                 }
             });
 
@@ -130,7 +131,7 @@ describe('actions/Policy', () => {
             });
 
             // Check for success data
-            fetch.resume(); 
+            fetch.resume();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
