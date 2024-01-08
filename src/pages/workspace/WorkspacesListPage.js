@@ -336,7 +336,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
         >
-            <View style={{flex: 1}}>
+            <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
@@ -384,9 +384,6 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
