@@ -124,7 +124,7 @@ function FlagCommentPage(props) {
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
+            reportAction = props.parentReportActions[`${props.report.parentReportActionID}`] || {};
         }
 
         return reportAction;
@@ -133,7 +133,7 @@ function FlagCommentPage(props) {
     const flagComment = (severity) => {
         let reportID = getReportID(props.route);
         const reportAction = getActionToFlag();
-        const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
+        const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`] || {};
 
         // Handle threads if needed
         if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === parentReportAction.reportActionID) {
