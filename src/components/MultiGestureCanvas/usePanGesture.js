@@ -8,7 +8,7 @@ import * as MultiGestureCanvasUtils from './utils';
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
 const PAN_DECAY_DECELARATION = 0.9915;
 
-const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, stopAnimation, isPagerSwiping}) => {
+const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, stopAnimation, shouldDisableTransformationGestures}) => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
@@ -108,7 +108,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         .averageTouches(true)
         .onTouchesMove((_evt, state) => {
             // We only allow panning when the content is zoomed in and the tranformations are enabled
-            if (zoomScale.value <= 1 || isPagerSwiping.value) {
+            if (zoomScale.value <= 1 || shouldDisableTransformationGestures.value) {
                 return;
             }
 
@@ -138,7 +138,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             panTranslateY.value = 0;
 
             // If we the MultiGestureCanvas is disabled, we don't want to return to boundaries
-            if (isPagerSwiping.value) {
+            if (shouldDisableTransformationGestures.value) {
                 return;
             }
 

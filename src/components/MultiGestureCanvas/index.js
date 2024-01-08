@@ -25,9 +25,22 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoom
     return {contentSize, zoomRange};
 }
 
-function MultiGestureCanvas({canvasSize, isActive, onScaleChanged, onTap, children, isPagerSwiping, pagerRef, ...props}) {
+function MultiGestureCanvas({
+    canvasSize,
+    isActive,
+    onScaleChanged,
+    onTap,
+    children,
+    shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
+    externalGestureRef,
+    ...props
+}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const shouldDisableTransformationGesturesFallback = useSharedValue(false);
+    const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp || shouldDisableTransformationGesturesFallback;
+
     const {contentSize, zoomRange} = getDeepDefaultProps(props);
 
     // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors
@@ -107,7 +120,7 @@ function MultiGestureCanvas({canvasSize, isActive, onScaleChanged, onTap, childr
         stopAnimation,
         onScaleChanged,
         onTap,
-        isPagerSwiping,
+        shouldDisableTransformationGestures,
     });
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
@@ -121,9 +134,9 @@ function MultiGestureCanvas({canvasSize, isActive, onScaleChanged, onTap, childr
         panTranslateX,
         panTranslateY,
         stopAnimation,
-        isPagerSwiping,
+        shouldDisableTransformationGestures,
     })
-        .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
+        .simultaneousWithExternalGesture(externalGestureRef, singleTapGesture, doubleTapGesture)
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
@@ -137,7 +150,7 @@ function MultiGestureCanvas({canvasSize, isActive, onScaleChanged, onTap, childr
         pinchScale,
         stopAnimation,
         onScaleChanged,
-        isPagerSwiping,
+        shouldDisableTransformationGestures,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 
     // Trigger a reset when the canvas gets inactive, but only if it was already mounted before

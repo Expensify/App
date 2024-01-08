@@ -15,7 +15,7 @@ const usePinchGesture = ({
     pinchScale,
     stopAnimation,
     onScaleChanged,
-    isPagerSwiping,
+    shouldDisableTransformationGestures,
 }) => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
@@ -72,7 +72,7 @@ const usePinchGesture = ({
         .enabled(pinchEnabled)
         .onTouchesDown((_evt, state) => {
             // We don't want to activate pinch gesture when transformations are disabled
-            if (!isPagerSwiping.value) {
+            if (!shouldDisableTransformationGestures.value) {
                 return;
             }
 

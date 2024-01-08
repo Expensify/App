@@ -19,7 +19,7 @@ const useTapGestures = ({
     stopAnimation,
     onScaleChanged,
     onTap,
-    isPagerSwiping,
+    shouldDisableTransformationGestures,
 }) => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
@@ -105,7 +105,7 @@ const useTapGestures = ({
 
     const doubleTapGesture = Gesture.Tap()
         .onTouchesDown((_evt, state) => {
-            if (!isPagerSwiping.value) {
+            if (!shouldDisableTransformationGestures.value) {
                 return;
             }
 

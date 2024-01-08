@@ -192,8 +192,8 @@ function Lightbox({isAuthTokenRequired, source, onError, style, zoomRange}) {
                                 canvasSize={containerSize}
                                 contentSize={imageDimensions?.lightboxSize}
                                 zoomRange={zoomRange}
-                                pagerRef={pagerRef}
-                                isPagerSwiping={isPagerSwiping}
+                                externalGestureRef={pagerRef}
+                                shouldDisableTransformationGestures={isPagerSwiping}
                             >
                                 <Image
                                     source={{uri: source}}
