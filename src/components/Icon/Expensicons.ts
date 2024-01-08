@@ -27,6 +27,8 @@ import Camera from '@assets/images/camera.svg';
 import Car from '@assets/images/car.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
+import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
@@ -130,8 +132,6 @@ import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Zoom from '@assets/images/zoom.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
-import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
-import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 
 export {
     ActiveRoomAvatar,
