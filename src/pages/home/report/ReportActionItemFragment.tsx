@@ -27,7 +27,7 @@ type ReportActionItemFragmentProps = {
     iouMessage?: string;
 
     /** The reportAction's source */
-    source: OriginalMessageSource;
+    source?: OriginalMessageSource;
 
     /** Should this fragment be contained in a single line? */
     isSingleLine?: boolean;

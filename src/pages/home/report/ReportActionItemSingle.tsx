@@ -155,7 +155,7 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
-            showUserDetails(action.delegateAccountID ? action.delegateAccountID : String(actorAccountID));
+            showUserDetails(action.delegateAccountID ? String(action.delegateAccountID) :  String(actorAccountID));
         }
     }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
 
