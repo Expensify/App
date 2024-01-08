@@ -5,7 +5,7 @@ description: Everything you need to know about Expensify Card Auto-Reconciliatio
 <!-- The lines above are required by Jekyll to process the .md file -->
 
 # Overview
-If your company uses the Expensify Card, and connects to a direct accounting integration, you can auto-reconcile card spending each month.
+If your company uses the Expensify Visa® Commercial Card, and connects to a direct accounting integration, you can auto-reconcile card spending each month.
 
 The integrations that auto-reconciliation are available on are:
 

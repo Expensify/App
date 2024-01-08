@@ -3,7 +3,7 @@ title: Certinia
 description: Guide to connecting Expensify and Certinia FFA and PSA/SRP (formerly known as FinancialForce)
 ---
 # Overview
-[Cetinia](https://use.expensify.com/financialforce) (Formerly known as FinancialForce)is a cloud-based software solution that provides a range of financial management and accounting applications built on the Salesforce platform. There are two versions: PSA/SRP and FFA and we support both. 
+[Cetinia](https://use.expensify.com/financialforce) (formerly known as FinancialForce) is a cloud-based software solution that provides a range of financial management and accounting applications built on the Salesforce platform. There are two versions: PSA/SRP and FFA and we support both. 
 
 # Before connecting to Certinia
 Install the Expensify bundle in Certinia using the relevant installer:

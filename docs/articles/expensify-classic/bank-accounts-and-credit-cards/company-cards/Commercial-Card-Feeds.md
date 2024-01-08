@@ -19,19 +19,19 @@ These are the steps you'll need to follow for a MasterCard feed:
 - Contact your banking relationship manager and request that your CDF (Common Data File) feed be sent directly to Expensify in the MasterCard SmartData Portal (file type: CDF version 3 Release 11.01). Please also specify the date of the earliest transactions you require in the feed. 
 - The bank will initiate feed delivery by finding Expensify in MasterCard's online portal. Once this is done, the bank will email you the distribution ID.
 - While you're waiting for your bank, make sure to set up a domain in Expensify -- it's required for us to be able to add the card feed to your account!
-- Once you have the distribution ID, send it to us using the submission form here.
+- Once you have the distribution ID, send it to us using the submission form [here](https://expensify.typeform.com/to/cGlCAz?typeform-source=community.expensify.com).
 - We will connect the feed once we receive the file details and notify you when the feed is enabled. 
 
 # How to set up a Visa Commercial Feed
 These are the steps you'll need to follow for a Visa feed:
 - Contact your banking relationship manager and request that your VCF (Variant Call Format) feed be sent directly to Expensify. Feel free to share this information with them: "There is a check box in your bank's Visa Subscription Management portal that they, or their BPS team, can select to enable the feed. This means there is no need for a test file because Visa already has agreements with 3rd parties who receive the files."
 - Ask your bank to send you the "feed filename" OR the raw file information. You'll need the Processor, Financial Institution (Bank), and Company IDs; these are available in Visa Subscription Management if your relationship manager is still looking for them.
-- Once you have the file information, send it to us using the submission form here.
+- Once you have the file information, send it to us using the submission form [here](https://expensify.typeform.com/to/cGlCAz?typeform-source=community.expensify.com).
 - While you're waiting for your bank, make sure to set up a domain -- it's required for us to be able to add the feed to your account!
 - We will connect the feed once we receive these details and notify you when the feed is enabled. 
 
 # How to set up an American Express corporate feed 
-To begin the process, you'll need to fill out Amex's required forms and send them to Amex so they can start processing your feed. You can download the forms here. 
+To begin the process, you'll need to fill out Amex's required forms and send them to Amex so they can start processing your feed. You can download the forms [here](https://drive.google.com/file/d/1zqDA_MCk06jk_fWjzx2y0r4gOyAMqKJe/view?usp=sharing). 
 
 Below are instructions for filling out each page of the Amex form:
 - PAGE 1
@@ -57,15 +57,21 @@ While you're waiting for Amex, make sure to set up a domain -- it's required for
 Once the feed is complete, Amex will send you a Production Letter. This will have the feed information in it, which will look something like this:
 R123456_B123456789_GL1025_001_$DATE$$TIME$_$SEQ$
 
-Once you have the filename, send it to us using the submission form here.
+Once you have the filename, send it to us using the submission form [here](https://expensify.typeform.com/to/cGlCAz?typeform-source=community.expensify.com).
 
 # How to assign company cards
 After connecting your company cards with Expensify, you can assign each card to its respective cardholder. 
 To assign cards go to Settings > Domains > [Your domain] > Company Cards.
 If you have more than one card feed, select the correct feed in the drop-down list in the Company Card section. 
 Once you’ve selected the appropriate feed, click the `Assign New Cards` button to populate the emails and last four digits of the cardholder. 
+
+![Assign Cards]({{site.url}}/assets/images/CompanyCards_Assign.png){:width="100%"}
+
 Select the cardholder
 You can search the populated list for all employees' email addresses. Please note that the employee will need to have an email address under this Domain in order to assign a card to them.
+
+![Email Assign]({{site.url}}/assets/images/CompanyCards_EmailAssign.png){:width="100%"}
+
 Select the card
 You can search the list using the last 4 digits of the card number. If no transactions have posted on the card then the card number will not appear in the list. You can instead assign the card by typing in the full card number in the field.
 Note: if you're assigning a card by typing in the full PAN (the full card number), press the ENTER key on your keyboard after. The field may clear itself after pressing ENTER, but click Assign anyway and then verify that the assignment shows up in the cardholder table.
@@ -86,6 +92,8 @@ You're all done. After the account is set, exported expenses will be mapped to t
 Before you begin the unassigning process, please note that unassigning a company card will delete any unsubmitted (Open or Unreported) expenses in the cardholder's account.
 
 If you need to unassign a certain card, click the Actions button associated with the card in question and then click "Unassign."
+
+![Unassign Cards]({{site.url}}/assets/images/CompanyCards_Unassign.png){:width="100%"}
 
 To completely remove the card connection, unassign every card from the list and then refresh the page.
 
