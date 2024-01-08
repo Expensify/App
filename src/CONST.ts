@@ -2954,6 +2954,7 @@ const CONST = {
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
+        SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
