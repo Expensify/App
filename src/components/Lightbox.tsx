@@ -10,7 +10,11 @@ import * as MultiGestureCanvasUtils from './MultiGestureCanvas/utils';
 // Increase/decrease this number to change the number of concurrent lightboxes
 // The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
 // -1 means unlimited
-const NUMBER_OF_CONCURRENT_LIGHTBOXES = 3;
+// We need to define a type for this constant and therefore ignore this ESLint error, although the type is inferable,
+// because otherwise TS will throw an error later in the code since "-1" and this constant have no overlap.
+// We can safely ignore this error, because we might change the value in the future
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
+const NUMBER_OF_CONCURRENT_LIGHTBOXES: number = 3;
 const DEFAULT_IMAGE_SIZE = 200;
 const DEFAULT_IMAGE_DIMENSIONS = {
     width: DEFAULT_IMAGE_SIZE,
@@ -111,8 +115,6 @@ function Lightbox({
     }, [canvasSize, hasSiblingCarouselItems, contentSize]);
 
     const isLightboxInRange = useMemo(() => {
-        // @ts-expect-error TS will throw an error here because -1 and the constantly set number have no overlap
-        // We can safely ignore this error, because we might change the value in the future
         if (NUMBER_OF_CONCURRENT_LIGHTBOXES === -1) {
             return true;
         }
