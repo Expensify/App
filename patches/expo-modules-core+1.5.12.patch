@@ -1,0 +1,16 @@
+diff --git a/node_modules/expo-modules-core/android/build.gradle b/node_modules/expo-modules-core/android/build.gradle
+index 8f9e0dc..539a201 100644
+--- a/node_modules/expo-modules-core/android/build.gradle
++++ b/node_modules/expo-modules-core/android/build.gradle
+@@ -54,9 +54,10 @@ def downloadsDir = customDownloadsDir ? new File(customDownloadsDir) : new File(
+ def thirdPartyNdkDir = new File("$buildDir/third-party-ndk")
+ 
+ def REACT_NATIVE_BUILD_FROM_SOURCE = findProject(":packages:react-native:ReactAndroid") != null
++def FALLBACK_REACT_NATIVE_DIR = ext.has("customRNProjectPath") ? ext.customRNProjectPath : new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).parent)
+ def REACT_NATIVE_DIR = REACT_NATIVE_BUILD_FROM_SOURCE
+   ? findProject(":packages:react-native:ReactAndroid").getProjectDir().parent
+-  : new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).parent
++  : FALLBACK_REACT_NATIVE_DIR
+ def REACT_NATIVE_SO_DIR = REACT_NATIVE_BUILD_FROM_SOURCE
+   ? Paths.get(findProject(":packages:react-native:ReactAndroid").getProjectDir().toString(), "build", "intermediates", "library_*", "*", "jni")
+   : "${buildDir}/react/jni"
