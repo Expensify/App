@@ -1,4 +1,4 @@
-import {DateTimeFormatConstructor} from '@formatjs/intl-datetimeformat';
+import type {DateTimeFormatConstructor} from '@formatjs/intl-datetimeformat';
 import DateUtils from '@libs/DateUtils';
 
 /* eslint-disable @typescript-eslint/naming-convention */
