@@ -5,30 +5,10 @@ description: Get the most out of your Expensify Card with exclusive perks!
 
 
 # Overview
-The Expensify Card is packed with perks, both native to our Card program and through exclusive discounts with partnering solutions. The Expensify Card’s primary perks include: 
-- Swipe to Win, where every swipe has a chance to win fun personalized gifts for you and your closest friends and family members
-- Unbeatable cash back incentive with each swipe
+The Expensify Visa® Commercial Card is packed with perks, both native to our Card program and through exclusive discounts with partnering solutions. The Expensify Card’s primary perks include: 
+- Unbeatable cash back incentive with each USD purchase
+
 Below, we’ll cover all of our exclusive offers in more detail and how to claim discounts with our partners.
-
-# Expensify Card Perks
-
-## Swipe to Win
-Swipe to Win is a new [Expensify Card](https://use.expensify.com/company-credit-card) perk that gives cardholders the chance to send a gift to a friend, family member, or essential worker on the frontlines!
-
-Winners can choose to _Send a Smile_ or _Send a Laugh_. To start, we’re offering one gift per option:
-
-- **Send A Smile:** Champagne by Expensify
-- **Send a Laugh:** Jenga Set
-
-**How to Participate**
-It’s easy! Once you have an Expensify Card, you just need to start using it. With each swipe, you're automatically entered to win and have a 1 in 250 chance of getting a prize!
-
-**How will I know if I’ve won?**
-Winners will be notified immediately via the Expensify app, and receive additional instructions on how to choose and send their desired gift. 
-
-If you don't have Expensify notifications turned on yet, here are some helpful guides:
-- [Apple Notification Preferences](https://support.apple.com/en-us/HT201925)
-- [Android Notification Preferences](https://community.expensify.com/home/leaving?allowTrusted=1&target=https%3A%2F%2Fsupport.google.com%2Fandroid%2Fanswer%2F9079661%3Fhl%3Den)
 
 # Partner Specific Perks
 
