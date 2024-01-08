@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -13,8 +14,8 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails, Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
-import {IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
@@ -153,8 +154,8 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction'>>({
     transaction: {
         key: ({report, parentReportActions}) => {
-            const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : ({} as ReportAction);
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction.originalMessage as IOUMessage).IOUTransactionID ?? 0}`;
+            const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction.originalMessage.IOUTransactionID ?? 0}`;
         },
     },
 })(MoneyRequestHeader);
