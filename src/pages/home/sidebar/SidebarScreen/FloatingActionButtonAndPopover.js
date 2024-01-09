@@ -6,10 +6,9 @@ import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withWindowDimensions from '@components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +40,7 @@ const policySelector = (policy) =>
     };
 
 const propTypes = {
-    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
