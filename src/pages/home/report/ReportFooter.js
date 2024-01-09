@@ -9,7 +9,6 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SwipeableView from '@components/SwipeableView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useNetwork from '@hooks/useNetwork';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -56,7 +55,6 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
-    const reportScrollManager = useReportScrollManager();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
@@ -69,16 +67,9 @@ function ReportFooter(props) {
     const onSubmitComment = useCallback(
         (text) => {
             Report.addComment(props.report.reportID, text);
-
-            // We need to scroll to the bottom of the list after the comment is added
-            const refID = setTimeout(() => {
-                reportScrollManager.scrollToBottom();
-            }, 10);
-
-            return () => clearTimeout(refID);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+        [props.report.reportID],
     );
 
     return (

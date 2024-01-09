@@ -2426,6 +2426,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: File): Opti
             attachmentInfo,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
+            isOptimisticAction: true,
         },
     };
 }
@@ -4116,6 +4117,11 @@ function getTaskAssigneeChatOnyxData(
                 value: optimisticAssigneeReport,
             },
         );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: {isOptimisticAction: null}},
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -4314,6 +4320,14 @@ function navigateToPrivateNotes(report: Report, session: Session) {
         return;
     }
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+}
+
+/**
+ * Checks if thread replies should be displayed
+ */
+function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
+    const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
+    return hasReplies && !!reportAction.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
 }
 
 /**
@@ -4516,6 +4530,7 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    shouldDisplayThreadReplies,
     shouldDisableThread,
 };
 

@@ -30,7 +30,7 @@ To export a report, click **Export To** in the top-left of a report and select y
 
 To export multiple reports, tick the checkbox next to the reports on the **Reports** page, then click **Export To** and select your accounting package from the dropdown menu.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Which accounting packages offer this indirect integration with Expensify?
 
@@ -46,3 +46,5 @@ We support a pre-configured flat-file integration for the following accounting p
 
 If your accounting package isn’t listed, but it still accepts a flat-file import, select **Other** when completing the Accounting Software task on your Home page or head to **Settings** > **Workspaces** > **Group** > _Your desired workspace_ > **Export Formats**.  This option allows you to create your own templates to export your expense and report data into a format compatible with your accounting system.
 
+
+{% include faq-end.md %}
