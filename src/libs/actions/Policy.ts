@@ -1,4 +1,5 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
@@ -683,10 +684,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
-
-        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
-        // See https://github.com/Expensify/App/issues/20081 for more details.
-        welcomeNote,
+        welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
     if (isNotEmptyObject(membersChats.reportCreationData)) {
@@ -1355,7 +1353,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: {
-                [Object.keys(announceChatData)[0]]: {
+                [announceCreatedReportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -1374,7 +1372,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: {
-                [Object.keys(adminsChatData)[0]]: {
+                [adminsCreatedReportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -1393,7 +1391,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {
-                [Object.keys(expenseChatData)[0]]: {
+                [expenseCreatedReportActionID]: {
                     pendingAction: null,
                 },
             },
