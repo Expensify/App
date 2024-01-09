@@ -29,7 +29,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, reportMetadata, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, reportMetadata, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
