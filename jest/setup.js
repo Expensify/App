@@ -37,3 +37,10 @@ jest.mock('react-native-fs', () => ({
     unlink: jest.fn(() => new Promise((res) => res())),
     CachesDirectoryPath: jest.fn(),
 }));
+
+// Mock native video component that is not available in jest
+jest.mock('react-native-video', () => ({
+    __esModule: true,
+    default: 'Video',
+    ResizeMode: jest.requireActual('react-native-video').ResizeMode,
+}));
