@@ -147,7 +147,7 @@ function WorkspaceNewRoomPage(props) {
             return;
         }
         setPolicyID(props.activePolicyID);
-    }, [props.activePolicyID]);
+    }, [props.activePolicyID, policyID]);
 
     useEffect(() => {
         if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
