@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -17,6 +18,7 @@ function AllSettingsScreen() {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * Retuns a list of menu items data for "everything" settings
@@ -32,7 +34,7 @@ function AllSettingsScreen() {
                         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
                     })();
                 },
-                focused: true,
+                focused: !isSmallScreenWidth,
             },
             {
                 translationKey: 'allSettingsScreen.subscriptions',
