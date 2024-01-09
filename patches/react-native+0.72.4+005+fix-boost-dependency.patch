@@ -1,3 +1,17 @@
+diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
+index f44b6e4..818833b 100644
+--- a/node_modules/react-native/ReactAndroid/build.gradle
++++ b/node_modules/react-native/ReactAndroid/build.gradle
+@@ -243,7 +243,8 @@ task createNativeDepsDirectories {
+ }
+ 
+ task downloadBoost(dependsOn: createNativeDepsDirectories, type: Download) {
+-    src("https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION.replace("_", ".")}/source/boost_${BOOST_VERSION}.tar.gz")
++    def transformedVersion = BOOST_VERSION.replace("_", ".")
++    src("https://archives.boost.io/release/${transformedVersion}/source/boost_${BOOST_VERSION}.tar.gz")
+     onlyIfModified(true)
+     overwrite(false)
+     retries(5)
 diff --git a/node_modules/react-native/third-party-podspecs/boost.podspec b/node_modules/react-native/third-party-podspecs/boost.podspec
 index 3d9331c..bbbb738 100644
 --- a/node_modules/react-native/third-party-podspecs/boost.podspec
