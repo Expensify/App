@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
-import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
-import {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
-import Response from '@src/types/onyx/Response';
+import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 

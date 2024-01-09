@@ -1,24 +1,29 @@
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {EdgeInsets} from 'react-native-safe-area-context';
-import {ValueOf} from 'type-fest';
+import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
-import {ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Transaction} from '@src/types/onyx';
-import {defaultStyles, type ThemeStyles} from '..';
+import type {Transaction} from '@src/types/onyx';
+import {defaultStyles} from '..';
+import type {ThemeStyles} from '..';
+import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
-import fontFamily from './fontFamily';
+import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import {
+import type {
     AllStyles,
     AvatarSize,
     AvatarSizeName,
@@ -516,11 +521,11 @@ function getModalPaddingStyles({
  * Takes fontStyle and fontWeight and returns the correct fontFamily
  */
 function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
-    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
-    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
-    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+    const italic = fontStyle === 'italic' && FontUtils.fontFamily.platform.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && FontUtils.fontFamily.platform.MONOSPACE_BOLD;
+    const italicBold = italic && bold && FontUtils.fontFamily.platform.MONOSPACE_BOLD_ITALIC;
 
-    return italicBold || bold || italic || fontFamily.MONOSPACE;
+    return italicBold || bold || italic || FontUtils.fontFamily.platform.MONOSPACE;
 }
 /**
  * Returns the font size for the HTML code tag renderer.
@@ -1003,6 +1008,7 @@ function getTransparentColor(color: string) {
 }
 
 const staticStyleUtils = {
+    positioning,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1062,6 +1068,8 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getNavigationModalCardStyle,
+    getCardStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1343,6 +1351,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
             ...positioning.r4,
             ...styles.cursorDefault,
+            ...styles.userSelectNone,
             position: 'absolute',
             zIndex: 8,
         }),

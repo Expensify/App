@@ -1,4 +1,4 @@
-import GetCardStyles from './types';
+import type GetCardStyles from './types';
 
 const getCardStyles: GetCardStyles = () => ({});
 
