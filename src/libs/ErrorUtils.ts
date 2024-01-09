@@ -1,4 +1,3 @@
-import type {ImageSourcePropType} from 'react-native';
 import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, SimpleErrors} from '@src/types/onyx/OnyxCommon';
@@ -6,7 +5,7 @@ import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
-type ErrorObject = Record<string, string | ImageSourcePropType | undefined>;
+type ErrorObject = Record<string, string | undefined>;
 
 type MicroSecondOnyxError = Record<string, string | null>;
 

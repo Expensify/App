@@ -3,7 +3,6 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashHas from 'lodash/has';
-import type {ImageSourcePropType} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
@@ -316,7 +315,7 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, source: ImageSourcePropType, filename: string) {
+function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, source: string, filename: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
 }
 
@@ -886,7 +885,7 @@ function createDistanceRequest(
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
 
     const optimisticReceipt: Receipt = {
-        source: ReceiptGeneric,
+        source: ReceiptGeneric as string,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
     const {iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} = getMoneyRequestInformation(
@@ -3455,7 +3454,7 @@ function detachReceipt(transactionID: string) {
     API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
 }
 
-function replaceReceipt(transactionID: string, receipt: Receipt, filePath: ImageSourcePropType) {
+function replaceReceipt(transactionID: string, receipt: Receipt, filePath: string) {
     const transaction = allTransactions.transactionID;
     const oldReceipt = transaction?.receipt ?? {};
 

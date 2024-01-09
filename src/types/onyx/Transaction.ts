@@ -1,4 +1,3 @@
-import type {ImageSourcePropType} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Participant, Split} from './IOU';
@@ -43,7 +42,7 @@ type Receipt = {
     receiptID?: number;
     path?: string;
     name?: string;
-    source?: ImageSourcePropType;
+    source?: string;
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
