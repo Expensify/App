@@ -2,24 +2,23 @@ appId: ${APP_ID}
 env:
   DEVTOOLS_BUTTON: "__reassure__"
   COMPOSER_INPUT_TEXT: "Write something..."
+  CHAT_NAME: "Navigates to a chat"
+  SEND_BUTTON: "Send"
 
 ---
 - launchApp
-- tapOn: Navigates to a chat
+- tapOn: ${CHAT_NAME}
 - tapOn: ${COMPOSER_INPUT_TEXT}
 # Ensure that composer is indeed focused
-# - assertVisible:
-#     text: ${COMPOSER_INPUT_TEXT}
-#     focused: true
+- assertVisible:
+    text: ${COMPOSER_INPUT_TEXT}
+    focused: true
+# Erase if any text left behind. Needs special treatment on iOS: https://maestro.mobile.dev/api-reference/commands/erasetext
+- eraseText
 - inputText: ${MSG}
-# Copying the text, because assertVisible below did not work and thought it might be something with text encoding
-- copyTextFrom: ${COMPOSER_INPUT_TEXT}
 # Due to heavy calculations, composer might contain obsolete state and try to send incomplete message resulting in error
 # That's why we are asserting if the entire message is visible
-# TODO: Paste entire message instead of typing it
-- assertVisible: ${maestro.copiedText}
-- tapOn: Send
-# Remove text form input to easily assert message content against MSG text
-- eraseText
+- assertVisible: ${MSG}
+- tapOn: ${SEND_BUTTON}
 - assertVisible: ${MSG}
 - tapOn: ${DEVTOOLS_BUTTON}
