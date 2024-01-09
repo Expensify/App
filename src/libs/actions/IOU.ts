@@ -35,7 +35,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -979,7 +978,7 @@ function getUpdateMoneyRequestParams(
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> | undefined = onlyIncludeChangedFields
-        ? (Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key))) as Partial<TransactionDetails>)
+        ? Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)))
         : transactionDetails;
 
     const params: UpdateMoneyRequestParams = {
@@ -1121,13 +1120,14 @@ function getUpdateMoneyRequestParams(
         },
     });
 
-    // Reset the iouReport to it's original state
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        value: iouReport as OnyxTypes.Report,
-    });
+    if (iouReport) {
+        // Reset the iouReport to it's original state
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: iouReport,
+        });
+    }
 
     return {
         params,
@@ -1515,7 +1515,7 @@ function createSplitsAndOnyxData(
         const shouldCreateNewOneOnOneIOUReport =
             oneOnOneIOUReport === undefined || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
-        if (shouldCreateNewOneOnOneIOUReport) {
+        if (oneOnOneIOUReport === undefined || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', currentUserAccountID, splitAmount, currency)
                 : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
@@ -1530,8 +1530,7 @@ function createSplitsAndOnyxData(
 
         // STEP 3: Build optimistic transaction
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            ReportUtils.isExpenseReport(oneOnOneIOUReport as OnyxTypes.Report) ? -splitAmount : splitAmount,
+            ReportUtils.isExpenseReport(oneOnOneIOUReport ?? null) ? -splitAmount : splitAmount,
             currency,
             oneOnOneIOUReport?.reportID ?? '',
             comment,
@@ -1587,11 +1586,9 @@ function createSplitsAndOnyxData(
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport?.reportID ?? '');
         if (oneOnOneReportPreviewAction) {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport as OnyxTypes.Report, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport as OnyxTypes.Report);
+            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
@@ -1609,8 +1606,7 @@ function createSplitsAndOnyxData(
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneIOUReport as OnyxTypes.Report,
+            oneOnOneIOUReport,
             oneOnOneTransaction,
             oneOnOneCreatedActionForChat,
             oneOnOneCreatedActionForIOU,
@@ -2150,7 +2146,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         const shouldCreateNewOneOnOneIOUReport =
             oneOnOneIOUReport === undefined || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
-        if (shouldCreateNewOneOnOneIOUReport) {
+        if (oneOnOneIOUReport === undefined || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport?.reportID ?? '', participant.policyID ?? '', sessionAccountID, splitAmount, currency ?? '')
                 : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? -1, splitAmount, oneOnOneChatReport?.reportID ?? '', currency ?? '');
@@ -2199,8 +2195,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             oneOnOneChatReport as OnyxTypes.Report,
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneIOUReport as OnyxTypes.Report,
+            oneOnOneIOUReport,
             oneOnOneTransaction,
             oneOnOneCreatedActionForChat,
             oneOnOneCreatedActionForIOU,
@@ -2489,8 +2484,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`,
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            value: chatReport as OnyxTypes.Report,
+            value: chatReport ?? {},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2556,7 +2550,8 @@ function updateMoneyRequestAmountAndCurrency(transactionID: string, transactionT
 
 function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     // STEP 1: Get all collections we're updating
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${(reportAction.originalMessage as IOUMessage).IOUReportID}`] ?? null;
+    const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction.originalMessage.IOUReportID : '';
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -2564,7 +2559,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     const transactionThreadID = reportAction.childReportID;
     let transactionThread = null;
     if (transactionThreadID) {
-        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
+        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
     }
 
     // STEP 2: Decide if we need to:
@@ -2689,14 +2684,12 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                  value: updatedIOUReport as OnyxTypes.Report,
+                  value: updatedIOUReport,
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                  value: updatedIOUReport as OnyxTypes.Report,
+                  value: updatedIOUReport ?? {},
               },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2760,8 +2753,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            value: transactionThread as OnyxTypes.Report,
+            value: transactionThread,
         });
     }
 
@@ -2780,14 +2772,12 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                  value: iouReport as OnyxTypes.Report,
+                  value: iouReport,
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                  value: iouReport as OnyxTypes.Report,
+                  value: iouReport ?? {},
               },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2801,12 +2791,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     );
 
-    if (shouldDeleteIOUReport) {
+    if (chatReport && shouldDeleteIOUReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            value: chatReport as OnyxTypes.Report,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
         });
     }
     if (!shouldDeleteIOUReport && updatedReportPreviewAction?.childMoneyRequestCount === 0) {
@@ -3441,9 +3430,8 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 }
 
 function detachReceipt(transactionID: string) {
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] as OnyxTypes.Transaction;
-    const newTransaction = {...transaction, filename: '', receipt: {}};
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3457,7 +3445,7 @@ function detachReceipt(transactionID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: transaction ?? {},
         },
     ];
 
