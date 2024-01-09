@@ -4,7 +4,7 @@ import type {SubAvatar} from '@components/SubscriptAvatar';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type CommonListItemProps<T> = {
+type CommonListItemProps<TItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
 
@@ -24,10 +24,10 @@ type CommonListItemProps<T> = {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: T) => void;
+    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: (item: T) => void;
+    onDismissError?: (item: TItem) => void;
 };
 
 type User = {

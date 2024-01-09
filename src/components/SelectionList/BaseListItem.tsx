@@ -40,7 +40,7 @@ function BaseListItem({
         >
             <PressableWithFeedback
                 onPress={() => onSelectRow(item)}
-                disabled={item.isDisabled}
+                disabled={isDisabled}
                 accessibilityLabel={item.text}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}

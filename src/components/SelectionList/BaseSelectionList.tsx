@@ -48,7 +48,7 @@ function BaseSelectionList(
         showLoadingPlaceholder = false,
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
-        containerStyle = {},
+        containerStyle,
         isKeyboardShown = false,
         disableKeyboardShortcuts = false,
         children,
@@ -101,7 +101,7 @@ function BaseSelectionList(
                 });
 
                 // If disabled, add to the disabled indexes array
-                if (section.isDisabled ?? item.isDisabled) {
+                if (!!section.isDisabled || item.isDisabled) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -288,7 +288,7 @@ function BaseSelectionList(
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<User | RadioItem, Section>) => {
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
-        const isDisabled = section.isDisabled ?? item.isDisabled;
+        const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = normalizedIndex < 10;
@@ -424,12 +424,12 @@ function BaseSelectionList(
                                 />
                             </View>
                         )}
-                        {headerMessage && (
+                        {!!headerMessage && (
                             <View style={[styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
-                        {headerContent}
+                        {!!headerContent && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (
