@@ -25,7 +25,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
@@ -101,7 +101,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             false,
             false,
             optionItem.isPinned,
-            optionItem.isUnread ?? undefined,
+            !!optionItem.isUnread,
         );
     };
 
@@ -111,10 +111,10 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
-    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(isNotEmptyObject(report) ? report : null);
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
 
     const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips?.length ?? 0) > 2;
-    const fullTitle = isGroupChat ? getGroupChatName(isNotEmptyObject(report) ? report : null) : optionItem.text;
+    const fullTitle = isGroupChat ? getGroupChatName(!isEmptyObject(report) ? report : null) : optionItem.text;
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
@@ -173,13 +173,13 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem?.icons?.[0]}
-                                            secondaryAvatar={optionItem?.icons?.[1]}
+                                            mainAvatar={optionItem.icons[0]}
+                                            secondaryAvatar={optionItem.icons[1]}
                                             size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            icons={optionItem.icons ?? []}
+                                            icons={optionItem.icons}
                                             isFocusMode={viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
@@ -228,7 +228,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                 </View>
                                 {optionItem?.descriptiveText ? (
                                     <View style={[styles.flexWrap]}>
-                                        <Text style={[styles.textLabel]}>{optionItem?.descriptiveText}</Text>
+                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                     </View>
                                 ) : null}
                                 {hasBrickError && (
