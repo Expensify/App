@@ -4133,6 +4133,30 @@ function getTaskAssigneeChatOnyxData(
 }
 
 /**
+ * Checks if a report is a group chat.
+ *
+ * A report is a group chat if it meets the following conditions:
+ * - Not a chat thread.
+ * - Not a task report.
+ * - Not a money request / IOU report.
+ * - Not an archived room.
+ * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
+ * - More than 1 participants (note that participantAccountIDs excludes the current user).
+ *
+ */
+function isGroupChat(report: OnyxEntry<Report>): boolean {
+    return Boolean(
+        report &&
+            !isChatThread(report) &&
+            !isTaskReport(report) &&
+            !isMoneyRequestReport(report) &&
+            !isArchivedRoom(report) &&
+            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
+            (report.participantAccountIDs?.length ?? 0) > 1,
+    );
+}
+
+/**
  * Returns an array of the participants Ids of a report
  *
  * @deprecated Use getVisibleMemberIDs instead
@@ -4150,6 +4174,11 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         const onlyUnique = [...new Set([...onlyTruthyValues])];
         return onlyUnique;
     }
+
+    if (isGroupChat(report) && currentUserAccountID) {
+        return [...new Set([...participants, currentUserAccountID])];
+    }
+
     return participants;
 }
 
@@ -4169,6 +4198,11 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
         const onlyUnique = [...new Set([...onlyTruthyValues])];
         return onlyUnique;
     }
+
+    if (isGroupChat(report) && currentUserAccountID) {
+        return [...new Set([...visibleChatMemberAccountIDs, currentUserAccountID])];
+    }
+
     return visibleChatMemberAccountIDs;
 }
 
@@ -4226,30 +4260,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         formattedAmount,
         comment: transactionDetails?.comment ?? '',
     });
-}
-
-/**
- * Checks if a report is a group chat.
- *
- * A report is a group chat if it meets the following conditions:
- * - Not a chat thread.
- * - Not a task report.
- * - Not a money request / IOU report.
- * - Not an archived room.
- * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
- * - More than 2 participants.
- *
- */
-function isGroupChat(report: OnyxEntry<Report>): boolean {
-    return Boolean(
-        report &&
-            !isChatThread(report) &&
-            !isTaskReport(report) &&
-            !isMoneyRequestReport(report) &&
-            !isArchivedRoom(report) &&
-            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            (report.participantAccountIDs?.length ?? 0) > 2,
-    );
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
