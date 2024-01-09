@@ -2259,7 +2259,7 @@ describe('actions/IOU', () => {
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
 
             // When Opening a thread report with the given details
-            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            Report.openReport({reportID: thread.reportID}, userLogins, thread, createIOUAction.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
