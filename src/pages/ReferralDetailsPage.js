@@ -13,7 +13,9 @@ import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
+import getPlatform from '@libs/getPlatform';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,9 +45,12 @@ const defaultProps = {
 function ReferralDetailsPage({route, account}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
     let {contentType} = route.params;
 
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
@@ -64,7 +69,7 @@ function ReferralDetailsPage({route, account}) {
             headerContent={
                 <Icon
                     src={PaymentHands}
-                    width={178}
+                    width={isNative ? windowWidth : windowWidth * 2}
                     height={232}
                 />
             }
