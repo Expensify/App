@@ -165,7 +165,7 @@ function ReportPreview(props) {
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {
-            count: numberOfRequests,
+            count: numberOfRequests - numberOfScanningReceipts,
             scanningReceipts: numberOfScanningReceipts,
         });
 
