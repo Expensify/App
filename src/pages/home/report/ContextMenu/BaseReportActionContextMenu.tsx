@@ -75,6 +75,8 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     contentRef?: RefObject<View>;
 };
 
+type MenuItemRefs = Record<string, {triggerPressAndUpdateSuccess: () => void}>;
+
 function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor,
@@ -95,7 +97,7 @@ function BaseReportActionContextMenu({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const menuItemRefs = useRef<Record<string, {triggerPressAndUpdateSuccess: () => void}>>({});
+    const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, isSmallScreenWidth);
     const {isOffline} = useNetwork();
