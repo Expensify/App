@@ -4153,13 +4153,17 @@ const styles = (theme: ThemeColors) =>
 
         updateAnimation: {
             width: variables.updateAnimationW,
-            height: variables.updateAnimationW,
+            height: variables.updateAnimationH,
         },
 
         updateRequiredView: {
             alignItems: 'center',
             justifyContent: 'center',
             paddingBottom: 160,
+        },
+
+        updateRequiredViewHeader: {
+            height: 70
         },
 
         updateRequiredViewTextContainer: {
