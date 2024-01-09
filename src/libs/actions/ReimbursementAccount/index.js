@@ -13,6 +13,7 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to login to their bank via Plaid
  *
  * @param {String} subStep
+ * @returns {Promise<void>}
  */
 function setBankAccountSubStep(subStep) {
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
