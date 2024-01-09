@@ -87,7 +87,7 @@ function MentionUserRenderer(props) {
                     <UserDetailsTooltip
                         accountID={accountID}
                         fallbackUserDetails={{
-                            displayName: 'displayNameOrLogin',
+                            displayName: displayNameOrLogin,
                         }}
                     >
                         <Text
