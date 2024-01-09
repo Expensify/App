@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
 import DomUtils from '@libs/DomUtils';
+// eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
-import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 
 const propTypes = {
     /** Rendered child component */

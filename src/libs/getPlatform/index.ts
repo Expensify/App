@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import Platform from './types';
+import type Platform from './types';
 
 export default function getPlatform(): Platform {
     return CONST.PLATFORM.WEB;

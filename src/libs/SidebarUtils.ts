@@ -1,15 +1,17 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxCollection} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
-import Beta from '@src/types/onyx/Beta';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import Policy from '@src/types/onyx/Policy';
-import Report from '@src/types/onyx/Report';
-import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import type {PersonalDetails} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -125,10 +127,10 @@ function getOrderedReportIDs(
         [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value: unknown) => {
             /**
-             *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
+             *  Exclude some properties not to overwhelm a cached key value with huge data,
              *  which we don't need to store in a cacheKey
              */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
+            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
                 return undefined;
             }
 
@@ -223,6 +225,8 @@ function getOrderedReportIDs(
 
 type ActorDetails = {
     displayName?: string;
+    firstName?: string;
+    lastName?: string;
     accountID?: number;
 };
 
@@ -245,6 +249,7 @@ function getOptionData(
     }
 
     const result: ReportUtils.OptionData = {
+        text: '',
         alternateText: null,
         allReportErrors: null,
         brickRoadIndicator: null,
@@ -271,6 +276,7 @@ function getOptionData(
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
+        isDeletedParentAction: false,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -299,15 +305,16 @@ function getOptionData(
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
-    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
+    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
+    result.isDeletedParentAction = report.isDeletedParentAction;
 
-    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(personalDetail?.login ?? '');
@@ -331,7 +338,11 @@ function getOptionData(
               }
             : null;
     }
-    const lastActorDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+
+    const shouldShowDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID;
+    const lastActorName = lastActorDetails?.firstName ?? lastActorDetails?.displayName;
+    const lastActorDisplayName = shouldShowDisplayName ? lastActorName : '';
+
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
@@ -344,7 +355,7 @@ function getOptionData(
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                     policyName: ReportUtils.getPolicyName(report, false, policy),
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails?.displayName),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
                 });
                 break;
             }
@@ -354,7 +365,10 @@ function getOptionData(
         }
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
+    const isThreadMessage =
+        ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
 
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {

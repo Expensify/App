@@ -1,4 +1,4 @@
-import {ReactElement} from 'react';
+import type {ReactElement} from 'react';
 
 type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 

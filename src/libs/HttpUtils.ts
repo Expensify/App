@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RequestType} from '@src/types/onyx/Request';
+import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
