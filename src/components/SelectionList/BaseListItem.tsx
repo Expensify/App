@@ -29,7 +29,7 @@ function BaseListItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isUserItem = !item.rightElement === undefined;
+    const isUserItem = !(item.rightElement === undefined);
 
     return (
         <OfflineWithFeedback
@@ -83,13 +83,13 @@ function BaseListItem({
                         </View>
                     )}
 
-                    {item.rightElement === undefined ? (
-                        <RadioListItem
+                    {isUserItem ? (
+                        <UserListItem
                             item={item}
                             textStyles={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isSelected ?? item.alternateText ? styles.sidebarLinkTextBold : null,
+                                styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}
@@ -99,12 +99,12 @@ function BaseListItem({
                             showTooltip={showTooltip}
                         />
                     ) : (
-                        <UserListItem
+                        <RadioListItem
                             item={item}
                             textStyles={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
+                                item.isSelected ?? item.alternateText ? styles.sidebarLinkTextBold : null,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}

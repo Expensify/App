@@ -8,6 +8,7 @@ import type {UserListItemProps} from './types';
 
 function UserListItem({item, textStyles, alternateTextStyles, showTooltip}: UserListItemProps) {
     const styles = useThemeStyles();
+    console.log('TestujemyUserItem');
     return (
         <>
             {!!item.icons && (
