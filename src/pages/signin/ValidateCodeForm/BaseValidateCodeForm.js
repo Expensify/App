@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -86,6 +87,7 @@ function BaseValidateCodeForm(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isFocused = useIsFocused();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
@@ -113,11 +115,11 @@ function BaseValidateCodeForm(props) {
     }, [props.account.isLoading, props.session.autoAuthState, hasError]);
 
     useEffect(() => {
-        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus()) {
+        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !props.isVisible || !isFocused) {
             return;
         }
         inputValidateCodeRef.current.focus();
-    }, []);
+    }, [props.isVisible, isFocused]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
