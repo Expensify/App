@@ -400,7 +400,7 @@ Onyx.connect({
     },
 });
 
-function getChatType(report: OnyxEntry<Report> | Participant | EmptyObject): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+function getChatType(report: OnyxEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
 
@@ -673,7 +673,7 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObject): boolean {
+function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
@@ -2670,7 +2670,7 @@ function buildOptimisticIOUReportAction(
     comment: string,
     participants: Participant[],
     transactionID: string,
-    paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined,
+    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>,
     iouReportID = '',
     isSettlingUp = false,
     isSendMoneyFlow = false,
@@ -2858,13 +2858,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(
-    chatReport: OnyxEntry<Report>,
-    iouReport: OnyxEntry<Report>,
-    comment = '',
-    transaction: OnyxEntry<Transaction> = null,
-    childReportID?: string,
-): ReportAction {
+function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction: OnyxEntry<Transaction> = null, childReportID?: string): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
@@ -2875,7 +2869,7 @@ function buildOptimisticReportPreview(
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
-            linkedReportID: iouReport?.reportID ?? '',
+            linkedReportID: iouReport?.reportID,
         },
         message: [
             {
@@ -2944,13 +2938,7 @@ function buildOptimisticModifiedExpenseReportAction(
  * @param [transaction] - optimistic newest transaction of a report preview
  *
  */
-function updateReportPreview(
-    iouReport: OnyxEntry<Report>,
-    reportPreviewAction: OnyxEntry<ReportAction>,
-    isPayRequest = false,
-    comment = '',
-    transaction: OnyxEntry<Transaction> = null,
-): ReportAction {
+function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: ReportAction, isPayRequest = false, comment = '', transaction: OnyxEntry<Transaction> = null): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
     const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
@@ -2967,8 +2955,7 @@ function updateReportPreview(
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(reportPreviewAction as ReportAction),
+        ...reportPreviewAction,
         created: DateUtils.getDBTime(),
         message: [
             {
