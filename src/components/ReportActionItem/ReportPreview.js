@@ -13,6 +13,7 @@ import refPropTypes from '@components/refPropTypes';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -23,7 +24,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -107,6 +107,9 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** All the transactions, used to update ReportPreview label and status */
+    transactions: PropTypes.objectOf(transactionPropTypes),
+
     ...withLocalizePropTypes,
 };
 
@@ -123,6 +126,7 @@ const defaultProps = {
     policy: {
         isHarvestingEnabled: false,
     },
+    transactions: {},
 };
 
 function ReportPreview(props) {
@@ -131,10 +135,10 @@ function ReportPreview(props) {
     const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
-    const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
-    const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
-    const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
-    const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
+    const hasMissingSmartscanFields = useMemo(() => ReportUtils.hasMissingSmartscanFields(props.iouReportID), [props.transactions]);
+    const areAllRequestsBeingSmartScanned = useMemo(() => ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action), [props.transactions]);
+    const hasOnlyDistanceRequests = useMemo(() => ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID), [props.transactions]);
+    const hasNonReimbursableTransactions = useMemo(() => ReportUtils.hasNonReimbursableTransactions(props.iouReportID), [props.transactions]);
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
@@ -220,28 +224,6 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-
-    useEffect(() => {
-        const unsubscribeOnyxTransaction = onyxSubscribe({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (allTransactions) => {
-                if (_.isEmpty(allTransactions)) {
-                    return;
-                }
-
-                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
-                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
-                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
-            },
-        });
-
-        return () => {
-            unsubscribeOnyxTransaction();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.action]);
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
@@ -372,6 +354,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
         },
     }),
 )(ReportPreview);
