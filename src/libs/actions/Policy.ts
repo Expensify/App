@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembers = {
     onyxOptimisticData: OnyxUpdate[];
@@ -1122,7 +1122,7 @@ function generateDefaultWorkspaceName(email = ''): string {
         defaultWorkspaceName = 'My Group Workspace';
     }
 
-    if (!isNotEmptyObject(allPolicies ?? {})) {
+    if (isEmptyObject(allPolicies)) {
         return defaultWorkspaceName;
     }
 

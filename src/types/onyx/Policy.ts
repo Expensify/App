@@ -13,12 +13,14 @@ type Rate = {
     pendingAction?: string;
 };
 
+type Attributes = {
+    unit: Unit;
+};
+
 type NewCustomUnit = {
     name?: string;
     customUnitID?: string;
-    attributes: {
-        unit: Unit;
-    };
+    attributes: Attributes;
     rates?: Rate;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
@@ -27,9 +29,7 @@ type NewCustomUnit = {
 type CustomUnit = {
     name?: string;
     customUnitID?: string;
-    attributes: {
-        unit: Unit;
-    };
+    attributes: Attributes;
     rates?: Record<string, Rate>;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
