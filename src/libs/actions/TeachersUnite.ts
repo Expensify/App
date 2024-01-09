@@ -34,44 +34,46 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
-function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string) {
-    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.TEACHERS_UNITE.POLICY_ID);
+/**
+ * @param publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
+ */
+function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string) {
+    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticPublicRoom.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${publicRoomReportID}`,
             value: {
                 ...optimisticPublicRoom,
-                reportID: optimisticPublicRoom.reportID,
+                reportID: publicRoomReportID,
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
             },
         },
     ];
 
     type ReferTeachersUniteVolunteerParams = {
-        publicRoomReportID: string;
+        reportID: string;
         firstName: string;
         lastName: string;
         partnerUserID: string;
     };
 
     const parameters: ReferTeachersUniteVolunteerParams = {
-        publicRoomReportID: optimisticPublicRoom.reportID,
+        reportID: publicRoomReportID,
         firstName,
         lastName,
         partnerUserID,
     };
 
     API.write('ReferTeachersUniteVolunteer', parameters, {optimisticData});
-    Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
+    Navigation.dismissModal(publicRoomReportID);
 }
 
 /**
  * Optimistically creates a policyExpenseChat for the school principal and passes data to AddSchoolPrincipal
  */
-function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: string) {
+function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: string, policyID: string) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
-    const policyID = CONST.TEACHERS_UNITE.POLICY_ID;
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData: ReportCreationData = {};
 
@@ -178,6 +180,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
         firstName: string;
         lastName: string;
         partnerUserID: string;
+        policyID: string;
         reportCreationData: string;
     };
 
@@ -185,6 +188,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
         firstName,
         lastName,
         partnerUserID,
+        policyID,
         reportCreationData: JSON.stringify(reportCreationData),
     };
 
