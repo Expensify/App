@@ -37,7 +37,12 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
             {
                 title: translate('common.all'),
                 shouldShow: true,
-                data: filteredOptions.map((option) => ({text: option})),
+                data: filteredOptions.map((option) => ({
+                    text: option,
+                    keyForList: option,
+                    searchText: option,
+                    tooltipText: option
+                })),
             },
         ];
     }, [fieldOptions, searchValue, translate]);
