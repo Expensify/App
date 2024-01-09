@@ -1,11 +1,10 @@
 import React from 'react';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import {HTMLEngineProviderProps} from './types';
+import type {HTMLEngineProviderProps} from './types';
 
-function HTMLEngineProvider({debug = false, children}: HTMLEngineProviderProps) {
+function HTMLEngineProvider({children}: HTMLEngineProviderProps) {
     return (
         <BaseHTMLEngineProvider
-            debug={debug}
             enableExperimentalBRCollapsing
         >
             {children}
