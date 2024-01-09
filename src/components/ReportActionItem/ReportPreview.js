@@ -158,10 +158,7 @@ function ReportPreview(props) {
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
-    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
-    if (hasPendingWaypoints) {
-        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
-    }
+    const hasOnlyLoadingDistanceRequests = hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => TransactionUtils.isLoadingDistanceRequest(transaction));
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {
@@ -178,7 +175,7 @@ function ReportPreview(props) {
     );
 
     const getDisplayAmount = () => {
-        if (hasPendingWaypoints) {
+        if (hasOnlyLoadingDistanceRequests) {
             return props.translate('common.tbd');
         }
         if (totalDisplaySpend) {
@@ -186,9 +183,6 @@ function ReportPreview(props) {
         }
         if (isScanning) {
             return props.translate('iou.receiptScanning');
-        }
-        if (hasOnlyDistanceRequests) {
-            return props.translate('common.tbd');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")

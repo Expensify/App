@@ -2,6 +2,7 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -47,6 +48,15 @@ function isDistanceRequest(transaction: Transaction): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isLoadingDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    const amount = getAmount(transaction, false);
+    return isDistanceRequest(transaction) && (!!transaction?.isLoading || amount === 0);
 }
 
 function isScanRequest(transaction: Transaction): boolean {
@@ -311,7 +321,12 @@ function getOriginalAmount(transaction: Transaction): number {
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxEntry<Transaction>): string {
-    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
+    if (!transaction) {
+        return '';
+    }
+
+    const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : transaction.merchant ?? '';
+    return isLoadingDistanceRequest(transaction) ? merchant.replace(CONST.REGEX.FIRST_SPACE, Localize.translateLocal('common.tbd')) : merchant;
 }
 
 function getDistance(transaction: Transaction): number {
@@ -566,6 +581,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isLoadingDistanceRequest,
     isExpensifyCardTransaction,
     isCardTransaction,
     isPending,

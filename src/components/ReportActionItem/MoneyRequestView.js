@@ -128,7 +128,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const {
         created: transactionDate,
         amount: transactionAmount,
-        currency: transactionCurrency,
+        formattedAmount: formattedTransactionAmount,
         comment: transactionDescription,
         merchant: transactionMerchant,
         billable: transactionBillable,
@@ -140,11 +140,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
-    if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
-        formattedTransactionAmount = translate('common.tbd');
-    }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -274,7 +269,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
+                            title={transactionMerchant}
                             interactive={canEditDistance}
                             shouldShowRightIcon={canEditDistance}
                             titleStyle={styles.flex1}

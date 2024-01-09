@@ -292,6 +292,7 @@ type TransactionDetails =
           cardID: number;
           originalAmount: number;
           originalCurrency: string;
+          formattedAmount: string;
       }
     | undefined;
 
@@ -1835,11 +1836,23 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     if (!transaction) {
         return;
     }
+
     const report = getReport(transaction?.reportID);
+    const amount = TransactionUtils.getAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report));
+    const currency = TransactionUtils.getCurrency(transaction);
+
+    let formattedAmount;
+    if (TransactionUtils.isLoadingDistanceRequest(transaction)) {
+        formattedAmount = Localize.translateLocal('common.tbd');
+    } else {
+        formattedAmount = amount ? CurrencyUtils.convertToDisplayString(amount, currency) : '';
+    }
+
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
-        amount: TransactionUtils.getAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report)),
-        currency: TransactionUtils.getCurrency(transaction),
+        amount,
+        currency,
+        formattedAmount,
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
         waypoints: TransactionUtils.getWaypoints(transaction),

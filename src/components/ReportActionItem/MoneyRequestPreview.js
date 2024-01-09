@@ -152,7 +152,13 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const {
+        amount: requestAmount,
+        formattedAmount: formattedRequestAmount,
+        currency: requestCurrency,
+        comment: requestComment,
+        merchant,
+    } = ReportUtils.getTransactionDetails(props.transaction);
     const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
@@ -166,13 +172,10 @@ function MoneyRequestPreview(props) {
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
-    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
 
     let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
         merchantOrDescription = description || '';
-    } else if (hasPendingWaypoints) {
-        merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
@@ -221,10 +224,6 @@ function MoneyRequestPreview(props) {
     };
 
     const getDisplayAmountText = () => {
-        if (isDistanceRequest) {
-            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : translate('common.tbd');
-        }
-
         if (isScanning) {
             return translate('iou.receiptScanning');
         }
@@ -233,7 +232,7 @@ function MoneyRequestPreview(props) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
-        return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
+        return formattedRequestAmount;
     };
 
     const getDisplayDeleteAmountText = () => {
