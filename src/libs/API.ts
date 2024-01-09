@@ -1,8 +1,9 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import OnyxRequest from '@src/types/onyx/Request';
-import Response from '@src/types/onyx/Response';
+import type OnyxRequest from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 import pkg from '../../package.json';
 import Log from './Log';
 import * as Middleware from './Middleware';
