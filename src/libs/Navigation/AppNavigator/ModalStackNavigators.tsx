@@ -292,6 +292,10 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
 
+const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
+});
+
 export {
     AccountSettingsModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
@@ -319,4 +323,5 @@ export {
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
 };

@@ -42,7 +42,7 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     /** Error text to display */
     errorText?: string;
 
-    /** Value for checkbox. This prop is intended to be set by Form.js only */
+    /** Value for checkbox. This prop is intended to be set by FormProvider only */
     value?: boolean;
 
     /** The default value for the checkbox */

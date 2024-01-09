@@ -145,7 +145,7 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
-    tabSelectorButtonHeight: 40,
+    tabSelectorButtonHeight: 42,
     tabSelectorButtonPadding: 12,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
@@ -200,4 +200,5 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
+    holdMenuIconSize: 64,
 } as const;
