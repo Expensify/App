@@ -266,7 +266,7 @@ function AttachmentModal({
     }, [transaction, report]);
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const isValidFile = useCallback((_file: File) => {
+    const isValidFile = useCallback((_file: FileObject) => {
         if (_file.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
@@ -309,7 +309,7 @@ function AttachmentModal({
                 return;
             }
 
-            if (fileObject instanceof File && !isValidFile(fileObject)) {
+            if (!isValidFile(fileObject)) {
                 return;
             }
 
@@ -534,12 +534,10 @@ function AttachmentModal({
                 />
             )}
 
-            {children &&
-                typeof children === 'function' &&
-                children({
-                    displayFileInModal: validateAndDisplayFileToUpload,
-                    show: openModal,
-                })}
+            {children?.({
+                displayFileInModal: validateAndDisplayFileToUpload,
+                show: openModal,
+            })}
         </>
     );
 }
