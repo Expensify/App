@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
@@ -1143,55 +1144,34 @@ function updateMoneyRequestDate(transactionID: string, transactionThreadReportID
     API.write('UpdateMoneyRequestDate', params, onyxData);
 }
 
-/**
- * Updates the billable field of a money request
- *
- * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} val
- */
-function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
-    const transactionChanges = {
+/** Updates the billable field of a money request */
+function updateMoneyRequestBillable(transactionID: string, transactionThreadReportID: string, val: boolean) {
+    const transactionChanges: TransactionChanges = {
         billable: val,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestBillable', params, onyxData);
 }
 
-/**
- * Updates the merchant field of a money request
- *
- * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} val
- */
-function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, val) {
-    const transactionChanges = {
+/** Updates the merchant field of a money request */
+function updateMoneyRequestMerchant(transactionID: string, transactionThreadReportID: string, val: string) {
+    const transactionChanges: TransactionChanges = {
         merchant: val,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestMerchant', params, onyxData);
 }
 
-/**
- * Updates the created date of a money request
- *
- * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} tag
- */
-function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
-    const transactionChanges = {
+/** Updates the created date of a money request */
+function updateMoneyRequestTag(transactionID: string, transactionThreadReportID: string, tag: string) {
+    const transactionChanges: TransactionChanges = {
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestTag', params, onyxData);
 }
 
-/**
- * Edits an existing distance request
- *
- */
+/** Edits an existing distance request */
 function updateDistanceRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, false);
     API.write('UpdateDistanceRequest', params, onyxData);
