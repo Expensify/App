@@ -184,6 +184,7 @@ function ReportScreen({
         const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
         const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
         return reportActionsWithoutDeleted;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActionID, allReportActions, isOffline]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
@@ -579,6 +580,7 @@ export default compose(
             allReportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
+                selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,

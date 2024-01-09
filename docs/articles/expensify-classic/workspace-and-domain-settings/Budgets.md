@@ -42,7 +42,7 @@ Expensify’s Budgets feature allows you to:
    - **Per individual budget**: you can enter an amount if you want to set a budget per person 
    - **Notification threshold** - this is the % in which you will be notified as the budgets are hit
 
-# FAQ
+{% include faq-begin.md %}
 ## Can I import budgets as a CSV? 
 At this time, you cannot import budgets via CSV since we don’t import categories or tags from direct accounting integrations.
 
@@ -54,3 +54,4 @@ Notifications are sent twice:
 ## How will I be notified when a budget is hit?
 A message will be sent in the  #admins room of the Workspace.
 
+{% include faq-end.md %}
