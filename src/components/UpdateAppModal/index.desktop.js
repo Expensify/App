@@ -3,7 +3,6 @@ import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
 import {propTypes} from './updateAppModalPropTypes';
 
-
 function UpdateAppModal(props) {
     const updateApp = () => {
         if (props.onSubmit) {
