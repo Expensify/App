@@ -179,6 +179,19 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     let amountDescription = `${translate('iou.amount')}`;
 
+    const saveBillable = useCallback(
+        (newBillable) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newBillable === TransactionUtils.getBillable(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestBillable(transaction.transactionID, report.reportID, newBillable);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
     if (isCardTransaction) {
         if (formattedOriginalAmount) {
             amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
@@ -354,7 +367,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
                                 isOn={transactionBillable}
-                                onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
+                                onToggle={saveBillable}
                             />
                         </View>
                         {hasViolations('billable') && (
