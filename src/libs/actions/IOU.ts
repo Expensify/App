@@ -189,7 +189,7 @@ Onyx.connect({
     },
 });
 
-let allDraftSplitTransactions: Record<string, OnyxTypes.TransactionDraft | null> = {};
+let allDraftSplitTransactions: Record<string, OnyxTypes.Transaction | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -355,7 +355,7 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
 
 /** Builds the Onyx data for a money request */
 function buildOnyxDataForMoneyRequest(
-    chatReport: OnyxTypes.Report,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxTypes.Report,
     transaction: OnyxTypes.Transaction,
     chatCreatedAction: OptimisticCreatedReportAction,
@@ -373,8 +373,10 @@ function buildOnyxDataForMoneyRequest(
     hasOutstandingChildRequest = false,
 ): OnyxUpdate[][] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const optimisticData: OnyxUpdate[] = [
-        {
+    const optimisticData: OnyxUpdate[] = [];
+
+    if (chatReport) {
+        optimisticData.push({
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
             onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -386,7 +388,10 @@ function buildOnyxDataForMoneyRequest(
                 hasOutstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
-        },
+        });
+    }
+
+    optimisticData.push(
         {
             onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -407,7 +412,7 @@ function buildOnyxDataForMoneyRequest(
         isNewChatReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
                   value: {
                       [chatCreatedAction.reportActionID]: chatCreatedAction,
                       [reportPreviewAction.reportActionID]: reportPreviewAction,
@@ -415,7 +420,7 @@ function buildOnyxDataForMoneyRequest(
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
                   value: {
                       [reportPreviewAction.reportActionID]: reportPreviewAction,
                   },
@@ -443,7 +448,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
-    ];
+    );
 
     if (optimisticPolicyRecentlyUsedCategories.length) {
         optimisticData.push({
@@ -474,7 +479,7 @@ function buildOnyxDataForMoneyRequest(
     if (isNewChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
                 pendingFields: null,
                 errorFields: null,
@@ -502,7 +507,7 @@ function buildOnyxDataForMoneyRequest(
 
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 ...(isNewChatReport
                     ? {
@@ -540,10 +545,10 @@ function buildOnyxDataForMoneyRequest(
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                iouReportID: chatReport.iouReportID,
-                lastReadTime: chatReport.lastReadTime,
+                iouReportID: chatReport?.iouReportID,
+                lastReadTime: chatReport?.lastReadTime,
                 pendingFields: null,
                 ...(isNewChatReport
                     ? {
@@ -583,7 +588,7 @@ function buildOnyxDataForMoneyRequest(
 
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 ...(isNewChatReport
                     ? {
@@ -2193,8 +2198,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         }
 
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneChatReport as OnyxTypes.Report,
+            oneOnOneChatReport,
             oneOnOneIOUReport,
             oneOnOneTransaction,
             oneOnOneCreatedActionForChat,
@@ -2272,9 +2276,9 @@ function setDraftSplitTransaction(transactionID: string, transactionChanges: Tra
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
-    const updatedTransaction = TransactionUtils.getUpdatedTransaction(draftSplitTransaction as OnyxTypes.Transaction, transactionChanges, false, false);
+    const updatedTransaction = draftSplitTransaction ? TransactionUtils.getUpdatedTransaction(draftSplitTransaction, transactionChanges, false, false) : null;
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction ?? {});
 }
 
 function editRegularMoneyRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
@@ -2287,8 +2291,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
 
     // STEP 2: Build new modified expense report action.
     const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction as OnyxTypes.Transaction, transactionChanges, isFromExpenseReport);
+    const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
 
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
     // Should only update if the transaction matches the currency of the report, else we wait for the update
@@ -2345,7 +2348,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: updatedTransaction,
+            value: updatedTransaction ?? {},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
