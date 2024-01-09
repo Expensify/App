@@ -66,7 +66,7 @@ type Policy = {
     areChatRoomsEnabled: boolean;
 
     /** Is Tax tracking Enabled */
-    isTaxTrackingEnabled: boolean;
+    isTaxTrackingEnabled?: boolean;
 
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
