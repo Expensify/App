@@ -2529,7 +2529,7 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pb4,
             paddingLeft: 13,
             fontSize: 13,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontWeight: 400,
             lineHeight: 16,
             color: theme.textSupporting,
