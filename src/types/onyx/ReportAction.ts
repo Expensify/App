@@ -140,6 +140,7 @@ type ReportActionBase = {
     /** Type of child report  */
     childType?: string;
 
+    /** The user's ID */
     accountID?: number;
 
     childOldestFourEmails?: string;
