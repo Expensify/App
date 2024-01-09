@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import Response from '@src/types/onyx/Response';
+import type Response from '@src/types/onyx/Response';
 // mock functions
 import mockAuthenticatePusher from './apiMocks/authenticatePusher';
 import mockBeginSignin from './apiMocks/beginSignin';

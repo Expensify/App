@@ -66,7 +66,6 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
                     <Icon
                         width={200}
                         height={164}
-                        fill={theme.icon}
                         src={Illustrations.RocketBlue}
                     />
                 </View>

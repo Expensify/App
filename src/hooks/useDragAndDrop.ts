@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import type React from 'react';
+import {useCallback, useContext, useEffect, useState} from 'react';
+import type {View} from 'react-native';
 import {PopoverContext} from '@components/PopoverProvider';
 
 const COPY_DROP_EFFECT = 'copy';
