@@ -191,7 +191,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null}},
     });
 
     // FOR PARENT REPORT (SHARE DESTINATION)
@@ -497,8 +497,10 @@ function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccount
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
         const participants = lodashGet(report, 'participantAccountIDs', []);
-        if (!participants.includes(assigneeAccountID)) {
+        const visibleMembers = lodashGet(report, 'visibleChatMemberAccountIDs', []);
+        if (!visibleMembers.includes(assigneeAccountID)) {
             optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+            optimisticReport.visibleChatMemberAccountIDs = [...visibleMembers, assigneeAccountID];
         }
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
