@@ -10,11 +10,10 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
-import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/onyx/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -22,15 +21,15 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 
-type Event = GestureResponderEvent | KeyboardEvent;
+type KYCFlowEvent = GestureResponderEvent | KeyboardEvent;
 
-type TriggerKYCFlow = (event: Event, iouPaymentType: string) => void;
+type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: string) => void;
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
-    nvpLastPaymentMethod?: OnyxEntry<OnyxValues[typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD]>;
+    nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
@@ -183,7 +182,7 @@ function SettlementButton({
         return buttonOptions;
     }, [currency, formattedAmount, iouReport, nvpLastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
-    const selectPaymentType = (event: Event, iouPaymentType: PaymentType, triggerKYCFlow: TriggerKYCFlow) => {
+    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -211,12 +210,12 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: MutableRefObject<HTMLDivElement | View>) => (
+            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: MutableRefObject<HTMLDivElement | View | null>) => (
                 <ButtonWithDropdownMenu
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event: Event, iouPaymentType: PaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    onPress={(event: KYCFlowEvent, iouPaymentType: PaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/25065) is migrated to TypeScript.
