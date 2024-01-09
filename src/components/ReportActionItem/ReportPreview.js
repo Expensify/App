@@ -139,7 +139,6 @@ function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
-    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
     const policyType = lodashGet(props.policy, 'type');
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(props.iouReport, props.policy);
 
