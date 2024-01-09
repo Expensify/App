@@ -1,31 +1,28 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Icon} from './OnyxCommon';
 
 type Participant = {
     accountID?: number;
     login?: string;
-    email?: string;
+    displayName?: string;
     isPolicyExpenseChat?: boolean;
-    chatReportID?: string;
-    iouReportID?: string;
-    transactionID?: string;
-    reportActionID?: string;
     isOwnPolicyExpenseChat?: boolean;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
-    amount?: number;
-    selected?: boolean;
     reportID?: string;
     policyID?: string;
-    displayName?: string;
-    alternateText?: string;
-    firstName?: string;
-    icons?: Icon[];
-    keyForList?: string;
-    lastName?: string;
-    phoneNumber?: string;
-    searchText?: string;
+    selected?: boolean;
     text?: string;
+};
+
+type Split = {
+    email?: string;
+    amount?: number;
+    accountID?: number;
+    chatReportID?: string;
+    iouReportID?: string;
+    reportActionID?: string;
+    transactionID?: string;
+    policyID?: string;
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
@@ -50,4 +47,4 @@ type IOU = {
 };
 
 export default IOU;
-export type {Participant};
+export type {Participant, Split};

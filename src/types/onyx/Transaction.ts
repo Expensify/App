@@ -1,7 +1,7 @@
 import type {ImageSourcePropType} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Participant} from './IOU';
+import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
 
@@ -29,7 +29,7 @@ type Comment = {
     customUnit?: Record<string, unknown>;
     source?: string;
     originalTransactionID?: string;
-    splits?: Participant[];
+    splits?: Split[];
 };
 
 type GeometryType = 'LineString';

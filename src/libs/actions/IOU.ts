@@ -34,7 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Participant, Split} from '@src/types/onyx/IOU';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -84,7 +84,7 @@ type SplitData = {
 
 type SplitsAndOnyxData = {
     splitData: SplitData;
-    splits: Participant[];
+    splits: Split[];
     onyxData: OnyxData;
 };
 
@@ -1477,7 +1477,7 @@ function createSplitsAndOnyxData(
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Participant[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
@@ -1950,7 +1950,7 @@ function startSplitBill(
         );
     }
 
-    const splits: Participant[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
     participants.forEach((participant) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2109,13 +2109,13 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         },
     ];
 
-    const splitParticipants = updatedTransaction.comment.splits ?? [];
+    const splitParticipants: Split[] = updatedTransaction.comment.splits ?? [];
     const {modifiedAmount: amount, modifiedCurrency: currency} = updatedTransaction;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
     const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
 
-    const splits: Participant[] = [{email: currentUserEmailForIOUSplit}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
     splitParticipants.forEach((participant) => {
         // Skip creating the transaction for the current user
         if (participant.email === currentUserEmailForIOUSplit) {
