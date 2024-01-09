@@ -141,7 +141,7 @@ const KeyboardShortcutComponent = memo(
 
         const keyboardShortcutCallback = useCallback(
             (event?: GestureResponderEvent | KeyboardEvent) => {
-                if (!validateSubmitShortcut(isFocused.current, isDisabled, isLoading, event)) {
+                if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
                     return;
                 }
                 onPress();
@@ -152,7 +152,7 @@ const KeyboardShortcutComponent = memo(
 
         const config = useMemo(
             () => ({
-                isActive: pressOnEnter && !shouldDisableEnterShortcut,
+                isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused.current,
                 shouldBubble: allowBubble,
                 priority: enterKeyEventListenerPriority,
                 shouldPreventDefault: false,
