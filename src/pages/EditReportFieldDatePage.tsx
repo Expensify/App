@@ -1,10 +1,10 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import DatePicker from '@components/DatePicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ type EditReportFieldDatePageProps = {
     fieldID: string;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void,
+    onSubmit: () => void;
 };
 
 function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: EditReportFieldDatePageProps) {
@@ -66,7 +66,7 @@ function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: Edi
                         accessibilityLabel={fieldName}
                         role={CONST.ROLE.PRESENTATION}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}    
+                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         ref={inputRef}
                     />
                 </View>

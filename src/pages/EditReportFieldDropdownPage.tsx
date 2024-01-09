@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, {useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */
@@ -17,7 +17,7 @@ type EditReportFieldDropdownPageProps = {
     fieldOptions: string[];
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void,
+    onSubmit: () => void;
 };
 
 function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
@@ -32,13 +32,13 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
             {
                 title: translate('common.recents'),
                 shouldShow: true,
-                data: []
+                data: [],
             },
             {
                 title: translate('common.all'),
                 shouldShow: true,
-                data: filteredOptions.map((option) => ({text: option}))
-            }
+                data: filteredOptions.map((option) => ({text: option})),
+            },
         ];
     }, [fieldOptions, searchValue, translate]);
 
@@ -63,7 +63,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                         onSelectRow={onSubmit}
                         onChangeText={setSearchValue}
                         highlightSelectedOptions
-                        isRowMultilineSupported            
+                        isRowMultilineSupported
                     />
                 </>
             )}

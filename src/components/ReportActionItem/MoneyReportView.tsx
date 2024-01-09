@@ -14,12 +14,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
-import type {PolicyReportField, Report} from '@src/types/onyx';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type {PolicyReportField, Report} from '@src/types/onyx';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
