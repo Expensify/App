@@ -14,6 +14,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
@@ -83,7 +84,7 @@ const defaultProps = {
     policyTaxRates: {},
 };
 const getTaxAmount = (transaction, transactionTaxCode, policyTaxRates) => {
-    const percentage = (transactionTaxCode  ? policyTaxRates.taxes[transactionTaxCode].value : policyTaxRates.defaultValue) || '';
+    const percentage = (transactionTaxCode ? policyTaxRates.taxes[transactionTaxCode].value : policyTaxRates.defaultValue) || '';
     return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transaction.amount)));
 };
 function EditRequestPage({report, policy, policyTaxRates, route, policyCategories, policyTags, parentReportActions, transaction}) {
@@ -121,7 +122,7 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
     const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {

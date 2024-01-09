@@ -20,6 +20,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -247,8 +248,8 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the tags field
     const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
-    // A flag for showing tax fields - tax rate and tax amount
-    const shouldShowTax = props.isPolicyExpenseChat && props.policy.isTaxTrackingEnabled;
+    // A flag for showing tax rate
+    const shouldShowTax = isTaxPolicyEnabled(props.isPolicyExpenseChat, props.policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);

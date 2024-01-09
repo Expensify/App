@@ -30,6 +30,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -188,10 +189,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     // A flag for showing tax rate
     const shouldShowTax =
-        isPolicyExpenseChat &&
-        policy &&
-        policy.isTaxTrackingEnabled &&
-        ((transactionTaxCode && transactionTaxAmount) || OptionsListUtils.hasEnabledOptionsForTaxRate(lodashValues(policyTaxRates.taxes)));
+        isTaxPolicyEnabled(isPolicyExpenseChat, policy) && ((transactionTaxCode && transactionTaxAmount) || OptionsListUtils.hasEnabledOptionsForTaxRate(lodashValues(policyTaxRates.taxes)));
 
     const {getViolationsForField} = useViolations(transactionViolations);
     const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);

@@ -20,6 +20,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -283,7 +284,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);

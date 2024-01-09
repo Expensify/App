@@ -202,6 +202,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isTaxPolicyEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>): boolean {
+    return (isPolicyExpenseChat && policy?.isTaxTrackingEnabled) ?? false;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -215,6 +219,7 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isPolicyAdmin,
+    isTaxPolicyEnabled,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
     getTag,
