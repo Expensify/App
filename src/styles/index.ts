@@ -3607,10 +3607,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        splashScreenHider: {
+        splashScreenFillView: {
+            flex: 1,
             backgroundColor: theme.splashBG,
-            alignItems: 'center',
-            justifyContent: 'center',
+        },
+        splashScreenVideo: {
+            width: '100%',
+            // Aspect ratio from video files, important, so the view is only as high as the video
+            aspectRatio: 1280 / 720,
         },
 
         headerEnvBadge: {
