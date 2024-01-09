@@ -15,7 +15,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip}) {
                 <SubscriptAvatar
                     mainAvatar={lodashGet(item, 'icons[0]')}
                     secondaryAvatar={lodashGet(item, 'icons[1]')}
-                    showTooltip={showTooltips}
+                    showTooltip
                 />
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.optionRow]}>
