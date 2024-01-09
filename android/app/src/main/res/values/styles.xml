@@ -13,7 +13,6 @@
         <item name="android:spinnerDropDownItemStyle">@style/TextViewSpinnerDropDownItem</item>
         <item name="android:alertDialogTheme">@style/AlertDialogTheme</item>
         <item name="android:windowBackground">@color/root_view_color</item>
-        <item name="android:windowIsTranslucent">true</item>
     </style>
 
     <!-- Themes used by the Picker -->
