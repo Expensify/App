@@ -3454,7 +3454,7 @@ function doesTransactionThreadHaveViolations({
     parentReportAction,
 }: {
     report: Report;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
     parentReportAction: ReportAction;
 }): boolean {
     if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
