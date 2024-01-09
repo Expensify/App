@@ -15,7 +15,7 @@ export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidation
  * @param {String} subStep
  */
 function setBankAccountSubStep(subStep) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
 function hideBankAccountErrors() {
