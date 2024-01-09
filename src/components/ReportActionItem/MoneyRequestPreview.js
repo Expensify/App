@@ -186,12 +186,12 @@ function MoneyRequestPreview(props) {
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
-    const getSettledMessage = () => {
+    const getSettledMessage = useMemo(() => {
         if (isExpensifyCardTransaction) {
             return translate('common.done');
         }
         return translate('iou.settledExpensify');
-    };
+    }, [isExpensifyCardTransaction, translate]);
 
     const showContextMenu = (event) => {
         showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
@@ -232,7 +232,7 @@ function MoneyRequestPreview(props) {
         } else if (props.iouReport.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
         }
-        return message + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '');
+        return message + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage}` : '');
     }, [
         getSettledMessage,
         hasViolations,
@@ -247,7 +247,7 @@ function MoneyRequestPreview(props) {
         translate,
     ]);
 
-    const getDisplayAmountText = () => {
+    const displayAmountText = useMemo(() => {
         if (isDistanceRequest) {
             return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : translate('common.tbd');
         }
@@ -261,9 +261,9 @@ function MoneyRequestPreview(props) {
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
-    };
+    }, [hasPendingWaypoints, isDistanceRequest, isScanning, props.transaction, requestAmount, requestCurrency, translate]);
 
-    const getDisplayDeleteAmountText = () => {
+    const displayDeleteAmountText = useMemo(() => {
         const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
 
         if (isDistanceRequest) {
@@ -271,9 +271,9 @@ function MoneyRequestPreview(props) {
         }
 
         return CurrencyUtils.convertToDisplayString(amount, currency);
-    };
+    }, [isDistanceRequest, props.action.originalMessage]);
 
-    const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
+    const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
 
     const childContainer = (
         <View>
