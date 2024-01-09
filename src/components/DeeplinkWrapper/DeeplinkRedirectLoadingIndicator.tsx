@@ -37,7 +37,6 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser, session}: Deeplink
                     <Icon
                         width={200}
                         height={164}
-                        fill={theme.icon}
                         src={Illustrations.RocketBlue}
                     />
                 </View>
