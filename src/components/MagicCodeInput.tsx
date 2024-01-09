@@ -1,6 +1,6 @@
 import React, {ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {NativeSyntheticEvent, StyleSheet, TextInputFocusEventData, TextInputKeyPressEventData, TextInputProps, View} from 'react-native';
-import {TapGestureHandler} from 'react-native-gesture-handler';
+import {HandlerStateChangeEvent, TapGestureHandler, TouchData} from 'react-native-gesture-handler';
 import {AnimatedProps} from 'react-native-reanimated';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -355,9 +355,8 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
         <>
             <View style={[styles.magicCodeInputContainer]}>
                 <TapGestureHandler
-                    onBegan={(e) => {
-                        console.log('** EVENT **', e);
-                        onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / maxLength)));
+                    onBegan={(e: HandlerStateChangeEvent<Partial<TouchData>>) => {
+                        onPress(Math.floor((e.nativeEvent?.x ?? 0) / (inputWidth.current / maxLength)));
                     }}
                 >
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
