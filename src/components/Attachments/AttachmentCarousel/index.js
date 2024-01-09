@@ -7,6 +7,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -28,7 +29,8 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, reportMetadata, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, reportMetadata, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
@@ -174,6 +176,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, reportM
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
+                    iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}
