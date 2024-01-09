@@ -750,11 +750,8 @@ function getMoneyRequestInformation(
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+    if (isDistanceRequest) {
         optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction);
-        //       pendingFields: {
-        //                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        //             }
     }
 
     // STEP 4: Build optimistic reportActions. We need:
