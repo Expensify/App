@@ -1,4 +1,4 @@
-import LinearGradientNative from 'react-native-linear-gradient';
+import type LinearGradientNative from 'react-native-linear-gradient';
 
 type LinearGradient = typeof LinearGradientNative;
 
