@@ -10,6 +10,12 @@ type Rate = {
     currency: string;
 };
 
+type MileageRate = {
+    unit: Unit;
+    rate: number;
+    currency: string;
+};
+
 type CustomUnit = {
     customUnitID?: string;
     name?: string;
@@ -79,8 +85,13 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** Whether tax tracking enabled for policy */
+    isTaxTrackingEnabled?: boolean;
+
+    disabledFields?: Record<string, boolean>;
 };
 
 export default Policy;
 
-export type {Unit};
+export type {Unit, MileageRate};
