@@ -1,10 +1,9 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
+import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Phrase, PhraseParameters} from '../Localize';
-
 
 const ViolationsUtils = {
     /**
@@ -135,7 +134,7 @@ const ViolationsUtils = {
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', {formattedLimitAmount: violation.data?.formattedLimitAmount ?? ''});
+                return translate('violations.overAutoApprovalLimit', {formattedLimitAmount: violation.data?.formattedLimit ?? ''});
             case 'overCategoryLimit':
                 return translate('violations.overCategoryLimit', {categoryLimit: violation.data?.categoryLimit ?? ''});
             case 'overLimit':
@@ -148,7 +147,7 @@ const ViolationsUtils = {
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
                 return translate('violations.receiptRequired', {
-                    amount: violation.data?.amount ?? '0',
+                    formattedLimit: violation.data?.formattedLimit ?? '0',
                     category: violation.data?.category ?? '',
                 });
             case 'rter':
