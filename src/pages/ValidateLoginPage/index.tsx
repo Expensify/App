@@ -1,19 +1,10 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type {Session as SessionType} from '@src/types/onyx';
-
-type ValidateLoginPageOnyxProps = {
-    session: OnyxEntry<SessionType>;
-};
-
-type ValidateLoginPageProps = ValidateLoginPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.VALIDATE_LOGIN>;
+import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
     route: {
@@ -37,6 +28,6 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default withOnyx<ValidateLoginPageProps, ValidateLoginPageOnyxProps>({
+export default withOnyx<ValidateLoginPageProps, Pick<ValidateLoginPageOnyxProps, 'session'>>({
     session: {key: ONYXKEYS.SESSION},
 })(ValidateLoginPage);

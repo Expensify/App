@@ -1,30 +1,14 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type {Account, Credentials, Session as SessionType} from '@src/types/onyx';
-
-type ValidateLoginPageOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-
-    /** The credentials of the person logging in */
-    credentials: OnyxEntry<Credentials>;
-
-    /** Session of currently logged in user */
-    session: OnyxEntry<SessionType>;
-};
-
-type ValidateLoginPageProps = ValidateLoginPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.VALIDATE_LOGIN>;
+import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({account, credentials, route, session}: ValidateLoginPageProps) {
     const login = credentials?.login;
