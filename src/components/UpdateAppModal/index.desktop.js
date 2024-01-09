@@ -1,14 +1,15 @@
 import React from 'react';
-import * as AppUpdate from '@libs/actions/AppUpdate';
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
 import {propTypes} from './updateAppModalPropTypes';
+
 
 function UpdateAppModal(props) {
     const updateApp = () => {
         if (props.onSubmit) {
             props.onSubmit();
         }
-        AppUpdate.updateApp();
+        window.electron.send(ELECTRON_EVENTS.START_UPDATE);
     };
     return <BaseUpdateAppModal onSubmit={updateApp} />;
 }
