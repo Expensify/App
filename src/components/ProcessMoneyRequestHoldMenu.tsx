@@ -28,7 +28,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     anchorAlignment: AnchorAlignment;
 
     /** The anchor ref of the popover menu */
-    anchorRef: RefObject<View | HTMLElement>;
+    anchorRef: RefObject<View | HTMLDivElement>;
 };
 
 function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
