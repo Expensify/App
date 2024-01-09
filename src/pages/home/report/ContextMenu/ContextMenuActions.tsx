@@ -195,12 +195,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const isActionCreator = ReportUtils.isActionCreator(reportAction);
                 childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
             }
+            const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
+            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
             const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
-            return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction);
+            return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction) && (!isDeletedAction || shouldDisplayThreadReplies);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             let childReportNotificationPreference = reportAction?.childReportNotificationPreference;
@@ -231,6 +233,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const isActionCreator = ReportUtils.isActionCreator(reportAction);
                 childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
             }
+            const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
+            const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
@@ -238,7 +242,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+            return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction) && (!isDeletedAction || shouldDisplayThreadReplies);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             let childReportNotificationPreference = reportAction?.childReportNotificationPreference;

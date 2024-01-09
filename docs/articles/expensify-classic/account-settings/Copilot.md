@@ -59,7 +59,7 @@ To ensure a receipt is routed to the Expensify account in which you are a copilo
 3. Send
 
 
-# FAQ
+{% include faq-begin.md %}
 ## Can a Copilot's Secondary Login be used to forward receipts?
 Yes! A Copilot can use any of the email addresses tied to their account to forward receipts into the account of the person they're assisting.
 
@@ -67,3 +67,5 @@ Yes! A Copilot can use any of the email addresses tied to their account to forwa
 No, only the original account holder can add another Copilot to the account.
 ## Is there a restriction on the number of Copilots I can have or the number of users for whom I can act as a Copilot?
 There is no limit! You can have as many Copilots as you like, and you can be a Copilot for as many users as you need.
+
+{% include faq-end.md %}
