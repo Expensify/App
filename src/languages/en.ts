@@ -2078,7 +2078,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
+        missingTag: (params: ViolationsMissingTagParams) => `Missing ${params?.tagName ?? 'tag'}`,
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
@@ -2088,7 +2088,7 @@ export default {
         overLimitAttendee: ({amount}: ViolationsOverLimitParams) => `Amount over ${amount}/person limit`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Amount over daily ${limit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Receipt required over ${amount} ${category ? ' category limit' : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ` category limit` : ''}` : ''}`,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {

@@ -2565,7 +2565,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para categoría seleccionada',
-        missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName}`,
+        missingTag: (params: ViolationsMissingTagParams) => `Falta ${params?.tagName ?? 'etiqueta'}`,
         modifiedAmount: 'Importe superior al del recibo escaneado',
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no es de Expensiworks',
@@ -2575,7 +2575,8 @@ export default {
         overLimitAttendee: ({amount}: ViolationsOverLimitParams) => `Importe supera el límite de ${amount}/persona`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría de ${limit}/persona`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
-        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Recibo obligatorio para importes sobre ${category ? 'el limite de la categoría de ' : ''}${amount}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
+            `Recibo obligatorio${params ? ` para importes sobre${params.category ? ` el limite de la categoría de` : ''} ${params.formattedLimit}` : ''}`,
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {

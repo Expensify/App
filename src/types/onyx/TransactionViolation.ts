@@ -18,7 +18,7 @@ type TransactionViolation = {
         invoiceMarkup?: number;
         maxAge?: number;
         tagName?: string;
-        formattedLimitAmount?: string;
+        formattedLimit?: string;
         categoryLimit?: string;
         limit?: string;
         category?: string;
