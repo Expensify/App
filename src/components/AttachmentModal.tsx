@@ -5,7 +5,6 @@ import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,13 +19,14 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import type {AvatarSource} from '@libs/UserUtils';
+import type {ModalType} from '@styles/utils/generators/ModalStyleUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentView from './Attachments/AttachmentView';
 import Button from './Button';
@@ -54,10 +54,6 @@ type AttachmentModalOnyxProps = {
 
     /** The list of report actions associated with the receipt attachment, if any */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** Current user session */
-    // eslint-disable-next-line react/no-unused-prop-types
-    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 type Attachment = {
@@ -76,10 +72,10 @@ type ImagePickerResponse = {
     width: number;
 };
 
-type Data = File | ImagePickerResponse;
+type FileObject = File | ImagePickerResponse;
 
 type ChildrenProps = {
-    displayFileInModal: (data: Data) => void;
+    displayFileInModal: (data: FileObject) => void;
     show: () => void;
 };
 
@@ -158,10 +154,10 @@ function AttachmentModal({
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
-    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<string | null>(null);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
+    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [sourceState, setSourceState] = useState(source);
-    const [modalType, setModalType] = useState<ValueOf<typeof CONST.MODAL.MODAL_TYPE>>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
+    const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
@@ -184,7 +180,6 @@ function AttachmentModal({
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
-     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
      */
     const onNavigate = useCallback(
         (attachment: Attachment) => {
@@ -198,13 +193,10 @@ function AttachmentModal({
 
     /**
      * If our attachment is a PDF, return the unswipeablge Modal type.
-     * @param {String} sourceURL
-     * @param {Object} _file
-     * @returns {String}
      */
     const getModalType = useCallback(
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        (sourceURL: string, _file: File | ImagePickerResponse) =>
+        (sourceURL: string, _file: FileObject) =>
             sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -273,14 +265,14 @@ function AttachmentModal({
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const isValidFile = useCallback((_file: File) => {
-        if ((_file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (_file.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
             setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if ((_file.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (_file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
             setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
@@ -289,13 +281,10 @@ function AttachmentModal({
 
         return true;
     }, []);
-    /**
-     * @param {Object} _data
-     * @returns {Boolean}
-     */
+
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const isDirectoryCheck = useCallback((_data: Data) => {
-        if ('webkitGetAsEntry' in _data && typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry()?.isDirectory) {
+    const isDirectoryCheck = useCallback((_data: FileObject) => {
+        if ('webkitGetAsEntry' in _data && typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
@@ -304,16 +293,13 @@ function AttachmentModal({
         return true;
     }, []);
 
-    /**
-     * @param {Object} _data
-     */
     const validateAndDisplayFileToUpload = useCallback(
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        (_data: Data) => {
+        (_data: FileObject) => {
             if (!isDirectoryCheck(_data)) {
                 return;
             }
-            let fileObject: Data | null = _data;
+            let fileObject: FileObject = _data;
             if ('getAsFile' in _data && typeof _data.getAsFile === 'function') {
                 fileObject = _data.getAsFile();
             }
@@ -358,7 +344,7 @@ function AttachmentModal({
      * we're only updating the opacity of the confirm button, we must also conditionally
      * disable it.
      *
-     * @param {Boolean} shouldFadeOut If true, fade out confirm button. Otherwise fade in.
+     * @param shouldFadeOut If true, fade out confirm button. Otherwise fade in.
      */
     const updateConfirmButtonVisibility = useCallback(
         (shouldFadeOut: boolean) => {
@@ -396,7 +382,7 @@ function AttachmentModal({
         setIsAuthTokenRequiredState(isAuthTokenRequired);
     }, [isAuthTokenRequired]);
 
-    const sourceForAttachmentView = sourceState ?? source;
+    const sourceForAttachmentView = sourceState || source;
 
     const threeDotsMenuItems = useMemo(() => {
         if (!isReceiptAttachment || !parentReport || !parentReportActions) {
@@ -440,7 +426,7 @@ function AttachmentModal({
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
-    if (isNotEmptyObject(report)) {
+    if (!isEmptyObject(report)) {
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen;
     }
@@ -540,11 +526,11 @@ function AttachmentModal({
             </Modal>
             {!isReceiptAttachment && (
                 <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle as TranslationPaths) : ''}
+                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                     onConfirm={closeConfirmModal}
                     onCancel={closeConfirmModal}
                     isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason as TranslationPaths) : ''}
+                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                 />
@@ -579,8 +565,5 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
     },
 })(AttachmentModal);

@@ -275,3 +275,5 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
 });
 
 export default createModalStyleUtils;
+
+export type {ModalType};
