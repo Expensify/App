@@ -329,9 +329,10 @@ function ReportScreen({
     const onSubmitComment = useCallback(
         (text) => {
             const isTaskCreated = handleCreateTask(text);
-            if (!isTaskCreated) {
-                Report.addComment(getReportID(route), text);
+            if (isTaskCreated) {
+                return;
             }
+            Report.addComment(getReportID(route), text);
         },
         [route, handleCreateTask],
     );
