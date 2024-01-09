@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Icon, PendingAction, SimpleErrors} from '@src/types/onyx/OnyxCommon';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
@@ -133,7 +133,7 @@ type ReportRouteParams = {
 
 type ReportOfflinePendingActionAndErrors = {
     addWorkspaceRoomOrChatPendingAction: PendingAction | undefined;
-    addWorkspaceRoomOrChatErrors: Record<string, string> | null | undefined;
+    addWorkspaceRoomOrChatErrors: Errors | null | undefined;
 };
 
 type OptimisticApprovedReportAction = Pick<
@@ -292,7 +292,7 @@ type CustomIcon = {
 type OptionData = {
     text: string;
     alternateText?: string | null;
-    allReportErrors?: SimpleErrors | null;
+    allReportErrors?: Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
@@ -3885,7 +3885,7 @@ function isValidReportIDFromPath(reportIDFromPath: string): boolean {
 /**
  * Return the errors we have when creating a chat or a workspace room
  */
-function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Record<string, string> | null | undefined {
+function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
     // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to have errors for the same report at the same time, so
     // simply looking up the first truthy value will get the relevant property if it's set.
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;

@@ -1,15 +1,9 @@
 import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
-import type {ErrorFields, SimpleErrors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, ErrorsObject} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
-
-type ErrorObject = Record<string, string | undefined>;
-
-type MicroSecondOnyxError = Record<string, string | null>;
-
-type MicroSecondOnyxErrorObject = Record<string, ErrorObject>;
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
@@ -44,7 +38,7 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string | null): MicroSecondOnyxError {
+function getMicroSecondOnyxError(error: string | null): Errors {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -52,15 +46,15 @@ function getMicroSecondOnyxError(error: string | null): MicroSecondOnyxError {
  * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxErrorObject(error: ErrorObject): MicroSecondOnyxErrorObject {
+function getMicroSecondOnyxErrorObject(error: Errors): ErrorsObject {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
 type OnyxDataWithErrors = {
-    errors?: SimpleErrors;
+    errors?: Errors;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string | null {
     const errors = onyxData.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -76,7 +70,7 @@ type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
 
-function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
+function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -88,7 +82,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     return {[key]: errorsForField[key]};
 }
 
-function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
+function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -126,4 +120,3 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
 }
 
 export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
-export type {MicroSecondOnyxErrorObject, MicroSecondOnyxError};

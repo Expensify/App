@@ -12,7 +12,6 @@ import * as API from '@libs/API';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {MicroSecondOnyxError, MicroSecondOnyxErrorObject} from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -34,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
+import {Errors, ErrorsObject} from '@src/types/onyx/OnyxCommon';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -346,10 +346,10 @@ function resetMoneyRequestInfo(id = '') {
 /**
  *  Helper function to get the receipt error for money requests, or the generic error if there's no receipt
  */
-function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true): MicroSecondOnyxError | MicroSecondOnyxErrorObject {
+function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true): Errors | ErrorsObject {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
-        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source, filename});
+        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source ?? '', filename: filename ?? ''});
 }
 
 /** Builds the Onyx data for a money request */
