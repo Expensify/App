@@ -131,16 +131,19 @@ const defaultProps = {
     transactionViolations: {},
 };
 
+// We should not render the component if there is no iouReport and it's not a split.
+// Moved outside of the component scope to allow memoization of values later.
+function MoneyRequestPreviewWrapper(props) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return _.isEmpty(props.iouReport) && !props.isBillSplit ? null : <MoneyRequestPreview {...props} />;
+}
+
 function MoneyRequestPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-
-    if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
-        return null;
-    }
 
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
