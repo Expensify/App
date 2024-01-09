@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -12,11 +13,27 @@ function PlaybackContextProvider({children}) {
     const {currentReportID} = useCurrentReportID();
 
     const pauseVideo = useCallback(() => {
-        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
+        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync) {
+            currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
+        }
+    }, [currentVideoPlayerRef]);
+
+    const stopVideo = useCallback(() => {
+        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.stopAsync) {
+            currentVideoPlayerRef.current.stopAsync({shouldPlay: false});
+        }
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
+        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync) {
+            currentVideoPlayerRef.current.setStopVideo({shouldPlay: true});
+        }
+    }, [currentVideoPlayerRef]);
+
+    const unloadVideo = useCallback(() => {
+        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.unloadAsync) {
+            currentVideoPlayerRef.current.unloadAsync();
+        }
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
@@ -40,11 +57,13 @@ function PlaybackContextProvider({children}) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
+        stopVideo();
+        unloadVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
         setOriginalParent(null);
         currentVideoPlayerRef.current = null;
-    }, []);
+    }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
         if (!currentReportID) {
