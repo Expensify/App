@@ -1,24 +1,27 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import type {ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
+import {Animated, StyleSheet, View} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
-import Video from 'react-native-video';
+import Video, {ResizeMode} from 'react-native-video';
 import {splashVideoVariants} from '@components/VideoAnimations';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 import {setLastShownSplashScreenVideo} from '@libs/actions/Session';
 import BootSplash from '@libs/BootSplash';
 import type AnimatedSplashScreenProps from './types';
 
 function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: AnimatedSplashScreenProps) {
-    const styles = useThemeStyles();
+    const theme = useTheme();
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
     const opacity = useSharedValue(1);
     const randomIndex = Math.floor(Math.random() * splashVideoVariants.length);
     setLastShownSplashScreenVideo(splashVideoVariants[randomIndex].fileName);
 
-    const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
-        opacity: opacity.value,
-    }));
+    const opacityStyle = useAnimatedStyle<ViewStyle>(
+        () => ({
+            opacity: opacity.value,
+        }),
+        [opacity],
+    );
 
     useEffect(() => {
         if (!shouldHideSplashScreen) {
@@ -41,7 +44,6 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
         <Reanimated.View
             style={[
                 StyleSheet.absoluteFill,
-                styles.splashScreenHider,
                 opacityStyle,
                 {
                     // Apply negative margins to center the logo on window (instead of screen)
@@ -51,9 +53,10 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
         >
             <Video
                 useTextureView
-                resizeMode="contain"
-                source={splashVideoVariants[randomIndex].file}
+                hideShutterView
                 style={StyleSheet.absoluteFill}
+                resizeMode={ResizeMode.CONTAIN}
+                source={splashVideoVariants[randomIndex].file}
             />
         </Reanimated.View>
     );
