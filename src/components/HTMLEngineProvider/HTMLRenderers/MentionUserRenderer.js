@@ -39,7 +39,7 @@ function MentionUserRenderer(props) {
     let displayNameOrLogin;
     let navigationRoute;
     const tnode = props.tnode;
-
+    
     const getMentionDisplayText = (displayText, accountId, userLogin = '') => {
         if (accountId && userLogin !== displayText) {
             return displayText;
@@ -58,11 +58,9 @@ function MentionUserRenderer(props) {
         displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID, lodashGet(user, 'login', ''));
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if (!_.isEmpty(tnode.data)) {
-        displayNameOrLogin = tnode.data;
-        tnode.data = tnode.data.replace(displayNameOrLogin, getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID));
-
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
-        displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID);
+        displayNameOrLogin = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
+        tnode.data = tnode.data.replace(displayNameOrLogin, getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID));
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
@@ -89,7 +87,7 @@ function MentionUserRenderer(props) {
                     <UserDetailsTooltip
                         accountID={accountID}
                         fallbackUserDetails={{
-                            displayName: displayNameOrLogin,
+                            displayName: 'displayNameOrLogin',
                         }}
                     >
                         <Text
