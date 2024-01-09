@@ -8,10 +8,6 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
-#-keep class com.facebook.hermes.unicode.** { *; }
-#-keep class com.facebook.jni.** { *; }
 
 -keep class com.expensify.chat.BuildConfig { *; }
-
-# Remove below to be specific, instead of escaping whole
--keep class expo.modules.** { *; }
+-keep, allowoptimization, allowobfuscation class expo.modules.** { *; }
