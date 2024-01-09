@@ -7,13 +7,7 @@ import type {HTMLEngineProviderProps} from './types';
 function HTMLEngineProvider({children = null}: HTMLEngineProviderProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    return (
-        <BaseHTMLEngineProvider
-            textSelectable={!DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth}
-        >
-            {children}
-        </BaseHTMLEngineProvider>
-    );
+    return <BaseHTMLEngineProvider textSelectable={!DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth}>{children}</BaseHTMLEngineProvider>;
 }
 
 HTMLEngineProvider.displayName = 'HTMLEngineProvider';

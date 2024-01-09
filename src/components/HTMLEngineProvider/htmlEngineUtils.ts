@@ -47,7 +47,7 @@ function isChildOfNode(tnode: TNode, predicate: Predicate): boolean {
  * Finding node with name 'comment' flags that we are rendering a comment.
  */
 function isChildOfComment(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && isCommentTag(node.domNode?.name)) ;
+    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && isCommentTag(node.domNode?.name));
 }
 
 /**
