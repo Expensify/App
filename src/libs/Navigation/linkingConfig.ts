@@ -305,9 +305,9 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: {
+                    [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
                         screens: {
-                            [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: ROUTES.REPORT_WELCOME_MESSAGE.route,
+                            [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.NEW_CHAT]: {

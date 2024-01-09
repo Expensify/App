@@ -8,6 +8,7 @@ import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
 import {withNetwork} from '@components/OnyxProvider';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -235,6 +236,13 @@ function ReportDetailsPage(props) {
                             )}
                         </View>
                     </View>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={isPolicyAdmin}
+                        title={props.report.description}
+                        shouldRenderAsHTML
+                        description={props.translate('common.description')}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
+                    />
                     {_.map(menuItems, (item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';

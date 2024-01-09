@@ -63,9 +63,6 @@ function ReportSettingsPage(props) {
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    // We only want policy owners and admins to be able to modify the welcome message, but not in thread chat
-    const shouldDisableWelcomeMessage = ReportUtils.shouldDisableWelcomeMessage(report, linkedWorkspace);
-
     const shouldDisableSettings = _.isEmpty(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference =
@@ -192,14 +189,6 @@ function ReportSettingsPage(props) {
                             </View>
                         )}
                     </View>
-                    {!shouldDisableWelcomeMessage && (
-                        <MenuItem
-                            title={translate('welcomeMessagePage.welcomeMessage')}
-                            icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WELCOME_MESSAGE.getRoute(report.reportID))}
-                            shouldShowRightIcon
-                        />
-                    )}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>

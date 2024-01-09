@@ -35,7 +35,7 @@ const propTypes = {
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            /** Report ID passed via route r/:reportID/welcomeMessage */
+            /** Report ID passed via route r/:reportID/roomDescription */
             reportID: PropTypes.string,
         }),
     }).isRequired,
@@ -45,26 +45,26 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-function ReportWelcomeMessagePage(props) {
+function ReportDescriptionPage(props) {
     const styles = useThemeStyles();
     const parser = new ExpensiMark();
-    const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(props.report.welcomeMessage));
-    const welcomeMessageInputRef = useRef(null);
+    const [description, setdescription] = useState(() => parser.htmlToMarkdown(props.report.description));
+    const reportDescriptionInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
 
-    const handleWelcomeMessageChange = useCallback((value) => {
-        setWelcomeMessage(value);
+    const handleReportDescriptionChange = useCallback((value) => {
+        setdescription(value);
     }, []);
 
     const submitForm = useCallback(() => {
-        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
-    }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
+        Report.updateDescription(props.report.reportID, props.report.description, description.trim());
+    }, [props.report.reportID, props.report.description, description]);
 
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
-                if (welcomeMessageInputRef.current) {
-                    welcomeMessageInputRef.current.focus();
+                if (reportDescriptionInputRef.current) {
+                    reportDescriptionInputRef.current.focus();
                 }
                 return () => {
                     if (!focusTimeoutRef.current) {
@@ -80,27 +80,27 @@ function ReportWelcomeMessagePage(props) {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom={false}
-            testID={ReportWelcomeMessagePage.displayName}
+            testID={ReportDescriptionPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableWelcomeMessage(props.report, props.policy)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableReportDescription(props.report, props.policy)}>
                 <HeaderWithBackButton
-                    title={props.translate('welcomeMessagePage.welcomeMessage')}
+                    title={props.translate('reportDescriptionPage.roomDescription')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
+                    formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION}
                     onSubmit={submitForm}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
+                    <Text style={[styles.mb5]}>{props.translate('reportDescriptionPage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID="welcomeMessage"
-                            label={props.translate('welcomeMessagePage.welcomeMessage')}
-                            accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
+                            inputID="reportDescription"
+                            label={props.translate('reportDescriptionPage.roomDescription')}
+                            accessibilityLabel={props.translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
@@ -108,11 +108,11 @@ function ReportWelcomeMessagePage(props) {
                                 if (!el) {
                                     return;
                                 }
-                                welcomeMessageInputRef.current = el;
-                                updateMultilineInputRange(welcomeMessageInputRef.current);
+                                reportDescriptionInputRef.current = el;
+                                updateMultilineInputRange(reportDescriptionInputRef.current);
                             }}
-                            value={welcomeMessage}
-                            onChangeText={handleWelcomeMessageChange}
+                            value={description}
+                            onChangeText={handleReportDescriptionChange}
                             autoCapitalize="none"
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
@@ -123,9 +123,9 @@ function ReportWelcomeMessagePage(props) {
     );
 }
 
-ReportWelcomeMessagePage.displayName = 'ReportWelcomeMessagePage';
-ReportWelcomeMessagePage.propTypes = propTypes;
-ReportWelcomeMessagePage.defaultProps = defaultProps;
+ReportDescriptionPage.displayName = 'ReportDescriptionPage';
+ReportDescriptionPage.propTypes = propTypes;
+ReportDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -135,4 +135,4 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
-)(ReportWelcomeMessagePage);
+)(ReportDescriptionPage);

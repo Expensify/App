@@ -116,6 +116,10 @@ function HeaderView(props) {
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const reportDescription = ReportUtils.getReportDescriptionText(props.report);
+    const policyName = ReportUtils.getPolicyName(props.report);
+    // const policyDescription = ReportUtils.getPolicyDescription(props.report.policyID);
+    const description = reportDescription;
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -271,14 +275,33 @@ function HeaderView(props) {
                                         />
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
-                                        <DisplayNames
-                                            fullTitle={title}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={[styles.headerText, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
-                                        />
+                                        <View style={[styles.flex1, styles.flexRow, styles.gap1, styles.alignItemsBaseline]}>
+                                            <DisplayNames
+                                                fullTitle={title}
+                                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={[styles.headerText, styles.pre]}
+                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                            />
+                                            {!_.isEmpty(policyName) &&
+                                                !_.isEmpty(reportDescription) && ( // code for the policyName display
+                                                    <>
+                                                        <Text
+                                                            style={[styles.sidebarLinkText, styles.textLabelSupporting]}
+                                                            numberOfLines={1}
+                                                        >
+                                                            {translate('threads.in')}
+                                                        </Text>
+                                                        <Text
+                                                            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}
+                                                            numberOfLines={1}
+                                                        >
+                                                            {policyName}
+                                                        </Text>
+                                                    </>
+                                                )}
+                                        </View>
                                         {!_.isEmpty(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
@@ -286,12 +309,20 @@ function HeaderView(props) {
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!_.isEmpty(subtitle) && (
+                                        {!_.isEmpty(subtitle) && _.isEmpty(description) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
                                             >
                                                 {subtitle}
+                                            </Text>
+                                        )}
+                                        {!_.isEmpty(description) && (
+                                            <Text
+                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                numberOfLines={1}
+                                            >
+                                                {description}
                                             </Text>
                                         )}
                                     </View>

@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -73,17 +74,23 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 )}
                 {isChatRoom && (
                     <>
-                        <Text>{roomWelcomeMessage.phrase1}</Text>
-                        {roomWelcomeMessage.showReportName && (
-                            <Text
-                                style={[styles.textStrong]}
-                                onPress={navigateToReport}
-                                suppressHighlighting
-                            >
-                                {ReportUtils.getReportName(report)}
-                            </Text>
+                        {report?.description ? (
+                            <RenderHTML html={report.description} />
+                        ) : (
+                            <>
+                                <Text>{roomWelcomeMessage.phrase1}</Text>
+                                {roomWelcomeMessage.showReportName && (
+                                    <Text
+                                        style={[styles.textStrong]}
+                                        onPress={navigateToReport}
+                                        suppressHighlighting
+                                    >
+                                        {ReportUtils.getReportName(report)}
+                                    </Text>
+                                )}
+                                {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
+                            </>
                         )}
-                        {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                     </>
                 )}
                 {isDefault && (

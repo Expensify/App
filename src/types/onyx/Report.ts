@@ -116,7 +116,6 @@ type Report = {
     lastVisibleActionLastModified?: string;
     displayName?: string;
     lastMessageHtml?: string;
-    welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
     participantAccountIDs?: number[];

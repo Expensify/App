@@ -1032,10 +1032,10 @@ export default {
             },
         },
     },
-    welcomeMessagePage: {
-        welcomeMessage: 'Mensaje de bienvenida',
-        welcomeMessageOptional: 'Mensaje de bienvenida (opcional)',
-        explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
+    reportDescriptionPage: {
+        roomDescription: 'Descripción de la habitación',
+        roomDescriptionOptional: 'Descripción de la habitación (opcional)',
+        explainerText: 'Establece una descripción personalizada para la habitación.',
     },
     languagePage: {
         language: 'Idioma',

@@ -218,7 +218,7 @@ type OptimisticChatReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'visibility'
-    | 'welcomeMessage'
+    | 'description'
     | 'writeCapability'
 >;
 
@@ -2388,6 +2388,15 @@ function getParsedComment(text: string): string {
     return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : lodashEscape(text);
 }
 
+function getReportDescriptionText(report: Report): string {
+    if (!report.description) {
+        return '';
+    }
+
+    const parser = new ExpensiMark();
+    return parser.htmlToText(report.description);
+}
+
 function buildOptimisticAddCommentReportAction(text?: string, file?: File): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
@@ -3075,7 +3084,7 @@ function buildOptimisticChatReport(
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
-    welcomeMessage = '',
+    description = '',
 ): OptimisticChatReport {
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
@@ -3104,7 +3113,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
-        welcomeMessage,
+        description,
         writeCapability,
     };
 }
@@ -3585,7 +3594,7 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging welcome message whispers as they can be set by any room creator
-        if (report?.welcomeMessage && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.welcomeMessage) {
+        if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.description) {
             return true;
         }
 
@@ -4270,7 +4279,7 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 /**
  *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
  */
-function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function shouldDisableReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 /**
@@ -4525,13 +4534,14 @@ export {
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
-    shouldDisableWelcomeMessage,
+    shouldDisableReportDescription,
     navigateToPrivateNotes,
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    getReportDescriptionText,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};

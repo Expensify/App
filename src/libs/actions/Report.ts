@@ -1481,39 +1481,39 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
-function updateWelcomeMessage(reportID: string, previousValue: string, newValue: string) {
+function updateDescription(reportID: string, previousValue: string, newValue: string) {
     // No change needed, navigate back
     if (previousValue === newValue) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
         return;
     }
 
-    const parsedWelcomeMessage = ReportUtils.getParsedComment(newValue);
+    const parsedDescription = ReportUtils.getParsedComment(newValue);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: parsedWelcomeMessage},
+            value: {description: parsedDescription},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: previousValue},
+            value: {description: previousValue},
         },
     ];
 
-    type UpdateWelcomeMessageParameters = {
+    type UpdateReportDescriptionParameters = {
         reportID: string;
-        welcomeMessage: string;
+        description: string;
     };
 
-    const parameters: UpdateWelcomeMessageParameters = {reportID, welcomeMessage: parsedWelcomeMessage};
+    const parameters: UpdateReportDescriptionParameters = {reportID, description: parsedDescription};
 
-    API.write('UpdateWelcomeMessage', parameters, {optimisticData, failureData});
-    Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+    API.write('UpdateRoomDescription', parameters, {optimisticData, failureData});
+    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 }
 
 function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapability) {
@@ -1649,7 +1649,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
         reportName?: string;
         visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
         writeCapability?: WriteCapability;
-        welcomeMessage?: string;
+        description?: string;
     };
 
     const parameters: AddWorkspaceRoomParameters = {
@@ -1659,7 +1659,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
         reportID: policyReport.reportID,
         createdReportActionID: createdReportAction.reportActionID,
         writeCapability: policyReport.writeCapability,
-        welcomeMessage: policyReport.welcomeMessage,
+        description: policyReport.description,
     };
 
     API.write('AddWorkspaceRoom', parameters, {optimisticData, successData, failureData});
@@ -2590,7 +2590,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
-    updateWelcomeMessage,
+    updateDescription,
     updateWriteCapabilityAndNavigate,
     updateNotificationPreference,
     subscribeToReportTypingEvents,
