@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -63,7 +62,7 @@ function LHNOptionsList({
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
                     onSelectRow={onSelectRow}
-                    preferredLocale={preferredLocale ?? CONST.LOCALES.DEFAULT}
+                    preferredLocale={preferredLocale}
                     comment={itemComment}
                 />
             );
@@ -91,7 +90,7 @@ function LHNOptionsList({
 
 LHNOptionsList.displayName = 'LHNOptionsList';
 
-export default compose(
+export default withCurrentReportID(
     withOnyx<LHNOptionsListProps, LHNOptionsListOnyxProps>({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -114,8 +113,7 @@ export default compose(
         draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
-    }),
-    withCurrentReportID,
-)(LHNOptionsList);
+    })(LHNOptionsList),
+);
 
 export type {LHNOptionsListProps};

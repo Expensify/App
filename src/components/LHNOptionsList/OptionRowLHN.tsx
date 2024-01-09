@@ -148,7 +148,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                             showPopover(event);
                             // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
                             if (DomUtils.getActiveElement()) {
-                                (DomUtils.getActiveElement() as HTMLElement)?.blur();
+                                (DomUtils.getActiveElement() as HTMLElement | null)?.blur();
                             }
                         }}
                         withoutFocusOnSecondaryInteraction
@@ -169,17 +169,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {optionItem.icons?.length &&
+                                {(optionItem.icons?.length ?? 0) > 0 &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem.icons[0]}
-                                            secondaryAvatar={optionItem.icons[1]}
+                                            mainAvatar={optionItem.icons?.[0]}
+                                            secondaryAvatar={optionItem.icons?.[1]}
                                             size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            icons={optionItem.icons}
+                                            icons={optionItem.icons ?? []}
                                             isFocusMode={viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
