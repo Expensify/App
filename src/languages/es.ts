@@ -1822,6 +1822,8 @@ export default {
         success: {
             title: '!Descargado!',
             message: 'Archivo descargado correctamente',
+            qrMessage:
+                'Busca la copia de tu código QR en la carpeta de fotos o descargas. Consejo: Añádelo a una presentación para que el público pueda escanearlo y conectar contigo directamente.',
         },
         generalError: {
             title: 'Error en la descarga',
