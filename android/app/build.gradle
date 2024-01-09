@@ -149,9 +149,6 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // ndk {
-            //     abiFilters "arm64-v8a"
-            // }
             productFlavors.production.signingConfig signingConfigs.debug
             shrinkResources enableProguardInReleaseBuilds
             minifyEnabled enableProguardInReleaseBuilds
