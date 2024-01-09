@@ -20,8 +20,9 @@ Expensify allows you to request reimbursement for mileage by creating a distance
 
 
 
-# FAQs
+{% include faq-begin.md %}
 
 ## Is there an easy way to reuse recent locations?
 
 Yes! We save your recently used locations and list them out on the page where you select the Start and Finish.
+{% include faq-end.md %}

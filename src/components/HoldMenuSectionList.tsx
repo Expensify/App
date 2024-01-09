@@ -1,10 +1,11 @@
 import React from 'react';
-import {ImageSourcePropType, View} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import {View} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';

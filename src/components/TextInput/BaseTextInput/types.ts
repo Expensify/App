@@ -29,6 +29,9 @@ type CustomBaseTextInputProps = {
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
+    /** Customizes the touchable wrapper of the TextInput component */
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Customize the main container */
     containerStyles?: StyleProp<ViewStyle>;
 
