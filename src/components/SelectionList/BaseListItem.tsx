@@ -47,7 +47,7 @@ function BaseListItem({
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                testID={keyForList}
+                nativeID={keyForList}
             >
                 <View
                     style={[
