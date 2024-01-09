@@ -1,7 +1,7 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OnyxReport from '@src/types/onyx/Report';
-import IconAsset from '@src/types/utils/IconAsset';
+import type OnyxReport from '@src/types/onyx/Report';
+import type IconAsset from '@src/types/utils/IconAsset';
 import * as Report from './actions/Report';
 import * as Session from './actions/Session';
 import * as Localize from './Localize';
