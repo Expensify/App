@@ -1,17 +1,11 @@
 import * as Expensicons from '@components/Icon/Expensicons';
 import type OnyxReport from '@src/types/onyx/Report';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type { ThreeDotsMenuItem } from '@components/HeaderWithBackButton/types';
 import * as Report from './actions/Report';
 import * as Session from './actions/Session';
 import * as Localize from './Localize';
 
-type MenuItem = {
-    icon: IconAsset;
-    text: string;
-    onSelected: () => void;
-};
-
-function getPinMenuItem(report: OnyxReport): MenuItem {
+function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     const isPinned = !!report.isPinned;
 
     return {
