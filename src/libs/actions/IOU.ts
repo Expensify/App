@@ -60,6 +60,8 @@ type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
+type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
+
 type MoneyRequestInformation = {
     payerAccountID: number;
     payerEmail: string;
@@ -1509,7 +1511,7 @@ function createSplitsAndOnyxData(
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
         // For Control policy expense chats, if the report is already approved, create a new expense report
-        let oneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] ?? undefined : undefined;
+        let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] ?? undefined : undefined;
         const shouldCreateNewOneOnOneIOUReport =
             oneOnOneIOUReport === undefined || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
@@ -1523,8 +1525,7 @@ function createSplitsAndOnyxData(
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport as OnyxTypes.Report, currentUserAccountID, splitAmount, currency);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport ?? null, currentUserAccountID, splitAmount, currency);
         }
 
         // STEP 3: Build optimistic transaction
@@ -2145,7 +2146,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID] : []);
         }
 
-        let oneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] ?? undefined : undefined;
+        let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] ?? undefined : undefined;
         const shouldCreateNewOneOnOneIOUReport =
             oneOnOneIOUReport === undefined || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
 
@@ -2159,8 +2160,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport as OnyxTypes.Report, sessionAccountID, splitAmount, currency ?? '');
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport ?? null, sessionAccountID, splitAmount, currency ?? '');
         }
 
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -2556,7 +2556,7 @@ function updateMoneyRequestAmountAndCurrency(transactionID: string, transactionT
 
 function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     // STEP 1: Get all collections we're updating
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${(reportAction.originalMessage as IOUMessage).IOUReportID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${(reportAction.originalMessage as IOUMessage).IOUReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -2612,8 +2612,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             }
         } else {
             updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                iouReport as OnyxTypes.Report,
+                iouReport,
                 reportAction.actorAccountID ?? -1,
                 TransactionUtils.getAmount(transaction, false),
                 TransactionUtils.getCurrency(transaction),
@@ -2621,14 +2620,16 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             );
         }
 
-        updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
+        if (updatedIOUReport) {
+            updatedIOUReport.lastMessageText = iouReportLastMessageText;
+            updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
+        }
 
         updatedReportPreviewAction = reportPreviewAction ? {...reportPreviewAction} : null;
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
         const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
             payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? -1).login ?? '',
-            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
+            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
         });
 
         if (updatedReportPreviewAction?.message?.[0]) {
