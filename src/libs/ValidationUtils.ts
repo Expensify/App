@@ -35,7 +35,7 @@ function validateCardNumber(value: string): boolean {
  * Validating that this is a valid address (PO boxes are not allowed)
  */
 function isValidAddress(value: string): boolean {
-    if (!CONST.REGEX.ANY_VALUE.test(value)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
 
@@ -307,6 +307,13 @@ function isValidRoutingNumber(routingNumber: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain any emojis
+ */
+function isValidCompanyName(name: string) {
+    return !name.match(CONST.REGEX.EMOJIS);
+}
+
+/**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
 function isValidDisplayName(name: string): boolean {
@@ -452,6 +459,7 @@ export {
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
+    isValidCompanyName,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,

@@ -13,8 +13,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -334,7 +334,7 @@ function MoneyRequestParticipantsSelector({
                 shouldShowOptions={isOptionsDataReady}
                 shouldShowReferralCTA
                 referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
-                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 shouldDelayFocus
                 footerContent={isAllowedToSplit && footerContent}
                 isLoadingNewOptions={isSearchingForReports}
