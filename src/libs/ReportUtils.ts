@@ -3425,6 +3425,14 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
+ * Checks to see if the current user is a participant on the report
+ */
+function isCurrentUserParticipant(report: OnyxEntry<Report>) {
+    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    return currentUserAccountID && participantAccountIDs.includes(currentUserAccountID);
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -4533,6 +4541,7 @@ export {
     shouldAutoFocusOnKeyPress,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    isCurrentUserParticipant,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};

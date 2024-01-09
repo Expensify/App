@@ -151,7 +151,11 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+    let reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+
+    // When searching for chats via the Search screen it is possible to end up with chats that you are not a participant of i.e. you are not shared the report at all.
+    // These chats should never be shown in the LHN as the user is not a participant and has not "joined" the room yet
+    reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.isCurrentUserParticipant(report));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
