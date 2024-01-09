@@ -54,7 +54,7 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
     Coin: {
         file: require('@assets/animations/Coin.lottie'),
         w: 375,
-        h: 250,
+        h: 240,
     }
 };
 

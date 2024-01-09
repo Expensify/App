@@ -97,7 +97,7 @@ function AboutPage(props) {
     }, [translate, waitForNavigate]);
 
     const overlayContent = () => (
-        <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb1]}>
+        <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb5]}>
             <Text
                 selectable
                 style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
