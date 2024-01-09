@@ -1320,10 +1320,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, (report) => {
         const {parentReportID, parentReportActionID} = report || {};
-        if (!parentReportID || !parentReportActionID || !allReportActions) {
-            return false;
-        }
-        const parentReportAction = lodashGet(allReportActions, [parentReportID, parentReportActionID], {});
+        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -1335,7 +1332,7 @@ function getOptions(
                 ReportUtils.doesTransactionThreadHaveViolations({
                     report,
                     transactionViolations,
-                    parentReportAction,
+                    parentReportAction: canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {},
                 }),
         });
     });
