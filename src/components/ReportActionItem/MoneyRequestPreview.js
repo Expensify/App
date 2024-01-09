@@ -397,6 +397,9 @@ function MoneyRequestPreview(props) {
 MoneyRequestPreview.propTypes = propTypes;
 MoneyRequestPreview.defaultProps = defaultProps;
 MoneyRequestPreview.displayName = 'MoneyRequestPreview';
+MoneyRequestPreviewWrapper.propTypes = propTypes;
+MoneyRequestPreviewWrapper.defaultProps = defaultProps;
+MoneyRequestPreviewWrapper.displayName = 'MoneyRequestPreviewWrapper';
 
 export default withOnyx({
     personalDetails: {
@@ -420,4 +423,4 @@ export default withOnyx({
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     },
-})(MoneyRequestPreview);
+})(MoneyRequestPreviewWrapper);
