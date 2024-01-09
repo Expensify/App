@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ExoPlayerView.java b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ExoPlayerView.java
+index c88d5ed..3f20d16 100644
+--- a/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ExoPlayerView.java
++++ b/node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ExoPlayerView.java
+@@ -132,6 +132,7 @@ public final class ExoPlayerView extends FrameLayout implements AdViewProvider {
+             }
+         } else {
+             view = new TextureView(context);
++            ((TextureView)view).setOpaque(false);
+         }
+         view.setLayoutParams(layoutParams);
+ 
