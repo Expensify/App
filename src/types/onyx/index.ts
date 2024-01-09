@@ -9,7 +9,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-import type {AddDebitCardForm, DateOfBirthForm} from './Form';
+import type {AddDebitCardForm, AddressForm, DateOfBirthForm} from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -70,6 +70,7 @@ export type {
     Account,
     AccountData,
     AddDebitCardForm,
+    AddressForm,
     BankAccount,
     BankAccountList,
     Beta,
