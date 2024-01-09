@@ -17,6 +17,7 @@ import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboar
 import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -362,18 +363,37 @@ function BaseSelectionList({
         }, [shouldShowTextInput]),
     );
 
+    const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (isInitialSectionListRender) {
+        if (isInitialSectionListRender || prevTextInputValue === textInputValue) {
             return;
         }
-
         // set the focus on the first item when the sections list is changed
         if (sections.length > 0) {
-            updateAndScrollToFocusedIndex(0);
+            let newSelectedIndex;
+
+            if (textInputValue === '') {
+                // if the textInputValue is empty then focus is removed
+                newSelectedIndex = -1;
+            } else {
+                // if multiple selection then focus on the first non-selected item
+                // else focus on the first item
+                newSelectedIndex = canSelectMultiple ? flattenedSections.selectedOptions.length + flattenedSections.disabledOptionsIndexes.length : 0;
+            }
+
+            updateAndScrollToFocusedIndex(newSelectedIndex);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sections]);
+    }, [
+        canSelectMultiple,
+        flattenedSections.disabledOptionsIndexes.length,
+        flattenedSections.selectedOptions.length,
+        isInitialSectionListRender,
+        prevTextInputValue,
+        sections,
+        textInputValue,
+        updateAndScrollToFocusedIndex,
+    ]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
@@ -389,6 +409,39 @@ function BaseSelectionList({
         shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
         isActive: !disableKeyboardShortcuts && Boolean(onConfirm) && isFocused,
     });
+
+    function sortSectionItems(sectionsList) {
+        // If multiple selection is not allowed, return the original list
+        if (!canSelectMultiple) {
+            return sectionsList;
+        }
+
+        return _.map(sectionsList, (section) => {
+            // Classify each item in the section
+            const disabledItems = [];
+            const selectedItems = [];
+            const unselectedItems = [];
+
+            section.data.forEach((item) => {
+                if (item.isDisabled) {
+                    disabledItems.push(item);
+                } else if (item.isSelected) {
+                    selectedItems.push(item);
+                } else {
+                    unselectedItems.push(item);
+                }
+            });
+
+            // Combine items in the order: disabled, selected, unselected
+            const sortedData = [...disabledItems, ...selectedItems, ...unselectedItems];
+
+            // Return the section with updated data
+            return {
+                ...section,
+                data: sortedData,
+            };
+        });
+    }
 
     return (
         <ArrowKeyFocusManager
@@ -460,7 +513,7 @@ function BaseSelectionList({
                                 )}
                                 <SectionList
                                     ref={listRef}
-                                    sections={sections}
+                                    sections={sortSectionItems(sections)}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
