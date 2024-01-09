@@ -1319,21 +1319,18 @@ function getOptions(
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, (report) => {
-        const {parentReportID, parentReportActionID} = report;
+        const {parentReportID, parentReportActionID} = report || {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+        const parentReportAction = canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {};
+        const doesReportTransactionThreadHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: Navigation.getTopmostReportId(),
             betas,
             policies,
-            doesReportTransactionThreadHaveViolations:
-                betas.includes(CONST.BETAS.VIOLATIONS) &&
-                ReportUtils.doesTransactionThreadHaveViolations({
-                    report,
-                    transactionViolations,
-                    parentReportAction: canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {},
-                }),
+            doesReportTransactionThreadHaveViolations,
         });
     });
 
