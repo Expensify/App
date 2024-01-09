@@ -136,12 +136,16 @@ function Expensify(props) {
         Navigation.setIsNavigationReady();
     }, []);
 
-    const onSplashHide = useCallback(() => {
+    // Callback invoked once we want to hide our animated, build in RN, splash screen
+    const hideRNSplashScreen = useCallback(() => {
         setIsSplashHidden(true);
     }, []);
+
+    // Hide the native splash screen as soon as possible
     useEffect(() => {
         BootSplash.hide();
     }, []);
+
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
@@ -240,9 +244,11 @@ function Expensify(props) {
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
+
+            {/* Initially, show a animated splash screen implemented in react native: */}
             {!isSplashHidden && (
                 <AnimatedSplashScreen
-                    onHide={onSplashHide}
+                    onHide={hideRNSplashScreen}
                     shouldHideSplashScreen={shouldHideSplash}
                 />
             )}
