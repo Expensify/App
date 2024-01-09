@@ -82,7 +82,6 @@ class ShareCodePage extends React.Component {
         return (
             <ScreenWrapper
                 testID={ShareCodePage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
