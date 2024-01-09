@@ -45,7 +45,7 @@ Onyx.connect({
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'>): string {
+function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
