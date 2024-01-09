@@ -1,10 +1,9 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {act, fireEvent, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import SearchPage from '@pages/SearchPage';
-import createRandomReport from '../utils/collections/reports';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -13,27 +12,12 @@ import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                isFocused={false}
-            />
-        );
-    }
-
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
-});
 
 jest.mock('../../src/libs/Navigation/Navigation');
 
@@ -58,7 +42,7 @@ jest.mock('@react-navigation/native', () => {
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Array.from({length}, (__, i) => {
         const reportID = i + 1;
-        const report = createRandomReport(reportID)
+        const report = createRandomReport(reportID);
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
 
         return {[reportKey]: report};
@@ -67,10 +51,9 @@ const getMockedReportsMap = (length = 100) => {
     return _.assign({}, ...mockReports);
 };
 
-const mockedReports = getMockedReportsMap(500);
+const mockedReports = getMockedReportsMap(600);
 const mockedBetas = _.values(CONST.BETAS);
 const mockedPersonalDetails = LHNTestUtils.fakePersonalDetails;
-
 
 beforeAll(() =>
     Onyx.init({
@@ -93,36 +76,60 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-function SearchPageWrapper() {
+function SearchPageWrapper(args) {
     return (
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                CurrentReportIDContextProvider,
-                KeyboardStateProvider,
-                WindowDimensionsProvider,
-                LocaleContextProvider,
-            ]}
-        >
-            <SearchPage/>
+        <ComposeProviders components={[OnyxProvider, CurrentReportIDContextProvider, KeyboardStateProvider, WindowDimensionsProvider, LocaleContextProvider]}>
+            <SearchPage
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...args}
+                navigation={args.navigation}
+            />
         </ComposeProviders>
     );
 }
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
- 
- test('[Search Page] should interact when text input changes', () => {
+
+/**
+ * This is a helper function to create a mock for the addListener function of the react-navigation library.
+ * Same aproach as in ReportScreen.perf-test.js
+ * 
+ * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
+ *
+ * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
+ */
+const createAddListenerMock = () => {
+    const transitionEndListeners = [];
+    const triggerTransitionEnd = () => {
+        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
+    };
+
+    const addListener = jest.fn().mockImplementation((listener, callback) => {
+        if (listener === 'transitionEnd') {
+            transitionEndListeners.push(callback);
+        }
+        return () => {
+            _.filter(transitionEndListeners, (cb) => cb !== callback);
+        };
+    });
+
+    return {triggerTransitionEnd, addListener};
+};
+
+
+test('[Search Page] should interact when text input changes', async () => {
+    const {addListener} = createAddListenerMock();
+
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
 
         const input = screen.getByTestId('options-selector-input');
-        
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
-
     };
-    
+
+    const navigation = {addListener};
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -134,23 +141,55 @@ const runs = CONST.PERFORMANCE_TESTS.RUNS;
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
+});
+
+test('[Search Page] should render options list', async () => {
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+
+    const scenario = async () => {
+        await screen.findByTestId('SearchPage');
+        await act(triggerTransitionEnd);
+        await screen.findByText('email2@test.com');
+        await screen.findByText('email3@test.com');
+    };
+
+    const navigation = {addListener};
+
+    return waitForBatchedUpdates()
         .then(() =>
-            measurePerformance(
-                <SearchPageWrapper/>,
-                {scenario, runs},
-            ),
-        );
-}); 
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
+});
 
+test('[Search Page] should search in options list', async () => {
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
 
-test('[Search Page] should render options list', () => {
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('options-selector-input');
 
         fireEvent.changeText(input, 'email5@test.com');
+        await act(triggerTransitionEnd);
         await screen.findByText('email5@test.com');
+
+        fireEvent.changeText(input, 'email8@test.com');
+        await act(triggerTransitionEnd);
+        await screen.findByText('email8@test.com');
+
+        fireEvent.changeText(input, 'email2@test.com');
+        await act(triggerTransitionEnd);
+        await screen.findByText('email2@test.com');
     };
+
+    const navigation = {addListener};
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -160,23 +199,26 @@ test('[Search Page] should render options list', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-
             }),
         )
-        .then(() => measurePerformance(<SearchPageWrapper />, {scenario, runs}));
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
 });
 
-test('[Search Page] should click on list item', () => {
+test('[Search Page] should click on list item', async () => {
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('options-selector-input');
 
         fireEvent.changeText(input, 'email6@test.com');
+        await act(triggerTransitionEnd);
         const optionButton = await screen.findByText('email6@test.com');
 
         fireEvent.press(optionButton);
     };
 
+    const navigation = {addListener};
     return waitForBatchedUpdates()
         .then(() =>
             Onyx.multiSet({
@@ -187,5 +229,5 @@ test('[Search Page] should click on list item', () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measurePerformance(<SearchPageWrapper />, {scenario, runs}));
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
 });

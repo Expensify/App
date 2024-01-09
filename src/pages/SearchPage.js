@@ -33,6 +33,8 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+
+    navigation: PropTypes.shape({})
 };
 
 const defaultProps = {
@@ -40,9 +42,10 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
+    navigation: {}
 };
 
-function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
+function SearchPage({betas, personalDetails, reports, isSearchingForReports, navigation}) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
         recentReports: {},
@@ -165,6 +168,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             includeSafeAreaPaddingBottom={false}
             testID={SearchPage.displayName}
             onEntryTransitionEnd={updateOptions}
+            navigation={navigation}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>

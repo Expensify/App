@@ -52,7 +52,8 @@ const ScreenWrapper = React.forwardRef(
     ) => {
         /**
          * We are only passing navigation as prop from
-         * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+         * ReportScreenWrapper -> ReportScreen -> ScreenWrapper and 
+         * SearchPage -> ScreenWrapper
          *
          * so in other places where ScreenWrapper is used, we need to
          * fallback to useNavigation.
