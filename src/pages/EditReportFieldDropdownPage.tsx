@@ -41,7 +41,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                     text: option,
                     keyForList: option,
                     searchText: option,
-                    tooltipText: option
+                    tooltipText: option,
                 })),
             },
         ];
