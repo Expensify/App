@@ -142,6 +142,7 @@ function ReportPreview(props) {
             hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to run when transactions get updated
     }, [props.transactions, props.iouReportID, props.action]);
 
     const managerID = props.iouReport.managerID || 0;
