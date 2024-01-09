@@ -49,6 +49,9 @@ type AuthScreensProps = {
 
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
+
+    /** The last Onyx update ID was applied to the client */
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
@@ -142,7 +145,7 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -187,7 +190,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient);
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -335,5 +338,8 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     isUsingMemoryOnlyKeys: {
         key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+    },
+    initialLastUpdateIDAppliedToClient: {
+        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
 })(AuthScreensMemoized);
