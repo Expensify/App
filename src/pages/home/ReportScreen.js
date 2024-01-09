@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -171,8 +171,8 @@ function ReportScreen({
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const firstRenderRef = useRef(true);
+    const isLinkingLoaderRef = useRef(!!reportActionID);
     const prevReport = usePrevious(report);
-    const [firstRenderLinkingLoader, setFirstRenderLinkingLoader] = useState(!!reportActionID);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
 
@@ -184,8 +184,21 @@ function ReportScreen({
         const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
         const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
         return reportActionsWithoutDeleted;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActionID, allReportActions, isOffline]);
+
+    // We define this here because if we have a cached elements, reportActions would trigger them immediately, causing a visible blink. Therefore, it's necessary to define it simultaneously with reportActions. We use a ref for this purpose, as there's no need to trigger a re-render, unlike changing the state with isLoadingInitialReportActions would do.
+    useMemo(() => {
+        isLinkingLoaderRef.current = !!reportActionID;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route]);
+    useMemo(() => {
+        if (reportMetadata.isLoadingInitialReportActions) {
+            return;
+        }
+        isLinkingLoaderRef.current = false;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportMetadata.isLoadingInitialReportActions]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
@@ -453,24 +466,9 @@ function ReportScreen({
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
-    useLayoutEffect(() => {
-        if (!reportActionID) {
-            return;
-        }
-        requestAnimationFrame(() => {
-            setFirstRenderLinkingLoader(true);
-        });
-    }, [route, reportActionID]);
-    useEffect(() => {
-        if (!firstRenderLinkingLoader || reportMetadata.isLoadingInitialReportActions) {
-            return;
-        }
-        setFirstRenderLinkingLoader(false);
-    }, [firstRenderLinkingLoader, reportMetadata.isLoadingInitialReportActions]);
-
     const shouldShowSkeleton = useMemo(
-        () => firstRenderLinkingLoader || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
-        [firstRenderLinkingLoader, isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions],
+        () => isLinkingLoaderRef.current || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
+        [isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions],
     );
     return (
         <ActionListContext.Provider value={actionListValue}>
