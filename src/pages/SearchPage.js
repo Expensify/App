@@ -34,7 +34,7 @@ const propTypes = {
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
 
-    navigation: PropTypes.shape({})
+    navigation: PropTypes.shape({}),
 };
 
 const defaultProps = {
@@ -42,7 +42,7 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
-    navigation: {}
+    navigation: {},
 };
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports, navigation}) {

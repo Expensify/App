@@ -92,8 +92,8 @@ const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * Same aproach as in ReportScreen.perf-test.js
- * 
+ * Same approach as in ReportScreen.perf-test.js
+ *
  * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
  *
  * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
@@ -115,7 +115,6 @@ const createAddListenerMock = () => {
 
     return {triggerTransitionEnd, addListener};
 };
-
 
 test('[Search Page] should interact when text input changes', async () => {
     const {addListener} = createAddListenerMock();
