@@ -46,7 +46,6 @@ function IOURequestStepParticipants({
     const headerTitle = isSplitRequest ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
-    const newIouType = useRef(null);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -55,29 +54,26 @@ function IOURequestStepParticipants({
         IOUUtils.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, iouRequestType, iouType, transactionID, reportID);
     }, [receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
-    useEffect(() => {
-        if (!newIouType.current) {
-            return;
-        }
-        // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
-        IOU.updateMoneyRequestTypeParams(routes, newIouType.current);
-        newIouType.current = null;
-    }, [routes, participants]);
-
     const addParticipant = useCallback(
         (val, isSplit) => {
+            let newIouType;
             // It's only possible to switch between REQUEST and SPLIT.
             // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
             if (isSplit && iouType !== CONST.IOU.TYPE.SPLIT) {
-                newIouType.current = CONST.IOU.TYPE.SPLIT;
+                newIouType = CONST.IOU.TYPE.SPLIT;
             } else if (!isSplit && iouType === CONST.IOU.TYPE.SPLIT) {
                 // Non-split can be either REQUEST or SEND. Instead of checking whether
                 // the current IOU type is not a REQUEST (true for SEND), we check whether the current IOU type is a SPLIT.
-                newIouType.current = CONST.IOU.TYPE.REQUEST;
+                newIouType = CONST.IOU.TYPE.REQUEST;
             }
 
-            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val).then(() => {
+                if (newIouType) {
+                    // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
+                    // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
+                    IOU.updateMoneyRequestTypeParams(routes, newIouType);
+                }
+            });
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -90,7 +86,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
         },
-        [reportID, transactionID, iouType],
+        [reportID, transactionID, iouType, routes],
     );
 
     const goToNextStep = useCallback(
