@@ -1,5 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -7,27 +8,29 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {CompleteVerificationStepDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
-const propTypes = {
+type ConfirmAgreementsOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-    ...subStepPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-};
+type ConfirmAgreementsProps = SubStepProps & ConfirmAgreementsOnyxProps;
 
-const validate = (values) => {
-    const errors = {};
+type FormValues = Omit<CompleteVerificationStepDraftData, 'bankAccountID'>;
+
+const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const requiredFields: Array<keyof FormValues> = ['certifyTrueInformation', 'acceptTermsAndConditions', 'isAuthorizedToUseBankAccount'];
+const validate = (values: FormValues): OnyxCommon.Errors => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
     if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
         errors.acceptTermsAndConditions = 'common.error.acceptTerms';
@@ -43,10 +46,7 @@ const validate = (values) => {
 
     return errors;
 };
-
-const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
-
-function ConfirmAgreements({onNext, reimbursementAccount}) {
+function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultValues = {
@@ -67,9 +67,9 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
         <ScreenWrapper
             testID={ConfirmAgreements.displayName}
             style={[styles.pt10]}
-            scrollEnabled
         >
             <Text style={[styles.textHeadline, styles.ph5, styles.mb3]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
+            {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
@@ -78,6 +78,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
                     inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
@@ -87,6 +88,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
                     shouldSaveDraft
                 />
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
                     inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
@@ -96,6 +98,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
                     shouldSaveDraft
                 />
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
                     inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}
@@ -115,10 +118,8 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
 }
 
 ConfirmAgreements.displayName = 'ConfirmAgreements';
-ConfirmAgreements.propTypes = propTypes;
-ConfirmAgreements.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<ConfirmAgreementsProps, ConfirmAgreementsOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

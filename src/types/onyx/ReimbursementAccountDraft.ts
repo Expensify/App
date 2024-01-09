@@ -63,10 +63,23 @@ type ReimbursementAccountProps = {
     amount3?: string;
 };
 
+type CompleteVerificationStepDraftData = {
+    bankAccountID?: number;
+    isAuthorizedToUseBankAccount: string;
+    certifyTrueInformation: string;
+    acceptTermsAndConditions: string;
+};
+
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
 type BeneficialOwnerDraftData = Record<`beneficialOwner_${string}_${string}`, string>;
 
-type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps & BeneficialOwnerDraftData;
+type ReimbursementAccountDraft = BankAccountStepProps &
+    CompanyStepProps &
+    RequestorStepProps &
+    ACHContractStepProps &
+    ReimbursementAccountProps &
+    BeneficialOwnerDraftData &
+    CompleteVerificationStepDraftData;
 
 export default ReimbursementAccountDraft;
 export type {
@@ -78,4 +91,5 @@ export type {
     CompanyStepProps,
     ReimbursementAccountProps,
     BeneficialOwnerDraftData,
+    CompleteVerificationStepDraftData,
 };
