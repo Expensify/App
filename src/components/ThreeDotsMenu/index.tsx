@@ -1,10 +1,10 @@
-import PropTypes from 'prop-types';
 import React, {useRef, useState} from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
+import type {AnchorAlignment} from '@components/Popover/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -13,68 +13,62 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type {AnchorPosition} from '@src/styles';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
-const propTypes = {
+type ThreeDotsMenuProps = {
     /** Tooltip for the popup icon */
-    iconTooltip: PropTypes.string,
+    iconTooltip?: TranslationPaths;
 
     /** icon for the popup trigger */
-    icon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
+    icon: IconAsset;
 
     /** Any additional styles to pass to the icon container. */
-    // eslint-disable-next-line react/forbid-prop-types
-    iconStyles: PropTypes.arrayOf(PropTypes.object),
+    iconStyles?: ViewStyle[];
 
     /** The fill color to pass into the icon. */
-    iconFill: PropTypes.string,
+    iconFill?: string;
 
     /** Function to call on icon press */
-    onIconPress: PropTypes.func,
+    onIconPress?: () => void;
 
     /** menuItems that'll show up on toggle of the popup menu */
-    menuItems: ThreeDotsMenuItemPropTypes.isRequired,
+    menuItems: PopoverMenuItem[];
 
     /** The anchor position of the menu */
-    anchorPosition: PropTypes.shape({
-        top: PropTypes.number,
-        right: PropTypes.number,
-        bottom: PropTypes.number,
-        left: PropTypes.number,
-    }).isRequired,
+    anchorPosition: AnchorPosition;
 
     /** The anchor alignment of the menu */
-    anchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
+    anchorAlignment?: AnchorAlignment;
 
     /** Whether the popover menu should overlay the current view */
-    shouldOverlay: PropTypes.bool,
+    shouldOverlay?: boolean;
 
     /** Whether the menu is disabled */
-    disabled: PropTypes.bool,
+    disabled?: boolean;
 
     /** Should we announce the Modal visibility changes? */
-    shouldSetModalVisibility: PropTypes.bool,
+    shouldSetModalVisibility?: boolean;
 };
 
-const defaultProps = {
-    iconTooltip: 'common.more',
-    disabled: false,
-    iconFill: undefined,
-    iconStyles: [],
-    icon: Expensicons.ThreeDots,
-    onIconPress: () => {},
-    anchorAlignment: {
+function ThreeDotsMenu({
+    iconTooltip = 'common.more',
+    icon = Expensicons.ThreeDots,
+    iconFill,
+    iconStyles = [],
+    onIconPress = () => {},
+    menuItems,
+    anchorPosition,
+    anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    shouldOverlay: false,
-    shouldSetModalVisibility: true,
-};
-
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+    shouldOverlay = false,
+    shouldSetModalVisibility = true,
+    disabled = false,
+}: ThreeDotsMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
@@ -119,7 +113,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                     >
                         <Icon
                             src={icon}
-                            fill={iconFill || theme.icon}
+                            fill={iconFill ?? theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>
@@ -139,10 +133,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
     );
 }
 
-ThreeDotsMenu.propTypes = propTypes;
-ThreeDotsMenu.defaultProps = defaultProps;
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default ThreeDotsMenu;
-
 export {ThreeDotsMenuItemPropTypes};

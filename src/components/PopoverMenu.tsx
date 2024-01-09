@@ -46,7 +46,7 @@ type PopoverMenuItem = {
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
 
-type PopoverMenuProps = PopoverModalProps & {
+type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
@@ -175,3 +175,4 @@ function PopoverMenu({
 PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(PopoverMenu);
+export type {PopoverMenuItem};
