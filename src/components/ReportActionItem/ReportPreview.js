@@ -157,7 +157,7 @@ function ReportPreview(props) {
     const hasErrors = hasReceipts && hasMissingSmartscanFields;
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
-    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    const formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     const hasOnlyLoadingDistanceRequests = hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => TransactionUtils.isLoadingDistanceRequest(transaction));
     const previewSubtitle =
         formattedMerchant ||
