@@ -1594,7 +1594,7 @@ export default {
             VBANoECardCopy:
                 'Añade tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
-            benefit1: 'Hasta un 4% de devolución en tus gastos',
+            benefit1: 'Hasta un 2% de devolución en tus gastos',
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
