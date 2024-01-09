@@ -1,10 +1,10 @@
-import {ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type BankIcon = {
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
     iconSize?: number;
     iconHeight?: number;
     iconWidth?: number;

@@ -1,9 +1,11 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {BaseSyntheticEvent, ForwardedRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {BaseSyntheticEvent, ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
-import {DimensionValue, NativeSyntheticEvent, Text as RNText, StyleSheet, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData, View} from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
+import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import type {AnimatedProps} from 'react-native-reanimated';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
@@ -17,7 +19,7 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
-import {ComposerProps} from './types';
+import type {ComposerProps} from './types';
 
 /**
  * Retrieves the characters from the specified cursor position up to the next space or new line.
