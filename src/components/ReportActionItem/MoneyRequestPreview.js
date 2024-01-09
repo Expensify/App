@@ -1,7 +1,7 @@
 import {truncate} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -197,7 +197,7 @@ function MoneyRequestPreview(props) {
         showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
     };
 
-    const getPreviewHeaderText = () => {
+    const previewHeaderText = useMemo(() => {
         if (isDistanceRequest) {
             return translate('common.distance');
         }
@@ -232,8 +232,20 @@ function MoneyRequestPreview(props) {
         } else if (props.iouReport.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
         }
-        return message;
-    };
+        return message + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '');
+    }, [
+        getSettledMessage,
+        hasViolations,
+        isDistanceRequest,
+        isExpensifyCardTransaction,
+        isScanning,
+        isSettled,
+        props.iouReport,
+        props.isBillSplit,
+        props.transaction,
+        props.transactionViolations,
+        translate,
+    ]);
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
@@ -294,9 +306,7 @@ function MoneyRequestPreview(props) {
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
-                                </Text>
+                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>{previewHeaderText}</Text>
                                 {!isSettled && hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
