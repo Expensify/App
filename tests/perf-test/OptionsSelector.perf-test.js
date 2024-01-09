@@ -36,6 +36,8 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
     return WithNavigationFocus;
 });
 
+jest.useFakeTimers();
+
 const generateSections = (sectionConfigs) =>
     _.map(sectionConfigs, ({numItems, indexOffset, shouldShow = true}) => ({
         data: Array.from({length: numItems}, (_v, i) => ({
@@ -121,8 +123,15 @@ test('[OptionsSelector] should scroll and press few items', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 10'));
         fireEvent.scroll(screen.getByTestId('options-list'), eventData);
+        // see https://github.com/callstack/react-native-testing-library/issues/1540
+        fireEvent(screen.getByTestId('options-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
+        // RN's VirtualizedList uses a timeout of 50 ms to batch renders
+        jest.runOnlyPendingTimers()
         fireEvent.press(screen.getByText('Item 100'));
         fireEvent.scroll(screen.getByTestId('options-list'), eventData2);
+        // see https://github.com/callstack/react-native-testing-library/issues/1540
+        fireEvent(screen.getByTestId('options-list'), 'onContentSizeChange', eventData2.nativeEvent.contentSize.width, eventData2.nativeEvent.contentSize.height);
+        jest.runOnlyPendingTimers()
         fireEvent.press(screen.getByText('Item 200'));
     };
 
