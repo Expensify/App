@@ -36,13 +36,12 @@ import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Modal, ReportAction as ReportActionType, Report as ReportType} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
-    action: ReportActionType;
+    action: OnyxTypes.ReportAction;
 
     /** Draft message */
     draftMessage: string;
@@ -55,13 +54,13 @@ type ReportActionItemMessageEditProps = {
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types
-    report: ReportType;
+    report?: OnyxTypes.Report;
 
     /** Whether or not the emoji picker is disabled */
-    shouldDisableEmojiPicker: boolean;
+    shouldDisableEmojiPicker?: boolean;
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: number;
+    preferredSkinTone?: number;
 };
 
 // native ids
@@ -83,7 +82,7 @@ function ReportActionItemMessageEdit(
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const getInitialDraft = () => {
-        if (action.message && draftMessage === action.message[0].html) {
+        if (draftMessage === action?.message?.[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
             const parser = new ExpensiMark();
             return parser.htmlToMarkdown(draftMessage).trim();
@@ -114,7 +113,7 @@ function ReportActionItemMessageEdit(
     }>(getInitialSelection);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
-    const [modal, setModal] = useState<Modal>({
+    const [modal, setModal] = useState<OnyxTypes.Modal>({
         willAlertModalBecomeVisible: false,
         isVisible: false,
     });
@@ -145,7 +144,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (isEmptyObject(modalArg)) {
+                if (modalArg === null) {
                     return;
                 }
                 setModal(modalArg);
@@ -155,7 +154,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxFocused = onyxSubscribe({
             key: ONYXKEYS.INPUT_FOCUSED,
             callback: (modalArg) => {
-                if (isEmptyObject(modalArg)) {
+                if (modalArg === null) {
                     return;
                 }
                 setOnyxFocused(modalArg);
@@ -250,9 +249,9 @@ function ReportActionItemMessageEdit(
         (newDraftInput: string) => {
             const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
-            if (emojis && emojis.length > 0) {
+            if (emojis?.length > 0) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis && newEmojis.length > 0) {
+                if (newEmojis?.length > 0) {
                     insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -353,11 +352,11 @@ function ReportActionItemMessageEdit(
      * @param {Event} e
      */
     const triggerSaveOrCancel = useCallback(
-        (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
             if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
             }
-            const keyEvent = e as unknown as KeyboardEvent;
+            const keyEvent = e as KeyboardEvent;
             if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
                 e.preventDefault();
                 publishDraft();
