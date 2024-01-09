@@ -222,7 +222,7 @@ function MoneyRequestPreview(props) {
         if (hasViolations) {
             const violations = TransactionUtils.getTransactionViolations(props.transaction, props.transactionViolations);
             const violation = translate(`violations.${violations[0].name}`, violations[0].data);
-            const isTooLong = violations.length > 1 || violation.length > 15;
+            const isTooLong = _.filter(violations, (v) => v.type === 'violation').length > 1 || violation.length > 15;
             message += ` • ${isTooLong ? translate('violations.reviewRequired') : violation}`;
         }
         if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
