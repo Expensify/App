@@ -1,8 +1,9 @@
-import React, {ReactNode} from 'react';
-import {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ReactNode} from 'react';
+import React from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmContent from './ConfirmContent';
 import Modal from './Modal';
 
