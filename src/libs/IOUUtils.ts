@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as FileUtils from './fileDownload/FileUtils';
 import Navigation from './Navigation/Navigation';
@@ -38,7 +39,14 @@ function navigateToStartStepIfScanFileCannotBeRead(
         return;
     }
 
-    const onFailure = () => navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    const onFailure = () => {
+        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, '', '');
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            return;
+        }
+        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
