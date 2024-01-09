@@ -4156,12 +4156,6 @@ const styles = (theme: ThemeColors) =>
             height: variables.updateAnimationH,
         },
 
-        updateRequiredView: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingBottom: 160,
-        },
-
         updateRequiredViewHeader: {
             height: 70
         },

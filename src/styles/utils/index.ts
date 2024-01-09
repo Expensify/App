@@ -1430,6 +1430,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return containerStyles;
     },
 
+    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean) => [
+        {
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...(isSmallScreenWidth ? {} : {paddingBottom: 160}),
+        },
+    ],
+
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
 });
 
