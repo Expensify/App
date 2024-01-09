@@ -39,11 +39,6 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
     // We use two different loading components for the header and footer
     // to reduce the jumping effect when the user is scrolling to the newer report actions
     if (type === CONST.LIST_COMPONENTS.FOOTER) {
-        // We are actively fetching older report actions from the server – need to show the skeleton view
-        if (isLoadingOlderReportActions) {
-            return <ReportActionsSkeletonView />;
-        }
-
         /*
          Ensure that the report chat is not loaded until the beginning.
          This is to avoid displaying the skeleton view above the "created" action in a newly generated optimistic chat or one with not that many comments.
@@ -51,7 +46,9 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
          Therefore, show the skeleton view even though the actions are not actually loading.
         */
         const isReportLoadedUntilBeginning = lastReportActionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-        if (!isReportLoadedUntilBeginning && (isLoadingInitialReportActions || isOffline)) {
+        const mayLoadMoreActions = !isReportLoadedUntilBeginning && (isLoadingInitialReportActions || isOffline);
+
+        if (isLoadingOlderReportActions || mayLoadMoreActions) {
             return <ReportActionsSkeletonView />;
         }
     }
