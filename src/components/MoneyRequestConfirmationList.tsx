@@ -4,8 +4,8 @@ import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -28,6 +28,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as OnyxTypes from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -43,135 +44,115 @@ import tagPropTypes from './tagPropTypes';
 import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
+import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 
-const propTypes = {
-    /** Callback to inform parent modal of success */
-    onConfirm: PropTypes.func,
-
-    /** Callback to parent modal to send money */
-    onSendMoney: PropTypes.func,
-
-    /** Callback to inform a participant is selected */
-    onSelectParticipant: PropTypes.func,
-
-    /** Should we request a single or multiple participant selection from user */
-    hasMultipleParticipants: PropTypes.bool.isRequired,
-
-    /** IOU amount */
-    iouAmount: PropTypes.number.isRequired,
-
-    /** IOU comment */
-    iouComment: PropTypes.string,
-
-    /** IOU currency */
-    iouCurrencyCode: PropTypes.string,
-
-    /** IOU type */
-    iouType: PropTypes.string,
-
-    /** IOU date */
-    iouCreated: PropTypes.string,
-
-    /** IOU merchant */
-    iouMerchant: PropTypes.string,
-
-    /** IOU Category */
-    iouCategory: PropTypes.string,
-
-    /** IOU Tag */
-    iouTag: PropTypes.string,
-
-    /** IOU isBillable */
-    iouIsBillable: PropTypes.bool,
-
-    /** Callback to toggle the billable state */
-    onToggleBillable: PropTypes.func,
-
-    /** Selected participants from MoneyRequestModal with login / accountID */
-    selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
-
-    /** Payee of the money request with login */
-    payeePersonalDetails: optionPropTypes,
-
-    /** Can the participants be modified or not */
-    canModifyParticipants: PropTypes.bool,
-
-    /** Should the list be read only, and not editable? */
-    isReadOnly: PropTypes.bool,
-
-    /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute: PropTypes.string,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
-
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
-    /** The policyID of the request */
-    policyID: PropTypes.string,
-
-    /** The reportID of the request */
-    reportID: PropTypes.string,
-
-    /** File path of the receipt */
-    receiptPath: PropTypes.string,
-
-    /** File name of the receipt */
-    receiptFilename: PropTypes.string,
-
-    /** List styles for OptionsSelector */
-    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** ID of the transaction that represents the money request */
-    transactionID: PropTypes.string,
-
-    /** Transaction that represents the money request */
-    transaction: transactionPropTypes,
-
-    /** Unit and rate used for if the money request is a distance request */
-    mileageRate: PropTypes.shape({
-        /** Unit used to represent distance */
-        unit: PropTypes.oneOf([CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]),
-
-        /** Rate used to calculate the distance request amount */
-        rate: PropTypes.number,
-
-        /** The currency of the rate */
-        currency: PropTypes.string,
-    }),
-
-    /** Whether the money request is a distance request */
-    isDistanceRequest: PropTypes.bool,
-
-    /** Whether the money request is a scan request */
-    isScanRequest: PropTypes.bool,
-
-    /** Whether we're editing a split bill */
-    isEditingSplitBill: PropTypes.bool,
-
-    /** Whether we should show the amount, date, and merchant fields. */
-    shouldShowSmartScanFields: PropTypes.bool,
-
-    /** A flag for verifying that the current report is a sub-report of a workspace chat */
-    isPolicyExpenseChat: PropTypes.bool,
-
-    /* Onyx Props */
-    /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
-
-    /** Collection of tags attached to a policy */
-    policyTags: tagPropTypes,
-
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
-
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
+type MoneyRequestConfirmationListOnyxProps = {
+    iou?: OnyxTypes.IOU;
+    policyTaxRates?: any;
+    session: OnyxTypes.Session;
+    transaction?: OnyxTypes.Transaction;
+    mileageRate?: {
+        unit?: typeof CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES | typeof CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+        rate?: number;
+        currency?: string;
+    };
+    policyCategories?: any;
+    policyTags?: any;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
 };
+type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
+    WithCurrentUserPersonalDetailsProps & {
+        /** Callback to inform parent modal of success */
+        onConfirm?: () => void;
+
+        /** Callback to parent modal to send money */
+        onSendMoney?: () => void;
+
+        /** Callback to inform a participant is selected */
+        onSelectParticipant?: () => void;
+
+        /** Should we request a single or multiple participant selection from user */
+        hasMultipleParticipants: boolean;
+
+        /** IOU amount */
+        iouAmount: number;
+
+        /** IOU comment */
+        iouComment?: string;
+
+        /** IOU currency */
+        iouCurrencyCode?: string;
+
+        /** IOU type */
+        iouType?: string;
+
+        /** IOU date */
+        iouCreated?: string;
+
+        /** IOU merchant */
+        iouMerchant?: string;
+
+        /** IOU Category */
+        iouCategory?: string;
+
+        /** IOU Tag */
+        iouTag?: string;
+
+        /** IOU isBillable */
+        iouIsBillable?: boolean;
+
+        /** Callback to toggle the billable state */
+        onToggleBillable?: () => void;
+
+        /** Selected participants from MoneyRequestModal with login / accountID */
+        selectedParticipants: OptionType[];
+
+        /** Payee of the money request with login */
+        payeePersonalDetails?: OptionType;
+
+        /** Can the participants be modified or not */
+        canModifyParticipants?: boolean;
+
+        /** Should the list be read only, and not editable? */
+        isReadOnly?: boolean;
+
+        /** Depending on expense report or personal IOU report, respective bank account route */
+        bankAccountRoute?: string;
+
+        /** The policyID of the request */
+        policyID?: string;
+
+        /** The reportID of the request */
+        reportID?: string;
+
+        /** File path of the receipt */
+        receiptPath?: string;
+
+        /** File name of the receipt */
+        receiptFilename?: string;
+
+        /** List styles for OptionsSelector */
+        listStyles?: StyleProp<ViewStyle>;
+
+        /** ID of the transaction that represents the money request */
+        transactionID?: string;
+
+        /** Whether the money request is a distance request */
+        isDistanceRequest?: boolean;
+
+        /** Whether the money request is a scan request */
+        isScanRequest?: boolean;
+
+        /** Whether we're editing a split bill */
+        isEditingSplitBill?: boolean;
+
+        /** Whether we should show the amount, date, and merchant fields. */
+        shouldShowSmartScanFields?: boolean;
+
+        /** A flag for verifying that the current report is a sub-report of a workspace chat */
+        isPolicyExpenseChat?: boolean;
+    };
 
 const defaultProps = {
     onConfirm: () => {},
@@ -208,12 +189,18 @@ const defaultProps = {
     policyTaxRates: {},
 };
 
-function MoneyRequestConfirmationList(props) {
+function MoneyRequestConfirmationList({
+    onConfirm = () => {},
+    onSendMoney = () => {},
+    onSelectParticipant = () => {},
+    iouType = CONST.IOU.TYPE.REQUEST,
+    iouCategory = '',
+    iouTag = '',
+    iouIsBillable = false,
+    onToggleBillable = () => {},
+}: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
-    // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
     const transaction = props.transaction;
     const {canUseViolations} = usePermissions();
