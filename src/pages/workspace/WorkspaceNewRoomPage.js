@@ -369,6 +369,6 @@ export default compose(
             key: ONYXKEYS.ACCOUNT,
             selector: (account) => (account && account.activePolicyID) || null,
             initialValue: null,
-        }
+        },
     }),
 )(WorkspaceNewRoomPage);
