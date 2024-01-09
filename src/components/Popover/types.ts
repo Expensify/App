@@ -1,7 +1,8 @@
 import type {ValueOf} from 'type-fest';
-import BaseModalProps, {PopoverAnchorPosition} from '@components/Modal/types';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import CONST from '@src/CONST';
+import type {PopoverAnchorPosition} from '@components/Modal/types';
+import type BaseModalProps from '@components/Modal/types';
+import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import type CONST from '@src/CONST';
 
 type AnchorAlignment = {
     /** The horizontal anchor alignment of the popover */
