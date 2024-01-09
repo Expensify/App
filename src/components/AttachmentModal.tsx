@@ -15,7 +15,6 @@ import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -122,7 +121,9 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** A function as a child to pass modal launching methods to */
     children?: React.FC<ChildrenProps>;
 
-    fallbackSource?: AvatarSource | number;
+    fallbackSource?: AvatarSource;
+
+    canEditReceipt?: boolean;
 };
 
 function AttachmentModal({
@@ -145,6 +146,7 @@ function AttachmentModal({
     policy,
     children,
     fallbackSource,
+    canEditReceipt = false,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -156,7 +158,7 @@ function AttachmentModal({
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
-    const [sourceState, setSourceState] = useState(source);
+    const [sourceState, setSourceState] = useState(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
@@ -375,7 +377,7 @@ function AttachmentModal({
     }, []);
 
     useEffect(() => {
-        setSourceState(source);
+        setSourceState(() => source);
     }, [source]);
 
     useEffect(() => {
@@ -388,13 +390,9 @@ function AttachmentModal({
         if (!isReceiptAttachment || !parentReport || !parentReportActions) {
             return [];
         }
-        const menuItems = [];
-        const parentReportAction = parentReportActions[report?.parentReportActionID ?? ''];
 
-        const canEdit =
-            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction) &&
-            !TransactionUtils.isDistanceRequest(transaction);
-        if (canEdit) {
+        const menuItems = [];
+        if (canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
@@ -409,7 +407,7 @@ function AttachmentModal({
             text: translate('common.download'),
             onSelected: () => downloadAttachment(),
         });
-        if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEdit) {
+        if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
