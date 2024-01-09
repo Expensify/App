@@ -1,0 +1,76 @@
+import React, { useState, useMemo } from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OptionsSelector from '@components/OptionsSelector';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useLocalize from '@hooks/useLocalize';
+
+type EditReportFieldDropdownPageProps = {
+    /** Value of the policy report field */
+    fieldValue: string;
+
+    /** Name of the policy report field */
+    fieldName: string;
+
+    /** Options of the policy report field */
+    fieldOptions: string[];
+
+    /** Callback to fire when the Save button is pressed  */
+    onSubmit: () => void,
+};
+
+function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+    const [searchValue, setSearchValue] = useState('');
+    const styles = useThemeStyles();
+    const {getSafeAreaMargins} = useStyleUtils();
+    const {translate} = useLocalize();
+
+    const sections = useMemo(() => {
+        const filteredOptions = fieldOptions.filter((option) => option.includes(searchValue));
+        return [
+            {
+                title: translate('common.recents'),
+                shouldShow: true,
+                data: []
+            },
+            {
+                title: translate('common.all'),
+                shouldShow: true,
+                data: filteredOptions.map((option) => ({text: option}))
+            }
+        ];
+    }, [fieldOptions, searchValue, translate]);
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={EditReportFieldDropdownPage.displayName}
+        >
+            {({insets}) => (
+                <>
+                    <HeaderWithBackButton title={fieldName} />
+                    <OptionsSelector
+                        contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}
+                        optionHoveredStyle={styles.hoveredComponentBG}
+                        sectionHeaderStyle={styles.mt5}
+                        selectedOptions={[fieldValue]}
+                        textInputLabel={translate('common.search')}
+                        boldStyle
+                        sections={sections}
+                        value={searchValue}
+                        onSelectRow={onSubmit}
+                        onChangeText={setSearchValue}
+                        highlightSelectedOptions
+                        isRowMultilineSupported            
+                    />
+                </>
+            )}
+        </ScreenWrapper>
+    );
+}
+
+EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
+
+export default EditReportFieldDropdownPage;

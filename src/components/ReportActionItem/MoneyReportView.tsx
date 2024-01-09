@@ -18,6 +18,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import type {PolicyReportField, Report} from '@src/types/onyx';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
@@ -73,7 +75,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                                 <MenuItemWithTopDescription
                                     description={reportField.name}
                                     title={title}
-                                    onPress={() => {}}
+                                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon
                                     disabled={false}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
