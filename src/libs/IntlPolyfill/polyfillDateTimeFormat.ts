@@ -20,7 +20,7 @@ const tzLinks: Record<string, string> = {
     PST8PDT: 'America/Los_Angeles',
     WET: 'Europe/Lisbon',
 };
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export default function () {
     // Because JS Engines do not expose default timezone, the polyfill cannot detect local timezone that a browser is in.
