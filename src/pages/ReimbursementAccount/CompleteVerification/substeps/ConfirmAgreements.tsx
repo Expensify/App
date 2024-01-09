@@ -15,8 +15,8 @@ import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAcc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {CompleteVerificationStepDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type ConfirmAgreementsOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -25,10 +25,13 @@ type ConfirmAgreementsOnyxProps = {
 
 type ConfirmAgreementsProps = SubStepProps & ConfirmAgreementsOnyxProps;
 
-type FormValues = Omit<CompleteVerificationStepDraftData, 'bankAccountID'>;
-
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
-const requiredFields: Array<keyof FormValues> = ['certifyTrueInformation', 'acceptTermsAndConditions', 'isAuthorizedToUseBankAccount'];
+const requiredFields = [
+    CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
+    CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.ACCEPT_TERMS_AND_CONDITIONS,
+    CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.CERTIFY_TRUE_INFORMATION,
+];
+
 const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
