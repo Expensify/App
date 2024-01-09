@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
-import AccountData from './AccountData';
-import * as OnyxCommon from './OnyxCommon';
+import type CONST from '@src/CONST';
+import type AccountData from './AccountData';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isP2PDebitCard?: boolean;
