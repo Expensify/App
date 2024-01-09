@@ -4535,4 +4535,4 @@ export {
     shouldDisableThread,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
