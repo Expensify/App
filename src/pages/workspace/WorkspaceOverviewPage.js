@@ -109,7 +109,6 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
                             title={policy.name}
                             description={translate('workspace.editor.nameInputLabel')}
                             shouldShowRightIcon
-                            disabled={hasVBA}
                             onPress={onPressName}
                         />
 
