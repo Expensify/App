@@ -287,6 +287,8 @@ PODS:
   - OpenSSL-Universal (1.1.1100)
   - Plaid (4.7.0)
   - PromisesObjC (2.2.0)
+  - PromisesSwift (2.2.0):
+    - PromisesObjC (= 2.2.0)
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -633,10 +635,11 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-video (5.2.1):
+  - react-native-video (6.0.0-beta.3):
     - React-Core
-    - react-native-video/Video (= 5.2.1)
-  - react-native-video/Video (5.2.1):
+    - react-native-video/Video (= 6.0.0-beta.3)
+  - react-native-video/Video (6.0.0-beta.3):
+    - PromisesSwift
     - React-Core
   - react-native-view-shot (3.6.0):
     - React-Core
@@ -999,6 +1002,7 @@ SPEC REPOS:
     - OpenSSL-Universal
     - Plaid
     - PromisesObjC
+    - PromisesSwift
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -1246,6 +1250,7 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
+  PromisesSwift: cf9eb58666a43bbe007302226e510b16c1e10959
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: c0569ecc035894e4a68baecb30fe6a7ea6e399f9
   RCTTypeSafety: e90354072c21236e0bcf1699011e39acd25fea2f
@@ -1279,7 +1284,7 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
-  react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
+  react-native-video: 60ecad11b7179ec0e2012dea643775b4fca9b224
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
   React-NativeModulesApple: edb5ace14f73f4969df6e7b1f3e41bef0012740f
