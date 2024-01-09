@@ -68,11 +68,12 @@ function IOURequestStepParticipants({
             }
 
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val).then(() => {
-                if (newIouType) {
-                    // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-                    // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
-                    IOU.updateMoneyRequestTypeParams(routes, newIouType);
+                if (!newIouType) {
+                    return;
                 }
+                // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
+                // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
+                IOU.updateMoneyRequestTypeParams(routes, newIouType);
             });
             numberOfParticipants.current = val.length;
 
