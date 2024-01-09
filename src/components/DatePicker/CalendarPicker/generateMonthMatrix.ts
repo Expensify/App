@@ -51,14 +51,14 @@ export default function generateMonthMatrix(year: number, month: number) {
     // Add null values for days after the last day of the month
     if (currentWeek.length > 0) {
         for (let i = currentWeek.length; i < 7; i++) {
-            currentWeek.push(null);
+            currentWeek.push(undefined);
         }
         matrix.push(currentWeek);
     }
 
     // Add null values for days before the first day of the month
     for (let i = matrix[0].length; i < 7; i++) {
-        matrix[0].unshift(null);
+        matrix[0].unshift(undefined);
     }
 
     return matrix;

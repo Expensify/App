@@ -6,38 +6,7 @@ import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-type RadioItem = {
-    /** Text to display */
-    text: string;
-
-    /** Alternate text to display */
-    alternateText?: string;
-
-    /** Key used internally by React */
-    keyForList: string;
-
-    /** Whether this option is selected */
-    isSelected?: boolean;
-
-    /** Element to show on the right side of the item */
-    rightElement?: undefined;
-
-    /** Whether this option is disabled for selection */
-    isDisabled?: undefined;
-
-    invitedSecondaryLogin?: undefined;
-
-    /** Errors that this user may contain */
-    errors?: undefined;
-
-    /** The type of action that's pending  */
-    pendingAction?: undefined;
-
-    sectionIndex: number; // smb throw this out
-
-    index: number; // mb throw this out
-};
+import type RadioItem from './types';
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
@@ -103,7 +72,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     headerMessage={headerMessage}
                     sections={sections}
-                    onSelectRow={(option) => onYearChange?.(option.value)}
+                    onSelectRow={(option: RadioItem) => onYearChange?.(option.value)}
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
