@@ -1,7 +1,8 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
