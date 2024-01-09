@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
@@ -34,27 +33,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         };
     }, [disableRootStatusBar, isNested]);
 
-    const prevStatusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarAnimation = useSharedValue(0);
-
-    useAnimatedReaction(
-        () => statusBarAnimation.value,
-        (current, previous) => {
-            // Do not run if either of the animated value is null
-            // or previous animated value is greater than or equal to the current one
-            if (previous === null || current === null || current <= previous) {
-                return;
-            }
-            const backgroundColor = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
-            runOnJS(updateStatusBarAppearance)({backgroundColor});
-        },
-    );
-
     const listenerCount = useRef(0);
-
-    // Updates the status bar style and background color depending on the current route and theme
-    // This callback is triggered everytime the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
         (listenerId?: number) => {
             // Check if this function is either called through the current navigation listener or the general useEffect which listens for theme changes.
@@ -70,40 +49,27 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 currentRoute = navigationRef.getCurrentRoute();
             }
 
-            let newStatusBarStyle = theme.statusBarStyle;
             let currentScreenBackgroundColor = theme.appBG;
+            let newStatusBarStyle = theme.statusBarStyle;
             if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
-                const pageTheme = theme.PAGE_THEMES[currentRoute.name];
-
-                newStatusBarStyle = pageTheme.statusBarStyle;
-
-                const backgroundColorFromRoute =
-                    currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
-
-                // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                currentScreenBackgroundColor = backgroundColorFromRoute || pageTheme.backgroundColor;
-            }
-
-            prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
-            statusBarBackgroundColor.current = currentScreenBackgroundColor;
-
-            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
-                statusBarAnimation.value = 0;
-                statusBarAnimation.value = withDelay(300, withTiming(1));
+                const screenTheme = theme.PAGE_THEMES[currentRoute.name];
+                currentScreenBackgroundColor = screenTheme.backgroundColor;
+                newStatusBarStyle = screenTheme.statusBarStyle;
             }
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            if (newStatusBarStyle !== statusBarStyle) {
-                updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
+            if (newStatusBarStyle === statusBarStyle) {
+                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor});
+            } else {
+                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
             }
         },
-        [statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
+        [statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
     );
 
     // Add navigation state listeners to update the status bar every time the route changes
-    // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
+    // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properyl
     useEffect(() => {
         if (isDisabled) {
             return;
@@ -115,6 +81,15 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         navigationRef.addListener('state', listener);
         return () => navigationRef.removeListener('state', listener);
     }, [isDisabled, theme.appBG, updateStatusBarStyle]);
+
+    // Update the status bar style everytime the theme changes
+    useEffect(() => {
+        if (isDisabled) {
+            return;
+        }
+
+        updateStatusBarStyle();
+    }, [isDisabled, theme, updateStatusBarStyle]);
 
     // Update the global background (on web) everytime the theme changes.
     // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
