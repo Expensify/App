@@ -3,10 +3,11 @@ import React from 'react';
 import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
-function UserListItem({item, textStyles, alternateTextStyles}) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip}) {
     const styles = useThemeStyles();
     return (
         <>
@@ -14,23 +15,33 @@ function UserListItem({item, textStyles, alternateTextStyles}) {
                 <SubscriptAvatar
                     mainAvatar={lodashGet(item, 'icons[0]')}
                     secondaryAvatar={lodashGet(item, 'icons[1]')}
-                    showTooltip
+                    showTooltip={showTooltips}
                 />
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.optionRow]}>
-                <Text
-                    style={textStyles}
-                    numberOfLines={1}
+                <Tooltip
+                    shouldRender={showTooltip}
+                    text={item.text}
                 >
-                    {item.text}
-                </Text>
-                {Boolean(item.alternateText) && (
                     <Text
-                        style={alternateTextStyles}
+                        style={textStyles}
                         numberOfLines={1}
                     >
-                        {item.alternateText}
+                        {item.text}
                     </Text>
+                </Tooltip>
+                {Boolean(item.alternateText) && (
+                    <Tooltip
+                        shouldRender={showTooltip}
+                        text={item.alternateText}
+                    >
+                        <Text
+                            style={alternateTextStyles}
+                            numberOfLines={1}
+                        >
+                            {item.alternateText}
+                        </Text>
+                    </Tooltip>
                 )}
             </View>
             {Boolean(item.rightElement) && item.rightElement}

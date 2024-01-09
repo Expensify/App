@@ -16,6 +16,9 @@ const commonListItemPropTypes = {
     /** Whether this item is disabled */
     isDisabled: PropTypes.bool,
 
+    /** Whether this item should show Tooltip */
+    showTooltip: PropTypes.bool.isRequired,
+
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple: PropTypes.bool,
 
@@ -186,6 +189,9 @@ const propTypes = {
 
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Whether to show the toolip text */
+    shouldShowTooltip: PropTypes.bool,
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
