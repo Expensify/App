@@ -36,20 +36,6 @@ import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
-type ResponsiveProps = {
-    /** Function to fire when component is pressed */
-    onPress: (event: GestureResponderEvent | KeyboardEvent) => void;
-
-    interactive?: true;
-};
-
-type UnresponsiveProps = {
-    onPress?: undefined;
-
-    /** Whether the menu item should be interactive at all */
-    interactive: false;
-};
-
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
     iconType?: typeof CONST.ICON_TYPE_ICON;
@@ -70,170 +56,175 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
-    (IconProps | AvatarProps | NoIcon) & {
-        /** Text to be shown as badge near the right end. */
-        badgeText?: string;
+type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
+    /** Function to fire when component is pressed */
+    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
 
-        /** Used to apply offline styles to child text components */
-        style?: ViewStyle;
+    /** Whether the menu item should be interactive at all */
+    interactive?: boolean;
 
-        /** Any additional styles to apply */
-        wrapperStyle?: StyleProp<ViewStyle>;
+    /** Text to be shown as badge near the right end. */
+    badgeText?: string;
 
-        /** Any additional styles to apply on the outer element */
-        containerStyle?: StyleProp<ViewStyle>;
+    /** Used to apply offline styles to child text components */
+    style?: ViewStyle;
 
-        /** Used to apply styles specifically to the title */
-        titleStyle?: ViewStyle;
+    /** Any additional styles to apply */
+    wrapperStyle?: StyleProp<ViewStyle>;
 
-        /** Any adjustments to style when menu item is hovered or pressed */
-        hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
+    /** Any additional styles to apply on the outer element */
+    containerStyle?: StyleProp<ViewStyle>;
 
-        /** Additional styles to style the description text below the title */
-        descriptionTextStyle?: StyleProp<TextStyle>;
+    /** Used to apply styles specifically to the title */
+    titleStyle?: ViewStyle;
 
-        /** The fill color to pass into the icon. */
-        iconFill?: string;
+    /** Any adjustments to style when menu item is hovered or pressed */
+    hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
-        /** Secondary icon to display on the left side of component, right of the icon */
-        secondaryIcon?: IconAsset;
+    /** Additional styles to style the description text below the title */
+    descriptionTextStyle?: StyleProp<TextStyle>;
 
-        /** The fill color to pass into the secondary icon. */
-        secondaryIconFill?: string;
+    /** The fill color to pass into the icon. */
+    iconFill?: string;
 
-        /** Icon Width */
-        iconWidth?: number;
+    /** Secondary icon to display on the left side of component, right of the icon */
+    secondaryIcon?: IconAsset;
 
-        /** Icon Height */
-        iconHeight?: number;
+    /** The fill color to pass into the secondary icon. */
+    secondaryIconFill?: string;
 
-        /** Any additional styles to pass to the icon container. */
-        iconStyles?: StyleProp<ViewStyle>;
+    /** Icon Width */
+    iconWidth?: number;
 
-        /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-        fallbackIcon?: IconAsset;
+    /** Icon Height */
+    iconHeight?: number;
 
-        /** An icon to display under the main item */
-        furtherDetailsIcon?: IconAsset;
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
 
-        /** Boolean whether to display the title right icon */
-        shouldShowTitleIcon?: boolean;
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon?: IconAsset;
 
-        /** Icon to display at right side of title */
-        titleIcon?: IconAsset;
+    /** An icon to display under the main item */
+    furtherDetailsIcon?: IconAsset;
 
-        /** Boolean whether to display the right icon */
-        shouldShowRightIcon?: boolean;
+    /** Boolean whether to display the title right icon */
+    shouldShowTitleIcon?: boolean;
 
-        /** Overrides the icon for shouldShowRightIcon */
-        iconRight?: IconAsset;
+    /** Icon to display at right side of title */
+    titleIcon?: IconAsset;
 
-        /** Should render component on the right */
-        shouldShowRightComponent?: boolean;
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
 
-        /** Component to be displayed on the right */
-        rightComponent?: ReactNode;
+    /** Overrides the icon for shouldShowRightIcon */
+    iconRight?: IconAsset;
 
-        /** A description text to show under the title */
-        description?: string;
+    /** Should render component on the right */
+    shouldShowRightComponent?: boolean;
 
-        /** Should the description be shown above the title (instead of the other way around) */
-        shouldShowDescriptionOnTop?: boolean;
+    /** Component to be displayed on the right */
+    rightComponent?: ReactNode;
 
-        /** Error to display below the title */
-        error?: string;
+    /** A description text to show under the title */
+    description?: string;
+
+    /** Should the description be shown above the title (instead of the other way around) */
+    shouldShowDescriptionOnTop?: boolean;
+
+    /** Error to display below the title */
+    error?: string;
 
         /** Error to display at the bottom of the component */
         errorText?: MaybePhraseKey;
 
-        /** A boolean flag that gives the icon a green fill if true */
-        success?: boolean;
+    /** A boolean flag that gives the icon a green fill if true */
+    success?: boolean;
 
-        /** Whether item is focused or active */
-        focused?: boolean;
+    /** Whether item is focused or active */
+    focused?: boolean;
 
-        /** Should we disable this menu item? */
-        disabled?: boolean;
+    /** Should we disable this menu item? */
+    disabled?: boolean;
 
-        /** Text that appears above the title */
-        label?: string;
+    /** Text that appears above the title */
+    label?: string;
 
-        /** Label to be displayed on the right */
-        rightLabel?: string;
+    /** Label to be displayed on the right */
+    rightLabel?: string;
 
-        /** Text to display for the item */
-        title?: string;
+    /** Text to display for the item */
+    title?: string;
 
-        /** A right-aligned subtitle for this menu option */
-        subtitle?: string | number;
+    /** A right-aligned subtitle for this menu option */
+    subtitle?: string | number;
 
-        /** Should the title show with normal font weight (not bold) */
-        shouldShowBasicTitle?: boolean;
+    /** Should the title show with normal font weight (not bold) */
+    shouldShowBasicTitle?: boolean;
 
-        /** Should we make this selectable with a checkbox */
-        shouldShowSelectedState?: boolean;
+    /** Should we make this selectable with a checkbox */
+    shouldShowSelectedState?: boolean;
 
-        /** Whether this item is selected */
-        isSelected?: boolean;
+    /** Whether this item is selected */
+    isSelected?: boolean;
 
-        /** Prop to identify if we should load avatars vertically instead of diagonally */
-        shouldStackHorizontally?: boolean;
+    /** Prop to identify if we should load avatars vertically instead of diagonally */
+    shouldStackHorizontally?: boolean;
 
-        /** Prop to represent the size of the avatar images to be shown */
-        avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    /** Prop to represent the size of the avatar images to be shown */
+    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
 
-        /** Avatars to show on the right of the menu item */
-        floatRightAvatars?: IconType[];
+    /** Avatars to show on the right of the menu item */
+    floatRightAvatars?: IconType[];
 
-        /** Prop to represent the size of the float right avatar images to be shown */
-        floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-        /** Affects avatar size  */
-        viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
+    /** Affects avatar size  */
+    viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
-        /** Used to truncate the text with an ellipsis after computing the text layout */
-        numberOfLinesTitle?: number;
+    /** Used to truncate the text with an ellipsis after computing the text layout */
+    numberOfLinesTitle?: number;
 
-        /**  Whether we should use small avatar subscript sizing the for menu item */
-        isSmallAvatarSubscriptMenu?: boolean;
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu?: boolean;
 
-        /** The type of brick road indicator to show. */
-        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    /** The type of brick road indicator to show. */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
-        /** Should render the content in HTML format */
-        shouldRenderAsHTML?: boolean;
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML?: boolean;
 
-        /** Should we grey out the menu item when it is disabled? */
-        shouldGreyOutWhenDisabled?: boolean;
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled?: boolean;
 
-        /** The action accept for anonymous user or not */
-        isAnonymousAction?: boolean;
+    /** The action accept for anonymous user or not */
+    isAnonymousAction?: boolean;
 
-        /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
-        shouldBlockSelection?: boolean;
+    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+    shouldBlockSelection?: boolean;
 
-        /** Whether should render title as HTML or as Text */
-        shouldParseTitle?: false;
+    /** Whether should render title as HTML or as Text */
+    shouldParseTitle?: false;
 
-        /** Should check anonymous user in onPress function */
-        shouldCheckActionAllowedOnPress?: boolean;
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress?: boolean;
 
-        /** Text to display under the main item */
-        furtherDetails?: string;
+    /** Text to display under the main item */
+    furtherDetails?: string;
 
-        /** The function that should be called when this component is LongPressed or right-clicked. */
-        onSecondaryInteraction?: () => void;
+    /** The function that should be called when this component is LongPressed or right-clicked. */
+    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
-        /** Array of objects that map display names to their corresponding tooltip */
-        titleWithTooltips?: DisplayNameWithTooltip[];
+    /** Array of objects that map display names to their corresponding tooltip */
+    titleWithTooltips?: DisplayNameWithTooltip[];
 
-        /** Icon should be displayed in its own color */
-        displayInDefaultIconColor?: boolean;
+    /** Icon should be displayed in its own color */
+    displayInDefaultIconColor?: boolean;
 
-        /** Determines how the icon should be resized to fit its container */
-        contentFit?: ImageContentFit;
-    };
+    /** Determines how the icon should be resized to fit its container */
+    contentFit?: ImageContentFit;
+};
 
 function MenuItem(
     {
@@ -526,17 +517,18 @@ function MenuItem(
                                                 <Text style={[styles.textLabelError]}>{error}</Text>
                                             </View>
                                         )}
-                                        {furtherDetailsIcon && !!furtherDetails && (
+                                        {!!furtherDetails && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
-                                                <Icon
-                                                    src={furtherDetailsIcon}
-                                                    height={variables.iconSizeNormal}
-                                                    width={variables.iconSizeNormal}
-                                                    fill={theme.icon}
-                                                    inline
-                                                />
+                                                {!!furtherDetailsIcon && (
+                                                    <Icon
+                                                        src={furtherDetailsIcon}
+                                                        height={variables.iconSizeNormal}
+                                                        width={variables.iconSizeNormal}
+                                                        inline
+                                                    />
+                                                )}
                                                 <Text
-                                                    style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                                                    style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
                                                     numberOfLines={2}
                                                 >
                                                     {furtherDetails}

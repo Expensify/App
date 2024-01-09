@@ -277,7 +277,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
