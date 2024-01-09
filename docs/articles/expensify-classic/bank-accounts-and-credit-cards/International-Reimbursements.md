@@ -75,7 +75,7 @@ Examples of additional requested information:
 - An authorization letter 
 - An independently certified documentation such as shareholder agreement from a lawyer, notary, or public accountant if an individual owns more than 25% of the company
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How many people can send reimbursements internationally? 
 
@@ -103,3 +103,4 @@ This is the person who will process international reimbursements. The authorized
 
 You can leave this form section blank since the “User” is Expensify. 
 
+{% include faq-end.md %}
