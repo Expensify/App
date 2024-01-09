@@ -194,6 +194,9 @@ type ReportActionBase = {
 
     /** We manually add this field while sorting to detect the end of the list */
     isNewestReportAction?: boolean;
+
+    /** Flag for checking if data is from optimistic data */
+    isOptimisticAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
