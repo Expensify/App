@@ -10,9 +10,6 @@ on:
     types: [opened, synchronize, labeled]
     branches: ['*ci-test/**']
 
-env:
-  DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
-
 jobs:
   validateActor:
     runs-on: ubuntu-latest
@@ -139,6 +136,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
     runs-on: macos-13-xlarge
     steps:
       - name: Checkout
