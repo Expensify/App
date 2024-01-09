@@ -5,6 +5,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -98,8 +99,8 @@ function OfflineWithFeedback({
      * This method applies the strikethrough to all the children passed recursively
      */
     const applyStrikeThrough = useCallback(
-        (childrenProp: React.ReactNode): React.ReactNode =>
-            React.Children.map(childrenProp, (child) => {
+        (childrenProp: React.ReactNode): React.ReactNode => {
+            const strikedThroughChildren = mapChildrenFlat(childrenProp, (child) => {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -113,7 +114,10 @@ function OfflineWithFeedback({
                 }
 
                 return React.cloneElement(child, props);
-            }),
+            });
+
+            return strikedThroughChildren;
+        },
         [StyleUtils, styles],
     );
 
