@@ -85,6 +85,7 @@ class BaseOptionsSelector extends Component {
         this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
         this.accessibilityRoles = _.values(CONST.ROLE);
+        this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
@@ -104,7 +105,8 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.subscribeToKeyboardShortcut();
+        this.subscribeToEnterShortcut();
+        this.subscribeToCtrlEnterShortcut();
         this.subscribeActiveElement();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
@@ -119,7 +121,8 @@ class BaseOptionsSelector extends Component {
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.isFocused !== this.props.isFocused) {
             if (this.props.isFocused) {
-                this.subscribeToKeyboardShortcut();
+                this.subscribeToEnterShortcut();
+                this.subscribeToCtrlEnterShortcut();
             } else {
                 this.unSubscribeFromKeyboardShortcut();
             }
@@ -127,16 +130,16 @@ class BaseOptionsSelector extends Component {
 
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
             if (this.state.disableEnterShortCut) {
-                this.unSubscribeFromKeyboardShortcut();
+                this.unsubscribeEnter();
             } else {
-                this.subscribeToKeyboardShortcut();
+                this.subscribeToEnterShortcut();
             }
         }
 
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
+        if (this.isWebOrDesktop && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -287,7 +290,7 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeActiveElement() {
-        if (![CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
+        if (!this.isWebOrDesktop) {
             return;
         }
         document.addEventListener('focusin', this.handleFocusIn);
@@ -295,14 +298,14 @@ class BaseOptionsSelector extends Component {
     }
 
     unSubscribeActiveElement() {
-        if (![CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
+        if (!this.isWebOrDesktop) {
             return;
         }
         document.removeEventListener('focusin', this.handleFocusIn);
         document.removeEventListener('focusout', this.handleFocusOut);
     }
 
-    subscribeToKeyboardShortcut() {
+    subscribeToEnterShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -312,7 +315,9 @@ class BaseOptionsSelector extends Component {
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
         );
+    }
 
+    subscribeToCtrlEnterShortcut() {
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
