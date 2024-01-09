@@ -209,7 +209,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-        hasErrors = canEditReceipt && TransactionUtils.hasMissingSmartscanFields(transaction);
+        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const pendingAction = lodashGet(transaction, 'pendingAction');
