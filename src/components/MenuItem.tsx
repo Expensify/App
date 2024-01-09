@@ -135,8 +135,8 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     /** Error to display below the title */
     error?: string;
 
-        /** Error to display at the bottom of the component */
-        errorText?: MaybePhraseKey;
+    /** Error to display at the bottom of the component */
+    errorText?: MaybePhraseKey;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
