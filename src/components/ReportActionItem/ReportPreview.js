@@ -241,7 +241,7 @@ function ReportPreview(props) {
             unsubscribeOnyxTransaction();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.action]);
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
