@@ -29,7 +29,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip}: User
                         {item.text}
                     </Text>
                 </Tooltip>
-                {Boolean(item.alternateText) && (
+                {!!item.alternateText && (
                     <Tooltip
                         shouldRender={showTooltip}
                         text={item.alternateText}
@@ -43,7 +43,7 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip}: User
                     </Tooltip>
                 )}
             </View>
-            {Boolean(item.rightElement) && item.rightElement}
+            {!!item.rightElement && item.rightElement}
         </>
     );
 }

@@ -21,7 +21,7 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Rad
                 </Text>
             </Tooltip>
 
-            {Boolean(item.alternateText) && (
+            {!!item.alternateText && (
                 <Tooltip
                     shouldRender={showTooltip}
                     text={item.alternateText}

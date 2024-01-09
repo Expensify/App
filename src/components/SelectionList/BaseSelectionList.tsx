@@ -493,7 +493,7 @@ function BaseSelectionList(
                                 />
                             </FixedFooter>
                         )}
-                        {footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+                        {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
                     </View>
                 )}
             </SafeAreaConsumer>
