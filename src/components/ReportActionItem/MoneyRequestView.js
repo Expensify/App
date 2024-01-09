@@ -42,8 +42,8 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ReportActionItemImage from './ReportActionItemImage';
 import ConfirmedRoute from '@components/ConfirmedRoute';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const violationNames = lodashValues(CONST.VIOLATIONS);
 

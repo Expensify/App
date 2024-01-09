@@ -49,6 +49,8 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
+type PendingFieldsCollection = Partial<{[K in keyof Transaction | keyof Comment]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+
 type Transaction = {
     amount: number;
     billable: boolean;
@@ -76,7 +78,7 @@ type Transaction = {
     routes?: Routes;
     transactionID: string;
     tag: string;
-    pendingFields?: Partial<{[K in keyof Transaction | keyof Comment]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    pendingFields?: PendingFieldsCollection;
 
     /** Card Transactions */
 
@@ -97,4 +99,4 @@ type Transaction = {
 };
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint};
+export type {WaypointCollection, Comment, Receipt, Waypoint, PendingFieldsCollection};

@@ -38,8 +38,8 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionItemImages from './ReportActionItemImages';
 import ConfirmedRoute from '@components/ConfirmedRoute';
+import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */

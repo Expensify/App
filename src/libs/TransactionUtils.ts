@@ -1,5 +1,6 @@
 import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -7,8 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
-import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {Comment, PendingFieldsCollection, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
@@ -98,6 +99,7 @@ function buildOptimisticTransaction(
     category = '',
     tag = '',
     billable = false,
+    pendingFields: PendingFieldsCollection | null = null,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -112,6 +114,7 @@ function buildOptimisticTransaction(
     }
 
     return {
+        ...(isNotEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
         amount,
         currency,
