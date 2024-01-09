@@ -39,7 +39,7 @@ function MentionUserRenderer(props) {
     let displayNameOrLogin;
     let navigationRoute;
     const tnode = props.tnode;
-    
+
     const getMentionDisplayText = (displayText, accountId, userLogin = '') => {
         if (accountId && userLogin !== displayText) {
             return displayText;
