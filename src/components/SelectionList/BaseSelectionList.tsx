@@ -378,7 +378,7 @@ function BaseSelectionList(
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && Boolean(onConfirm) && isFocused,
+        isActive: !disableKeyboardShortcuts && !!onConfirm && isFocused,
     });
 
     return (
@@ -420,7 +420,7 @@ function BaseSelectionList(
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
-                                    blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
+                                    blurOnSubmit={!!flattenedSections.allOptions.length}
                                 />
                             </View>
                         )}
