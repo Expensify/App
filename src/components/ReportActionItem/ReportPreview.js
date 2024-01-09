@@ -135,10 +135,14 @@ function ReportPreview(props) {
     const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
-    const hasMissingSmartscanFields = useMemo(() => ReportUtils.hasMissingSmartscanFields(props.iouReportID), [props.transactions]);
-    const areAllRequestsBeingSmartScanned = useMemo(() => ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action), [props.transactions]);
-    const hasOnlyDistanceRequests = useMemo(() => ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID), [props.transactions]);
-    const hasNonReimbursableTransactions = useMemo(() => ReportUtils.hasNonReimbursableTransactions(props.iouReportID), [props.transactions]);
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(() => {
+        return {
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
+            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
+        };
+    }, [props.transactions, props.iouReportID, props.action]);
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
