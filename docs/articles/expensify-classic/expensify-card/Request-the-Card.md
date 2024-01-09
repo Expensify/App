@@ -38,7 +38,7 @@ If you need to cancel your Expensify Card and cannot access the website or mobil
 
 It's not possible to order a replacement card over the phone, so, if applicable, you would need to handle this step from your Expensify account.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What if I haven’t received my card after multiple weeks? 
 
@@ -47,3 +47,5 @@ Reach out to support, and we can locate a tracking number for the card. If the c
 ## I’m self-employed. Can I set up the Expensify Card as an individual?
 
 Yep! As long as you have a business bank account and have registered your company with the IRS, you are eligible to use the Expensify Card as an individual business owner. 
+
+{% include faq-end.md %}
