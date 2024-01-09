@@ -21,7 +21,6 @@ const SCREENS = {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         WORKSPACES: 'Settings_Workspaces',
-        ABOUT: 'Settings_About',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
