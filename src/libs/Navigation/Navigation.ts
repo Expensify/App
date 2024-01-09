@@ -1,9 +1,11 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import type {EventArg, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import originalDismissModal from './dismissModal';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
@@ -11,7 +13,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StateOrRoute} from './types';
+import type {StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -97,6 +99,10 @@ function getActiveRoute(): string {
         return '';
     }
 
+    if (currentRoute?.path) {
+        return currentRoute.path;
+    }
+
     const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
     if (routeFromState) {
@@ -116,8 +122,11 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath;
+    let activeRoute = getActiveRoute();
+    activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
+
+    // We remove redundant (consecutive and trailing) slashes from path before matching
+    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
 }
 
 /**
