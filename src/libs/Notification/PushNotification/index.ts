@@ -1,5 +1,5 @@
 import NotificationType from './NotificationType';
-import PushNotificationType from './types';
+import type PushNotificationType from './types';
 
 // Push notifications are only supported on mobile, so we'll just noop here
 const PushNotification: PushNotificationType = {

@@ -91,7 +91,7 @@ Your Partner Manager should reach out to you once you've completed ExpensifyAppr
 - **Be Clear and Specific**: When asking questions or reporting issues, provide specific examples like affected users' email addresses or report IDs. This makes it easier for us to assist you effectively.
 - **Practice Kindness**: Remember that we're here to help. Please be polite, considerate, and patient as we work together to resolve any concerns you have.
 
-# FAQ
+{% include faq-begin.md %}
 ## Who gets an Account Manager?
 Members who have 10 or more active users, or clients of ExpensifyApproved! Accounts are automatically assigned a dedicated Account Manager. 
 
@@ -115,3 +115,5 @@ We recommend working with Concierge on general support questions, as this team i
 
 ## Who gets assigned a Setup Specialist?
 This feature is specifically for new members! Whenever you start a free trial, a product Setup Specialist will be assigned to guide you through configuring your Expensify account.
+
+{% include faq-end.md %}
