@@ -24,7 +24,6 @@ export default (): Response => ({
                 lastMessageText: 'terry+hightraffic@margelo.io owes \u20ac12.00',
                 lastActorAccountID: 14567013,
                 notificationPreference: 'always',
-                welcomeMessage: '',
                 stateNum: 0,
                 statusNum: 0,
                 oldPolicyName: '',

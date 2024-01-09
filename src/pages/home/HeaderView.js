@@ -118,8 +118,6 @@ function HeaderView(props) {
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const reportDescription = ReportUtils.getReportDescriptionText(props.report);
     const policyName = ReportUtils.getPolicyName(props.report);
-    // const policyDescription = ReportUtils.getPolicyDescription(props.report.policyID);
-    const description = reportDescription;
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -309,7 +307,7 @@ function HeaderView(props) {
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
-                                        {!_.isEmpty(subtitle) && _.isEmpty(description) && (
+                                        {!_.isEmpty(subtitle) && _.isEmpty(reportDescription) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
@@ -317,12 +315,12 @@ function HeaderView(props) {
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {!_.isEmpty(description) && (
+                                        {!_.isEmpty(reportDescription) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
                                             >
-                                                {description}
+                                                {reportDescription}
                                             </Text>
                                         )}
                                     </View>
