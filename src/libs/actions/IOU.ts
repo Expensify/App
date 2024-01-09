@@ -2,7 +2,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
@@ -33,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
-import {Errors, ErrorsObject} from '@src/types/onyx/OnyxCommon';
+import type {Errors, ErrorsObject} from '@src/types/onyx/OnyxCommon';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -151,7 +150,7 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-let allTransactions: Record<string, OnyxTypes.Transaction | null> = {};
+let allTransactions: Record<string, OnyxEntry<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -165,7 +164,7 @@ Onyx.connect({
     },
 });
 
-let allTransactionDrafts: Record<string, OnyxTypes.TransactionDraft | null> = {};
+let allTransactionDrafts: Record<string, OnyxEntry<OnyxTypes.TransactionDraft>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -174,7 +173,7 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: Record<string, OnyxTypes.TransactionViolations | null> = {};
+let allTransactionViolations: Record<string, OnyxEntry<OnyxTypes.TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -188,7 +187,7 @@ Onyx.connect({
     },
 });
 
-let allDraftSplitTransactions: Record<string, OnyxTypes.Transaction | null> = {};
+let allDraftSplitTransactions: Record<string, OnyxEntry<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -197,7 +196,7 @@ Onyx.connect({
     },
 });
 
-let allNextSteps: Record<string, OnyxTypes.ReportNextStep | null> = {};
+let allNextSteps: Record<string, OnyxEntry<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
@@ -240,7 +239,8 @@ Onyx.connect({
 function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- currentDate can be an empty string
+    // Disabling this line since currentDate can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
     const comment: Comment = {};
 
@@ -323,7 +323,8 @@ function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, sour
  * Reset money request info from the store with its initial value
  */
 function resetMoneyRequestInfo(id = '') {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- currentDate can be an empty string
+    // Disabling this line since currentDate can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     Onyx.merge(ONYXKEYS.IOU, {
         id,
@@ -640,7 +641,7 @@ function buildOnyxDataForMoneyRequest(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: null,
+            value: [],
         });
     }
 
@@ -813,6 +814,7 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
@@ -1414,7 +1416,7 @@ function createSplitsAndOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: {pendingAction: null},
+            value: {},
         },
     ];
 
@@ -1437,7 +1439,7 @@ function createSplitsAndOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: {pendingAction: null},
+            value: {},
         },
     ];
 
@@ -1496,7 +1498,7 @@ function createSplitsAndOnyxData(
         let oneOnOneChatReport: OptimisticChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
-        const personalDetailExists = lodashHas(allPersonalDetails, accountID);
+        const personalDetailExists = accountID in allPersonalDetails;
 
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
@@ -1529,14 +1531,14 @@ function createSplitsAndOnyxData(
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport ?? null, currentUserAccountID, splitAmount, currency);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
         }
 
         // STEP 3: Build optimistic transaction
         const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            ReportUtils.isExpenseReport(oneOnOneIOUReport ?? null) ? -splitAmount : splitAmount,
+            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
             currency,
-            oneOnOneIOUReport?.reportID ?? '',
+            oneOnOneIOUReport.reportID,
             comment,
             '',
             CONST.IOU.TYPE.SPLIT,
@@ -1566,7 +1568,7 @@ function createSplitsAndOnyxData(
             [participant],
             oneOnOneTransaction.transactionID,
             undefined,
-            oneOnOneIOUReport?.reportID ?? '',
+            oneOnOneIOUReport.reportID,
             undefined,
             undefined,
             undefined,
@@ -1580,6 +1582,7 @@ function createSplitsAndOnyxData(
                   [accountID]: {
                       accountID,
                       avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
@@ -1588,7 +1591,7 @@ function createSplitsAndOnyxData(
               }
             : {};
 
-        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport?.reportID ?? '');
+        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
@@ -1627,7 +1630,7 @@ function createSplitsAndOnyxData(
             email,
             accountID,
             amount: splitAmount,
-            iouReportID: oneOnOneIOUReport?.reportID,
+            iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneTransaction.transactionID,
             reportActionID: oneOnOneIOUAction.reportActionID,
@@ -1952,6 +1955,7 @@ function startSplitBill(
     const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
     participants.forEach((participant) => {
+        // Disabling this line since participant.login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
@@ -1977,8 +1981,10 @@ function startSplitBill(
                     [accountID]: {
                         accountID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
+                        // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                        // Disabling this line since participant.login can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
                         isOptimisticPersonalDetail: true,
@@ -3019,6 +3025,7 @@ function getSendMoneyParams(
                 [recipientAccountID]: {
                     accountID: recipientAccountID,
                     avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
+                    // Disabling this line since participant.displayName can be an empty string
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     displayName: recipient.displayName || recipient.login,
                     login: recipient.login,
@@ -3634,6 +3641,7 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
  * Gets a report id from the first participant of the IOU object stored in Onyx.
  */
 function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string {
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
