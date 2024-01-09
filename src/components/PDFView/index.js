@@ -262,6 +262,7 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
+        console.log('pdf view web: ');
         const styles = this.props.themeStyles;
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];

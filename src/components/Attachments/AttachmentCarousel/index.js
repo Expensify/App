@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
+import {Keyboard, PixelRatio, View} from 'react-native';
+import {FlashList} from '@shopify/flash-list';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -35,7 +36,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-    const [containerWidth, setContainerWidth] = useState(0);
+    const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
@@ -111,21 +112,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     /**
-     * Calculate items layout information to optimize scrolling performance
-     * @param {*} data
-     * @param {Number} index
-     * @returns {{offset: Number, length: Number, index: Number}}
-     */
-    const getItemLayout = useCallback(
-        (_data, index) => ({
-            length: containerWidth,
-            offset: containerWidth * index,
-            index,
-        }),
-        [containerWidth],
-    );
-
-    /**
      * Defines how a single attachment should be rendered
      * @param {Object} item
      * @param {String} item.reportActionID
@@ -137,21 +123,28 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => (
-            <CarouselItem
-                item={item}
-                isFocused={activeSource === item.source}
-                isSingleItem={attachments.length === 1}
-                onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
-            />
-        ),
-        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        ({item}) => {
+            console.log('rendering: ', item);
+            return (
+                <CarouselItem
+                    item={item}
+                    isFocused={activeSource === item.source}
+                    isSingleItem={attachments.length === 1}
+                    onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
+                    size={containerDimensions}
+                />
+            );
+        },
+        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows, containerDimensions],
     );
 
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) => setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))}
+            onLayout={({nativeEvent}) => setContainerDimensions({
+                width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width),
+                height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height),
+            })}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
@@ -175,11 +168,15 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         cancelAutoHideArrow={cancelAutoHideArrows}
                     />
 
-                    {containerWidth > 0 && (
-                        <FlatList
+                    {containerDimensions.width > 0 && (
+                        <FlashList
+                            estimatedItemSize={containerDimensions.width}
                             keyboardShouldPersistTaps="handled"
                             listKey="AttachmentCarousel"
                             horizontal
+                            disableAutoLayout
+                            disableHorizontalListHeightMeasurement
+                            estimatedListSize={containerDimensions}
                             decelerationRate="fast"
                             showsHorizontalScrollIndicator={false}
                             bounces={false}
@@ -187,20 +184,20 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             disableIntervalMomentum
                             pagingEnabled
                             snapToAlignment="start"
-                            snapToInterval={containerWidth}
+                            snapToInterval={containerDimensions.width}
                             // Enable scrolling by swiping on mobile (touch) devices only
                             // disable scroll for desktop/browsers because they add their scrollbars
                             // Enable scrolling FlatList only when PDF is not in a zoomed state
                             scrollEnabled={canUseTouchScreen}
                             ref={scrollRef}
                             initialScrollIndex={page}
+                            estimatedFirstItemOffset={page * containerDimensions.width}
                             initialNumToRender={3}
                             windowSize={5}
                             maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                             data={attachments}
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
-                            getItemLayout={getItemLayout}
                             keyExtractor={(item) => item.source}
                             viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={updatePage}

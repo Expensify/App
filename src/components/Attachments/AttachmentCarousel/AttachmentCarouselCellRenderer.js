@@ -7,10 +7,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 const propTypes = {
     /** Cell Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    forwardedRef: PropTypes.func,
 };
 
 const defaultProps = {
     style: [],
+    forwardedRef: () => {},
 };
 
 function AttachmentCarouselCellRenderer(props) {
@@ -23,6 +25,7 @@ function AttachmentCarouselCellRenderer(props) {
         <View
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            ref={props.forwardedRef}
             style={style}
         />
     );
@@ -32,4 +35,9 @@ AttachmentCarouselCellRenderer.propTypes = propTypes;
 AttachmentCarouselCellRenderer.defaultProps = defaultProps;
 AttachmentCarouselCellRenderer.displayName = 'AttachmentCarouselCellRenderer';
 
-export default React.memo(AttachmentCarouselCellRenderer);
+export default React.memo(React.forwardRef((props, ref) => (
+    <AttachmentCarouselCellRenderer
+        {...props}
+        forwardedRef={ref}
+    />
+)));

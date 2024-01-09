@@ -126,6 +126,7 @@ function AttachmentView({
     // will appear with a source that is a blob
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
+        console.log('render pdf: ', encryptedSourceUrl);
 
         // We need the following View component on android native
         // So that the event will propagate properly and
@@ -143,7 +144,7 @@ function AttachmentView({
                     onPress={onPress}
                     onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
-                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    onLoadComplete={() => setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}

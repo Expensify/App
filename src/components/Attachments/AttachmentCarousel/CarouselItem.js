@@ -54,7 +54,7 @@ const defaultProps = {
     onPress: undefined,
 };
 
-function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
+function CarouselItem({item, index, activeIndex, isSingleItem, onPress, size}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -98,7 +98,10 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
     }
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, {
+            width: size.width,
+            height: size.height,
+        }]}>
             <View style={[styles.flex1]}>
                 <AttachmentView
                     source={item.source}
