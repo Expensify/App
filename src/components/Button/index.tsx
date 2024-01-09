@@ -1,7 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {ForwardedRef, useCallback} from 'react';
-import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import type {ForwardedRef} from 'react';
+import React, {useCallback} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -13,7 +14,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
@@ -24,7 +26,7 @@ type ButtonWithText = {
     shouldShowRightIcon?: boolean;
 
     /** The icon asset to display to the left of the text */
-    icon?: React.FC<SvgProps> | null;
+    icon?: IconAsset | null;
 };
 
 type ButtonProps = (ButtonWithText | ChildrenProps) & {
@@ -32,7 +34,7 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     allowBubble?: boolean;
 
     /** The icon asset to display to the right of the text */
-    iconRight?: React.FC<SvgProps>;
+    iconRight?: IconAsset;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -169,16 +171,16 @@ function Button(
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
+            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
                 return;
             }
             onPress();
         },
-        [isDisabled, isFocused, isLoading, onPress],
+        [isDisabled, isLoading, onPress],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
-        isActive: pressOnEnter && !shouldDisableEnterShortcut,
+        isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
         shouldBubble: allowBubble,
         priority: enterKeyEventListenerPriority,
         shouldPreventDefault: false,
@@ -203,7 +205,7 @@ function Button(
                     large && styles.buttonLargeText,
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
-                    icon && styles.textAlignLeft,
+                    Boolean(icon) && styles.textAlignLeft,
                     textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -221,7 +223,7 @@ function Button(
                             <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill ?? theme.textLight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
                                 />
                             </View>
@@ -232,7 +234,7 @@ function Button(
                         <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
-                                fill={iconFill ?? theme.textLight}
+                                fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                 small={small}
                             />
                         </View>
