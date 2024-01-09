@@ -1,11 +1,12 @@
 /* eslint-disable react/no-array-index-key */
 import React from 'react';
-import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -84,9 +85,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                                 key={i}
                                 style={styles.offlineFeedback.text}
                             >
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
-                                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
+                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
+                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
                             </Text>
                         </PressableWithoutFeedback>
                     ) : (

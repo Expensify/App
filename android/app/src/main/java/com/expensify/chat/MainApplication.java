@@ -1,9 +1,11 @@
 package com.expensify.chat;
+import android.content.res.Configuration;
+import expo.modules.ApplicationLifecycleDispatcher;
+import expo.modules.ReactNativeHostWrapper;
 
 import android.content.Context;
 import android.database.CursorWindow;
 
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
 import com.expensify.chat.bootsplash.BootSplashPackage;
@@ -23,7 +25,7 @@ import java.util.List;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
   private final ReactNativeHost mReactNativeHost =
-      new DefaultReactNativeHost(this) {
+      new ReactNativeHostWrapper(this, new DefaultReactNativeHost(this) {
         @Override
         public boolean getUseDeveloperSupport() {
           return BuildConfig.DEBUG;
@@ -44,7 +46,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 
         @Override
         protected String getJSMainModuleName() {
-          return "index";
+          return ".expo/.virtual-metro-entry";
         }
 
         @Override
@@ -56,7 +58,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         protected Boolean isHermesEnabled() {
           return BuildConfig.IS_HERMES_ENABLED;
         }
-      };
+      });
 
   @Override
   public ReactNativeHost getReactNativeHost() {
@@ -66,9 +68,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
       super.onCreate();
-
-      // Use night (dark) mode so native UI defaults to dark theme.
-      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
       SoLoader.init(this, /* native exopackage */ false);
       if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
@@ -98,5 +97,12 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       } catch (Exception e) {
         e.printStackTrace();
       }
+    ApplicationLifecycleDispatcher.onApplicationCreate(this);
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig);
   }
 }

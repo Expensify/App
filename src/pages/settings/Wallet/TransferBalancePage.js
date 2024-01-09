@@ -15,12 +15,12 @@ import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -223,6 +223,7 @@ function TransferBalancePage(props) {
                             iconHeight={selectedAccount.iconSize}
                             icon={selectedAccount.icon}
                             onPress={() => navigateToChooseTransferAccount(selectedAccount.accountType)}
+                            displayInDefaultIconColor
                         />
                     )}
                     <View style={styles.ph5}>

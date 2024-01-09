@@ -4,15 +4,18 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import categoryPropTypes from '@components/categoryPropTypes';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -22,7 +25,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
+import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -47,12 +50,22 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
+    /** The policy of the current request */
+    policy: policyPropTypes,
+
+    policyTags: tagPropTypes,
+
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    policyCategories: {},
+    policyTags: {},
     iou: iouDefaultProps,
+    policy: policyDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -77,7 +90,7 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB_REQUEST.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
@@ -163,6 +176,9 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.category,
                 props.iou.tag,
                 props.iou.billable,
+                props.policy,
+                props.policyTags,
+                props.policyCategories,
             );
         },
         [
@@ -176,6 +192,9 @@ function MoneyRequestConfirmPage(props) {
             props.iou.category,
             props.iou.tag,
             props.iou.billable,
+            props.policy,
+            props.policyTags,
+            props.policyCategories,
         ],
     );
 
@@ -197,9 +216,25 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.currency,
                 props.iou.merchant,
                 props.iou.billable,
+                props.policy,
+                props.policyTags,
+                props.policyCategories,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant, props.iou.billable],
+        [
+            props.report,
+            props.iou.created,
+            props.iou.transactionID,
+            props.iou.category,
+            props.iou.tag,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.merchant,
+            props.iou.billable,
+            props.policy,
+            props.policyTags,
+            props.policyCategories,
+        ],
     );
 
     const createTransaction = useCallback(
@@ -424,10 +459,15 @@ export default compose(
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
     }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(MoneyRequestConfirmPage);

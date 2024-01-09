@@ -106,7 +106,7 @@ If you enable tax but don’t select a tax rate or enter a tax reclaimable amoun
 
 Note: _Expensify won’t automatically track cumulative mileage. If you need to track cumulative mileage per employee, we recommend building a mileage report using our custom export formulas._ 
 
-# FAQs
+{% include faq-begin.md %}
 
 ## Why do I see eReceipts for expenses greater than $75?
 
@@ -116,3 +116,4 @@ An eReceipt is generated for Expensify card purchases of any amount in the follo
 
 Expensify does not update mileage rates to match the rate provided by the IRS. An admin of the workspace will need to update the rate or create a new rate in the workspace. This is because Expensify has customers worldwide, not just in the United States, and most companies want to communicate the change with employees and control the timing.
 
+{% include faq-end.md %}

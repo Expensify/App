@@ -2,7 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-import DeepValueOf from './types/utils/DeepValueOf';
+import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
@@ -37,8 +37,10 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
+            STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
+            STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
             STATUS: 'Settings_Status',
-            STATUS_SET: 'Settings_Status_Set',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
@@ -79,10 +81,12 @@ const SCREENS = {
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
+    LEFT_MODAL: {
+        SEARCH: 'Search',
+    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
-        SEARCH: 'Search',
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
@@ -104,6 +108,7 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
+        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -116,6 +121,7 @@ const SCREENS = {
         DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
+        START: 'Money_Request_Start',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',
@@ -127,6 +133,8 @@ const SCREENS = {
         STEP_SCAN: 'Money_Request_Step_Scan',
         STEP_TAG: 'Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
+        STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
+        STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
@@ -224,6 +232,7 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
+    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
