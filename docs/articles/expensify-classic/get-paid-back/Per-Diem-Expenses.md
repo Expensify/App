@@ -29,7 +29,7 @@ You can include meal deductions or overnight lodging costs if your jurisdiction 
 ### Step 6: Submit for Approval
 Finally, submit your Per Diem expense for approval, and you'll be on your way to getting reimbursed!
  
-# FAQ 
+{% include faq-begin.md %} 
 
 ## Can I edit my per diem expenses?
 Per Diems cannot be amended. To make changes, delete the expense and recreate it as needed.
@@ -43,3 +43,5 @@ Reach out to your internal Admin team, as they've configured the rates in your p
 ## Can I add start and end times to per diems? 
 Unfortunately, you cannot add start and end times to Per Diems in Expensify.
 By following these steps, you can efficiently create and manage your Per Diem expenses in Expensify, making the process of tracking and getting reimbursed hassle-free. 
+
+{% include faq-end.md %}

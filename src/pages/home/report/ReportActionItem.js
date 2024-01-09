@@ -117,6 +117,9 @@ const propTypes = {
 
     /** The user's wallet account */
     userWallet: userWalletPropTypes,
+
+    /** All the report actions belonging to the report's parent */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
 const defaultProps = {
@@ -127,6 +130,7 @@ const defaultProps = {
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
+    parentReportActions: {},
 };
 
 function ReportActionItem(props) {
@@ -483,9 +487,8 @@ function ReportActionItem(props) {
             );
         }
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
-        const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(props.action, props.report.reportID);
         const oldestFourAccountIDs = _.map(lodashGet(props.action, 'childOldestFourAccountIDs', '').split(','), (accountID) => Number(accountID));
         const draftMessageRightAlign = !_.isUndefined(props.draftMessage) ? styles.chatItemReactionsDraftRight : {};
 
@@ -569,7 +572,7 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+        const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
                 <ShowContextMenuContext.Provider value={contextValue}>
@@ -690,7 +693,9 @@ function ReportActionItem(props) {
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !_.isUndefined(props.draftMessage))}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
-                                pendingAction={!_.isUndefined(props.draftMessage) ? null : props.action.pendingAction}
+                                pendingAction={
+                                    !_.isUndefined(props.draftMessage) ? null : props.action.pendingAction || (props.action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : '')
+                                }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
@@ -768,6 +773,10 @@ export default compose(
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || 0}`,
+            canEvict: false,
+        },
     }),
 )(
     memo(
@@ -785,6 +794,8 @@ export default compose(
             _.isEqual(prevProps.report.errorFields, nextProps.report.errorFields) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
+            lodashGet(prevProps.report, 'parentReportID') === lodashGet(nextProps.report, 'parentReportID') &&
+            lodashGet(prevProps.report, 'parentReportActionID') === lodashGet(nextProps.report, 'parentReportActionID') &&
             prevProps.translate === nextProps.translate &&
             // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
             ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
