@@ -832,10 +832,6 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceRate = Object.values(distanceUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
 
-    if (!distanceUnit?.customUnitID || !distanceRate?.customUnitRateID) {
-        return;
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -854,10 +850,10 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 },
                 name,
                 outputCurrency: currency,
-                ...(distanceUnit
+                ...(distanceUnit?.customUnitID && distanceRate?.customUnitRateID
                     ? {
                           customUnits: {
-                              [distanceUnit.customUnitID]: {
+                              [distanceUnit?.customUnitID]: {
                                   ...distanceUnit,
                                   rates: {
                                       [distanceRate?.customUnitRateID]: {
@@ -894,7 +890,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
-                ...(distanceUnit
+                ...(distanceUnit?.customUnitID
                     ? {
                           customUnits: {
                               [distanceUnit.customUnitID]: distanceUnit,
@@ -1037,7 +1033,8 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
     ];
 
     const newCustomUnitParam = lodashClone(newCustomUnit);
-    newCustomUnitParam.rates = {...newCustomUnitParam.rates, pendingAction: undefined, errors: undefined};
+    const {pendingAction, errors, ...newRates} = newCustomUnitParam.rates ?? {};
+    newCustomUnitParam.rates = newRates;
 
     type UpdateWorkspaceCustomUnitAndRate = {
         policyID: string;
