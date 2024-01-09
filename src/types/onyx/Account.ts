@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
@@ -46,6 +46,9 @@ type Account = {
 
     /** Whether a sign is loading */
     isLoading?: boolean;
+
+    /** The active policy ID. Initiating a SmartScan will create an expense on this policy by default. */
+    activePolicyID?: string;
 
     errors?: OnyxCommon.Errors;
     success?: string;

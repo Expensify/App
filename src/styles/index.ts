@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import {LineLayer} from 'react-map-gl';
-import {AnimatableNumericValue, Animated, ImageStyle, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {CustomAnimation} from 'react-native-animatable';
-import {PickerStyle} from 'react-native-picker-select';
-import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import DotLottieAnimation from '@components/LottieAnimations/types';
+import type {LineLayer} from 'react-map-gl';
+import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {CustomAnimation} from 'react-native-animatable';
+import type {PickerStyle} from 'react-native-picker-select';
+import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
-import {type ThemeColors} from './theme/types';
+import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import codeStyles from './utils/codeStyles';
@@ -19,8 +20,7 @@ import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
 import flex from './utils/flex';
-import fontFamily from './utils/fontFamily';
-import fontWeightBold from './utils/fontWeight/bold';
+import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
@@ -90,7 +90,7 @@ const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
         color: theme.text,
-        fontFamily: fontFamily.EXP_NEUE,
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         paddingBottom: 8,
@@ -106,7 +106,7 @@ const link = (theme: ThemeColors) =>
     ({
         color: theme.link,
         textDecorationColor: theme.link,
-        fontFamily: fontFamily.EXP_NEUE,
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const baseCodeTagStyles = (theme: ThemeColors) =>
@@ -118,7 +118,7 @@ const baseCodeTagStyles = (theme: ThemeColors) =>
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const headlineFont = {
-    fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
     fontWeight: '500',
 } satisfies TextStyle;
 
@@ -138,7 +138,7 @@ const webViewStyles = (theme: ThemeColors) =>
         // component.
         tagStyles: {
             em: {
-                fontFamily: fontFamily.EXP_NEUE,
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                 fontStyle: 'italic',
             },
 
@@ -148,7 +148,7 @@ const webViewStyles = (theme: ThemeColors) =>
             },
 
             strong: {
-                fontFamily: fontFamily.EXP_NEUE,
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                 fontWeight: 'bold',
             },
 
@@ -183,7 +183,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingBottom: 12,
                 paddingRight: 8,
                 paddingLeft: 8,
-                fontFamily: fontFamily.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
             },
@@ -193,7 +193,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
-                fontFamily: fontFamily.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
@@ -217,7 +217,7 @@ const webViewStyles = (theme: ThemeColors) =>
         baseFontStyle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             flex: 1,
             lineHeight: variables.fontSizeNormalHeight,
             ...writingDirection.ltr,
@@ -292,8 +292,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         mentionSuggestionsDisplayName: {
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         textSupporting: {
@@ -307,7 +307,7 @@ const styles = (theme: ThemeColors) =>
         linkMuted: {
             color: theme.textSupporting,
             textDecorationColor: theme.textSupporting,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
         },
 
         linkMutedHovered: {
@@ -323,9 +323,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         h4: {
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeLabel,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         textAlignCenter: {
@@ -366,29 +366,29 @@ const styles = (theme: ThemeColors) =>
         },
 
         textMicro: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
         },
 
         textMicroBold: {
             color: theme.text,
-            fontWeight: fontWeightBold,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
         },
 
         textMicroSupporting: {
             color: theme.textSupporting,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
         },
 
         textExtraSmallSupporting: {
             color: theme.textSupporting,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
         },
 
@@ -410,13 +410,13 @@ const styles = (theme: ThemeColors) =>
 
         textHero: {
             fontSize: variables.fontSizeHero,
-            fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             lineHeight: variables.lineHeightHero,
         },
 
         textStrong: {
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         textHeadline: {
@@ -500,9 +500,9 @@ const styles = (theme: ThemeColors) =>
 
         buttonText: {
             color: theme.text,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
             textAlign: 'center',
             flexShrink: 1,
 
@@ -539,22 +539,22 @@ const styles = (theme: ThemeColors) =>
 
         buttonSmallText: {
             fontSize: variables.fontSizeSmall,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             textAlign: 'center',
         },
 
         buttonMediumText: {
             fontSize: variables.fontSizeLabel,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             textAlign: 'center',
         },
 
         buttonLargeText: {
             fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             textAlign: 'center',
         },
 
@@ -680,7 +680,7 @@ const styles = (theme: ThemeColors) =>
         pickerSmall: (backgroundColor = theme.highlightBG) =>
             ({
                 inputIOS: {
-                    fontFamily: fontFamily.EXP_NEUE,
+                    fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                     fontSize: variables.fontSizeSmall,
                     paddingLeft: 0,
                     paddingRight: 17,
@@ -707,7 +707,7 @@ const styles = (theme: ThemeColors) =>
                     backgroundColor: theme.highlightBG,
                 },
                 inputWeb: {
-                    fontFamily: fontFamily.EXP_NEUE,
+                    fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                     fontSize: variables.fontSizeSmall,
                     paddingLeft: 0,
                     paddingRight: 17,
@@ -722,7 +722,7 @@ const styles = (theme: ThemeColors) =>
                     ...cursor.cursorPointer,
                 },
                 inputAndroid: {
-                    fontFamily: fontFamily.EXP_NEUE,
+                    fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                     fontSize: variables.fontSizeSmall,
                     paddingLeft: 0,
                     paddingRight: 17,
@@ -857,16 +857,16 @@ const styles = (theme: ThemeColors) =>
 
         headerAnonymousFooter: {
             color: theme.heading,
-            fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
         },
 
         headerText: {
             color: theme.heading,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         headerGap: {
@@ -885,7 +885,7 @@ const styles = (theme: ThemeColors) =>
 
         chatItemComposeSecondaryRowSubText: {
             color: theme.textSupporting,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
         },
@@ -982,7 +982,7 @@ const styles = (theme: ThemeColors) =>
             top: 0,
             fontSize: variables.fontSizeNormal,
             color: theme.textSupporting,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
         },
 
@@ -1004,7 +1004,7 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         baseTextInput: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
@@ -1049,7 +1049,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderWidth: 1,
             color: theme.text,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             paddingLeft: 12,
             paddingRight: 12,
@@ -1072,7 +1072,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputPrefix: {
             color: theme.text,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             verticalAlign: 'middle',
         },
@@ -1149,20 +1149,20 @@ const styles = (theme: ThemeColors) =>
         noOutline: addOutlineWidth(theme, {}, 0),
 
         labelStrong: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontWeight: 'bold',
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
 
         textLabelSupporting: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
         },
 
         textLabelError: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textError,
         },
@@ -1175,14 +1175,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         subTextReceiptUpload: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
             color: theme.text,
         },
 
         furtherDetailsText: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             color: theme.textSupporting,
         },
@@ -1385,7 +1385,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             textDecorationLine: 'none',
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: 20,
         },
 
@@ -1421,6 +1421,12 @@ const styles = (theme: ThemeColors) =>
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
             height: variables.lineHeightSizeh1,
         },
+
+        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                ...modalNavigatorContainer(isSmallScreenWidth),
+                left: 0,
+            } satisfies ViewStyle),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
@@ -1468,7 +1474,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         createMenuHeaderText: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.heading,
         },
@@ -1566,8 +1572,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkTextBold: {
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             color: theme.heading,
         },
 
@@ -1584,7 +1590,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         optionDisplayName: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             minHeight: variables.alternateTextHeight,
             lineHeight: variables.lineHeightXLarge,
             ...whiteSpace.noWrap,
@@ -1641,14 +1647,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams) =>
+        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: -2 * variables.sideBarWidth,
+                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: 0,
+                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -1692,7 +1698,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatContentScrollView: {
-            flexGrow: 1,
             justifyContent: 'flex-end',
             paddingBottom: 16,
         },
@@ -1731,9 +1736,9 @@ const styles = (theme: ThemeColors) =>
 
         chatItemMessageHeaderSender: {
             color: theme.heading,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
             lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
@@ -1748,7 +1753,7 @@ const styles = (theme: ThemeColors) =>
         chatItemMessage: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
             ...cursor.cursorAuto,
@@ -1759,7 +1764,7 @@ const styles = (theme: ThemeColors) =>
         renderHTMLTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
             ...whiteSpace.preWrap,
@@ -1830,7 +1835,7 @@ const styles = (theme: ThemeColors) =>
                 backgroundColor: theme.componentBG,
                 borderColor: theme.border,
                 color: theme.text,
-                fontFamily: fontFamily.EXP_NEUE,
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                 fontSize: variables.fontSizeNormal,
                 borderWidth: 0,
                 height: 'auto',
@@ -1896,8 +1901,8 @@ const styles = (theme: ThemeColors) =>
 
         emojiSkinToneTitle: {
             ...spacing.pv1,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             color: theme.heading,
             fontSize: variables.fontSizeSmall,
         },
@@ -2089,7 +2094,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         avatarInnerTextSmall: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeExtraSmall,
             lineHeight: undefined,
             marginLeft: -2,
@@ -2358,7 +2363,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         twoFactorAuthCode: {
-            fontFamily: fontFamily.MONOSPACE,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
             width: 112,
             textAlign: 'center',
         },
@@ -2406,7 +2411,7 @@ const styles = (theme: ThemeColors) =>
             height: 20,
         },
         anonymousRoomFooterLogoTaglineText: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeMedium,
             color: theme.text,
         },
@@ -2445,9 +2450,9 @@ const styles = (theme: ThemeColors) =>
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeXLarge,
-            fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             textAlign: 'center',
             fontWeight: 'normal',
             position: 'absolute',
@@ -2521,9 +2526,9 @@ const styles = (theme: ThemeColors) =>
 
         unreadIndicatorText: {
             color: theme.unreadIndicator,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
             textTransform: 'capitalize',
         },
 
@@ -2843,7 +2848,7 @@ const styles = (theme: ThemeColors) =>
 
         growlNotificationText: {
             fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             width: '90%',
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
@@ -2869,7 +2874,7 @@ const styles = (theme: ThemeColors) =>
 
         smallEditIcon: {
             alignItems: 'center',
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
             borderRadius: 14,
             borderWidth: 3,
@@ -3075,7 +3080,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             flex: 1,
         },
 
@@ -3183,7 +3188,7 @@ const styles = (theme: ThemeColors) =>
         inlineSystemMessage: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             marginLeft: 6,
         },
 
@@ -3361,7 +3366,7 @@ const styles = (theme: ThemeColors) =>
 
         validateCodeDigits: {
             color: theme.text,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeXXLarge,
             letterSpacing: 4,
         },
@@ -3411,7 +3416,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         loginHeroHeader: {
-            fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             color: theme.success,
             fontWeight: '500',
             textAlign: 'center',
@@ -3441,28 +3446,28 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptMerchant: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
             color: theme.textColorfulBackground,
         },
 
         eReceiptWaypointTitle: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
             color: colors.green400,
         },
 
         eReceiptWaypointAddress: {
-            fontFamily: fontFamily.MONOSPACE,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightNormal,
             color: theme.textColorfulBackground,
         },
 
         eReceiptGuaranteed: {
-            fontFamily: fontFamily.MONOSPACE,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
             color: theme.textColorfulBackground,
@@ -3502,7 +3507,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         loginHeroBody: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSignInHeroBody,
             color: theme.textLight,
             textAlign: 'center',
@@ -3554,7 +3559,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         taskTitleDescription: {
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
             lineHeight: variables.lineHeightNormal,
@@ -3572,8 +3577,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         assigneeTextStyle: {
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             minHeight: variables.avatarSizeSubscript,
         },
 
@@ -3622,7 +3627,7 @@ const styles = (theme: ThemeColors) =>
 
         headerEnvBadgeText: {
             fontSize: 7,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
             lineHeight: undefined,
         },
 
@@ -3700,11 +3705,26 @@ const styles = (theme: ThemeColors) =>
         tabText: (isSelected: boolean) =>
             ({
                 marginLeft: 8,
-                fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
-                fontWeight: isSelected ? fontWeightBold : '400',
+                fontFamily: isSelected ? FontUtils.fontFamily.platform.EXP_NEUE_BOLD : FontUtils.fontFamily.platform.EXP_NEUE,
+                fontWeight: isSelected ? FontUtils.fontWeight.bold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
-                lineHeight: 14,
+                lineHeight: variables.lineHeightNormal,
+                fontSize: variables.fontSizeNormal,
             } satisfies TextStyle),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
+            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+        }),
+
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
                 backgroundColor,
@@ -4049,6 +4069,21 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
+        holdRequestInline: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+
+            backgroundColor: colors.red,
+            borderRadius: variables.componentBorderRadiusMedium,
+            overflow: 'hidden',
+
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+        },
+
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -4057,8 +4092,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletCardMenuItem: {
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
             color: theme.text,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
@@ -4083,7 +4118,7 @@ const styles = (theme: ThemeColors) =>
 
         walletRedDotSectionTitle: {
             color: theme.text,
-            fontWeight: fontWeightBold,
+            fontWeight: FontUtils.fontWeight.bold,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
         },

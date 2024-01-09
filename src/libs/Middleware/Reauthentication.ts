@@ -5,7 +5,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Request from '@libs/Request';
 import CONST from '@src/CONST';
-import Middleware from './types';
+import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
 let isAuthenticating: Promise<void> | null = null;
