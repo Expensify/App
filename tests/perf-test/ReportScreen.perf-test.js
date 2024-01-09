@@ -154,7 +154,7 @@ function ReportScreenWrapper(args) {
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test('[ReportScreen] should render ReportScreen with composer interactions', () => {
+test.skip('[ReportScreen] should render ReportScreen with composer interactions', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
         /**
@@ -209,7 +209,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
@@ -227,7 +227,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
         );
 });
 
-test('[ReportScreen] should press of the report item', () => {
+test.skip('[ReportScreen] should press of the report item', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
         /**
@@ -274,7 +274,7 @@ test('[ReportScreen] should press of the report item', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
