@@ -996,6 +996,12 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  */
 function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+
+    // Early return false in case not having any transaction
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
     return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
@@ -2910,10 +2916,10 @@ function buildOptimisticReportPreview(
         accountID: iouReport?.managerID ?? 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? 0,
+        childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && isNotEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
-        childReportID,
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
     };
 }
@@ -3758,6 +3764,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
             return isDraftExpenseReport(report);
         }
+
         return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
@@ -3926,6 +3933,13 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    // If the Money Request report is marked for deletion, let us prevent any further write action.
+    if (isMoneyRequestReport(report)) {
+        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+        if (parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
+    }
     return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
 }
 

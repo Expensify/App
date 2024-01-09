@@ -90,19 +90,20 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
     // Make a copy so we don't mutate the original object
     const iouReportUpdate: Report = {...iouReport};
 
-    if (iouReportUpdate.total) {
-        if (actorAccountID === iouReport.ownerAccountID) {
-            iouReportUpdate.total += isDeleting ? -amount : amount;
-        } else {
-            iouReportUpdate.total += isDeleting ? amount : -amount;
-        }
+    // Let us ensure a valid value before updating the total amount.
+    iouReportUpdate.total = iouReportUpdate.total ?? 0;
 
-        if (iouReportUpdate.total < 0) {
-            // The total sign has changed and hence we need to flip the manager and owner of the report.
-            iouReportUpdate.ownerAccountID = iouReport.managerID;
-            iouReportUpdate.managerID = iouReport.ownerAccountID;
-            iouReportUpdate.total = -iouReportUpdate.total;
-        }
+    if (actorAccountID === iouReport.ownerAccountID) {
+        iouReportUpdate.total += isDeleting ? -amount : amount;
+    } else {
+        iouReportUpdate.total += isDeleting ? amount : -amount;
+    }
+
+    if (iouReportUpdate.total < 0) {
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
+        iouReportUpdate.total = -iouReportUpdate.total;
     }
 
     return iouReportUpdate;
