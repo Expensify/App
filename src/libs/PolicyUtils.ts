@@ -13,10 +13,8 @@ type UnitRate = {rate: number};
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
-    return Object.values(policies ?? {}).filter(
-        (policy): policy is Policy => (!!policy?.isPolicyExpenseChatEnabled || !!policy?.areChatRoomsEnabled) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
+    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
