@@ -7,7 +7,6 @@ import type {RadioListItemProps} from './types';
 
 function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: RadioListItemProps) {
     const styles = useThemeStyles();
-    console.log('TestujemyRadioItem');
 
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
