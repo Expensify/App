@@ -1,6 +1,6 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo} from 'react';
 import type {ViewStyle} from 'react-native';
-import {Animated, StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Video, {ResizeMode} from 'react-native-video';
 import {splashVideoVariants} from '@components/VideoAnimations';
@@ -13,8 +13,7 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
     const theme = useTheme();
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
     const opacity = useSharedValue(1);
-    const randomIndex = Math.floor(Math.random() * splashVideoVariants.length);
-    setLastShownSplashScreenVideo(splashVideoVariants[randomIndex].fileName);
+    const randomIndex = useMemo(() => Math.floor(Math.random() * splashVideoVariants.length), []);
 
     const opacityStyle = useAnimatedStyle<ViewStyle>(
         () => ({
@@ -22,6 +21,10 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
         }),
         [opacity],
     );
+
+    useEffect(() => {
+        setLastShownSplashScreenVideo(splashVideoVariants[randomIndex].fileName);
+    }, [randomIndex]);
 
     useEffect(() => {
         if (!shouldHideSplashScreen) {
@@ -46,6 +49,7 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
                 StyleSheet.absoluteFill,
                 opacityStyle,
                 {
+                    backgroundColor: theme.splashBG,
                     // Apply negative margins to center the logo on window (instead of screen)
                     marginBottom: -navigationBarHeight,
                 },
