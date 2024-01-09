@@ -101,7 +101,7 @@ function addSchoolPrincipal(firstName, partnerUserID, lastName, policyID) {
                         type: CONST.POLICY.TYPE.CORPORATE,
                         name: policyName,
                         role: CONST.POLICY.ROLE.USER,
-                        owner: sessionEmail,
+                        owner: CONST.TEACHERS_UNITE.POLICY_OWNER,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
