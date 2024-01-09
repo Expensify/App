@@ -159,6 +159,9 @@ to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
 
+## Performance tests
+We use Reassure for monitoring performance regression. More detailed information can be found [here](tests/perf-test/README.md):
+
 ----
 
 # Debugging
