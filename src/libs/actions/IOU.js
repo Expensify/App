@@ -270,9 +270,10 @@ function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
 /**
  * @param {String} transactionID
  * @param {Object[]} participants
+ * @returns {Promise<void>}
  */
 function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
 /**
