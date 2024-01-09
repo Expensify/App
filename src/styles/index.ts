@@ -4157,7 +4157,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         updateRequiredViewHeader: {
-            height: 70
+            height: 70,
         },
 
         updateRequiredViewTextContainer: {

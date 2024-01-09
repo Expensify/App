@@ -199,5 +199,4 @@ export default {
     holdMenuIconSize: 64,
     updateAnimationW: 390,
     updateAnimationH: 240,
-
 } as const;

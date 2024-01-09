@@ -2,30 +2,28 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
+import HeaderGap from '@components/HeaderGap';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import HeaderGap from '@components/HeaderGap';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize()
+    const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
             <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredHeader]}>
-                <Header
-                    title={translate('updateRequiredView.updateRequired')}
-                />
+                <Header title={translate('updateRequiredView.updateRequired')} />
             </View>
             <View style={[styles.flex1, StyleUtils.getUpdateRequiredViewStyles(isSmallScreenWidth)]}>
                 <Lottie
