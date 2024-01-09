@@ -29,7 +29,7 @@ function BaseListItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isUserItem = !(item.rightElement === undefined);
+    const isRadioItem = item.rightElement === undefined;
 
     return (
         <OfflineWithFeedback
@@ -55,7 +55,7 @@ function BaseListItem({
                         styles.justifyContentBetween,
                         styles.sidebarLinkInner,
                         styles.userSelectNone,
-                        isUserItem ? styles.peopleRow : styles.optionRow,
+                        isRadioItem ? styles.optionRow : styles.peopleRow,
                         isFocused && styles.sidebarLinkActive,
                     ]}
                 >
@@ -83,13 +83,13 @@ function BaseListItem({
                         </View>
                     )}
 
-                    {isUserItem ? (
-                        <UserListItem
+                    {isRadioItem ? (
+                        <RadioListItem
                             item={item}
                             textStyles={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
+                                item.isSelected ?? item.alternateText ? styles.sidebarLinkTextBold : null,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}
@@ -99,12 +99,12 @@ function BaseListItem({
                             showTooltip={showTooltip}
                         />
                     ) : (
-                        <RadioListItem
+                        <UserListItem
                             item={item}
                             textStyles={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isSelected ?? item.alternateText ? styles.sidebarLinkTextBold : null,
+                                styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}

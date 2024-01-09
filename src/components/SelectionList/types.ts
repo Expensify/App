@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {SubAvatar} from '@components/SubscriptAvatar';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -53,7 +53,7 @@ type User = {
     login?: string;
 
     /** Element to show on the right side of the item */
-    rightElement: JSX.Element;
+    rightElement: ReactElement;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: SubAvatar[];

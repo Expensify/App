@@ -219,9 +219,8 @@ function BaseSelectionList(
     };
 
     const selectAllRow = () => {
-        if (onSelectAll) {
-            onSelectAll();
-        }
+        onSelectAll?.();
+
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
