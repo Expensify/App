@@ -1,10 +1,11 @@
 import React, {useMemo, useState} from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
-import SelectionList from '../components/SelectionList';
-import CONST from '../CONST';
-import styles from '../styles/styles';
-import Text from '../components/Text';
+import _ from 'underscore';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
+// eslint-disable-next-line no-restricted-imports
+import {defaultStyles} from '@styles/index';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -148,7 +149,7 @@ WithTextInput.args = {
     textInputLabel: 'Option list',
     textInputPlaceholder: 'Search something...',
     textInputMaxLength: 4,
-    keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
+    inputMode: CONST.INPUT_MODE.NUMERIC,
     initiallyFocusedOptionKey: 'option-2',
     onSelectRow: () => {},
     onChangeText: () => {},
@@ -228,8 +229,8 @@ function MultipleSelection(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
+                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
                         </View>
                     ),
                 };
@@ -290,8 +291,8 @@ function WithSectionHeader(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
+                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
                         </View>
                     ),
                 };
@@ -350,8 +351,8 @@ function WithConfirmButton(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
+                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
                         </View>
                     ),
                 };

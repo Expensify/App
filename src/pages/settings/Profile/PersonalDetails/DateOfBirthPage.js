@@ -1,23 +1,24 @@
+import {subYears} from 'date-fns';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import {subYears} from 'date-fns';
-import CONST from '../../../../CONST';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import ROUTES from '../../../../ROUTES';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import NewDatePicker from '../../../../components/NewDatePicker';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import compose from '../../../../libs/compose';
-import styles from '../../../../styles/styles';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import FormProvider from '../../../../components/Form/FormProvider';
+import DatePicker from '@components/DatePicker';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,6 +38,7 @@ const defaultProps = {
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
 
@@ -80,7 +82,8 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <NewDatePicker
+                    <InputWrapper
+                        InputComponent={DatePicker}
                         inputID="dob"
                         label={translate('common.date')}
                         defaultValue={privatePersonalDetails.dob || ''}

@@ -20,13 +20,18 @@ function withSafeAreaInsets(WrappedComponent) {
             />
         );
     }
-    return forwardRef((props, ref) => (
+
+    const WithSafeAreaInsetsWithRef = forwardRef((props, ref) => (
         <WithSafeAreaInsets
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
+
+    WithSafeAreaInsetsWithRef.displayName = 'WithSafeAreaInsetsWithRef';
+
+    return WithSafeAreaInsetsWithRef;
 }
 
 const SafeAreaView = View;

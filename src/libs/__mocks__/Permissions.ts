@@ -1,5 +1,5 @@
-import CONST from '../../CONST';
-import Beta from '../../types/onyx/Beta';
+import CONST from '@src/CONST';
+import type Beta from '@src/types/onyx/Beta';
 
 /**
  * This module is mocked in tests because all the permission methods call canUseAllBetas() and that will
@@ -11,6 +11,4 @@ import Beta from '../../types/onyx/Beta';
 export default {
     ...jest.requireActual('../Permissions'),
     canUseDefaultRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
-    canUsePolicyRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
-    canUseCustomStatus: (betas: Beta[]) => betas.includes(CONST.BETAS.CUSTOM_STATUS),
 };

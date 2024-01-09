@@ -1,11 +1,10 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as CurrencyUtils from '../../src/libs/CurrencyUtils';
 import LocaleListener from '../../src/libs/Localize/LocaleListener';
-
+import ONYXKEYS from '../../src/ONYXKEYS';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
 // - refresh the App

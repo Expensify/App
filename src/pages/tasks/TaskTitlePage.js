@@ -1,32 +1,35 @@
-import _ from 'underscore';
-import React, {useCallback, useRef} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import TextInput from '../../components/TextInput';
-import styles from '../../styles/styles';
-import reportPropTypes from '../reportPropTypes';
-import compose from '../../libs/compose';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import CONST from '../../CONST';
-import Navigation from '../../libs/Navigation/Navigation';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+    /** The policy of parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
     }),
 
     /* Onyx Props */
@@ -34,11 +37,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    session: {},
     report: {},
+    rootParentReportPolicy: {},
 };
 
 function TaskTitlePage(props) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values
      * @param {String} values.title
@@ -56,9 +60,13 @@ function TaskTitlePage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the title of the report in the store and then call Task.editTaskReport
-            // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
+            if (values.title !== props.report.reportName) {
+                // Set the title of the report in the store and then call EditTask API
+                // to update the title of the report on the server
+                Task.editTask(props.report, {title: values.title});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );
@@ -71,7 +79,7 @@ function TaskTitlePage(props) {
 
     const inputRef = useRef(null);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
 
     return (
@@ -84,7 +92,7 @@ function TaskTitlePage(props) {
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton title={props.translate('task.task')} />
-                    <Form
+                    <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                         validate={validate}
@@ -93,8 +101,9 @@ function TaskTitlePage(props) {
                         enabledWhenOffline
                     >
                         <View style={[styles.mb4]}>
-                            <TextInput
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
                                 inputID="title"
                                 name="title"
                                 label={props.translate('task.title')}
@@ -111,7 +120,7 @@ function TaskTitlePage(props) {
                                 }}
                             />
                         </View>
-                    </Form>
+                    </FormProvider>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>
@@ -125,13 +134,17 @@ TaskTitlePage.displayName = 'TaskTitlePage';
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        rootParentReportPolicy: {
+            key: ({report}) => {
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskTitlePage);

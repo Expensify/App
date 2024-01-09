@@ -2,27 +2,28 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {runOnUI, interpolate, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
-import CONST from '../../CONST';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import Button from '../Button';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import Modal from '../Modal';
-import Text from '../Text';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {interpolate, runOnUI, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import Button from '@components/Button';
+import HeaderGap from '@components/HeaderGap';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import Modal from '@components/Modal';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import cropOrRotateImage from '@libs/cropOrRotateImage';
+import CONST from '@src/CONST';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
-import cropOrRotateImage from '../../libs/cropOrRotateImage';
-import HeaderGap from '../HeaderGap';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Tooltip from '../Tooltip';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import ScreenWrapper from '../ScreenWrapper';
 
 const propTypes = {
     /** Link to image for cropping */
@@ -44,7 +45,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** Image crop vector mask */
-    maskImage: PropTypes.func,
+    maskImage: sourcePropTypes,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -61,6 +62,9 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -381,7 +385,7 @@ function AvatarCropModal(props) {
                     {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
-                            color={themeColors.spinner}
+                            color={theme.spinner}
                             style={[styles.flex1]}
                             size="large"
                         />
@@ -402,14 +406,15 @@ function AvatarCropModal(props) {
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
                                     src={Expensicons.Zoom}
-                                    fill={themeColors.icons}
+                                    fill={theme.icon}
                                 />
+
                                 <PressableWithoutFeedback
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
                                     onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                     accessibilityLabel="slider"
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                                    role={CONST.ROLE.SLIDER}
                                 >
                                     <Slider
                                         sliderValue={translateSlider}
@@ -424,7 +429,7 @@ function AvatarCropModal(props) {
                                         <Button
                                             medium
                                             icon={Expensicons.Rotate}
-                                            iconFill={themeColors.inverse}
+                                            iconFill={theme.inverse}
                                             iconStyles={[styles.mr0]}
                                             onPress={rotateImage}
                                         />

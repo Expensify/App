@@ -1,37 +1,34 @@
-import React, {useEffect, useMemo} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES';
-import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
-import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as Policy from '../libs/actions/Policy';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Permissions from '../libs/Permissions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
-import tagPropTypes from '../components/tagPropTypes';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import categoryPropTypes from '@components/categoryPropTypes';
+import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestReceiptPage from './EditRequestReceiptPage';
-import reportPropTypes from './reportPropTypes';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
+import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+import EditRequestDistancePage from './EditRequestDistancePage';
+import EditRequestMerchantPage from './EditRequestMerchantPage';
+import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
-import categoryPropTypes from '../components/categoryPropTypes';
-import ScreenWrapper from '../components/ScreenWrapper';
-import transactionPropTypes from '../components/transactionPropTypes';
+import reportActionPropTypes from './home/report/reportActionPropTypes';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -47,29 +44,8 @@ const propTypes = {
     }).isRequired,
 
     /** Onyx props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report object for the thread report */
     report: reportPropTypes,
-
-    /** The parent report object for the thread report */
-    parentReport: reportPropTypes,
-
-    /** The policy object for the current route */
-    policy: PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-
-        /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
 
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
@@ -77,28 +53,24 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
-    /** The original transaction that is being edited */
-    transaction: transactionPropTypes,
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** Transaction that stores the request data */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    betas: [],
     report: {},
-    parentReport: {},
-    policy: null,
-    session: {
-        email: null,
-    },
     policyCategories: {},
     policyTags: {},
+    parentReportActions: {},
     transaction: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policy, session, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
-    const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+    const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
@@ -109,17 +81,7 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
-
-    // Take only the YYYY-MM-DD value
-    const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
-
-    const isDeleted = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const isSettled = ReportUtils.isSettled(parentReport.reportID);
-
-    const isAdmin = Policy.isAdminOfFreePolicy([policy]) && ReportUtils.isExpenseReport(parentReport);
-    const isRequestor = ReportUtils.isMoneyRequestReport(parentReport) && lodashGet(session, 'accountID', null) === parentReportAction.actorAccountID;
-    const canEdit = !isSettled && !isDeleted && (isAdmin || isRequestor);
 
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -127,33 +89,97 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     const tagListName = PolicyUtils.getTagListName(policyTags);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     // A flag for showing the categories page
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
-    // Dismiss the modal when the request is paid or deleted
+    // Decides whether to allow or disallow editing a money request
     useEffect(() => {
-        if (canEdit) {
+        // Do not dismiss the modal, when a current user can edit this property of the money request.
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, fieldToEdit)) {
             return;
         }
+
+        // Dismiss the modal when a current user cannot edit a money request.
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [canEdit]);
+    }, [parentReportAction, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        if (TransactionUtils.isDistanceRequest(transaction)) {
-            IOU.updateDistanceRequest(transaction.transactionID, report.reportID, transactionChanges);
-        } else {
-            IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
-        }
+        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
         Navigation.dismissModal(report.reportID);
     }
+
+    const saveAmountAndCurrency = useCallback(
+        ({amount, currency: newCurrency}) => {
+            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
+    const saveCreated = useCallback(
+        ({created: newCreated}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newCreated === TransactionUtils.getCreated(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
+    const saveMerchant = useCallback(
+        ({merchant: newMerchant}) => {
+            const newTrimmedMerchant = newMerchant.trim();
+
+            // In case the merchant hasn't been changed, do not make the API request.
+            // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+            if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            // This is possible only in case of IOU requests.
+            if (newTrimmedMerchant === '') {
+                IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+                return;
+            }
+
+            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newMerchant);
+            Navigation.dismissModal();
+        },
+        [transactionMerchant, transaction, report],
+    );
+
+    const saveTag = useCallback(
+        ({tag: newTag}) => {
+            let updatedTag = newTag;
+            if (newTag === transactionTag) {
+                // In case the same tag has been selected, reset the tag.
+                updatedTag = '';
+            }
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag);
+            Navigation.dismissModal();
+        },
+        [transactionTag, transaction.transactionID, report.reportID],
+    );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
@@ -174,15 +200,8 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
-                defaultCreated={transactionCreated}
-                onSubmit={(transactionChanges) => {
-                    // In case the date hasn't been changed, do not make the API request.
-                    if (transactionChanges.created === transactionCreated) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest(transactionChanges);
-                }}
+                defaultCreated={TransactionUtils.getCreated(transaction)}
+                onSubmit={saveCreated}
             />
         );
     }
@@ -193,21 +212,9 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
                 defaultAmount={transactionAmount}
                 defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
-                onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-                    // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
-                    editMoneyRequest({
-                        amount,
-                        currency: defaultCurrency,
-                    });
-                }}
+                onSubmit={saveAmountAndCurrency}
                 onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
             />
@@ -218,14 +225,8 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
         return (
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
-                onSubmit={(transactionChanges) => {
-                    // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
-                }}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                onSubmit={saveMerchant}
             />
         );
     }
@@ -253,15 +254,7 @@ function EditRequestPage({betas, report, route, parentReport, policy, session, p
                 defaultTag={transactionTag}
                 tagName={tagListName}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedTag = transactionChanges.tag;
-
-                    // In case the same tag has been selected, reset the tag.
-                    if (transactionTag === updatedTag) {
-                        updatedTag = '';
-                    }
-                    editMoneyRequest({tag: updatedTag, tagListName});
-                }}
+                onSubmit={saveTag}
             />
         );
     }
@@ -300,28 +293,18 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withCurrentUserPersonalDetails,
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,

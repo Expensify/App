@@ -1,34 +1,34 @@
-import {View, Text, PixelRatio, ActivityIndicator, PanResponder} from 'react-native';
-import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
+import {ActivityIndicator, PanResponder, PixelRatio, Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import * as IOU from '../../../libs/actions/IOU';
-import reportPropTypes from '../../reportPropTypes';
-import CONST from '../../../CONST';
-import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
-import Button from '../../../components/Button';
-import styles from '../../../styles/styles';
-import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import ReceiptDropUI from '../ReceiptDropUI';
-import AttachmentPicker from '../../../components/AttachmentPicker';
-import ConfirmModal from '../../../components/ConfirmModal';
-import ONYXKEYS from '../../../ONYXKEYS';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import useLocalize from '../../../hooks/useLocalize';
-import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
-import {iouPropTypes, iouDefaultProps} from '../propTypes';
-import * as FileUtils from '../../../libs/fileDownload/FileUtils';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import Icon from '../../../components/Icon';
-import themeColors from '../../../styles/themes/default';
-import Shutter from '../../../../assets/images/shutter.svg';
+import Hand from '@assets/images/hand.svg';
+import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import Shutter from '@assets/images/shutter.svg';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import * as Browser from '../../../libs/Browser';
-import Hand from '../../../../assets/images/hand.svg';
-import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -54,21 +54,19 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
-
-    /** Whether or not the receipt selector is in a tab navigator for tab animations */
-    // eslint-disable-next-line react/no-unused-prop-types
-    isInTabNavigator: PropTypes.bool,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
-    isInTabNavigator: true,
 };
 
 function ReceiptSelector({route, transactionID, iou, report}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const iouType = lodashGet(route, 'params.iouType', '');
+    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -82,7 +80,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const [cameraPermissionState, setCameraPermissionState] = useState('prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(true);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
 
     const hideReciptModal = () => {
@@ -103,7 +101,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     function validateReceipt(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
@@ -165,7 +163,6 @@ function ReceiptSelector({route, transactionID, iou, report}) {
 
     const panResponder = useRef(
         PanResponder.create({
-            onMoveShouldSetPanResponder: () => true,
             onPanResponderTerminationRequest: () => false,
         }),
     ).current;
@@ -177,12 +174,14 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                     />
                 )}
+
                 {cameraPermissionState === 'denied' && (
-                    <View style={[styles.flex1, styles.permissionView]}>
+                    <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
+                            fill={theme.icon}
                             src={Hand}
                             width={CONST.RECEIPT.HAND_ICON_WIDTH}
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}
@@ -202,6 +201,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
+                    cameraTabIndex={pageIndex}
                 />
             </View>
 
@@ -210,7 +210,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
@@ -223,24 +223,26 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                fill={themeColors.textSupporting}
+                                fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
                 >
-                    <Shutter
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Shutter}
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                     onPress={toggleFlashlight}
@@ -250,7 +252,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={isFlashLightOn ? themeColors.iconHovered : themeColors.textSupporting}
+                        fill={isFlashLightOn ? theme.iconHovered : theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>
@@ -267,7 +269,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
             </View>
 
             <View
-                style={styles.receiptViewTextContainer}
+                style={[styles.receiptViewTextContainer, styles.userSelectNone]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >

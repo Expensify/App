@@ -1,23 +1,28 @@
-import React, {memo, useState} from 'react';
-import {View, ActivityIndicator} from 'react-native';
-import _ from 'underscore';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import styles from '../../../styles/styles';
-import Icon from '../../Icon';
-import * as Expensicons from '../../Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import compose from '../../../libs/compose';
-import Text from '../../Text';
-import Tooltip from '../../Tooltip';
-import themeColors from '../../../styles/themes/default';
-import variables from '../../../styles/variables';
+import PropTypes from 'prop-types';
+import React, {memo, useState} from 'react';
+import {ActivityIndicator, ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import DistanceEReceipt from '@components/DistanceEReceipt';
+import EReceipt from '@components/EReceipt';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import compose from '@libs/compose';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
-import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
-import useNetwork from '../../../hooks/useNetwork';
+import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
 const propTypes = {
     ...attachmentViewPropTypes,
@@ -38,6 +43,10 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
+
+    /** The id of the transaction related to the attachment */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -47,13 +56,13 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    transactionID: '',
 };
 
 function AttachmentView({
     source,
     file,
     isAuthTokenRequired,
-    isUsedInCarousel,
     onPress,
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
@@ -62,11 +71,19 @@ function AttachmentView({
     onToggleKeyboard,
     translate,
     isFocused,
+    isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
+    isUsedInAttachmentModal,
     isWorkspaceAvatar,
     fallbackSource,
+    transaction,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -92,25 +109,51 @@ function AttachmentView({
         );
     }
 
+    if (TransactionUtils.hasEReceipt(transaction)) {
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter]}>
+                <ScrollView
+                    style={styles.w100}
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                >
+                    <EReceipt transactionID={transaction.transactionID} />
+                </ScrollView>
+            </View>
+        );
+    }
+
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
+        // We need the following View component on android native
+        // So that the event will propagate properly and
+        // the Password protected preview will be shown for pdf attachement we are about to send.
         return (
-            <AttachmentViewPdf
-                source={source}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                encryptedSourceUrl={encryptedSourceUrl}
-                isUsedInCarousel={isUsedInCarousel}
-                isFocused={isFocused}
-                onPress={onPress}
-                onScaleChanged={onScaleChanged}
-                onToggleKeyboard={onToggleKeyboard}
-                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-            />
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                <AttachmentViewPdf
+                    source={source}
+                    file={file}
+                    isFocused={isFocused}
+                    isAuthTokenRequired={isAuthTokenRequired}
+                    encryptedSourceUrl={encryptedSourceUrl}
+                    carouselItemIndex={carouselItemIndex}
+                    carouselActiveItemIndex={carouselActiveItemIndex}
+                    onPress={onPress}
+                    onScaleChanged={onScaleChanged}
+                    onToggleKeyboard={onToggleKeyboard}
+                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
+                    style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInCarousel={isUsedInCarousel}
+                />
+            </View>
         );
+    }
+
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        return <DistanceEReceipt transaction={transaction} />;
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
@@ -123,9 +166,12 @@ function AttachmentView({
                 source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
-                isUsedInCarousel={isUsedInCarousel}
                 loadComplete={loadComplete}
                 isFocused={isFocused}
+                isUsedInCarousel={isUsedInCarousel}
+                isSingleCarouselItem={isSingleCarouselItem}
+                carouselItemIndex={carouselItemIndex}
+                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
@@ -139,14 +185,20 @@ function AttachmentView({
     return (
         <View style={[styles.defaultAttachmentView, ...containerStyles]}>
             <View style={styles.mr2}>
-                <Icon src={Expensicons.Paperclip} />
+                <Icon
+                    fill={theme.icon}
+                    src={Expensicons.Paperclip}
+                />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
-                        <Icon src={Expensicons.Download} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Download}
+                        />
                     </View>
                 </Tooltip>
             )}
@@ -155,7 +207,7 @@ function AttachmentView({
                     <Tooltip text={translate('common.downloading')}>
                         <ActivityIndicator
                             size="small"
-                            color={themeColors.textSupporting}
+                            color={theme.textSupporting}
                         />
                     </Tooltip>
                 </View>
@@ -168,4 +220,12 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(memo, withLocalize)(AttachmentView);
+export default compose(
+    memo,
+    withLocalize,
+    withOnyx({
+        transaction: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+    }),
+)(AttachmentView);

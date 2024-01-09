@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type PolicyMember = {
     /** Role of the user in the policy */
@@ -14,4 +14,7 @@ type PolicyMember = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type PolicyMembers = Record<string, PolicyMember>;
+
 export default PolicyMember;
+export type {PolicyMembers};

@@ -36,7 +36,7 @@
 # To run this script, pass the secret Mapbox access token as a command-line argument:
 # ./scriptname.sh YOUR_MAPBOX_ACCESS_TOKEN
 
-# Use functions and varaibles from the utils script
+# Use functions and variables from the utils script
 source scripts/shellUtils.sh
 
 NETRC_PATH="$HOME/.netrc"

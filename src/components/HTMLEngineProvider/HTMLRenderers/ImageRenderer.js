@@ -1,22 +1,23 @@
+import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import Navigation from '../../../libs/Navigation/Navigation';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import ThumbnailImage from '@components/ThumbnailImage';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import styles from '../../../styles/styles';
-import ThumbnailImage from '../../ThumbnailImage';
-import PressableWithoutFocus from '../../Pressable/PressableWithoutFocus';
-import CONST from '../../../CONST';
-import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {...htmlRendererPropTypes};
 
 function ImageRenderer(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const htmlAttribs = props.tnode.attributes;
@@ -44,8 +45,8 @@ function ImageRenderer(props) {
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] : htmlAttribs.src);
 
-    const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
-    const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
+    const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
+    const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     return imagePreviewModalDisabled ? (

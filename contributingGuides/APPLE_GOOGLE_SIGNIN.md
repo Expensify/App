@@ -161,10 +161,10 @@ function beginAppleSignIn(idToken) {
 
 You can use any SSH tunneling service that allows you to configure custom subdomains so that we have a consistent address to use. We'll use ngrok in these examples, but ngrok requires a paid account for this. If you need a free option, try serveo.net.
 
-After you've set ngrok up to be able to run on your machine (requires configuring a key with the command line tool, instructions provided by the ngrok website after you create an account), test hosting the web app on a custom subdomain. This example assumes the development web app is running at `localhost:8082`:
+After you've set ngrok up to be able to run on your machine (requires configuring a key with the command line tool, instructions provided by the ngrok website after you create an account), test hosting the web app on a custom subdomain. This example assumes the development web app is running at `dev.new.expensify.com:8082`:
 
 ```
-ngrok http 8082 --host-header="localhost:8082" --subdomain=mysubdomain
+ngrok http 8082 --host-header="dev.new.expensify.com:8082" --subdomain=mysubdomain
 ```
 
 The `--host-header` flag is there to avoid webpack errors with header validation. In addition, add `allowedHosts: 'all'` to the dev server config in `webpack.dev.js`:
@@ -233,7 +233,7 @@ If developing on MacOS, the development desktop app can't handle deeplinks corre
 1. Create a "real" build of the desktop app, which can handle deep links, open the build folder, and install the dmg there:
 
 ```
-npm run desktop-build --publish=never
+npm run desktop-build
 open desktop-build
 # Then double-click "NewExpensify.dmg" in Finder window
 ```

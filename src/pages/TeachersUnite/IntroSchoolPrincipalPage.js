@@ -1,24 +1,27 @@
+import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import TextInput from '../../components/TextInput';
-import Text from '../../components/Text';
-import styles from '../../styles/styles';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import TeachersUnite from '../../libs/actions/TeachersUnite';
-import useLocalize from '../../hooks/useLocalize';
-import * as ValidationUtils from '../../libs/ValidationUtils';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import TeachersUnite from '@userActions/TeachersUnite';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Login list for the user that is signed in */
@@ -33,7 +36,9 @@ const defaultProps = {
 };
 
 function IntroSchoolPrincipalPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
 
     /**
      * @param {Object} values
@@ -42,7 +47,8 @@ function IntroSchoolPrincipalPage(props) {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim());
+        const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
 
     /**
@@ -74,6 +80,9 @@ function IntroSchoolPrincipalPage(props) {
             if (!_.isEmpty(values.partnerUserID) && !Str.isValidEmail(values.partnerUserID)) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
             }
+            if (!_.isEmpty(values.partnerUserID) && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+            }
 
             return errors;
         },
@@ -89,7 +98,7 @@ function IntroSchoolPrincipalPage(props) {
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
-            <Form
+            <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM}
@@ -99,39 +108,42 @@ function IntroSchoolPrincipalPage(props) {
             >
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="firstName"
                         name="firstName"
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
                 <View style={styles.mv4}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="lastName"
                         name="lastName"
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
                 <View>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID="partnerUserID"
                         name="partnerUserID"
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />
                 </View>
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

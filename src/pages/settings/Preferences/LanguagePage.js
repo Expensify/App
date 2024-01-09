@@ -1,14 +1,14 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as App from '../../../libs/actions/App';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
-import SelectionList from '../../../components/SelectionList';
+import React from 'react';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as App from '@userActions/App';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,

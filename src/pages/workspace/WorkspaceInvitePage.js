@@ -1,34 +1,36 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Policy from '../../libs/actions/Policy';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import CONST from '../../CONST';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ROUTES from '../../ROUTES';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import * as Browser from '../../libs/Browser';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import SelectionList from '../../components/SelectionList';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
     login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet, except for anon users) */
+  the person doesn't have their own avatar uploaded yet, except for anon users) */
     avatar: PropTypes.string,
 
     /** This is either the user's full name, or their login if full name is an empty string */
@@ -63,6 +65,7 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
@@ -72,6 +75,10 @@ function WorkspaceInvitePage(props) {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     };
+
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+    }, []);
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
@@ -84,45 +91,36 @@ function WorkspaceInvitePage(props) {
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
     useEffect(() => {
-        const emails = _.compact(
-            searchTerm
-                .trim()
-                .replace(/\s*,\s*/g, ',')
-                .split(','),
-        );
-
         const newUsersToInviteDict = {};
         const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
 
-        _.each(emails, (email) => {
-            const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, email, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers, true);
 
-            // Update selectedOptions with the latest personalDetails and policyMembers information
-            const detailsMap = {};
-            _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
+        // Update selectedOptions with the latest personalDetails and policyMembers information
+        const detailsMap = {};
+        _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
 
-            const newSelectedOptions = [];
-            _.each(selectedOptions, (option) => {
-                newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
-            });
+        const newSelectedOptions = [];
+        _.each(selectedOptions, (option) => {
+            newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
+        });
 
-            const userToInvite = inviteOptions.userToInvite;
+        const userToInvite = inviteOptions.userToInvite;
 
-            // Only add the user to the invites list if it is valid
-            if (userToInvite) {
-                newUsersToInviteDict[userToInvite.accountID] = userToInvite;
-            }
+        // Only add the user to the invites list if it is valid
+        if (userToInvite) {
+            newUsersToInviteDict[userToInvite.accountID] = userToInvite;
+        }
 
-            // Add all personal details to the new dict
-            _.each(inviteOptions.personalDetails, (details) => {
-                newPersonalDetailsDict[details.accountID] = details;
-            });
+        // Add all personal details to the new dict
+        _.each(inviteOptions.personalDetails, (details) => {
+            newPersonalDetailsDict[details.accountID] = details;
+        });
 
-            // Add all selected options to the new dict
-            _.each(newSelectedOptions, (option) => {
-                newSelectedOptionsDict[option.accountID] = option;
-            });
+        // Add all selected options to the new dict
+        _.each(newSelectedOptions, (option) => {
+            newSelectedOptionsDict[option.accountID] = option;
         });
 
         // Strip out dictionary keys and update arrays
@@ -137,13 +135,25 @@ function WorkspaceInvitePage(props) {
         const sections = [];
         let indexOffset = 0;
 
+        // Filter all options that is a part of the search term or in the personal details
+        let filterSelectedOptions = selectedOptions;
+        if (searchTerm !== '') {
+            filterSelectedOptions = _.filter(selectedOptions, (option) => {
+                const accountID = lodashGet(option, 'accountID', null);
+                const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
+            });
+        }
+
         sections.push({
             title: undefined,
-            data: selectedOptions,
+            data: filterSelectedOptions,
             shouldShow: true,
             indexOffset,
         });
-        indexOffset += selectedOptions.length;
+        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
@@ -228,10 +238,10 @@ function WorkspaceInvitePage(props) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
-            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
 
     return (
         <ScreenWrapper
@@ -243,7 +253,7 @@ function WorkspaceInvitePage(props) {
 
                 return (
                     <FullPageNotFoundView
-                        shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                        shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                         subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
@@ -262,7 +272,10 @@ function WorkspaceInvitePage(props) {
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchTerm(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
                             onConfirm={inviteUser}
@@ -294,7 +307,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default compose(
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

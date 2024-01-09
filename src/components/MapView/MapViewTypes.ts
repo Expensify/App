@@ -1,4 +1,4 @@
-import {ComponentType} from 'react';
+import type {ComponentType} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type MapViewProps = {
@@ -33,6 +33,9 @@ type PendingMapViewProps = {
 
     /** Subtitle message below the title */
     subtitle?: string;
+
+    /** Style applied to PendingMapView */
+    style?: StyleProp<ViewStyle>;
 };
 
 // Initial state of the map

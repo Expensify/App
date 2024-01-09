@@ -53,16 +53,26 @@ The phone number can be formatted in different ways.
 
 ### Native Keyboards
 
-We should always set people up for success on native platforms by enabling the best keyboard for the type of input we’re asking them to provide. See [keyboardType](https://reactnative.dev/docs/0.64/textinput#keyboardtype) in the React Native documentation.
+We should always set people up for success on native platforms by enabling the best keyboard for the type of input we’re asking them to provide. See [inputMode](https://reactnative.dev/docs/textinput#inputmode) in the React Native documentation.
 
-We have a couple of keyboard types [defined](https://github.com/Expensify/App/blob/572caa9e7cf32a2d64fe0e93d171bb05a1dfb217/src/CONST.js#L357-L360) and should be used like so:
+We have a list of input modes [defined](https://github.com/Expensify/App/blob/9418b870515102631ea2156b5ea253ee05a98ff1/src/CONST.js#L765-L774) and should be used like so:
 
 ```jsx
 <InputWrapper
     InputComponent={TextInput}
-    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+    inputMode={CONST.INPUT_MODE.NUMERIC}
 />
 ```
+
+We also have [keyboardType](https://github.com/Expensify/App/blob/9418b870515102631ea2156b5ea253ee05a98ff1/src/CONST.js#L760-L763) and should be used for specific use cases when there is no `inputMode` equivalent of the value exist. and should be used like so:
+
+```jsx
+<InputWrapper
+    InputComponent={TextInput}
+    keyboardType={CONST.KEYBOARD_TYPE.ASCII_CAPABLE}
+/>
+```
+
 
 ### Autofill Behavior
 

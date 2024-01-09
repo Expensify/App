@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
-import sourcePropTypes from './sourcePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 import RESIZE_MODES from './resizeModes';
+import sourcePropTypes from './sourcePropTypes';
 
 const imagePropTypes = {
     /** Styles for the Image */

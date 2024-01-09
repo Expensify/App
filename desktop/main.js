@@ -90,7 +90,7 @@ _.assign(console, log.functions);
 // until it detects that it has been upgraded to the correct version.
 
 const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
-const APP_DOMAIN = __DEV__ ? `http://localhost:${port}` : 'app://-';
+const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
@@ -226,7 +226,7 @@ const mainWindow = () => {
     let deeplinkUrl;
     let browserWindow;
 
-    const loadURL = __DEV__ ? (win) => win.loadURL(`http://localhost:${port}`) : serve({directory: `${__dirname}/www`});
+    const loadURL = __DEV__ ? (win) => win.loadURL(`https://dev.new.expensify.com:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {

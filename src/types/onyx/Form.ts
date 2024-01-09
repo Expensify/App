@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type Form = {
     /** Controls the loading state of the form */
@@ -16,6 +16,11 @@ type AddDebitCardForm = Form & {
     setupComplete: boolean;
 };
 
+type DateOfBirthForm = Form & {
+    /** Date of birth */
+    dob?: string;
+};
+
 export default Form;
 
-export type {AddDebitCardForm};
+export type {AddDebitCardForm, DateOfBirthForm};

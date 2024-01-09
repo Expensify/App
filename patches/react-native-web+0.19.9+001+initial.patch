@@ -1,0 +1,286 @@
+diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+index c879838..288316c 100644
+--- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+@@ -117,6 +117,14 @@ function findLastWhere(arr, predicate) {
+  *
+  */
+ class VirtualizedList extends StateSafePureComponent {
++  pushOrUnshift(input, item) {
++    if (this.props.inverted) {
++      input.unshift(item);
++    } else {
++      input.push(item);
++    }
++  }
++
+   // scrollToEnd may be janky without getItemLayout prop
+   scrollToEnd(params) {
+     var animated = params ? params.animated : true;
+@@ -350,6 +358,7 @@ class VirtualizedList extends StateSafePureComponent {
+     };
+     this._defaultRenderScrollComponent = props => {
+       var onRefresh = props.onRefresh;
++      var inversionStyle = this.props.inverted ? this.props.horizontal ? styles.rowReverse : styles.columnReverse : null;
+       if (this._isNestedWithSameOrientation()) {
+         // $FlowFixMe[prop-missing] - Typing ReactNativeComponent revealed errors
+         return /*#__PURE__*/React.createElement(View, props);
+@@ -367,13 +376,16 @@ class VirtualizedList extends StateSafePureComponent {
+               refreshing: props.refreshing,
+               onRefresh: onRefresh,
+               progressViewOffset: props.progressViewOffset
+-            }) : props.refreshControl
++            }) : props.refreshControl,
++            contentContainerStyle: [inversionStyle, this.props.contentContainerStyle]
+           }))
+         );
+       } else {
+         // $FlowFixMe[prop-missing] Invalid prop usage
+         // $FlowFixMe[incompatible-use]
+-        return /*#__PURE__*/React.createElement(ScrollView, props);
++        return /*#__PURE__*/React.createElement(ScrollView, _extends({}, props, {
++          contentContainerStyle: [inversionStyle, this.props.contentContainerStyle]
++        }));
+       }
+     };
+     this._onCellLayout = (e, cellKey, index) => {
+@@ -683,7 +695,7 @@ class VirtualizedList extends StateSafePureComponent {
+         onViewableItemsChanged = _this$props3.onViewableItemsChanged,
+         viewabilityConfig = _this$props3.viewabilityConfig;
+       if (onViewableItemsChanged) {
+-        this._viewabilityTuples.push({
++        this.pushOrUnshift(this._viewabilityTuples, {
+           viewabilityHelper: new ViewabilityHelper(viewabilityConfig),
+           onViewableItemsChanged: onViewableItemsChanged
+         });
+@@ -937,10 +949,10 @@ class VirtualizedList extends StateSafePureComponent {
+       var key = _this._keyExtractor(item, ii, _this.props);
+       _this._indicesToKeys.set(ii, key);
+       if (stickyIndicesFromProps.has(ii + stickyOffset)) {
+-        stickyHeaderIndices.push(cells.length);
++        _this.pushOrUnshift(stickyHeaderIndices, cells.length);
+       }
+       var shouldListenForLayout = getItemLayout == null || debug || _this._fillRateHelper.enabled();
+-      cells.push( /*#__PURE__*/React.createElement(CellRenderer, _extends({
++      _this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(CellRenderer, _extends({
+         CellRendererComponent: CellRendererComponent,
+         ItemSeparatorComponent: ii < end ? ItemSeparatorComponent : undefined,
+         ListItemComponent: ListItemComponent,
+@@ -1012,14 +1024,14 @@ class VirtualizedList extends StateSafePureComponent {
+     // 1. Add cell for ListHeaderComponent
+     if (ListHeaderComponent) {
+       if (stickyIndicesFromProps.has(0)) {
+-        stickyHeaderIndices.push(0);
++        this.pushOrUnshift(stickyHeaderIndices, 0);
+       }
+       var _element = /*#__PURE__*/React.isValidElement(ListHeaderComponent) ? ListHeaderComponent :
+       /*#__PURE__*/
+       // $FlowFixMe[not-a-component]
+       // $FlowFixMe[incompatible-type-arg]
+       React.createElement(ListHeaderComponent, null);
+-      cells.push( /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
+         cellKey: this._getCellKey() + '-header',
+         key: "$header"
+       }, /*#__PURE__*/React.createElement(View, {
+@@ -1038,7 +1050,7 @@ class VirtualizedList extends StateSafePureComponent {
+       // $FlowFixMe[not-a-component]
+       // $FlowFixMe[incompatible-type-arg]
+       React.createElement(ListEmptyComponent, null);
+-      cells.push( /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
+         cellKey: this._getCellKey() + '-empty',
+         key: "$empty"
+       }, /*#__PURE__*/React.cloneElement(_element2, {
+@@ -1077,7 +1089,7 @@ class VirtualizedList extends StateSafePureComponent {
+           var firstMetrics = this.__getFrameMetricsApprox(section.first, this.props);
+           var lastMetrics = this.__getFrameMetricsApprox(last, this.props);
+           var spacerSize = lastMetrics.offset + lastMetrics.length - firstMetrics.offset;
+-          cells.push( /*#__PURE__*/React.createElement(View, {
++          this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(View, {
+             key: "$spacer-" + section.first,
+             style: {
+               [spacerKey]: spacerSize
+@@ -1100,7 +1112,7 @@ class VirtualizedList extends StateSafePureComponent {
+       // $FlowFixMe[not-a-component]
+       // $FlowFixMe[incompatible-type-arg]
+       React.createElement(ListFooterComponent, null);
+-      cells.push( /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
+         cellKey: this._getFooterCellKey(),
+         key: "$footer"
+       }, /*#__PURE__*/React.createElement(View, {
+@@ -1266,7 +1278,7 @@ class VirtualizedList extends StateSafePureComponent {
+        * suppresses an error found when Flow v0.68 was deployed. To see the
+        * error delete this comment and run Flow. */
+       if (frame.inLayout) {
+-        framesInLayout.push(frame);
++        this.pushOrUnshift(framesInLayout, frame);
+       }
+     }
+     var windowTop = this.__getFrameMetricsApprox(this.state.cellsAroundViewport.first, this.props).offset;
+@@ -1452,6 +1464,12 @@ var styles = StyleSheet.create({
+     left: 0,
+     borderColor: 'red',
+     borderWidth: 2
++  },
++  rowReverse: {
++    flexDirection: 'row-reverse'
++  },
++  columnReverse: {
++    flexDirection: 'column-reverse'
+   }
+ });
+ export default VirtualizedList;
+\ No newline at end of file
+diff --git a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
+index c7d68bb..46b3fc9 100644
+--- a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
+@@ -167,6 +167,14 @@ function findLastWhere<T>(
+ class VirtualizedList extends StateSafePureComponent<Props, State> {
+   static contextType: typeof VirtualizedListContext = VirtualizedListContext;
+ 
++  pushOrUnshift(input: Array<any>, item: Item) {
++    if (this.props.inverted) {
++      input.unshift(item)
++    } else {
++      input.push(item)
++    }
++  }
++
+   // scrollToEnd may be janky without getItemLayout prop
+   scrollToEnd(params?: ?{animated?: ?boolean, ...}) {
+     const animated = params ? params.animated : true;
+@@ -438,7 +446,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+     } else {
+       const {onViewableItemsChanged, viewabilityConfig} = this.props;
+       if (onViewableItemsChanged) {
+-        this._viewabilityTuples.push({
++        this.pushOrUnshift(this._viewabilityTuples, {
+           viewabilityHelper: new ViewabilityHelper(viewabilityConfig),
+           onViewableItemsChanged: onViewableItemsChanged,
+         });
+@@ -814,13 +822,13 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+ 
+       this._indicesToKeys.set(ii, key);
+       if (stickyIndicesFromProps.has(ii + stickyOffset)) {
+-        stickyHeaderIndices.push(cells.length);
++        this.pushOrUnshift(stickyHeaderIndices, (cells.length));
+       }
+ 
+       const shouldListenForLayout =
+         getItemLayout == null || debug || this._fillRateHelper.enabled();
+ 
+-      cells.push(
++      this.pushOrUnshift(cells,
+         <CellRenderer
+           CellRendererComponent={CellRendererComponent}
+           ItemSeparatorComponent={ii < end ? ItemSeparatorComponent : undefined}
+@@ -923,7 +931,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+     // 1. Add cell for ListHeaderComponent
+     if (ListHeaderComponent) {
+       if (stickyIndicesFromProps.has(0)) {
+-        stickyHeaderIndices.push(0);
++        this.pushOrUnshift(stickyHeaderIndices, 0);
+       }
+       const element = React.isValidElement(ListHeaderComponent) ? (
+         ListHeaderComponent
+@@ -932,7 +940,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+         // $FlowFixMe[incompatible-type-arg]
+         <ListHeaderComponent />
+       );
+-      cells.push(
++      this.pushOrUnshift(cells,
+         <VirtualizedListCellContextProvider
+           cellKey={this._getCellKey() + '-header'}
+           key="$header">
+@@ -963,7 +971,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+         // $FlowFixMe[incompatible-type-arg]
+         <ListEmptyComponent />
+       )): any);
+-      cells.push(
++      this.pushOrUnshift(cells,
+         <VirtualizedListCellContextProvider
+           cellKey={this._getCellKey() + '-empty'}
+           key="$empty">
+@@ -1017,7 +1025,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+           const lastMetrics = this.__getFrameMetricsApprox(last, this.props);
+           const spacerSize =
+             lastMetrics.offset + lastMetrics.length - firstMetrics.offset;
+-          cells.push(
++          this.pushOrUnshift(cells,
+             <View
+               key={`$spacer-${section.first}`}
+               style={{[spacerKey]: spacerSize}}
+@@ -1054,7 +1062,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+         // $FlowFixMe[incompatible-type-arg]
+         <ListFooterComponent />
+       );
+-      cells.push(
++      this.pushOrUnshift(cells,
+         <VirtualizedListCellContextProvider
+           cellKey={this._getFooterCellKey()}
+           key="$footer">
+@@ -1246,6 +1254,12 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+    * LTI update could not be added via codemod */
+   _defaultRenderScrollComponent = props => {
+     const onRefresh = props.onRefresh;
++    const inversionStyle = this.props.inverted
++    ? this.props.horizontal
++      ? styles.rowReverse
++      : styles.columnReverse
++    : null;
++
+     if (this._isNestedWithSameOrientation()) {
+       // $FlowFixMe[prop-missing] - Typing ReactNativeComponent revealed errors
+       return <View {...props} />;
+@@ -1273,12 +1287,24 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+               props.refreshControl
+             )
+           }
++          contentContainerStyle={[
++            inversionStyle,
++            this.props.contentContainerStyle,
++          ]}
+         />
+       );
+     } else {
+       // $FlowFixMe[prop-missing] Invalid prop usage
+       // $FlowFixMe[incompatible-use]
+-      return <ScrollView {...props} />;
++      return (
++        <ScrollView
++          {...props}
++          contentContainerStyle={[
++            inversionStyle,
++            this.props.contentContainerStyle,
++          ]}
++        />
++      );
+     }
+   };
+ 
+@@ -1432,7 +1458,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+        * suppresses an error found when Flow v0.68 was deployed. To see the
+        * error delete this comment and run Flow. */
+       if (frame.inLayout) {
+-        framesInLayout.push(frame);
++        this.pushOrUnshift(framesInLayout, frame);
+       }
+     }
+     const windowTop = this.__getFrameMetricsApprox(
+@@ -2044,6 +2070,12 @@ const styles = StyleSheet.create({
+     borderColor: 'red',
+     borderWidth: 2,
+   },
++  rowReverse: {
++    flexDirection: 'row-reverse',
++  },
++  columnReverse: {
++    flexDirection: 'column-reverse',
++  },
+ });
+ 
+ export default VirtualizedList;
+\ No newline at end of file

@@ -1,6 +1,6 @@
-import polyfillNumberFormat from './polyfillNumberFormat';
 import polyfillListFormat from './polyfillListFormat';
-import IntlPolyfill from './types';
+import polyfillNumberFormat from './polyfillNumberFormat';
+import type IntlPolyfill from './types';
 
 /**
  * Polyfill the Intl API, always performed for native devices.

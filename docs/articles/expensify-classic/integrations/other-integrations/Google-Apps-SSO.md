@@ -22,6 +22,7 @@ To enable Expensify for your Google Apps domain and add an “Expenses” link t
 6. Click **Finish**. You can configure access for specific Organizational Units later if needed.
 7. All account holders on your domain can now access Expensify from the Google Apps directory by clicking **More** and choosing **Expensify**.
 8. Now, follow the steps below to sync your users with Expensify automatically.
+
 # How to Sync Users from Google Apps to Expensify
 To sync your Google Apps users to your Expensify Workspace, follow these steps:
 1. Follow the above steps to install Expensify in your Google Apps directory.

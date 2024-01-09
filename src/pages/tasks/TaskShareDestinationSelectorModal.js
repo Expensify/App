@@ -1,24 +1,27 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../../components/OptionsSelector';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import personalDetailsPropType from '../personalDetailsPropType';
-import reportPropTypes from '../reportPropTypes';
-import * as Task from '../../libs/actions/Task';
-import * as ReportUtils from '../../libs/ReportUtils';
-import ROUTES from '../../ROUTES';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OptionsSelector from '@components/OptionsSelector';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as Report from '@libs/actions/Report';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -32,6 +35,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -39,21 +45,25 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
+    isSearchingForReports: false,
 };
 
 function TaskShareDestinationSelectorModal(props) {
+    const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
 
-    const optionRef = useRef();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {isSearchingForReports} = props;
+    const {isOffline} = useNetwork();
 
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
             if (
-                ReportUtils.shouldDisableWriteActions(props.reports[reportKey]) ||
-                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey]) ||
+                !ReportUtils.canUserPerformWriteAction(props.reports[reportKey]) ||
+                !ReportUtils.canCreateTaskInReport(props.reports[reportKey]) ||
                 ReportUtils.isCanceledTaskReport(props.reports[reportKey])
             ) {
                 return;
@@ -78,10 +88,6 @@ function TaskShareDestinationSelectorModal(props) {
         };
     }, [updateOptions]);
 
-    const onChangeText = (newSearchTerm = '') => {
-        setSearchValue(newSearchTerm);
-    };
-
     const getSections = () => {
         const sections = [];
         let indexOffset = 0;
@@ -104,18 +110,22 @@ function TaskShareDestinationSelectorModal(props) {
         }
 
         if (option.reportID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setShareDestinationValue(option.reportID);
             Navigation.goBack(ROUTES.NEW_TASK);
         }
     };
 
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        Report.searchInServer(text);
+        setSearchValue(text);
+    }, []);
+
     const sections = getSections();
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
             testID={TaskShareDestinationSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -127,18 +137,19 @@ function TaskShareDestinationSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
-                            onChangeText={onChangeText}
+                            onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             hideSection
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
-                            ref={optionRef}
+                            ref={inputCallbackRef}
+                            isLoadingNewOptions={isSearchingForReports}
                         />
                     </View>
                 </>
@@ -162,6 +173,10 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isSearchingForReports: {
+            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+            initWithStoredValues: false,
         },
     }),
 )(TaskShareDestinationSelectorModal);

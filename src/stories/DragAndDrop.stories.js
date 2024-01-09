@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
-import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import Text from '../components/Text';
-import DragAndDropProvider from '../components/DragAndDrop/Provider';
-import DragAndDropConsumer from '../components/DragAndDrop/Consumer';
-import styles from '../styles/styles';
+import React, {useState} from 'react';
+import {Image, View} from 'react-native';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import Text from '@components/Text';
+// eslint-disable-next-line no-restricted-imports
+import {defaultStyles} from '@styles/index';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -26,12 +27,12 @@ function Default() {
                     height: 500,
                     backgroundColor: 'beige',
                 },
-                styles.alignItemsCenter,
-                styles.justifyContentCenter,
+                defaultStyles.alignItemsCenter,
+                defaultStyles.justifyContentCenter,
             ]}
         >
             <DragAndDropProvider>
-                <View style={[styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={[defaultStyles.w100, defaultStyles.h100, defaultStyles.justifyContentCenter, defaultStyles.alignItemsCenter]}>
                     {fileURL ? (
                         <Image
                             source={{uri: fileURL}}
@@ -54,7 +55,7 @@ function Default() {
                         }
                     }}
                 >
-                    <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter, {backgroundColor: 'white'}]}>
+                    <View style={[defaultStyles.w100, defaultStyles.h100, defaultStyles.alignItemsCenter, defaultStyles.justifyContentCenter, {backgroundColor: 'white'}]}>
                         <Text color="black">Release to upload file</Text>
                     </View>
                 </DragAndDropConsumer>

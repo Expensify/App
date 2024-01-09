@@ -1,30 +1,27 @@
-import React, {useMemo, useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
 import {ScrollView} from 'react-native';
-import Navigation from '../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import styles from '../../styles/styles';
-import compose from '../../libs/compose';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import MenuItem from '../../components/MenuItem';
-import useLocalize from '../../hooks/useLocalize';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import * as Report from '../../libs/actions/Report';
-import personalDetailsPropType from '../personalDetailsPropType';
-import * as UserUtils from '../../libs/UserUtils';
-import reportPropTypes from '../reportPropTypes';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
-import ROUTES from '../../ROUTES';
-import * as ReportUtils from '../../libs/ReportUtils';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import reportPropTypes from '@pages/reportPropTypes';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -47,8 +44,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -60,16 +55,23 @@ const defaultProps = {
     personalDetailsList: {},
 };
 
-function PrivateNotesListPage({report, personalDetailsList, network, session}) {
+function PrivateNotesListPage({report, personalDetailsList, session}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (network.isOffline && report.isLoadingPrivateNotes) {
-            return;
-        }
-        Report.getReportPrivateNote(report.reportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add isLoadingPrivateNotes to dependencies
-    }, [report.reportID, network.isOffline]);
+        const navigateToEditPageTimeout = setTimeout(() => {
+            if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
+                return;
+            }
+            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        }, CONST.ANIMATED_TRANSITION);
+
+        return () => {
+            clearTimeout(navigateToEditPageTimeout);
+        };
+    }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
 
     /**
      * Gets the menu item for each workspace
@@ -80,7 +82,6 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
      */
     function getMenuItem(item, index) {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-
         return (
             <OfflineWithFeedback
                 key={`${keyTitle}_${index}`}
@@ -89,14 +90,16 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
                 onClose={item.dismissError}
                 errors={item.errors}
             >
-                <MenuItem
-                    title={keyTitle}
-                    icon={item.icon}
-                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                <MenuItemWithTopDescription
+                    description={item.title}
+                    title={item.note}
                     onPress={item.action}
-                    shouldShowRightIcon
-                    fallbackIcon={item.fallbackIcon}
+                    shouldShowRightIcon={!item.disabled}
+                    numberOfLinesTitle={0}
+                    shouldRenderAsHTML
                     brickRoadIndicator={item.brickRoadIndicator}
+                    disabled={item.disabled}
+                    shouldGreyOutWhenDisabled={false}
                 />
             </OfflineWithFeedback>
         );
@@ -111,10 +114,10 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
         return _.chain(lodashGet(report, 'privateNotes', {}))
             .map((privateNote, accountID) => ({
                 title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? translate('privateNotes.myNote') : lodashGet(personalDetailsList, [accountID, 'login'], ''),
-                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
-                iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, accountID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
+                note: lodashGet(privateNote, 'note', ''),
+                disabled: Number(session.accountID) !== Number(accountID),
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
@@ -124,26 +127,13 @@ function PrivateNotesListPage({report, personalDetailsList, network, session}) {
             includeSafeAreaPaddingBottom={false}
             testID={PrivateNotesListPage.displayName}
         >
-            <FullPageNotFoundView
-                shouldShow={
-                    _.isEmpty(report.reportID) ||
-                    (!report.isLoadingPrivateNotes && network.isOffline && _.isEmpty(lodashGet(report, 'privateNotes', {}))) ||
-                    ReportUtils.isArchivedRoom(report)
-                }
-            >
-                <HeaderWithBackButton
-                    title={translate('privateNotes.title')}
-                    shouldShowBackButton
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    {report.isLoadingPrivateNotes && _.isEmpty(lodashGet(report, 'privateNotes', {})) ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                    ) : (
-                        _.map(privateNotes, (item, index) => getMenuItem(item, index))
-                    )}
-                </ScrollView>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('privateNotes.title')}
+                shouldShowBackButton
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>{_.map(privateNotes, (item, index) => getMenuItem(item, index))}</ScrollView>
         </ScreenWrapper>
     );
 }
@@ -154,15 +144,13 @@ PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,
+    withReportAndPrivateNotesOrNotFound,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID.toString()}`,
+        personalDetailsList: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        personalDetailsList: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
     withNetwork(),

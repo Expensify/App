@@ -1,23 +1,22 @@
-import _ from 'underscore';
+import {isBefore} from 'date-fns';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import {isBefore} from 'date-fns';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as Pusher from '../Pusher/pusher';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherUtils from '@libs/PusherUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Link from './Link';
-import * as SequentialQueue from '../Network/SequentialQueue';
-import PusherUtils from '../PusherUtils';
-import * as Report from './Report';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as Session from './Session';
-import * as PersonalDetails from './PersonalDetails';
 import * as OnyxUpdates from './OnyxUpdates';
-import redirectToSignIn from './SignInRedirect';
+import * as PersonalDetails from './PersonalDetails';
+import * as Report from './Report';
+import * as Session from './Session';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -69,15 +68,12 @@ function closeAccount(message) {
             ],
         },
     );
-    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
-    redirectToSignIn();
 }
 
 /**
  * Resends a validation link to a given login
  *
  * @param {String} login
- * @param {Boolean} isPasswordless - temporary param to trigger passwordless flow in backend
  */
 function resendValidateCode(login) {
     Session.resendValidateCode(login);
@@ -238,7 +234,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -328,7 +324,7 @@ function addNewContactMethodAndNavigate(contactMethod) {
     ];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -375,6 +371,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 [contactMethod]: {
                     errorFields: {
                         validateLogin: null,
+                        validateCodeSent: null,
                     },
                     pendingFields: {
                         validateLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -420,6 +417,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 [contactMethod]: {
                     errorFields: {
                         validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateCodeSent: null,
                     },
                     pendingFields: {
                         validateLogin: null,
@@ -529,8 +527,9 @@ function subscribeToUserEvents() {
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON);
-            triggerNotifications(pushJSON);
+            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
+                triggerNotifications(pushJSON);
+            });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
@@ -541,7 +540,7 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
- * @param {String} skinTone
+ * @param {Number} skinTone
  */
 function updatePreferredSkinTone(skinTone) {
     const optimisticData = [
@@ -584,8 +583,10 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 /**
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
+ * @param {boolean} [automatic] if we changed the mode automatically
  */
-function updateChatPriorityMode(mode) {
+function updateChatPriorityMode(mode, automatic = false) {
+    const autoSwitchedToFocusMode = mode === CONST.PRIORITY_MODE.GSD && automatic;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -593,14 +594,31 @@ function updateChatPriorityMode(mode) {
             value: mode,
         },
     ];
+
+    if (autoSwitchedToFocusMode) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
+            value: true,
+        });
+    }
+
     API.write(
         'UpdateChatPriorityMode',
         {
             value: mode,
+            automatic,
         },
         {optimisticData},
     );
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+
+    if (!autoSwitchedToFocusMode) {
+        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    }
+}
+
+function clearFocusModeNotification() {
+    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
 }
 
 /**
@@ -755,7 +773,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
 /**
@@ -840,10 +858,11 @@ function updateDraftCustomStatus(status) {
  *
  */
 function clearDraftCustomStatus() {
-    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: '', customDateTemporary: ''});
 }
 
 export {
+    clearFocusModeNotification,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,

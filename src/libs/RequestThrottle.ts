@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 import {generateRandomInt} from './NumberUtils';
 
 let requestWaitTime = 0;

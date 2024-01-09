@@ -89,8 +89,8 @@ act = utils.setUpActParams(
 );
 ```
 
-### `getMockStep`
-`getMockStep` allows for creating uniform mock step definitions compatible with `Act-js` and reduces time required, as well as possibility of errors/typos slipping in while developing tests. More complex behaviours have to be mocked manually
+### `createMockStep`
+`createMockStep` allows for creating uniform mock step definitions compatible with `Act-js` and reduces time required, as well as possibility of errors/typos slipping in while developing tests. More complex behaviours have to be mocked manually
 
 Parameters:
 - `name` - name of the step that **must correspond to the `name` in the `<workflow>.yml` file**, otherwise the step cannot be found
@@ -106,7 +106,7 @@ Returns an object with step mock definition, ready to be provided to the `Act` o
 
 Example:
 ```javascript
-let mockStep = utils.getMockStep(
+let mockStep = utils.createMockStep(
     'Name of the step from <workflow>.yml',
     'Message to be printed',
     'TEST_JOB',
@@ -135,8 +135,8 @@ results in
 }
 ```
 
-### `getStepAssertion`
-`getStepAssertion` allows for creating uniform assertions for output from executed step, compatible with step mocks provided by `getMockStep`
+### `createStepAssertion`
+`createStepAssertion` allows for creating uniform assertions for output from executed step, compatible with step mocks provided by `createMockStep`
 
 Parameters:
 - `name` - name of the step, **has to correspond to the name from `<workflow>.yml` file**, and the name in the step mock if applicable
@@ -151,7 +151,7 @@ Returns an object with step expected output definition ready to be provided to `
 
 Example:
 ```javascript
-utils.getStepAssertion(
+utils.createStepAssertion(
     'Name of the step from <workflow>.yml',
     false,
     null,
@@ -294,8 +294,8 @@ describe('test some general behaviour', () => {
                 },
             ],
             '<job_2_name>': [
-                utils.getMockStep('<step_2_1_name>', '<message>'),
-                utils.getMockStep('<step_2_2_name>', '<message>'),
+                utils.createMockStep('<step_2_1_name>', '<message>'),
+                utils.createMockStep('<step_2_2_name>', '<message>'),
             ],
         };
 
@@ -378,7 +378,7 @@ act = utils.setUpActParams(
     '<github_token>',
 );
 ```
-Set up step mocks. Here we configure which steps in the workflow should be mocked, and with what behaviour. This takes form of an object with keys corresponding to the names of the jobs in the workflow, and values being mock definitions for specific steps. The steps can be identified either by `id`, `name`, `uses` or `run`. Step mock can be defined either by hand (`<job_1_name>`) or with the helper method `utils.getMockStep()` (`<job_2_name>`). Not mocked steps will be executed normally - **make sure this will not have unexpected consequences**
+Set up step mocks. Here we configure which steps in the workflow should be mocked, and with what behaviour. This takes form of an object with keys corresponding to the names of the jobs in the workflow, and values being mock definitions for specific steps. The steps can be identified either by `id`, `name`, `uses` or `run`. Step mock can be defined either by hand (`<job_1_name>`) or with the helper method `utils.createMockStep()` (`<job_2_name>`). Not mocked steps will be executed normally - **make sure this will not have unexpected consequences**
 ```javascript
 const testMockSteps = {
     '<job_1_name>': [
@@ -392,8 +392,8 @@ const testMockSteps = {
         },
     ],
     '<job_2_name>': [
-        utils.getMockStep('<step_2_1_name>', '<message>'),
-        utils.getMockStep('<step_2_2_name>', '<message>'),
+        utils.createMockStep('<step_2_1_name>', '<message>'),
+        utils.createMockStep('<step_2_2_name>', '<message>'),
     ],
 };
 ```
@@ -405,7 +405,7 @@ const result = await act
         mockSteps: testMockSteps,
     });
 ```
-Assert results are as expected. This can, for example, include using `expect()` to check if the steps that should be executed have indeed been executed, steps that shouldn't run have not been executed, compare statuses (which steps succeeded, which failed) and step outputs. Outputs can include additional information, like input values, environmental variables, secrets (although these are usually not accessible and represented by `***`, this can still be useful to check if the value exists or not). Here it's usually done with the helper assertion methods defined in the assertions file. Step assertions can be created manually or with `getStepAssertion()` helper method
+Assert results are as expected. This can, for example, include using `expect()` to check if the steps that should be executed have indeed been executed, steps that shouldn't run have not been executed, compare statuses (which steps succeeded, which failed) and step outputs. Outputs can include additional information, like input values, environmental variables, secrets (although these are usually not accessible and represented by `***`, this can still be useful to check if the value exists or not). Here it's usually done with the helper assertion methods defined in the assertions file. Step assertions can be created manually or with `createStepAssertion()` helper method
 ```javascript
 assertions.assertSomethingHappened(result);
 assertions.assertSomethingDidNotHappen(result, false);

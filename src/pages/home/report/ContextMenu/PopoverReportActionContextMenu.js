@@ -1,13 +1,13 @@
-import React, {forwardRef, useEffect, useState, useRef, useImperativeHandle, useCallback} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import _ from 'underscore';
-import * as Report from '../../../../libs/actions/Report';
-import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
+import ConfirmModal from '@components/ConfirmModal';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import useLocalize from '@hooks/useLocalize';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as IOU from '@userActions/IOU';
+import * as Report from '@userActions/Report';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
-import ConfirmModal from '../../../../components/ConfirmModal';
-import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
-import * as IOU from '../../../../libs/actions/IOU';
-import useLocalize from '../../../../hooks/useLocalize';
 
 function PopoverReportActionContextMenu(_props, ref) {
     const {translate} = useLocalize();
@@ -17,7 +17,7 @@ function PopoverReportActionContextMenu(_props, ref) {
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef('');
+    const reportActionDraftMessageRef = useRef(undefined);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -226,7 +226,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         }
 
         selectionRef.current = '';
-        reportActionDraftMessageRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
     };
 
@@ -238,7 +238,7 @@ function PopoverReportActionContextMenu(_props, ref) {
             Report.deleteReportComment(reportIDRef.current, reportActionRef.current);
         }
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [reportActionRef]);
+    }, []);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
@@ -322,6 +322,7 @@ function PopoverReportActionContextMenu(_props, ref) {
                 onConfirm={confirmDeleteAndHideModal}
                 onCancel={hideDeleteModal}
                 onModalHide={() => {
+                    clearActiveReportAction();
                     callbackWhenDeleteModalHide.current();
                 }}
                 prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}

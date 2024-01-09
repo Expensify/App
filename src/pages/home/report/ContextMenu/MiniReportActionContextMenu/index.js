@@ -1,11 +1,14 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {propTypes as genericReportActionContextMenuPropTypes, defaultProps as GenericReportActionContextMenuDefaultProps} from '../genericReportActionContextMenuPropTypes';
-import * as StyleUtils from '../../../../../styles/StyleUtils';
-import BaseReportActionContextMenu from '../BaseReportActionContextMenu';
-import CONST from '../../../../../CONST';
+import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import BaseReportActionContextMenu from '@pages/home/report/ContextMenu/BaseReportActionContextMenu';
+import {
+    defaultProps as GenericReportActionContextMenuDefaultProps,
+    propTypes as genericReportActionContextMenuPropTypes,
+} from '@pages/home/report/ContextMenu/genericReportActionContextMenuPropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ..._.omit(genericReportActionContextMenuPropTypes, ['isMini']),
@@ -21,6 +24,8 @@ const defaultProps = {
 };
 
 function MiniReportActionContextMenu(props) {
+    const StyleUtils = useStyleUtils();
+
     return (
         <View
             style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}

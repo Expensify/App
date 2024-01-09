@@ -1,13 +1,15 @@
-import _ from 'underscore';
+import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK} from '@onfido/react-native-sdk';
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
-import {Onfido as OnfidoSDK, OnfidoCaptureType, OnfidoDocumentType, OnfidoCountryCode} from '@onfido/react-native-sdk';
+import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import _ from 'underscore';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
+import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import onfidoPropTypes from './onfidoPropTypes';
-import CONST from '../../CONST';
-import Log from '../../libs/Log';
-import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import useLocalize from '../../hooks/useLocalize';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
     const {translate} = useLocalize();
@@ -39,30 +41,50 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                     return;
                 }
 
-                // Handle user camera permission on iOS and Android
-                if (_.contains([CONST.ONFIDO.ERROR.USER_CAMERA_PERMISSION, CONST.ONFIDO.ERROR.USER_CAMERA_DENINED, CONST.ONFIDO.ERROR.USER_CAMERA_CONSENT_DENIED], errorMessage)) {
-                    Alert.alert(
-                        translate('onfidoStep.cameraPermissionsNotGranted'),
-                        translate('onfidoStep.cameraRequestMessage'),
-                        [
-                            {
-                                text: translate('common.cancel'),
-                                onPress: () => onUserExit(),
-                            },
-                            {
-                                text: translate('common.settings'),
-                                onPress: () => {
-                                    onUserExit();
-                                    Linking.openSettings();
-                                },
-                            },
-                        ],
-                        {cancelable: false},
-                    );
-                    return;
-                }
+                if (!_.isEmpty(errorMessage) && getPlatform() === CONST.PLATFORM.IOS) {
+                    checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA])
+                        .then((statuses) => {
+                            const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
+                            const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
+                            let alertTitle = '';
+                            let alertMessage = '';
+                            if (!isCameraAllowed) {
+                                alertTitle = 'onfidoStep.cameraPermissionsNotGranted';
+                                alertMessage = 'onfidoStep.cameraRequestMessage';
+                            } else if (!isMicAllowed) {
+                                alertTitle = 'onfidoStep.microphonePermissionsNotGranted';
+                                alertMessage = 'onfidoStep.microphoneRequestMessage';
+                            }
 
-                onError(errorMessage);
+                            if (!_.isEmpty(alertTitle) && !_.isEmpty(alertMessage)) {
+                                Alert.alert(
+                                    translate(alertTitle),
+                                    translate(alertMessage),
+                                    [
+                                        {
+                                            text: translate('common.cancel'),
+                                            onPress: () => onUserExit(),
+                                        },
+                                        {
+                                            text: translate('common.settings'),
+                                            onPress: () => {
+                                                onUserExit();
+                                                Linking.openSettings();
+                                            },
+                                        },
+                                    ],
+                                    {cancelable: false},
+                                );
+                                return;
+                            }
+                            onError(errorMessage);
+                        })
+                        .catch(() => {
+                            onError(errorMessage);
+                        });
+                } else {
+                    onError(errorMessage);
+                }
             });
         // Onfido should be initialized only once on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps

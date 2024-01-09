@@ -1,10 +1,11 @@
-import React from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import AttachmentModal from '../../../components/AttachmentModal';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import ROUTES from '../../../ROUTES';
+import React, {useCallback} from 'react';
+import _ from 'underscore';
+import AttachmentModal from '@components/AttachmentModal';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -22,7 +23,18 @@ const propTypes = {
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
     const report = ReportUtils.getReport(reportID);
-    const source = decodeURI(_.get(props, ['route', 'params', 'source']));
+
+    // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+    const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const source = Number(decodedSource) || decodedSource;
+
+    const onCarouselAttachmentChange = useCallback(
+        (attachment) => {
+            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
+            Navigation.navigate(route);
+        },
+        [reportID],
+    );
 
     return (
         <AttachmentModal
@@ -30,11 +42,12 @@ function ReportAttachments(props) {
             defaultOpen
             report={report}
             source={source}
-            onModalHide={() => Navigation.dismissModal(reportID)}
-            onCarouselAttachmentChange={(attachment) => {
-                const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
-                Navigation.navigate(route);
+            onModalHide={() => {
+                Navigation.dismissModal();
+                // This enables Composer refocus when the attachments modal is closed by the browser navigation
+                ComposerFocusManager.setReadyToFocus();
             }}
+            onCarouselAttachmentChange={onCarouselAttachmentChange}
         />
     );
 }
