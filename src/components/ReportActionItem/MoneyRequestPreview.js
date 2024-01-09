@@ -5,6 +5,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
@@ -38,7 +39,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import ReportActionItemImages from './ReportActionItemImages';
 
 const propTypes = {

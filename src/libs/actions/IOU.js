@@ -722,7 +722,7 @@ function getMoneyRequestInformation(
         filename = receipt.name;
     }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE
+    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
@@ -752,9 +752,9 @@ function getMoneyRequestInformation(
     // to remind me to do this.
     if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction);
-//       pendingFields: {
-//                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-//             }
+        //       pendingFields: {
+        //                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        //             }
     }
 
     // STEP 4: Build optimistic reportActions. We need:
