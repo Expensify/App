@@ -253,7 +253,7 @@ function WorkspaceNewRoomPage(props) {
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom={isOffline}
-                shouldShowOfflineIndicatorSmallWidth={false}
+                shouldShowOfflineIndicator={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
                 testID={WorkspaceNewRoomPage.displayName}

@@ -24,7 +24,7 @@ function ReimbursementAccountLoadingIndicator(props) {
     const {translate} = useLocalize();
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicatorSmallWidth={false}
+            shouldShowOfflineIndicator={false}
             style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
             testID={ReimbursementAccountLoadingIndicator.displayName}
         >

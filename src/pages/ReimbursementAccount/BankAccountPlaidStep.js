@@ -90,7 +90,7 @@ function BankAccountPlaidStep(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorSmallWidth={false}
+            shouldShowOfflineIndicator={false}
             testID={BankAccountPlaidStep.displayName}
         >
             <HeaderWithBackButton

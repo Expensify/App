@@ -69,7 +69,7 @@ function AllSettingsScreen() {
             isPaneMenu: true,
             focused: item.focused,
         }));
-    }, [styles, translate, waitForNavigate]);
+    }, [isSmallScreenWidth, styles.sectionMenuItem, translate, waitForNavigate]);
 
     return (
         <ScreenWrapper>

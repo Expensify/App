@@ -289,7 +289,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
     if (_.isEmpty(workspaces)) {
         return (
-            <ScreenWrapper shouldShowOfflineIndicator>
+            <ScreenWrapper shouldShowOfflineIndicatorInWideScreen>
                 <IllustratedHeaderPageLayout
                     backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                     illustration={LottieAnimations.WorkspacePlanet}
@@ -333,7 +333,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton

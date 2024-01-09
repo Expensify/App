@@ -335,7 +335,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             ) : (
                 <ScreenWrapper
                     testID={WalletPage.displayName}
-                    shouldShowOfflineIndicator
+                    shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}

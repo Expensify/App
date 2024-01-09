@@ -24,17 +24,17 @@ const propTypes = {
     /** Overlay content to display on top of animation */
     overlayContent: PropTypes.func,
 
-    shouldShowOfflineIndicator: PropTypes.bool,
+    shouldShowOfflineIndicatorInWideScreen: PropTypes.bool,
 };
 
 const defaultProps = {
     backgroundColor: undefined,
     footer: null,
     overlayContent: null,
-    shouldShowOfflineIndicator: false,
+    shouldShowOfflineIndicatorInWideScreen: false,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, shouldShowOfflineIndicator, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, shouldShowOfflineIndicatorInWideScreen, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const shouldLimitHeight = !propsToPassToHeader.shouldShowBackButton;
@@ -43,7 +43,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
         <HeaderPageLayout
             backgroundColor={backgroundColor || theme.appBG}
             title={propsToPassToHeader.title}
-            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             headerContent={
                 <>
                     <Lottie
