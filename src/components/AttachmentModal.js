@@ -19,6 +19,7 @@ import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -94,9 +95,6 @@ const propTypes = {
 
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment: PropTypes.bool,
-
-    /** Whether the receipt can be replaced */
-    canEditReceipt: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -115,7 +113,6 @@ const defaultProps = {
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
     isReceiptAttachment: false,
-    canEditReceipt: false,
 };
 
 function AttachmentModal(props) {
@@ -129,7 +126,7 @@ function AttachmentModal(props) {
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
-    const [source, setSource] = useState(() => props.source);
+    const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
@@ -362,7 +359,7 @@ function AttachmentModal(props) {
     }, []);
 
     useEffect(() => {
-        setSource(() => props.source);
+        setSource(props.source);
     }, [props.source]);
 
     useEffect(() => {
@@ -375,9 +372,13 @@ function AttachmentModal(props) {
         if (!props.isReceiptAttachment || !props.parentReport || !props.parentReportActions) {
             return [];
         }
-
         const menuItems = [];
-        if (props.canEditReceipt) {
+        const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
+
+        const canEdit =
+            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT, props.transaction) &&
+            !TransactionUtils.isDistanceRequest(props.transaction);
+        if (canEdit) {
             menuItems.push({
                 icon: Expensicons.Camera,
                 text: props.translate('common.replace'),
@@ -392,7 +393,7 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && props.canEditReceipt) {
+        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && canEdit) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('receipt.deleteReceipt'),

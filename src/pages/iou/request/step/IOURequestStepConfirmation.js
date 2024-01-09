@@ -1,15 +1,12 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import categoryPropTypes from '@components/categoryPropTypes';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -49,12 +46,6 @@ const propTypes = {
     /** The policy of the report */
     ...policyPropTypes,
 
-    /** The tag configuration of the report's policy */
-    policyTags: tagPropTypes,
-
-    /** The category configuration of the report's policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
-
     /** The full IOU report */
     report: reportPropTypes,
 
@@ -64,8 +55,6 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     policy: {},
-    policyCategories: {},
-    policyTags: {},
     report: {},
     transaction: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -74,8 +63,6 @@ function IOURequestStepConfirmation({
     currentUserPersonalDetails,
     personalDetails,
     policy,
-    policyTags,
-    policyCategories,
     report,
     route: {
         params: {iouType, reportID, transactionID},
@@ -177,12 +164,9 @@ function IOURequestStepConfirmation({
                 transactionTaxCode,
                 transactionTaxAmount,
                 transaction.billable,
-                policy,
-                policyTags,
-                policyCategories,
             );
         },
-        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID],
     );
 
     /**
@@ -203,12 +187,9 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 transaction.billable,
                 TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
-                policy,
-                policyTags,
-                policyCategories,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction],
+        [report, transaction],
     );
 
     const createTransaction = useCallback(
@@ -394,13 +375,7 @@ export default compose(
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
-        policyCategories: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-        },
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID', '0')}`,
         },
     }),
 )(IOURequestStepConfirmation);

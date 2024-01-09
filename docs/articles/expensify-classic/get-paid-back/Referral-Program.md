@@ -25,7 +25,7 @@ The best way to start is to submit any receipt to your manager (you'll get paid 
 
 Referral rewards for the Spring/Summer 2023 campaign will be paid by direct deposit.
 
-{% include faq-begin.md %}
+# FAQ
 
 - **How will I know if I am the first person to refer a company to Expensify?**
 
@@ -52,5 +52,3 @@ Please send a message to concierge@expensify.com with the billing owner of the c
 Expensify members who are opted-in for our newsletters will have received an email containing their unique referral link. 
 
 On the mobile app, go to **Settings** > **Invite a Friend** > **Share Invite Link** to retrieve your referral link.
-
-{% include faq-end.md %}

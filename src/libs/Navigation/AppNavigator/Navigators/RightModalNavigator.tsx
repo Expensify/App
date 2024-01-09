@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,21 +20,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
-    const isExecutingRef = useRef<boolean>(false);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && (
-                <Overlay
-                    onPress={() => {
-                        if (isExecutingRef.current) {
-                            return;
-                        }
-                        isExecutingRef.current = true;
-                        navigation.goBack();
-                    }}
-                />
-            )}
+            {!isSmallScreenWidth && <Overlay onPress={navigation.goBack} />}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
@@ -128,10 +117,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name="ProcessMoneyRequestHold"
-                        component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

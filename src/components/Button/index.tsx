@@ -171,16 +171,16 @@ function Button(
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+            if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
                 return;
             }
             onPress();
         },
-        [isDisabled, isLoading, onPress],
+        [isDisabled, isFocused, isLoading, onPress],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
-        isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
+        isActive: pressOnEnter && !shouldDisableEnterShortcut,
         shouldBubble: allowBubble,
         priority: enterKeyEventListenerPriority,
         shouldPreventDefault: false,

@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -73,8 +72,7 @@ function GetPhysicalCardName({
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
         >
-            <InputWrapper
-                InputComponent={TextInput}
+            <TextInput
                 inputID="legalFirstName"
                 name="legalFirstName"
                 label={translate('getPhysicalCard.legalFirstName')}
@@ -85,8 +83,7 @@ function GetPhysicalCardName({
                 containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
-            <InputWrapper
-                InputComponent={TextInput}
+            <TextInput
                 inputID="legalLastName"
                 name="legalLastName"
                 label={translate('getPhysicalCard.legalLastName')}

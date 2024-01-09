@@ -7,6 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewChatPage from './NewChatPage';
@@ -34,25 +35,29 @@ function NewChatSelectorPage(props) {
             testID={NewChatSelectorPage.displayName}
         >
             <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
-            <OnyxTabNavigator
-                id={CONST.TAB.NEW_CHAT_TAB_ID}
-                tabBar={({state, navigation, position}) => (
-                    <TabSelector
-                        state={state}
-                        navigation={navigation}
-                        position={position}
+            {Permissions.canUsePolicyRooms(props.betas) ? (
+                <OnyxTabNavigator
+                    id={CONST.TAB.NEW_CHAT_TAB_ID}
+                    tabBar={({state, navigation, position}) => (
+                        <TabSelector
+                            state={state}
+                            navigation={navigation}
+                            position={position}
+                        />
+                    )}
+                >
+                    <TopTab.Screen
+                        name={CONST.TAB.NEW_CHAT}
+                        component={NewChatPage}
                     />
-                )}
-            >
-                <TopTab.Screen
-                    name={CONST.TAB.NEW_CHAT}
-                    component={NewChatPage}
-                />
-                <TopTab.Screen
-                    name={CONST.TAB.NEW_ROOM}
-                    component={WorkspaceNewRoomPage}
-                />
-            </OnyxTabNavigator>
+                    <TopTab.Screen
+                        name={CONST.TAB.NEW_ROOM}
+                        component={WorkspaceNewRoomPage}
+                    />
+                </OnyxTabNavigator>
+            ) : (
+                <NewChatPage />
+            )}
         </ScreenWrapper>
     );
 }

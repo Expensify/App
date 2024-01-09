@@ -29,9 +29,6 @@ const propTypes = {
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
 
-    /** Text to display under the main menu item */
-    furtherDetails: PropTypes.string,
-
     /** A ref to forward to MenuItemWithTopDescription */
     forwardedRef: refPropTypes,
 };
@@ -43,11 +40,10 @@ const defaultProps = {
     items: {},
     forwardedRef: undefined,
     errorText: '',
-    furtherDetails: undefined,
     onInputChange: () => {},
 };
 
-function ValuePicker({value, label, items, placeholder, errorText, onInputChange, furtherDetails, forwardedRef}) {
+function ValuePicker({value, label, items, placeholder, errorText, onInputChange, forwardedRef}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -80,7 +76,6 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
                 descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
-                furtherDetails={furtherDetails}
             />
             <View style={styles.ml5}>
                 <FormHelpMessage message={errorText} />

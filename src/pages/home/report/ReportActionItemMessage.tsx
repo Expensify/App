@@ -40,15 +40,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const fragment = ReportActionsUtils.getMemberChangeMessageFragment(action);
 
         return (
-            <View style={[styles.chatItemMessage, style]}>
-                <TextCommentFragment
-                    fragment={fragment}
-                    displayAsGroup={displayAsGroup}
-                    style={style}
-                    source=""
-                    styleAsDeleted={false}
-                />
-            </View>
+            <TextCommentFragment
+                fragment={fragment}
+                displayAsGroup={displayAsGroup}
+                style={style}
+                source=""
+                styleAsDeleted={false}
+            />
         );
     }
 

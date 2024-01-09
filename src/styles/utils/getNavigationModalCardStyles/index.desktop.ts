@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
 import type GetNavigationModalCardStyles from './types';
 

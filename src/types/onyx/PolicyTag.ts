@@ -12,4 +12,5 @@ type PolicyTag = {
 
 type PolicyTags = Record<string, PolicyTag>;
 
-export type {PolicyTag, PolicyTags};
+export default PolicyTag;
+export type {PolicyTags};

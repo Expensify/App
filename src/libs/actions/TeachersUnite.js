@@ -28,18 +28,16 @@ Onyx.connect({
  * @param {String} partnerUserID
  * @param {String} firstName
  * @param {String} lastName
- * @param {String} policyID
- * @param {String} publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
  */
-function referTeachersUniteVolunteer(partnerUserID, firstName, lastName, policyID, publicRoomReportID) {
-    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID);
+function referTeachersUniteVolunteer(partnerUserID, firstName, lastName) {
+    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.TEACHERS_UNITE.POLICY_ID);
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${publicRoomReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticPublicRoom.reportID}`,
             value: {
                 ...optimisticPublicRoom,
-                reportID: publicRoomReportID,
+                reportID: optimisticPublicRoom.reportID,
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
             },
         },
@@ -47,14 +45,14 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName, policyI
     API.write(
         'ReferTeachersUniteVolunteer',
         {
-            reportID: publicRoomReportID,
+            publicRoomReportID: optimisticPublicRoom.reportID,
             firstName,
             lastName,
             partnerUserID,
         },
         {optimisticData},
     );
-    Navigation.dismissModal(publicRoomReportID);
+    Navigation.dismissModal(CONST.TEACHERS_UNITE.PUBLIC_ROOM_ID);
 }
 
 /**
@@ -62,10 +60,10 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName, policyI
  * @param {String} firstName
  * @param {String} partnerUserID
  * @param {String} lastName
- * @param {String} policyID
  */
-function addSchoolPrincipal(firstName, partnerUserID, lastName, policyID) {
+function addSchoolPrincipal(firstName, partnerUserID, lastName) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
+    const policyID = CONST.TEACHERS_UNITE.POLICY_ID;
     const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData = {};
 
@@ -87,7 +85,6 @@ function addSchoolPrincipal(firstName, partnerUserID, lastName, policyID) {
             firstName,
             lastName,
             partnerUserID,
-            policyID,
             reportCreationData: JSON.stringify(reportCreationData),
         },
         {

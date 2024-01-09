@@ -15,11 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
-    navigateFocus: PropTypes.func.isRequired,
+    scrollPageToTop: PropTypes.func.isRequired,
     shouldShowSmallScreen: PropTypes.bool,
 };
 
@@ -27,7 +28,14 @@ const defaultProps = {
     shouldShowSmallScreen: false,
 };
 
-const columns = ({navigateFocus}) => [
+const navigateHome = (scrollPageToTop) => {
+    scrollPageToTop();
+
+    // We need to clear sign in data in case the user is already in the ValidateCodeForm or PasswordForm pages
+    Session.clearSignInData();
+};
+
+const columns = ({scrollPageToTop}) => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -127,11 +135,11 @@ const columns = ({navigateFocus}) => [
         translationPath: 'footer.getStarted',
         rows: [
             {
-                onPress: () => navigateFocus(),
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.createAccount',
             },
             {
-                onPress: () => navigateFocus(),
+                onPress: () => navigateHome(scrollPageToTop),
                 translationPath: 'footer.logIn',
             },
         ],
@@ -164,7 +172,7 @@ function Footer(props) {
                 ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
-                        {_.map(columns({navigateFocus: props.navigateFocus}), (column, i) => (
+                        {_.map(columns({scrollPageToTop: props.scrollPageToTop}), (column, i) => (
                             <View
                                 key={column.translationPath}
                                 style={footerColumn}

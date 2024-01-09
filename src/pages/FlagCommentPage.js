@@ -13,6 +13,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -42,15 +43,10 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
-
-    /* Onyx Props */
-    /** All the report actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
 const defaultProps = {
     reportActions: {},
-    parentReportActions: {},
     report: {},
 };
 
@@ -124,19 +120,18 @@ function FlagCommentPage(props) {
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = props.parentReportActions[props.report.parentReportActionID] || {};
+            reportAction = ReportActionsUtils.getParentReportAction(props.report);
         }
 
         return reportAction;
-    }, [props.report, props.reportActions, props.route.params.reportActionID, props.parentReportActions]);
+    }, [props.report, props.reportActions, props.route.params.reportActionID]);
 
     const flagComment = (severity) => {
         let reportID = getReportID(props.route);
         const reportAction = getActionToFlag();
-        const parentReportAction = props.parentReportActions[props.report.parentReportActionID] || {};
 
         // Handle threads if needed
-        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === parentReportAction.reportActionID) {
+        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === ReportActionsUtils.getParentReportAction(props.report).reportActionID) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
 

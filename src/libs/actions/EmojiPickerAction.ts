@@ -1,9 +1,6 @@
 import React from 'react';
-import type {MutableRefObject} from 'react';
-import type {TextInput, View} from 'react-native';
+import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {Emoji} from '@assets/emojis/types';
-import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
 import type CONST from '@src/CONST';
 
 type AnchorOrigin = {
@@ -11,30 +8,22 @@ type AnchorOrigin = {
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
 };
 
-type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;
-
-type OnWillShowPicker = (callback: CloseContextMenuCallback) => void;
-
-type OnModalHideValue = () => void;
-
 // TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
 type EmojiPickerRef = {
     showEmojiPicker: (
-        onModalHideValue: OnModalHideValue,
-        onEmojiSelectedValue: OnEmojiSelected,
-        emojiPopoverAnchor: EmojiPopoverAnchor,
+        onModalHideValue?: () => void,
+        onEmojiSelectedValue?: () => void,
+        emojiPopoverAnchor?: React.MutableRefObject<View | HTMLElement | null>,
         anchorOrigin?: AnchorOrigin,
-        onWillShow?: OnWillShowPicker,
+        onWillShow?: () => void,
         id?: string,
     ) => void;
     isActive: (id: string) => boolean;
     clearActive: () => void;
-    hideEmojiPicker: (isNavigating?: boolean) => void;
+    hideEmojiPicker: (isNavigating: boolean) => void;
     isEmojiPickerVisible: boolean;
     resetEmojiPopoverAnchor: () => void;
 };
-
-type OnEmojiSelected = (emojiCode: string, emojiObject: Emoji) => void;
 
 const emojiPickerRef = React.createRef<EmojiPickerRef>();
 
@@ -48,14 +37,7 @@ const emojiPickerRef = React.createRef<EmojiPickerRef>();
  * @param onWillShow - Run a callback when Popover will show
  * @param id - Unique id for EmojiPicker
  */
-function showEmojiPicker(
-    onModalHide: OnModalHideValue,
-    onEmojiSelected: OnEmojiSelected,
-    emojiPopoverAnchor: EmojiPopoverAnchor,
-    anchorOrigin?: AnchorOrigin,
-    onWillShow: OnWillShowPicker = () => {},
-    id?: string,
-) {
+function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emojiPopoverAnchor = undefined, anchorOrigin = undefined, onWillShow = () => {}, id = undefined) {
     if (!emojiPickerRef.current) {
         return;
     }
@@ -110,4 +92,3 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin};

@@ -13,7 +13,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
         return;
     }
 
-    if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || reportAction.isOptimisticAction) {
+    if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         // Delete the optimistic action
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
             [reportAction.reportActionID]: null,

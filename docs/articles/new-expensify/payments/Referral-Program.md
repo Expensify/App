@@ -31,7 +31,7 @@ The sky's the limit for this referral program! Your referral can be anyone - a f
 
 For now, referral rewards will be paid via direct deposit into bank accounts that are connected to Expensify. 
 
-{% include faq-begin.md %}
+# FAQ
 
 - **How will I know if I'm the first person to refer a company to Expensify?**
 
@@ -54,4 +54,3 @@ Expensify reserves the right to modify the terms of the referral program at any 
 - **Where can I find my referral link?** 
 
 In New Expensify, go to **Settings** > **Share code** > **Get $250** to retrieve your invite link.
-{% include faq-end.md %}

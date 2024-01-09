@@ -1,8 +1,7 @@
 const core = require('@actions/core');
-const fs = require('fs');
 
 const run = () => {
-    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    const regressionOutput = JSON.parse(core.getInput('REGRESSION_OUTPUT', {required: true}));
     const countDeviation = core.getInput('COUNT_DEVIATION', {required: true});
     const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true});
 

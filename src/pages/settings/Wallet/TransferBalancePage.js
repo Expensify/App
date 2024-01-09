@@ -223,7 +223,6 @@ function TransferBalancePage(props) {
                             iconHeight={selectedAccount.iconSize}
                             icon={selectedAccount.icon}
                             onPress={() => navigateToChooseTransferAccount(selectedAccount.accountType)}
-                            displayInDefaultIconColor
                         />
                     )}
                     <View style={styles.ph5}>

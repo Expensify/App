@@ -2,7 +2,6 @@ import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -132,9 +131,8 @@ const modalScreenListeners = {
 
 function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {

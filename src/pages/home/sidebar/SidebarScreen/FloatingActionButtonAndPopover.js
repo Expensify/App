@@ -171,6 +171,14 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
+    const toggleCreateMenu = () => {
+        if (isCreateMenuActive) {
+            hideCreateMenu();
+        } else {
+            showCreateMenu();
+        }
+    };
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -237,13 +245,7 @@ function FloatingActionButtonAndPopover(props) {
                 role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={fabRef}
-                onPress={() => {
-                    if (isCreateMenuActive) {
-                        hideCreateMenu();
-                    } else {
-                        showCreateMenu();
-                    }
-                }}
+                onPress={toggleCreateMenu}
             />
         </View>
     );

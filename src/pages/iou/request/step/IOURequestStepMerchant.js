@@ -36,14 +36,12 @@ function IOURequestStepMerchant({
     route: {
         params: {transactionID, backTo},
     },
-    transaction: {merchant, participants},
+    transaction: {merchant},
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-
-    const isMerchantRequired = _.some(participants, (participant) => Boolean(participant.isPolicyExpenseChat));
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -53,18 +51,15 @@ function IOURequestStepMerchant({
      * @param {Object} value
      * @param {String} value.moneyRequestMerchant
      */
-    const validate = useCallback(
-        (value) => {
-            const errors = {};
+    const validate = useCallback((value) => {
+        const errors = {};
 
-            if (isMerchantRequired && _.isEmpty(value.moneyRequestMerchant)) {
-                errors.moneyRequestMerchant = 'common.error.fieldRequired';
-            }
+        if (_.isEmpty(value.moneyRequestMerchant)) {
+            errors.moneyRequestMerchant = 'common.error.fieldRequired';
+        }
 
-            return errors;
-        },
-        [isMerchantRequired],
-    );
+        return errors;
+    }, []);
 
     /**
      * @param {Object} value

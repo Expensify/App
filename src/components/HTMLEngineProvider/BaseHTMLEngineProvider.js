@@ -4,7 +4,7 @@ import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvide
 import _ from 'underscore';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import FontUtils from '@styles/utils/FontUtils';
+import singleFontFamily from '@styles/utils/fontFamily/singleFontFamily';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
@@ -62,7 +62,7 @@ function BaseHTMLEngineProvider(props) {
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
             'next-step': defaultHTMLElementModels.span.extend({
                 tagName: 'next-step',
-                mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
+                mixedUAStyles: {...styles.textLabelSupporting},
             }),
             'next-step-email': defaultHTMLElementModels.span.extend({tagName: 'next-step-email'}),
             video: defaultHTMLElementModels.div.extend({
@@ -70,7 +70,7 @@ function BaseHTMLEngineProvider(props) {
                 mixedUAStyles: {whiteSpace: 'pre'},
             }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
+        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
     );
 
     // We need to memoize this prop to make it referentially stable.
@@ -82,7 +82,7 @@ function BaseHTMLEngineProvider(props) {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={_.values(FontUtils.fontFamily.single)}
+            systemFonts={_.values(singleFontFamily)}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

@@ -105,7 +105,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                 if (waypoints.length === 1) {
                     cameraRef.current?.setCamera({
-                        zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                        zoomLevel: 15,
                         animationDuration: 1500,
                         centerCoordinate: waypoints[0].coordinate,
                     });

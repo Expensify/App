@@ -4,7 +4,6 @@ import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import Text from '@components/Text';
-// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 
 /**

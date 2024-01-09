@@ -3,7 +3,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type Emoji = {
     code: string;
     name: string;
-    types?: readonly string[];
+    types?: string[];
 };
 
 type HeaderEmoji = {
@@ -12,10 +12,8 @@ type HeaderEmoji = {
     code: string;
 };
 
-type PickerEmoji = Emoji | HeaderEmoji;
-
-type PickerEmojis = PickerEmoji[];
+type PickerEmojis = Array<Emoji | HeaderEmoji>;
 
 type EmojisList = Record<string, {keywords: string[]; name?: string}>;
 
-export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis, PickerEmoji};
+export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis};

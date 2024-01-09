@@ -211,7 +211,6 @@ type OptimisticChatReport = Pick<
     | 'parentReportActionID'
     | 'parentReportID'
     | 'participantAccountIDs'
-    | 'visibleChatMemberAccountIDs'
     | 'policyID'
     | 'reportID'
     | 'reportName'
@@ -266,7 +265,6 @@ type OptimisticTaskReport = Pick<
     | 'description'
     | 'ownerAccountID'
     | 'participantAccountIDs'
-    | 'visibleChatMemberAccountIDs'
     | 'managerID'
     | 'type'
     | 'parentReportID'
@@ -304,7 +302,6 @@ type OptimisticIOUReport = Pick<
     | 'managerID'
     | 'ownerAccountID'
     | 'participantAccountIDs'
-    | 'visibleChatMemberAccountIDs'
     | 'reportID'
     | 'state'
     | 'stateNum'
@@ -546,8 +543,7 @@ function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if a report is an IOU report.
  */
-function isIOUReport(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
+function isIOUReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
@@ -603,15 +599,14 @@ function isReportManager(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report has been approved
  */
-function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
+function isReportApproved(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -718,17 +713,9 @@ function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a Free, Collect or Control policy
- */
-function isGroupPolicy(report: OnyxEntry<Report>): boolean {
-    const policyType = getPolicyType(report, allPolicies);
-    return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.FREE;
-}
-
-/**
  * Whether the provided report belongs to a Control or Collect policy
  */
-function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
+function isGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
     return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
 }
@@ -736,8 +723,8 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy and is an expense chat
  */
-function isPaidGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return isPolicyExpenseChat(report) && isPaidGroupPolicy(report);
+function isGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
+    return isPolicyExpenseChat(report) && isGroupPolicy(report);
 }
 
 /**
@@ -750,8 +737,8 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy and is an expense report
  */
-function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isPaidGroupPolicy(report);
+function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && isGroupPolicy(report);
 }
 
 /**
@@ -829,7 +816,7 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report is still being processed
  */
-function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isProcessingReport(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && report?.statusNum === CONST.REPORT.STATUS.SUBMITTED;
 }
 
@@ -1860,13 +1847,9 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  * - in case of expense report
  *    - the current user is the requestor and is not settled yet
- *    - the current user is the manager of the report
- *    - or the current user is an admin on the policy the expense report is tied to
- *
- *    This is used in conjunction with canEditRestrictedField to control editing of specific fields like amount, currency, created, receipt, and distance.
- *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
+ *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = ''): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1889,76 +1872,52 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     }
 
     const moneyRequestReport = getReport(String(moneyRequestReportID));
+    const isReportSettled = isSettled(moneyRequestReport?.reportID);
+    const isApproved = isReportApproved(moneyRequestReport);
+    const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
-    if (isIOUReport(moneyRequestReport)) {
-        return isProcessingReport(moneyRequestReport) && isRequestor;
+    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        return false;
     }
 
-    const policy = getPolicy(moneyRequestReport?.policyID ?? '');
-    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = currentUserAccountID === moneyRequestReport?.managerID;
-
-    // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
-    if ((isAdmin || isManager) && !isDraftExpenseReport(moneyRequestReport)) {
+    if (isAdmin) {
         return true;
     }
 
-    return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
+    return !isApproved && !isReportSettled && isRequestor;
 }
 
 /**
  * Checks if the current user can edit the provided property of a money request
  *
  */
-function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(
+    reportAction: OnyxEntry<ReportAction>,
+    reportID: string,
+    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
+    transaction: OnyxEntry<Transaction>,
+): boolean {
     // A list of fields that cannot be edited by anyone, once a money request has been settled
-    const restrictedFields: string[] = [
+    const nonEditableFieldsWhenSettled: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
         CONST.EDIT_REQUEST_FIELD.CURRENCY,
-        CONST.EDIT_REQUEST_FIELD.MERCHANT,
         CONST.EDIT_REQUEST_FIELD.DATE,
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
     ];
 
-    if (!canEditMoneyRequest(reportAction)) {
+    // Checks if this user has permissions to edit this money request
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
+        return false; // User doesn't have permission to edit
+    }
+    if (!isEmpty(transaction) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return false;
     }
 
-    // If we're editing fields such as category, tag, description, etc. the check above should be enough for handling the permission
-    if (!restrictedFields.includes(fieldToEdit)) {
-        return true;
-    }
-
-    const iouMessage = reportAction?.originalMessage as IOUMessage;
-    const moneyRequestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouMessage?.IOUReportID}`] ?? ({} as Report);
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
-
-    if (isSettled(String(moneyRequestReport.reportID)) || isReportApproved(String(moneyRequestReport.reportID))) {
-        return false;
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) {
-        if (TransactionUtils.isCardTransaction(transaction)) {
-            return false;
-        }
-
-        if (TransactionUtils.isDistanceRequest(transaction)) {
-            const policy = getPolicy(moneyRequestReport?.reportID ?? '');
-            const isAdmin = isExpenseReport(moneyRequestReport) && policy.role === CONST.POLICY.ROLE.ADMIN;
-            const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
-
-            return isAdmin || isManager;
-        }
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
-        const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
-        return !TransactionUtils.isReceiptBeingScanned(transaction) && !TransactionUtils.isDistanceRequest(transaction) && isRequestor;
-    }
-
-    return true;
+    // Checks if the report is settled
+    // Checks if the provided property is a restricted one
+    return !isSettled(reportID) || !nonEditableFieldsWhenSettled.includes(fieldToEdit);
 }
 
 /**
@@ -2098,7 +2057,7 @@ function getReportPreviewMessage(
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved(report) && isPaidGroupPolicy(report)) {
+    if (isReportApproved(report) && isGroupPolicy(report)) {
         return Localize.translateLocal('iou.managerApprovedAmount', {
             manager: payerName ?? '',
             amount: formattedAmount,
@@ -2426,7 +2385,6 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: File): Opti
             attachmentInfo,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
-            isOptimisticAction: true,
         },
     };
 }
@@ -2547,10 +2505,6 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
-
-    // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
-    const participantsAccountIDs = [payeeAccountID, payerAccountID];
-
     return {
         type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
@@ -2558,8 +2512,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         currency,
         managerID: payerAccountID,
         ownerAccountID: payeeAccountID,
-        participantAccountIDs: participantsAccountIDs,
-        visibleChatMemberAccountIDs: participantsAccountIDs,
+        participantAccountIDs: [payeeAccountID, payerAccountID],
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
@@ -3095,9 +3048,7 @@ function buildOptimisticChatReport(
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,
         parentReportID,
-        // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
         participantAccountIDs: participantList,
-        visibleChatMemberAccountIDs: participantList,
         policyID,
         reportID: generateReportID(),
         reportName,
@@ -3299,16 +3250,12 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ): OptimisticTaskReport {
-    // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
-    const participantsAccountIDs = assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [];
-
     return {
         reportID: generateReportID(),
         reportName: title,
         description,
         ownerAccountID,
-        participantAccountIDs: participantsAccountIDs,
-        visibleChatMemberAccountIDs: participantsAccountIDs,
+        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -4117,11 +4064,6 @@ function getTaskAssigneeChatOnyxData(
                 value: optimisticAssigneeReport,
             },
         );
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: {isOptimisticAction: null}},
-        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -4140,8 +4082,6 @@ function getTaskAssigneeChatOnyxData(
 
 /**
  * Returns an array of the participants Ids of a report
- *
- * @deprecated Use getVisibleMemberIDs instead
  */
 function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
     if (!report) {
@@ -4157,25 +4097,6 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         return onlyUnique;
     }
     return participants;
-}
-
-/**
- * Returns an array of the visible member accountIDs for a report*
- */
-function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-    return visibleChatMemberAccountIDs;
 }
 
 /**
@@ -4323,14 +4244,6 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
- * Checks if thread replies should be displayed
- */
-function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
-    const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
-}
-
-/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4396,12 +4309,10 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
-    isGroupPolicy,
-    isPaidGroupPolicy,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
-    isPaidGroupPolicyExpenseChat,
-    isPaidGroupPolicyExpenseReport,
+    isGroupPolicyExpenseChat,
+    isGroupPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
@@ -4506,7 +4417,6 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
-    getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,
@@ -4530,7 +4440,6 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
-    shouldDisplayThreadReplies,
     shouldDisableThread,
 };
 

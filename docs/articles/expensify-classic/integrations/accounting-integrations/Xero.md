@@ -236,7 +236,7 @@ If we can't find a match, we'll create a new customer record in Xero.
 
 And that's it! You've successfully set up and managed your invoice exports to Xero, making your tracking smooth and efficient.
 
-{% include faq-begin.md %}
+# FAQ
 
 ## Will receipt images be exported to Xero?
 
@@ -258,5 +258,3 @@ It will be automatically marked as reimbursed in Expensify during the next sync.
 
 Reports that haven't been exported to Xero won't be sent automatically.
 
-
-{% include faq-end.md %}

@@ -128,8 +128,7 @@ function isActiveRoute(routePath: Route): boolean {
     let activeRoute = getActiveRoute();
     activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
 
-    // We remove redundant (consecutive and trailing) slashes from path before matching
-    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
+    return activeRoute === routePath;
 }
 
 /**

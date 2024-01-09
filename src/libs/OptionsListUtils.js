@@ -322,9 +322,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
-            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs || [];
-            for (let i = 0; i < visibleChatMemberAccountIDs.length; i++) {
-                const accountID = visibleChatMemberAccountIDs[i];
+            const participantAccountIDs = report.participantAccountIDs || [];
+            for (let i = 0; i < participantAccountIDs.length; i++) {
+                const accountID = participantAccountIDs[i];
 
                 if (allPersonalDetails[accountID] && allPersonalDetails[accountID].login) {
                     searchTerms = searchTerms.concat(allPersonalDetails[accountID].login);
@@ -506,7 +506,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
 
@@ -536,7 +536,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         } else if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
@@ -573,7 +573,7 @@ function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
     const option = createOption(
-        expenseReport.visibleChatMemberAccountIDs,
+        expenseReport.participantAccountIDs,
         allPersonalDetails,
         expenseReport,
         {},
@@ -1342,7 +1342,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.visibleChatMemberAccountIDs || [];
+        const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;

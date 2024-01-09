@@ -349,7 +349,6 @@ function AddressSearch({
                     lat: successData.coords.latitude,
                     lng: successData.coords.longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
-                    name: CONST.YOUR_LOCATION_TEXT,
                 };
                 onPress(location);
             },

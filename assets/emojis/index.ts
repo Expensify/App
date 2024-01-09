@@ -1,12 +1,9 @@
-import type {Locale} from '@src/types/onyx';
 import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
-import type {Emoji, EmojisList} from './types';
+import type {Emoji} from './types';
 
 type EmojiTable = Record<string, Emoji>;
-
-type LocaleEmojis = Partial<Record<Locale, EmojisList>>;
 
 const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
     const newValue = prev;
@@ -29,10 +26,10 @@ const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
     return newValue;
 }, {});
 
-const localeEmojis: LocaleEmojis = {
+const localeEmojis = {
     en: enEmojis,
     es: esEmojis,
-};
+} as const;
 
 export default emojis;
 export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};

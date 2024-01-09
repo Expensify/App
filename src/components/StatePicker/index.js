@@ -25,9 +25,6 @@ const propTypes = {
 
     /** Label to display on field */
     label: PropTypes.string,
-
-    /**  Callback to call when the picker modal is dismissed */
-    onBlur: PropTypes.func,
 };
 
 const defaultProps = {
@@ -36,10 +33,9 @@ const defaultProps = {
     errorText: '',
     onInputChange: () => {},
     label: undefined,
-    onBlur: () => {},
 };
 
-function StatePicker({value, errorText, onInputChange, forwardedRef, label, onBlur}) {
+function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -49,10 +45,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label, onBl
         setIsPickerVisible(true);
     };
 
-    const hidePickerModal = (shouldBlur = true) => {
-        if (shouldBlur) {
-            onBlur();
-        }
+    const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
 
@@ -60,9 +53,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label, onBl
         if (state.value !== value) {
             onInputChange(state.value);
         }
-        // If the user selects any state, call the hidePickerModal function with shouldBlur = false
-        // to prevent the onBlur function from being called.
-        hidePickerModal(false);
+        hidePickerModal();
     };
 
     const title = value && _.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';

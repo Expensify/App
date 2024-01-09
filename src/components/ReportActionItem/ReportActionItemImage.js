@@ -31,9 +31,6 @@ const propTypes = {
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile: PropTypes.bool,
-
-    /** whether the receipt can be replaced */
-    canEditReceipt: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -41,7 +38,6 @@ const defaultProps = {
     transaction: {},
     enablePreviewModal: false,
     isLocalFile: false,
-    canEditReceipt: false,
 };
 
 /**
@@ -50,7 +46,7 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, canEditReceipt, isLocalFile}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
@@ -92,7 +88,6 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
-                        canEditReceipt={canEditReceipt}
                         allowToDownload
                         originalFileName={transaction.filename}
                     >
