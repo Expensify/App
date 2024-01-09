@@ -451,7 +451,6 @@ function ComposerWithSuggestions({
             }
 
             focus();
-            replaceSelectionWithText(e.key, false);
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
