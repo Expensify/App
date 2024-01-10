@@ -1,5 +1,6 @@
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
+import type {GestureResponderEvent, Role} from 'react-native';
 import {Platform, View} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
@@ -16,8 +17,18 @@ AnimatedPath.displayName = 'AnimatedPath';
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
+type AdapterPropsRecord = {
+    type: number;
+    payload?: number | null;
+};
+
+type AdapterProps = {
+    fill?: string | AdapterPropsRecord;
+    stroke?: string | AdapterPropsRecord;
+};
+
 const adapter = createAnimatedPropAdapter(
-    (props) => {
+    (props: AdapterProps) => {
         // eslint-disable-next-line rulesdir/prefer-underscore-method
         if (Object.keys(props).includes('fill')) {
             // eslint-disable-next-line no-param-reassign
@@ -31,31 +42,27 @@ const adapter = createAnimatedPropAdapter(
     },
     ['fill', 'stroke'],
 );
-adapter.propTypes = {
-    fill: PropTypes.string,
-    stroke: PropTypes.string,
-};
 
-const propTypes = {
+type FloatingActionButtonProps = {
     /* Callback to fire on request to toggle the FloatingActionButton */
-    onPress: PropTypes.func.isRequired,
+    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     /* Current state (active or not active) of the component */
-    isActive: PropTypes.bool.isRequired,
+    isActive: boolean;
 
     /* An accessibility label for the button */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: string;
 
     /* An accessibility role for the button */
-    role: PropTypes.string.isRequired,
+    role: Role;
 };
 
-const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View>) {
     const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const {translate} = useLocalize();
-    const fabPressable = useRef(null);
+    const fabPressable = useRef<HTMLDivElement | View | null>(null);
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
@@ -94,7 +101,8 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                 <AnimatedPressable
                     ref={(el) => {
                         fabPressable.current = el;
-                        if (buttonRef) {
+
+                        if (buttonRef && 'current' in buttonRef) {
                             buttonRef.current = el;
                         }
                     }}
@@ -103,7 +111,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                     pressDimmingValue={1}
                     onPress={(e) => {
                         // Drop focus to avoid blue focus ring.
-                        fabPressable.current.blur();
+                        fabPressable.current?.blur();
                         onPress(e);
                     }}
                     onLongPress={() => {}}
@@ -122,9 +130,8 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
             </View>
         </Tooltip>
     );
-});
+}
 
-FloatingActionButton.propTypes = propTypes;
 FloatingActionButton.displayName = 'FloatingActionButton';
 
-export default FloatingActionButton;
+export default forwardRef(FloatingActionButton);

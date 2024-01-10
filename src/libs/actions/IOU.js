@@ -1130,6 +1130,21 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val, p
 }
 
 /**
+ * Updates the billable field of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} val
+ */
+function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
+    const transactionChanges = {
+        billable: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestBillable', params, onyxData);
+}
+
+/**
  * Updates the merchant field of a money request
  *
  * @param {String} transactionID
@@ -2536,38 +2551,37 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
-    let updatedIOUReport = null;
-    let updatedReportPreviewAction = null;
-    if (!shouldDeleteIOUReport) {
-        if (ReportUtils.isExpenseReport(iouReport)) {
-            updatedIOUReport = {...iouReport};
+    let updatedIOUReport = {...iouReport};
+    const updatedReportPreviewAction = {...reportPreviewAction};
+    updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    if (ReportUtils.isExpenseReport(iouReport)) {
+        updatedIOUReport = {...iouReport};
 
-            // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
-        } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-                iouReport,
-                reportAction.actorAccountID,
-                TransactionUtils.getAmount(transaction, false),
-                TransactionUtils.getCurrency(transaction),
-                true,
-            );
-        }
+        // Because of the Expense reports are stored as negative values, we add the total from the amount
+        updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
+    } else {
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID,
+            TransactionUtils.getAmount(transaction, false),
+            TransactionUtils.getCurrency(transaction),
+            true,
+        );
+    }
 
-        updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+    updatedIOUReport.lastMessageText = iouReportLastMessageText;
+    updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
-        updatedReportPreviewAction = {...reportPreviewAction};
-        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
-            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
-        });
-        updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = messageText;
-        if (reportPreviewAction.childMoneyRequestCount > 0) {
-            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
-        }
+    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
+    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
+        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
+        amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
+    });
+    updatedReportPreviewAction.message[0].text = messageText;
+    updatedReportPreviewAction.message[0].html = messageText;
+
+    if (reportPreviewAction.childMoneyRequestCount > 0) {
+        updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }
 
     // STEP 5: Build Onyx data
@@ -2601,12 +2615,12 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
               ]
             : []),
         {
-            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: shouldDeleteIOUReport ? null : updatedReportAction,
+            value: updatedReportAction,
         },
         {
-            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
@@ -2649,9 +2663,34 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [reportAction.reportActionID]: {pendingAction: null},
+                [reportAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                      },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                          errors: null,
+                      },
+            },
+        },
+        ...(shouldDeleteIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: null,
+                  },
+              ]
+            : []),
     ];
 
     const failureData = [
@@ -3278,7 +3317,7 @@ function submitReport(expenseReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID]: {
+                [optimisticSubmittedReportAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
@@ -3659,6 +3698,7 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,
