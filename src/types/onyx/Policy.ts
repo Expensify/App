@@ -62,7 +62,7 @@ type Policy = {
     /** The custom units data for this policy */
     customUnits?: Record<string, CustomUnit>;
 
-    /** Is Tax tracking Enabled */
+    /** Is tax tracking enabled */
     isTaxTrackingEnabled?: boolean;
 
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
