@@ -96,17 +96,20 @@ function AboutPage(props) {
         }));
     }, [translate, waitForNavigate]);
 
-    const overlayContent = useCallback(() => (
-        <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb5]}>
-            <Text
-                selectable
-                style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
-            >
-                v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
-            </Text>
-        </View>
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    ), []);
+    const overlayContent = useCallback(
+        () => (
+            <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb5]}>
+                <Text
+                    selectable
+                    style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
+                >
+                    v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+                </Text>
+            </View>
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        ),
+        [],
+    );
 
     return (
         <IllustratedHeaderPageLayout
