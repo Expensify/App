@@ -219,7 +219,7 @@ function AttachmentModal({
     const downloadAttachment = useCallback(() => {
         let sourceURL = sourceState;
         if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
-            sourceURL = addEncryptedAuthTokenToURL(sourceURL ?? '');
+            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
         if (typeof sourceURL === 'string') {
