@@ -281,6 +281,8 @@ type TransactionDetails =
     | {
           created: string;
           amount: number;
+          taxAmount?: number;
+          taxCode?: string;
           currency: string;
           merchant: string;
           waypoints?: WaypointCollection;
@@ -1839,6 +1841,8 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report)),
+        taxAmount: TransactionUtils.getTaxAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report)),
+        taxCode: TransactionUtils.getTaxCode(transaction),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
