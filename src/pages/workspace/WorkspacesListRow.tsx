@@ -171,14 +171,14 @@ function WorkspacesListRow({
                         onIconPress={() => {
                             threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
                                 setThreeDotsMenuPosition({
-                                    horizontal: x,
-                                    vertical: y + height + variables.componentBorderRadiusSmall,
+                                    horizontal: x + width,
+                                    vertical: y + height,
                                 });
                             });
                         }}
                         menuItems={menuItems}
                         anchorPosition={threeDotsMenuPosition}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         iconStyles={[styles.mr2]}
                         shouldOverlay
                     />
