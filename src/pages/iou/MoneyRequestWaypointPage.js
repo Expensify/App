@@ -32,7 +32,7 @@ const defaultProps = {
 
 // This component is responsible for grabbing the transactionID from the IOU key
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that WaypointEditor can subscribe to the transaction.
-function NewDistanceRequestWaypointEditorPage({transactionID, route}) {
+function MoneyRequestWaypointPage({transactionID, route}) {
     return (
         <IOURequestStepWaypoint
             // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
@@ -47,9 +47,9 @@ function NewDistanceRequestWaypointEditorPage({transactionID, route}) {
     );
 }
 
-NewDistanceRequestWaypointEditorPage.displayName = 'NewDistanceRequestWaypointEditorPage';
-NewDistanceRequestWaypointEditorPage.propTypes = propTypes;
-NewDistanceRequestWaypointEditorPage.defaultProps = defaultProps;
+MoneyRequestWaypointPage.displayName = 'MoneyRequestWaypointPage';
+MoneyRequestWaypointPage.propTypes = propTypes;
+MoneyRequestWaypointPage.defaultProps = defaultProps;
 export default withOnyx({
     transactionID: {key: ONYXKEYS.IOU, selector: (iou) => iou && iou.transactionID},
-})(NewDistanceRequestWaypointEditorPage);
+})(MoneyRequestWaypointPage);
