@@ -671,7 +671,7 @@ declare module "external-library-name" {
 
 > This section contains instructions that are applicable during the migration.
 
-- 🚨 DO NOT write new code in JavaScript anymore. Any new files MUST be created in TypeScript now!
+- 🚨 Any new files under `src/` directory MUST be created in TypeScript now! New files in other directories (e.g. `tests/`, `desktop/`) can be created in TypeScript, if desired.
 
 - If you're migrating a module that doesn't have a default implementation (i.e. `index.ts`, e.g. `getPlatform`), convert `index.website.js` to `index.ts`. Without `index.ts`, TypeScript cannot get type information where the module is imported.
 
