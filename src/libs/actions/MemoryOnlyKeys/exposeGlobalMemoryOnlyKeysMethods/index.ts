@@ -1,6 +1,7 @@
 import * as MemoryOnlyKeys from '@userActions/MemoryOnlyKeys/MemoryOnlyKeys';
+import type ExposeGlobalMemoryOnlyKeysMethods from './types';
 
-const exposeGlobalMemoryOnlyKeysMethods = () => {
+const exposeGlobalMemoryOnlyKeysMethods: ExposeGlobalMemoryOnlyKeysMethods = () => {
     window.enableMemoryOnlyKeys = () => {
         MemoryOnlyKeys.enable();
     };

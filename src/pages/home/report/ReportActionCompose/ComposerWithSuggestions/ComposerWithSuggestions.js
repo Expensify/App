@@ -5,7 +5,6 @@ import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-nat
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Composer from '@components/Composer';
-import {PopoverContext} from '@components/PopoverProvider';
 import withKeyboardState from '@components/withKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -109,7 +108,6 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
-    const {isOpen: isPopoverOpen} = React.useContext(PopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -412,15 +410,9 @@ function ComposerWithSuggestions({
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
      * @memberof ReportActionCompose
      */
-    const focus = useCallback(
-        (shouldDelay = false) => {
-            if (isPopoverOpen) {
-                return;
-            }
-            focusComposerWithDelay(textInputRef.current)(shouldDelay);
-        },
-        [isPopoverOpen],
-    );
+    const focus = useCallback((shouldDelay = false) => {
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
+    }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.

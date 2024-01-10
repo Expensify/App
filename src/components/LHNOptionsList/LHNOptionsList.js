@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -184,4 +184,4 @@ export default withOnyx({
     draftComments: {
         key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     },
-})(LHNOptionsList);
+})(memo(LHNOptionsList));

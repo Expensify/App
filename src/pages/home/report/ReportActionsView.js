@@ -193,6 +193,8 @@ function ReportActionsView(props) {
         };
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
+    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -203,15 +205,13 @@ function ReportActionsView(props) {
             return;
         }
 
-        const oldestReportAction = _.last(props.reportActions);
-
         // Don't load more chats if we're already at the beginning of the chat history
         if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.isLoadingOlderReportActions, props.network.isOffline, props.reportActions, reportID]);
+    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
