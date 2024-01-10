@@ -1,31 +1,26 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
-const propTypes = {
-    /** Method to trigger when pressing back button of the header */
-    onBackButtonPress: PropTypes.func,
-};
-
-const defaultProps = {
-    onBackButtonPress: undefined,
+type NotFoundPageProps = {
+    onBackButtonPress?: () => void;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage(props) {
+function NotFoundPage({onBackButtonPress = () => Navigation.goBack(ROUTES.HOME)}: NotFoundPageProps) {
     return (
         <ScreenWrapper testID={NotFoundPage.displayName}>
             <FullPageNotFoundView
                 shouldShow
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
+                onLinkPress={() => Navigation.dismissModal()}
             />
         </ScreenWrapper>
     );
 }
 
 NotFoundPage.displayName = 'NotFoundPage';
-NotFoundPage.propTypes = propTypes;
-NotFoundPage.defaultProps = defaultProps;
 
 export default NotFoundPage;
