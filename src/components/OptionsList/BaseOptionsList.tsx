@@ -15,6 +15,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseOptionListProps, OptionsList, OptionsListData, Section} from './types';
 
+const viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
+
 function BaseOptionsList(
     {
         keyboardDismissMode = 'none',
@@ -31,9 +33,10 @@ function BaseOptionsList(
         shouldHaveOptionSeparator = false,
         showTitleTooltip = false,
         optionHoveredStyle,
-        contentContainerStyles,
+
         sectionHeaderStyle,
         showScrollIndicator = false,
+        contentContainerStyles: contentContainerStylesProp,
         listContainerStyles: listContainerStylesProp,
         shouldDisableRowInnerPadding = false,
         shouldPreventDefaultFocusOnSelectRow = false,
@@ -51,6 +54,7 @@ function BaseOptionsList(
         nestedScrollEnabled = true,
         bounces = true,
         renderFooterContent,
+        safeAreaPaddingBottomStyle,
     }: BaseOptionListProps,
     ref: ForwardedRef<OptionsList>,
 ) {
@@ -64,7 +68,8 @@ function BaseOptionsList(
     const previousSections = usePrevious<OptionsListData[]>(sections);
     const didLayout = useRef(false);
 
-    const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
+    const listContainerStyles = useMemo(() => listContainerStylesProp || [styles.flex1], [listContainerStylesProp, styles.flex1]);
+    const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, ...contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -263,7 +268,7 @@ function BaseOptionsList(
                         initialNumToRender={12}
                         maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT}
                         windowSize={5}
-                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                        viewabilityConfig={viewabilityConfig}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
                         ListFooterComponent={renderFooterContent}
