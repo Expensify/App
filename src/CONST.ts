@@ -269,7 +269,6 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_COMMENT_LINKING: 'commentLinking',
-        POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
     },
@@ -1181,6 +1180,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',
@@ -1423,6 +1423,7 @@ const CONST = {
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
+            REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
         },
 
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
@@ -2890,8 +2891,10 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '7470147100835202',
-        POLICY_ID: 'B795B6319125BDF2',
+        PROD_PUBLIC_ROOM_ID: '7470147100835202',
+        PROD_POLICY_ID: 'B795B6319125BDF2',
+        TEST_PUBLIC_ROOM_ID: '207591744844000',
+        TEST_POLICY_ID: 'ABD1345ED7293535',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
