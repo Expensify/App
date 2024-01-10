@@ -81,7 +81,7 @@ const defaultProps = {
 function IOURequestStepWaypoint({
     recentWaypoints,
     route: {
-        params: {iouType, pageIndex, reportID, transactionID},
+        params: {action, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
     userLocation,
