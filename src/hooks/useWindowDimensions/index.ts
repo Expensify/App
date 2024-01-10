@@ -11,8 +11,8 @@ const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
 /**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
  */
-export default function (isCachedViewportHeight = false): WindowDimensions {
-    const shouldAwareVitualViewportHeight = isCachedViewportHeight && Browser.isMobileSafari();
+export default function (useCachedViewportHeight = false): WindowDimensions {
+    const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileSafari();
     const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 
@@ -32,16 +32,16 @@ export default function (isCachedViewportHeight = false): WindowDimensions {
         }
     });
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (shouldAwareVitualViewportHeight) {
-            window.addEventListener('focusin', handleFocusIn.current);
-            return () => {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-                window.removeEventListener('focusin', handleFocusIn.current);
-            };
+        if (!isCachedViewportHeight) {
+            return;
         }
-    }, [shouldAwareVitualViewportHeight]);
+        window.addEventListener('focusin', handleFocusIn.current);
+        return () => {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            window.removeEventListener('focusin', handleFocusIn.current);
+        };
+    }, [isCachedViewportHeight]);
 
     const handleFocusOut = useRef((event: FocusEvent) => {
         const targetElement = event.target as HTMLElement;
@@ -50,42 +50,37 @@ export default function (isCachedViewportHeight = false): WindowDimensions {
         }
     });
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (shouldAwareVitualViewportHeight) {
-            window.addEventListener('focusout', handleFocusOut.current);
-            return () => {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-                window.removeEventListener('focusout', handleFocusOut.current);
-            };
+        if (!isCachedViewportHeight) {
+            return;
         }
-    }, [shouldAwareVitualViewportHeight]);
+        window.addEventListener('focusout', handleFocusOut.current);
+        return () => {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            window.removeEventListener('focusout', handleFocusOut.current);
+        };
+    }, [isCachedViewportHeight]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (shouldAwareVitualViewportHeight && windowHeight < cachedViewportHeightWithKeyboardRef.current) {
-            setCachedViewportHeight(windowHeight);
+        if (!isCachedViewportHeight && windowHeight >= cachedViewportHeightWithKeyboardRef.current) {
+            return;
         }
-    }, [windowHeight, shouldAwareVitualViewportHeight]);
+        setCachedViewportHeight(windowHeight);
+    }, [windowHeight, isCachedViewportHeight]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (shouldAwareVitualViewportHeight && window.matchMedia('(orientation: portrait)').matches) {
-            if (windowHeight < initalViewportHeight) {
-                cachedViewportHeightWithKeyboardRef.current = windowHeight;
-            }
+        if (!isCachedViewportHeight || !window.matchMedia('(orientation: portrait)').matches || windowHeight >= initalViewportHeight) {
+            return;
         }
-    }, [shouldAwareVitualViewportHeight, windowHeight]);
+        cachedViewportHeightWithKeyboardRef.current = windowHeight;
+    }, [isCachedViewportHeight, windowHeight]);
 
-    return useMemo(
-        () => ({
-            windowWidth,
-            windowHeight: shouldAwareVitualViewportHeight ? cachedViewportHeight : windowHeight,
-            isExtraSmallScreenHeight,
-            isSmallScreenWidth,
-            isMediumScreenWidth,
-            isLargeScreenWidth,
-        }),
-        [windowWidth, shouldAwareVitualViewportHeight, cachedViewportHeight, windowHeight, isExtraSmallScreenHeight, isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth],
-    );
+    return {
+        windowWidth,
+        windowHeight: isCachedViewportHeight ? cachedViewportHeight : windowHeight,
+        isExtraSmallScreenHeight,
+        isSmallScreenWidth,
+        isMediumScreenWidth,
+        isLargeScreenWidth,
+    };
 }
