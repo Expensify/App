@@ -20,23 +20,23 @@ jest.mock('../../src/components/withLocalize', () => (Component) => {
     return WrappedComponent;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+jest.mock('../../src/components/withNavigation', () => (Component) => {
+    function withNavigation(props) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                isFocused={false}
+                navigation={{
+                    navigate: jest.fn(),
+                    addListener: () => jest.fn(),
+                }}
             />
         );
     }
 
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
+    withNavigation.displayName = 'withNavigation';
+    return withNavigation;
 });
-
-jest.useFakeTimers();
 
 const generateSections = (sectionConfigs) =>
     _.map(sectionConfigs, ({numItems, indexOffset, shouldShow = true}) => ({
@@ -120,18 +120,11 @@ test('[OptionsSelector] should scroll and press few items', () => {
 
     const eventData = generateEventData(100, variables.optionRowHeight);
     const eventData2 = generateEventData(200, variables.optionRowHeight);
-    const scenario = (screen) => {
+    const scenario = async (screen) => {
         fireEvent.press(screen.getByText('Item 10'));
         fireEvent.scroll(screen.getByTestId('options-list'), eventData);
-        // see https://github.com/callstack/react-native-testing-library/issues/1540
-        fireEvent(screen.getByTestId('options-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
-        // RN's VirtualizedList uses a timeout of 50 ms to batch renders
-        jest.runOnlyPendingTimers()
-        fireEvent.press(screen.getByText('Item 100'));
+        fireEvent.press(await screen.findByText('Item 100'));
         fireEvent.scroll(screen.getByTestId('options-list'), eventData2);
-        // see https://github.com/callstack/react-native-testing-library/issues/1540
-        fireEvent(screen.getByTestId('options-list'), 'onContentSizeChange', eventData2.nativeEvent.contentSize.width, eventData2.nativeEvent.contentSize.height);
-        jest.runOnlyPendingTimers()
         fireEvent.press(screen.getByText('Item 200'));
     };
 

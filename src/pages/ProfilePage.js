@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -27,6 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -134,7 +134,8 @@ function ProfilePage(props) {
 
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
 
-    const notificationPreference = !_.isEmpty(props.report) ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
+    const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -227,7 +228,7 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!_.isEmpty(props.report) && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (
+                        {shouldShowNotificationPreference && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={notificationPreference}
