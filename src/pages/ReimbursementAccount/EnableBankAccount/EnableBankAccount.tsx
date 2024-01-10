@@ -1,9 +1,7 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -16,41 +14,39 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import userPropTypes from '@pages/settings/userPropTypes';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import * as Link from '@userActions/Link';
 import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount, User} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
+type EnableBankAccountOnyxProps = {
+    /** Object with various information about the user */
+    user: OnyxEntry<User>;
+};
+
+type EnableBankAccountProps = EnableBankAccountOnyxProps & {
     /** Bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /* Onyx Props */
-    user: userPropTypes,
+    reimbursementAccount: ReimbursementAccount;
 
     /** Method to trigger when pressing back button of the header */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 };
 
-const defaultProps = {
-    user: {},
-};
-
-function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}) {
+function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: EnableBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const achData = lodashGet(reimbursementAccount, 'achData', {});
-    const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
-    const isUsingExpensifyCard = user.isUsingExpensifyCard;
+    const achData = reimbursementAccount?.achData ?? {};
+    const {icon, iconSize} = getBankIcon({bankName: achData?.bankName, styles});
+    const isUsingExpensifyCard = user?.isUsingExpensifyCard;
     const formattedBankAccountNumber = achData.accountNumber ? `${translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
-    const bankName = achData.addressName;
-    const errors = lodashGet(reimbursementAccount, 'errors', {});
-    const pendingAction = lodashGet(reimbursementAccount, 'pendingAction', null);
-    const shouldShowResetModal = lodashGet(reimbursementAccount, 'shouldShowResetModal', false);
+    const bankName = achData?.addressName;
+    const errors = reimbursementAccount?.errors ?? {};
+    const pendingAction = reimbursementAccount?.pendingAction;
+    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
 
     return (
         <ScreenWrapper
@@ -73,7 +69,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}) {
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={errors}
-                        shouldShowErrorMessage
+                        shouldShowErrorMessages
                         onClose={BankAccounts.resetReimbursementAccount}
                     >
                         <MenuItem
@@ -108,11 +104,11 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}) {
                             icon={Expensicons.Close}
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                            disabled={Boolean(pendingAction) || !_.isEmpty(errors)}
+                            disabled={Boolean(pendingAction) || isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>
-                {Boolean(user.isCheckingDomain) && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
+                {Boolean(user?.isCheckingDomain) && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
             {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScreenWrapper>
@@ -120,10 +116,8 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}) {
 }
 
 EnableBankAccount.displayName = 'EnableStep';
-EnableBankAccount.propTypes = propTypes;
-EnableBankAccount.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<EnableBankAccountProps, EnableBankAccountOnyxProps>({
     user: {
         key: ONYXKEYS.USER,
     },

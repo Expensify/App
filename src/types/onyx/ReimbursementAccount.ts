@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type {BeneficialOwnersStepDraftProps, CompanyStepProps, RequestorStepProps} from './ReimbursementAccountDraft';
 
@@ -25,6 +26,11 @@ type ACHData = {
 
     /** Bank account number */
     accountNumber?: string;
+
+    /** Bank account name */
+    bankName?: BankName;
+
+    addressName?: string;
 } & BeneficialOwnersStepDraftProps &
     CompanyStepProps &
     RequestorStepProps;
@@ -55,6 +61,8 @@ type ReimbursementAccount = {
     draftStep?: BankAccountStep;
 
     pendingAction?: OnyxCommon.PendingAction;
+
+    shouldShowResetModal?: boolean;
 };
 
 export default ReimbursementAccount;
