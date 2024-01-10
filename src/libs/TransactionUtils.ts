@@ -558,7 +558,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 }
 
 /**
- * Calculates get's the default tax name
+ * Get's the default tax name
  */
 function getDefaultTaxName(policyTaxRates: PolicyTaxRates, transaction: Transaction) {
     const defaultTaxKey = policyTaxRates.defaultExternalID;
@@ -567,9 +567,19 @@ function getDefaultTaxName(policyTaxRates: PolicyTaxRates, transaction: Transact
     return transaction?.taxRate?.text ?? defaultTaxName;
 }
 
+/**
+ * Get's the tax name
+ */
+function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
+    const taxName = `${taxes[transactionTaxCode].name}`;
+    const taxValue = `${taxes[transactionTaxCode].value}`;
+    return transactionTaxCode ? `${taxName} (${taxValue})` : '';
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    getTaxName,
     getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
