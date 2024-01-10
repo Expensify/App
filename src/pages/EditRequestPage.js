@@ -62,14 +62,13 @@ const propTypes = {
 
     /** Transaction that stores the request data */
     transaction: transactionPropTypes,
-
+    /* Onyx Props */
     /** The policy of the report */
     policy: PropTypes.shape({
         /** Is Tax tracking Enabled */
         isTaxTrackingEnabled: PropTypes.bool,
     }),
 
-    /* Onyx Props */
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
 };
