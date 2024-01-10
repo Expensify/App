@@ -185,8 +185,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
 
 const AccountSettingsModalStackNavigator = createModalStackNavigator(
     {
-        [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
         [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
         [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
@@ -198,8 +196,6 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
 );
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
-    [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
@@ -212,16 +208,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
@@ -239,9 +231,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE]: () => require('../../../pages/workspace/WorkspaceInvitePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
