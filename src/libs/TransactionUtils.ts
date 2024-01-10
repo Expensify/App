@@ -283,6 +283,27 @@ function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boo
 }
 
 /**
+ * Return the tax amount field from the transaction.
+ */
+function getTaxAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        return Math.abs(transaction?.taxAmount ?? 0);
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    const amount = transaction?.taxAmount ?? 0;
+    return amount ? -amount : 0;
+}
+
+/**
+ * Return the tax code from the transaction.
+ */
+function getTaxCode(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.taxCode ?? '';
+}
+
+/**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
 function getCurrency(transaction: OnyxEntry<Transaction>): string {
@@ -559,6 +580,8 @@ export {
     isManualRequest,
     isScanRequest,
     getAmount,
+    getTaxAmount,
+    getTaxCode,
     getCurrency,
     getDistance,
     getCardID,
