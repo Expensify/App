@@ -48,7 +48,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, fieldID}: Edi
             testID={EditReportFieldTextPage.displayName}
         >
             <HeaderWithBackButton title={fieldName} />
-            { /* @ts-expect-error TODO: TS migration */ }
+            {/* @ts-expect-error TODO: TS migration */}
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM}
