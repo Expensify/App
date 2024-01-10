@@ -1,4 +1,3 @@
-import {chain, isEmpty} from 'lodash';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,20 +13,19 @@ import type {TranslationPaths} from '@src/languages/types';
 function KeyboardShortcutsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const shortcuts = chain(CONST.KEYBOARD_SHORTCUTS)
-        .filter((shortcut) => !isEmpty(shortcut.descriptionKey))
+    const shortcuts = Object.values(CONST.KEYBOARD_SHORTCUTS)
+        .filter((shortcut) => shortcut.descriptionKey !== undefined && shortcut.descriptionKey !== null)
         .map((shortcut) => {
             const platformAdjustedModifiers = KeyboardShortcut.getPlatformEquivalentForKeys(shortcut.modifiers);
             return {
                 displayName: KeyboardShortcut.getDisplayName(shortcut.shortcutKey, platformAdjustedModifiers),
                 descriptionKey: shortcut.descriptionKey,
             };
-        })
-        .value();
+        });
 
     type Shortcut = {
         displayName: string;
-        descriptionKey: string | null; // Update the type to allow for null values
+        descriptionKey: string | null;
     };
     /**
      * Render the information of a single shortcut
