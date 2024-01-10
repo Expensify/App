@@ -1,12 +1,18 @@
 import {getPathFromState} from '@react-navigation/native';
-import NAVIGATORS from '@src/NAVIGATORS';
-import {State} from './types';
-
-const extractPolicyIdFromState = (state: State) => state.routes.find((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state?.routes.at(-1)?.params?.policyID;
+import SCREENS from '@src/SCREENS';
+import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
-    const extractedPolicyID = extractPolicyIdFromState(state);
-    return `${extractedPolicyID ? `/w/${extractedPolicyID}` : ''}${getPathFromState(state, options)}`;
+    const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
+
+    const shouldAddPolicyIdToUrl =
+        !!topmostBottomTabRoute &&
+        !!topmostBottomTabRoute.params &&
+        'policyID' in topmostBottomTabRoute.params &&
+        !!topmostBottomTabRoute.params?.policyID &&
+        topmostBottomTabRoute.name !== SCREENS.WORKSPACE.INITIAL;
+
+    return `${shouldAddPolicyIdToUrl ? `/w/${topmostBottomTabRoute.params?.policyID}` : ''}${getPathFromState(state, options)}`;
 };
 
 export default customGetPathFromState;
