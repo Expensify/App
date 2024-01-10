@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,7 +75,7 @@ function LHNOptionsList({
             <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
-                contentContainerStyle={contentContainerStyles}
+                contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
                 data={data}
                 testID="lhn-options-list"
                 keyExtractor={keyExtractor}

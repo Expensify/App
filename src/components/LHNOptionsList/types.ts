@@ -38,7 +38,7 @@ type CustomLHNOptionsListProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Extra styles for the section list container */
-    contentContainerStyles?: ContentStyle;
+    contentContainerStyles?: StyleProp<ContentStyle>;
 
     /** Sections for the section list */
     data: string[];
