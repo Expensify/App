@@ -77,7 +77,7 @@ function ReferralDetailsPage({route, account}) {
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
             <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
-            <Text style={[styles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>
+            <Text style={[styles.webViewStyles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>
 
             {shouldShowClipboard && (
                 <ContextMenuItem
