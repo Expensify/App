@@ -87,9 +87,9 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const isGroupPolicy = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
-    const isPayer = isGroupPolicy
+    const isPayer = isPaidGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
@@ -99,11 +99,11 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
     );
     const shouldShowApproveButton = useMemo(() => {
-        if (!isGroupPolicy) {
+        if (!isPaidGroupPolicy) {
             return false;
         }
         return isManager && !isDraft && !isApproved && !isSettled;
-    }, [isGroupPolicy, isManager, isDraft, isApproved, isSettled]);
+    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
