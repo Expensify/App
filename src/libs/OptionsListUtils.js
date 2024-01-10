@@ -72,6 +72,7 @@ Onyx.connect({
 const lastReportActions = {};
 const allSortedReportActions = {};
 const allReportActions = {};
+const visibleReportActionItems = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -83,6 +84,18 @@ Onyx.connect({
         const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
         lastReportActions[reportID] = _.first(sortedReportActions);
+
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        const reportActionsForDisplay = _.filter(
+            sortedReportActions,
+            (reportAction, actionKey) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionUtils.isWhisperAction(reportAction) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
@@ -519,7 +532,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
                 ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
                 : '';
-        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
+        let lastMessageText = lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =
@@ -529,6 +542,13 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
                 policyName: ReportUtils.getPolicyName(report),
             });
+        }
+
+        const lastAction = visibleReportActionItems[report.reportID];
+        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
+
+        if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
+            lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
 
         if (result.isThread || result.isMoneyRequestReport) {

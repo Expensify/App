@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {isEqual} from 'underscore';
+import _, {isEqual} from 'underscore';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useNetwork from '@hooks/useNetwork';
@@ -16,6 +17,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
@@ -64,12 +66,50 @@ function ReportFooter(props) {
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(props.report);
 
+    const allPersonalDetails = usePersonalDetails();
+
+    /**
+     * @param {String} text
+     */
+    const handleCreateTask = useCallback(
+        (text) => {
+            /**
+             * Matching task rule by group
+             * Group 1: Start task rule with []
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 3: Title is remaining characters
+             */
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+
+            const match = text.match(taskRegex);
+            if (!match) {
+                return false;
+            }
+            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            if (!title) {
+                return false;
+            }
+            const email = match[1] ? match[1].trim() : undefined;
+            let assignee = {};
+            if (email) {
+                assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+            }
+            Task.createTaskAndNavigate(props.report.reportID, title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, props.report.policyID);
+            return true;
+        },
+        [allPersonalDetails, props.report.policyID, props.report.reportID],
+    );
+
     const onSubmitComment = useCallback(
         (text) => {
+            const isTaskCreated = handleCreateTask(text);
+            if (isTaskCreated) {
+                return;
+            }
             Report.addComment(props.report.reportID, text);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.report.reportID],
+        [props.report.reportID, handleCreateTask],
     );
 
     return (

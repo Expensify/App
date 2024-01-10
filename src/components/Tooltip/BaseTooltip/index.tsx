@@ -10,9 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import StringUtils from '@src/libs/StringUtils';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
@@ -185,6 +185,16 @@ function Tooltip(
         setIsVisible(false);
     }, []);
 
+    const updateTargetPositionOnMouseEnter = useCallback(
+        (e: MouseEvent) => {
+            updateTargetAndMousePosition(e);
+            if (React.isValidElement(children)) {
+                children.props.onMouseEnter?.(e);
+            }
+        },
+        [children, updateTargetAndMousePosition],
+    );
+
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
     if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !hasHoverSupport) {
@@ -212,20 +222,30 @@ function Tooltip(
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                 />
             )}
-            <BoundsObserver
-                enabled={isVisible}
-                onBoundsChange={updateBounds}
-                ref={ref}
-            >
-                <Hoverable
-                    onMouseEnter={updateTargetAndMousePosition}
-                    onHoverIn={showTooltip}
-                    onHoverOut={hideTooltip}
-                    shouldHandleScroll={shouldHandleScroll}
-                >
-                    {children}
-                </Hoverable>
-            </BoundsObserver>
+
+            {
+                // Checks if valid element so we can wrap the BoundsObserver around it
+                // If not, we just return the primitive children
+                React.isValidElement(children) ? (
+                    <BoundsObserver
+                        enabled={isVisible}
+                        onBoundsChange={updateBounds}
+                        ref={ref}
+                    >
+                        <Hoverable
+                            onHoverIn={showTooltip}
+                            onHoverOut={hideTooltip}
+                            shouldHandleScroll={shouldHandleScroll}
+                        >
+                            {React.cloneElement(children as React.ReactElement, {
+                                onMouseEnter: updateTargetPositionOnMouseEnter,
+                            })}
+                        </Hoverable>
+                    </BoundsObserver>
+                ) : (
+                    children
+                )
+            }
         </>
     );
 }
