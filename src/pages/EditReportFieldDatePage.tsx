@@ -30,7 +30,7 @@ function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: Edi
     const inputRef = useRef<HTMLInputElement>(null);
 
     const validate = useCallback(
-        (value) => {
+        (value: Record<string, string>) => {
             const errors: Record<string, string> = {};
             if (value[fieldID].trim() === '') {
                 errors[fieldID] = 'common.error.fieldRequired';
@@ -48,6 +48,7 @@ function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: Edi
             testID={EditReportFieldDatePage.displayName}
         >
             <HeaderWithBackButton title={fieldName} />
+            { /* @ts-expect-error TODO: TS migration */ }
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM}
@@ -58,6 +59,7 @@ function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: Edi
             >
                 <View style={styles.mb4}>
                     <InputWrapper
+                        // @ts-expect-error TODO: TS migration
                         InputComponent={DatePicker}
                         inputID={fieldID}
                         name={fieldID}

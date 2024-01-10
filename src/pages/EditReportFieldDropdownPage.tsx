@@ -57,6 +57,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                 <>
                     <HeaderWithBackButton title={fieldName} />
                     <OptionsSelector
+                        // @ts-expect-error TODO: TS migration
                         contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}
                         optionHoveredStyle={styles.hoveredComponentBG}
                         sectionHeaderStyle={styles.mt5}
