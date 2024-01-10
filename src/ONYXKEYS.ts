@@ -391,7 +391,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
-    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
+    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
@@ -530,7 +530,5 @@ type OnyxValues = {
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
 
-type LastPaymentMethod = Record<string, string>;
-
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap,LastPaymentMethod};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};
