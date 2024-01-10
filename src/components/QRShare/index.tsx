@@ -1,6 +1,8 @@
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import _ from 'underscore';
+import type {Svg} from 'react-native-svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
@@ -8,24 +10,24 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
+import type {QRShareHandle, QRShareProps} from './types';
 
-function QRShare({innerRef, url, title, subtitle, logo, logoRatio, logoMarginRatio}) {
+function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const [qrCodeSize, setQrCodeSize] = useState(1);
-    const svgRef = useRef(null);
+    const svgRef = useRef<Svg>();
 
     useImperativeHandle(
-        innerRef,
+        ref,
         () => ({
             getSvg: () => svgRef.current,
         }),
         [],
     );
 
-    const onLayout = (event) => {
+    const onLayout = (event: LayoutChangeEvent) => {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
         setQrCodeSize(Math.max(1, containerWidth));
     };
@@ -61,7 +63,7 @@ function QRShare({innerRef, url, title, subtitle, logo, logoRatio, logoMarginRat
                 {title}
             </Text>
 
-            {!_.isEmpty(subtitle) && (
+            {!!subtitle && (
                 <Text
                     fontSize={variables.fontSizeLabel}
                     numberOfLines={2}
@@ -75,18 +77,6 @@ function QRShare({innerRef, url, title, subtitle, logo, logoRatio, logoMarginRat
     );
 }
 
-QRShare.propTypes = qrSharePropTypes;
-QRShare.defaultProps = qrShareDefaultProps;
 QRShare.displayName = 'QRShare';
 
-const QRShareWithRef = forwardRef((props, ref) => (
-    <QRShare
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-QRShareWithRef.displayName = 'QRShareWithRef';
-
-export default QRShareWithRef;
+export default forwardRef(QRShare);

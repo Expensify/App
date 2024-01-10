@@ -27,7 +27,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
-    const isEmptyMerchant = defaultMerchant === '' || defaultMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || defaultMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant = defaultMerchant === '' || defaultMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
     const validate = useCallback(
         (value) => {

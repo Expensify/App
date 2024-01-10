@@ -11,12 +11,12 @@ function retrieveMaxCanvasArea() {
     // More information at: https://github.com/jhildenbiddle/canvas-size/issues/13
     canvasSize
         .maxArea({
-            max: Browser.isMobile() ? 8192 : null,
+            max: Browser.isMobile() ? 8192 : undefined,
             usePromise: true,
             useWorker: false,
         })
         .then(() => ({
-            onSuccess: (width, height) => {
+            onSuccess: (width: number, height: number) => {
                 Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
             },
         }));
