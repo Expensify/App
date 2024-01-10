@@ -76,7 +76,7 @@ function GenericErrorPage() {
                             </View>
                         </View>
                     </View>
-                    <View style={styles.alignSelfEnd}>
+                    <View styles={styles.alignSelfEnd}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                             <ImageSVG
                                 contentFit="contain"
