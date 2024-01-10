@@ -4,11 +4,13 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import customGetPathFromState from './customGetPathFromState';
 import getAdaptedStateFromPath from './getAdaptedStateFromPath';
 import type {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
     getStateFromPath: getAdaptedStateFromPath,
+    getPathFromState: customGetPathFromState,
     prefixes: [
         'app://-/',
         'new-expensify://',

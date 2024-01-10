@@ -11,9 +11,15 @@ import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteFo
 import getTopmostNestedRHPRoute from './getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from './types';
 
-function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
-    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME}];
-
+function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
+    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [
+        {
+            name: SCREENS.HOME,
+            params: {
+                policyID,
+            },
+        },
+    ];
     if (route.name !== SCREENS.HOME) {
         // If the generated state requires tab other than HOME, we need to insert it.
         routesForBottomTabNavigator.push(route);
@@ -71,7 +77,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     return createCentralPaneNavigator({name: SCREENS.REPORT, params: route.params});
 }
 
-function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>) {
+function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string) {
     const isSmallScreenWidth = getIsSmallScreenWidth();
 
     // We need to check what is defined to know what we need to add.
@@ -108,9 +114,20 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default central pane on desktop layout
         // - found lhp
         const routes = [];
-        routes.push(createBottomTabNavigator({name: SCREENS.HOME}));
+        routes.push(
+            createBottomTabNavigator(
+                {
+                    name: SCREENS.HOME,
+                },
+                policyID,
+            ),
+        );
         if (!isSmallScreenWidth) {
-            routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
+            routes.push(
+                createCentralPaneNavigator({
+                    name: SCREENS.REPORT,
+                }),
+            );
         }
         routes.push(lhpNavigator);
 
@@ -122,12 +139,18 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default central pane on desktop layout
         // - found fullscreen
         const routes = [];
-        routes.push(createBottomTabNavigator({name: SCREENS.HOME}));
+        routes.push(
+            createBottomTabNavigator(
+                {
+                    name: SCREENS.HOME,
+                },
+                policyID,
+            ),
+        );
         if (!isSmallScreenWidth) {
             routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
         }
         routes.push(fullScreenNavigator);
-
         return {routes};
     }
     if (centralPaneNavigator) {
@@ -136,7 +159,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - found central pane
         const routes = [];
         const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
-        routes.push(createBottomTabNavigator(matchingBottomTabRoute));
+        routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
         routes.push(centralPaneNavigator);
 
         return {routes};
@@ -163,15 +186,21 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     return state;
 }
 
+const extractPolicyIDFromPath = (path: string) => path.match(/\/w\/(\d+)\//)?.[1];
+
+const getPathWithoutPolicyID = (path: string) => path.replace(/\/w\/\d+\//, '/');
+
 const getAdaptedStateFromPath: typeof getStateFromPath = (path, options) => {
-    const state = getStateFromPath(path, options);
+    const url = getPathWithoutPolicyID(path);
+    const policyID = extractPolicyIDFromPath(path);
+
+    const state = getStateFromPath(url, options);
 
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
 
-    const adaptedState = getAdaptedState(state as PartialState<NavigationState<RootStackParamList>>);
-
+    const adaptedState = getAdaptedState(state as PartialState<NavigationState<RootStackParamList>>, policyID);
     return adaptedState;
 };
 
