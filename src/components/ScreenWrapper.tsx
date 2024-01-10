@@ -89,7 +89,7 @@ type ScreenWrapperProps = {
     navigation?: StackNavigationProp<RootStackParamList>;
 
     /** Whether to disable the focus trap */
-    shouldDisableFocusTrap?: boolean;
+    shouldEnableFocusTrap?: boolean;
 
     /** Whether to disable auto focus of the focus trap */
     shouldEnableAutoFocus?: boolean;
@@ -116,7 +116,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
-        shouldDisableFocusTrap = false,
+        shouldEnableFocusTrap = true,
         shouldEnableAutoFocus = false,
         shouldReturnFocusOnDeactivate = true,
     }: ScreenWrapperProps,
@@ -240,7 +240,7 @@ function ScreenWrapper(
                                 >
                                     <FocusTrapView
                                         style={[styles.flex1, styles.noSelect]}
-                                        isEnabled={!shouldDisableFocusTrap}
+                                        isEnabled={shouldEnableFocusTrap}
                                         shouldEnableAutoFocus={shouldEnableAutoFocus}
                                         shouldReturnFocusOnDeactivate={shouldReturnFocusOnDeactivate}
                                         isActive={isFocused}
