@@ -155,6 +155,9 @@ type BaseSelectionListProps = Partial<ChildrenProps> & {
     /** Placeholder for the text input */
     textInputPlaceholder?: string;
 
+    /** Hint for the text input */
+    textInputHint?: string;
+
     /** Value for the text input */
     textInputValue?: string;
 

@@ -33,6 +33,7 @@ function BaseSelectionList(
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
+        textInputHint,
         textInputMaxLength,
         inputMode = CONST.INPUT_MODE.TEXT,
         onChangeText,
@@ -410,6 +411,7 @@ function BaseSelectionList(
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
+                                    hint={textInputHint}
                                     role={CONST.ROLE.PRESENTATION}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
@@ -464,7 +466,7 @@ function BaseSelectionList(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item) => item.keyForList}
+                                    keyExtractor={(item: User | RadioItem) => item.keyForList}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
