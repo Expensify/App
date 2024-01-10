@@ -74,10 +74,10 @@ type Transaction = {
     amount: number;
 
     /** Whether the request is billable */
-    billable: boolean;
+    billable?: boolean;
 
     /** The category name */
-    category: string;
+    category?: string;
 
     /** The comment object on the transaction */
     comment: Comment;
@@ -128,7 +128,7 @@ type Transaction = {
     participants?: Participant[];
 
     /** The type of action that's pending  */
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
 
     /** The receipt object associated with the transaction */
     receipt?: Receipt;
@@ -143,7 +143,7 @@ type Transaction = {
     transactionID: string;
 
     /** The transaction tag */
-    tag: string;
+    tag?: string;
 
     /** Whether the transaction was created globally */
     isFromGlobalCreate?: boolean;
@@ -190,8 +190,6 @@ type Transaction = {
     isLoading?: boolean;
 };
 
-type TransactionDraft = Partial<Transaction>;
-
 type AdditionalTransactionChanges = {
     comment?: string;
     waypoints?: WaypointCollection;
@@ -202,4 +200,4 @@ type AdditionalTransactionChanges = {
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft, TransactionChanges, TaxRate};
+export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionChanges, TaxRate};

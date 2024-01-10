@@ -55,7 +55,6 @@ import type SecurityGroup from './SecurityGroup';
 import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
-import type {TransactionDraft} from './Transaction';
 import type {TransactionViolation, TransactionViolations, ViolationName} from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
@@ -125,7 +124,6 @@ export type {
     Session,
     Task,
     Transaction,
-    TransactionDraft,
     TransactionViolation,
     TransactionViolations,
     User,

@@ -24,7 +24,7 @@ const ViolationsUtils = {
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
+            const isCategoryInPolicy = Boolean(policyCategories[transaction.category ?? '']?.enabled);
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
@@ -50,7 +50,7 @@ const ViolationsUtils = {
         if (policyRequiresTags) {
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+            const isTagInPolicy = Boolean(policyTags[transaction.tag ?? '']?.enabled);
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
