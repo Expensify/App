@@ -135,6 +135,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const {
         created: transactionDate,
         amount: transactionAmount,
+        taxAmount: transactionTaxAmount,
+        taxCode: transactionTaxCode,
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
@@ -156,11 +158,11 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
-    const transactionTaxAmount = (transaction.taxAmount && transaction.taxAmount) || 0;
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
+    const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
-    const transactionTaxCode = transaction.taxCode && transaction.taxCode;
-    const taxRateTitle = (transactionTaxCode && policyTaxRates.taxes[transactionTaxCode].name) || '';
+    const taxName = `${policyTaxRates.taxes[transactionTaxCode].name}`;
+    const taxValue = `${policyTaxRates.taxes[transactionTaxCode].value}`;
+    const taxRateTitle = transactionTaxCode ? `${taxName} (${taxValue})` : '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -188,8 +190,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     // A flag for showing tax rate
-    const shouldShowTax =
-        isTaxPolicyEnabled(isPolicyExpenseChat, policy) && ((transactionTaxCode && transactionTaxAmount) || OptionsListUtils.hasEnabledOptionsForTaxRate(lodashValues(policyTaxRates.taxes)));
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy) && transactionTaxCode && transactionTaxAmount;
 
     const {getViolationsForField} = useViolations(transactionViolations);
     const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
@@ -393,7 +394,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 {shouldShowTax && (
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
-                            title={formattedTaxAmount}
+                            title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
                             description={policyTaxRates.name}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}

@@ -83,15 +83,17 @@ const defaultProps = {
     policy: {},
     policyTaxRates: {},
 };
-const getTaxAmount = (transaction, transactionTaxCode, policyTaxRates) => {
+const getTaxAmount = (transactionAmount, transactionTaxCode, policyTaxRates) => {
     const percentage = (transactionTaxCode ? policyTaxRates.taxes[transactionTaxCode].value : policyTaxRates.defaultValue) || '';
-    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transaction.amount)));
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
 };
 function EditRequestPage({report, policy, policyTaxRates, route, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
         amount: transactionAmount,
+        taxAmount: transactionTaxAmount,
+        taxCode: transactionTaxCode,
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
@@ -102,10 +104,9 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
-    const transactionTaxAmount = (transaction.taxAmount && transaction.taxAmount) || 0;
-
-    const transactionTaxCode = transaction.taxCode && transaction.taxCode;
-    const taxRateTitle = (transactionTaxCode && policyTaxRates.taxes[transactionTaxCode].name) || '';
+    const taxName = `${policyTaxRates.taxes[transactionTaxCode].name}`;
+    const taxValue = `${policyTaxRates.taxes[transactionTaxCode].value}`;
+    const taxRateTitle = transactionTaxCode ? `${taxName} (${taxValue})` : '';
 
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -144,10 +145,6 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
     }
 
     const updateTaxAmount = (transactionChanges) => {
-        if (transactionChanges.amount === transactionTaxAmount) {
-            return;
-        }
-
         const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
         IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount);
         Navigation.dismissModal(report.reportID);
@@ -155,10 +152,6 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
 
     const updateTaxRate = (transactionChanges) => {
         const newTaxCode = transactionChanges.data.code;
-        if (newTaxCode === transactionTaxCode) {
-            return;
-        }
-
         IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode);
         Navigation.dismissModal(report.reportID);
     };
@@ -310,7 +303,7 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
         return (
             <EditRequestTaxAmountPage
                 defaultAmount={transactionTaxAmount}
-                defaultTaxAmount={getTaxAmount(transaction, transactionTaxCode, policyTaxRates)}
+                defaultTaxAmount={getTaxAmount(transactionAmount, transactionTaxCode, policyTaxRates)}
                 defaultCurrency={defaultCurrency}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
