@@ -3,6 +3,15 @@ import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
 
+type TaxRate = {
+    text: string;
+    keyForList: string;
+    data: {
+        value: string;
+    };
+    modifiedName?: string;
+};
+
 type Waypoint = {
     /** The name associated with the address of the waypoint */
     name?: string;
@@ -18,6 +27,7 @@ type Waypoint = {
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
+
 type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;
@@ -94,6 +104,8 @@ type Transaction = {
     /** If the transaction was made in a foreign currency, we send the original amount and currency */
     originalAmount?: number;
     originalCurrency?: string;
+    taxAmount?: number;
+    taxRate?: TaxRate;
 };
 
 export default Transaction;

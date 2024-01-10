@@ -240,7 +240,7 @@ function MoneyRequestConfirmationList({
         ? translate('common.tbd')
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount
-                  ? DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate)
+                  ? DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate ?? 0)
                   : iouAmount,
               isDistanceRequest ? mileageRate?.currency : iouCurrencyCode,
           );
@@ -248,6 +248,7 @@ function MoneyRequestConfirmationList({
 
     const defaultTaxKey = policyTaxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const taxRateTitle = transaction.taxRate?.text || defaultTaxName;
 
     const isFocused = useIsFocused();
@@ -347,7 +348,7 @@ function MoneyRequestConfirmationList({
                 }));
             }
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipantsMemo.length, iouAmount, iouCurrencyCode, true);
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipantsMemo.length, iouAmount, iouCurrencyCode ?? '', true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetailsMemo,
                 iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
