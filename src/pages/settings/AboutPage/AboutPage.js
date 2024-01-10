@@ -106,8 +106,8 @@ function AboutPage(props) {
                     v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
             </View>
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         ),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
