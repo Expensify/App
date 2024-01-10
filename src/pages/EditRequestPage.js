@@ -104,9 +104,7 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
-    const taxName = `${policyTaxRates.taxes[transactionTaxCode].name}`;
-    const taxValue = `${policyTaxRates.taxes[transactionTaxCode].value}`;
-    const taxRateTitle = transactionTaxCode ? `${taxName} (${taxValue})` : '';
+    const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
 
     // For now, it always defaults to the first tag of the policy
     const policyTag = PolicyUtils.getTag(policyTags);

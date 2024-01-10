@@ -160,9 +160,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
-    const taxName = `${policyTaxRates.taxes[transactionTaxCode].name}`;
-    const taxValue = `${policyTaxRates.taxes[transactionTaxCode].value}`;
-    const taxRateTitle = transactionTaxCode ? `${taxName} (${taxValue})` : '';
+    const taxRateTitle = TransactionUtils.getTaxName(policyTaxRates.taxes, transactionTaxCode);
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
