@@ -79,6 +79,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
     const isPolicyAdmin = lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
@@ -117,14 +118,16 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
     if (isRequestModifiable) {
-        if (isOnHold && (ReportUtils.isHoldCreator(transaction, lodashGet(report, 'reportID')) || isPolicyAdmin)) {
+        const isHoldCreator = ReportUtils.isHoldCreator(transaction, lodashGet(report, 'reportID'));
+        const isRequestIOU = lodashGet(parentReport, 'type') === 'iou';
+        if (isOnHold && ((isRequestIOU && isHoldCreator) || (!isRequestIOU && (isPolicyAdmin || isActionOwner || isApprover)))) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdRequest'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (lodashGet(parentReport, 'type') === 'iou' || isPolicyAdmin || isActionOwner)) {
+        if (!isOnHold && (isRequestIOU || isPolicyAdmin || isActionOwner || isApprover)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdRequest'),
