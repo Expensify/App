@@ -207,4 +207,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};

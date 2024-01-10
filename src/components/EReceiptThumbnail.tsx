@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,24 +9,21 @@ import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import Icon from './Icon';
 import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
-import transactionPropTypes from './transactionPropTypes';
 
-const propTypes = {
-    /* TransactionID of the transaction this EReceipt corresponds to */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionID: PropTypes.string.isRequired,
-
-    /* Onyx Props */
-    transaction: transactionPropTypes,
+type EReceiptThumbnailOnyxProps = {
+    transaction: OnyxEntry<Transaction>;
 };
 
-const defaultProps = {
-    transaction: {},
+type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
+    /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionID: string;
 };
 
 const backgroundImages = {
@@ -37,30 +35,35 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction}) {
+function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // Get receipt colorway, or default to Yellow.
-    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 
-    const onContainerLayout = (event) => {
+    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
+
+    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
+    const primaryColor = colorStyles?.backgroundColor;
+    const secondaryColor = colorStyles?.color;
+
+    const onContainerLayout = (event: LayoutChangeEvent) => {
         const {width, height} = event.nativeEvent.layout;
         setContainerWidth(width);
         setContainerHeight(height);
     };
 
-    const {mccGroup: transactionMCCGroup} = ReportUtils.getTransactionDetails(transaction);
-    const MCCIcon = MCCIcons[`${transactionMCCGroup}`];
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const transactionMCCGroup = transactionDetails?.mccGroup;
+    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
 
     const isSmall = containerWidth && containerWidth < variables.eReceiptThumbnailSmallBreakpoint;
     const isMedium = containerWidth && containerWidth < variables.eReceiptThumbnailMediumBreakpoint;
 
-    let receiptIconWidth = variables.eReceiptIconWidth;
-    let receiptIconHeight = variables.eReceiptIconHeight;
-    let receiptMCCSize = variables.eReceiptMCCHeightWidth;
+    let receiptIconWidth: number = variables.eReceiptIconWidth;
+    let receiptIconHeight: number = variables.eReceiptIconHeight;
+    let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
 
     if (isSmall) {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
@@ -72,13 +75,11 @@ function EReceiptThumbnail({transaction}) {
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
     }
 
-    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
-
     return (
         <View
             style={[
                 styles.flex1,
-                StyleUtils.getBackgroundColorStyle(primaryColor),
+                primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {},
                 styles.overflowHidden,
                 styles.alignItemsCenter,
                 containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
@@ -114,10 +115,8 @@ function EReceiptThumbnail({transaction}) {
 }
 
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
-EReceiptThumbnail.propTypes = propTypes;
-EReceiptThumbnail.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
