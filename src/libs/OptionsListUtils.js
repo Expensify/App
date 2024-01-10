@@ -1410,11 +1410,13 @@ function getOptions(
         );
     });
 
-    // We're only picking personal details that have logins set
-    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
-    // See https://github.com/Expensify/Expensify/issues/293465 for more context
-    // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login) && !detail.isOptimisticPersonalDetail);
+    /*
+     We're only picking personal details that have logins and accountIDs set (sometimes the __fake__ account with `ID = 0` is present in the personal details collection)
+     This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+     See https://github.com/Expensify/Expensify/issues/293465, https://github.com/Expensify/App/issues/33415 for more context
+     Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
+    */
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => !!detail.login && !!detail.accountID && !detail.isOptimisticPersonalDetail);
     let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
