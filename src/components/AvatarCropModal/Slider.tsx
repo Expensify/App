@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import type {GestureEvent, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
@@ -7,7 +7,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import {SelectionElement} from '@libs/ControlSelection/types';
+import type {SelectionElement} from '@libs/ControlSelection/types';
 
 type SliderProps = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */

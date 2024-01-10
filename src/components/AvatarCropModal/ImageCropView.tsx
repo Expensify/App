@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import {SelectionElement} from '@libs/ControlSelection/types';
+import type {SelectionElement} from '@libs/ControlSelection/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ImageCropViewProps = {

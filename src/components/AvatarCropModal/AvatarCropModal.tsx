@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, Image, LayoutChangeEvent, View} from 'react-native';
+import {ActivityIndicator, Image, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {interpolate, runOnUI, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
@@ -17,11 +18,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 
@@ -46,6 +46,12 @@ type AvatarCropModalProps = {
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
+};
+
+type PanHandlerContextType = {
+    translateX: number;
+    translateY: number;
+    translateSliderX: number;
 };
 
 // This component can't be written using class since reanimated API uses hooks.
@@ -194,7 +200,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      */
     const panGestureEventHandler = useAnimatedGestureHandler(
         {
-            onStart: (_, context) => {
+            onStart: (a, context: PanHandlerContextType) => {
                 // we have to assign translate values to a context
                 // since that is required for proper work of turbo modules.
                 // eslint-disable-next-line no-param-reassign
@@ -242,7 +248,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      */
     const panSliderGestureEventHandler = useAnimatedGestureHandler(
         {
-            onStart: (_, context) => {
+            onStart: (a, context: PanHandlerContextType) => {
                 // we have to assign this value to a context
                 // since that is required for proper work of turbo modules.
                 // eslint-disable-next-line no-param-reassign
@@ -324,11 +330,23 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             .catch(() => {
                 isLoading.value = false;
             });
-    }, [originalImageHeight.value, originalImageWidth.value, scale.value, translateX.value, imageContainerSize, translateY.value, props, rotation.value, isLoading]);
+    }, [
+        imageName,
+        imageUri,
+        imageType,
+        onSave,
+        onClose,
+        originalImageHeight.value,
+        originalImageWidth.value,
+        scale.value,
+        translateX.value,
+        imageContainerSize,
+        translateY.value,
+        props,
+        rotation.value,
+        isLoading,
+    ]);
 
-    /**
-     * @param {Number} locationX
-     */
     const sliderOnPress = (locationX: number) => {
         // We are using the worklet directive here and running on the UI thread to ensure the Reanimated
         // shared values are updated synchronously, as they update asynchronously on the JS thread.
