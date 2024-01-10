@@ -54,7 +54,10 @@ function LogOutPreviousUserPage(props) {
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
-    }, [props]);
+
+        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <FullScreenLoadingIndicator />;
 }
