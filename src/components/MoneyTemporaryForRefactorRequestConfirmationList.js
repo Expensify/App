@@ -571,7 +571,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
-                pressOnEnter
+                // pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
@@ -591,7 +591,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
-                pressOnEnter
+                // pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
