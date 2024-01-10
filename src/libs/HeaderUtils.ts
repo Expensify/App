@@ -1,6 +1,6 @@
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type OnyxReport from '@src/types/onyx/Report';
-import type { ThreeDotsMenuItem } from '@components/HeaderWithBackButton/types';
 import * as Report from './actions/Report';
 import * as Session from './actions/Session';
 import * as Localize from './Localize';
