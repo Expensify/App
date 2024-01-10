@@ -360,7 +360,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
 
-    // calculate and set tax amount in transaction draft
+    // Calculate and set tax amount in transaction draft
     useEffect(() => {
         const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
