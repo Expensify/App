@@ -1,0 +1,12 @@
+diff --git a/node_modules/expo-image/android/src/main/java/com/caverock/androidsvg/SVGStyler.kt b/node_modules/expo-image/android/src/main/java/com/caverock/androidsvg/SVGStyler.kt
+index b58a0df..6b8da3c 100644
+--- a/node_modules/expo-image/android/src/main/java/com/caverock/androidsvg/SVGStyler.kt
++++ b/node_modules/expo-image/android/src/main/java/com/caverock/androidsvg/SVGStyler.kt
+@@ -107,6 +107,7 @@ internal fun applyTintColor(element: SVG.SvgObject, newColor: Int, parentDefines
+ fun applyTintColor(svg: SVG, newColor: Int) {
+   val root = svg.rootElement
+ 
++  replaceStyles(root.baseStyle, newColor)
+   replaceStyles(root.style, newColor)
+   val hasStyle = hasStyle(root)
+ 
