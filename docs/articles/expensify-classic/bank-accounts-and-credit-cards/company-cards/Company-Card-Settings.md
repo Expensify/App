@@ -84,8 +84,10 @@ Expensify eReceipts serve as digital substitutes for paper receipts in your purc
 To ensure seamless automatic importation, it's essential to maintain your transactions in US Dollars. Additionally, eReceipts can be directly imported from your bank account. Please be aware that CSV/OFX imported files of bank transactions do not support eReceipts.
 It's important to note that eReceipts are not generated for lodging expenses. Moreover, due to incomplete or inaccurate category information from certain banks, there may be instances of invalid eReceipts being generated for hotel purchases. If you choose to re-categorize expenses, a similar situation may arise. It's crucial to remember that our Expensify eReceipt Guarantee excludes coverage for hotel and motel expenses.
 
-# FAQ
+{% include faq-begin.md %}
 ## What plan/subscription is required in order to manage corporate cards?
 Group Policy (Collect or Control plan only) 
 ## When do my company card transactions import to Expensify?
 Credit card transactions are imported to Expensify once they’re posted to the bank account. This usually takes 1-3 business days between the point of purchase and when the transactions populate in your account.
+
+{% include faq-end.md %}

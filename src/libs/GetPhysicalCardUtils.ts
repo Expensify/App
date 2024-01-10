@@ -1,5 +1,5 @@
 import ROUTES from '@src/ROUTES';
-import {Login} from '@src/types/onyx';
+import type {Login} from '@src/types/onyx';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
