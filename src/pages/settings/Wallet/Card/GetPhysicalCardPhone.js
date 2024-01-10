@@ -43,7 +43,6 @@ function GetPhysicalCardPhone({
         params: {domain},
     },
 }) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const onValidate = (values) => {

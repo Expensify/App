@@ -124,6 +124,7 @@ const defaultProps = {
             {children}
         </FormProvider>
     ),
+    onValidate: () => ({}),
 };
 
 function BaseGetPhysicalCard({
