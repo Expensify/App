@@ -22,6 +22,9 @@ const propTypes = {
     /** Unique id for emoji picker */
     emojiPickerID: PropTypes.string,
 
+    /** Emoji popup anchor offset shift vertical */
+    shiftVertical: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
@@ -29,6 +32,7 @@ const defaultProps = {
     isDisabled: false,
     id: '',
     emojiPickerID: '',
+    shiftVertical: 0,
 };
 
 function EmojiPickerButton(props) {
@@ -49,7 +53,18 @@ function EmojiPickerButton(props) {
                         return;
                     }
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor, undefined, () => {}, props.emojiPickerID);
+                        EmojiPickerAction.showEmojiPicker(
+                            props.onModalHide,
+                            props.onEmojiSelected,
+                            emojiPopoverAnchor,
+                            {
+                                horizontal: 'right',
+                                vertical: 'bottom',
+                                shiftVertical: props.shiftVertical,
+                            },
+                            () => {},
+                            props.emojiPickerID,
+                        );
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }

@@ -22,7 +22,7 @@ export default function calculateAnchorPosition(anchorComponent: View, anchorOri
             if (anchorOrigin?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP && anchorOrigin?.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
                 return resolve({horizontal: x, vertical: y + height + (anchorOrigin?.shiftVertical ?? 0)});
             }
-            return resolve({horizontal: x + width, vertical: y});
+            return resolve({horizontal: x + width, vertical: y + (anchorOrigin?.shiftVertical ?? 0)});
         });
     });
 }
