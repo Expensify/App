@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Report} from '@src/types/onyx';
 import * as ReportUtils from './ReportUtils';
 
