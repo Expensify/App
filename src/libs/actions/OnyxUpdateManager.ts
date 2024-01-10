@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
@@ -22,27 +21,27 @@ import * as OnyxUpdates from './OnyxUpdates';
 // The circular dependency happens because this file calls API.GetMissingOnyxUpdates() which uses the SaveResponseInOnyx.js file
 // (as a middleware). Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
-let lastUpdateIDAppliedToClient = 0;
+let lastUpdateIDAppliedToClient: number | null = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (val) => (lastUpdateIDAppliedToClient = val),
+    callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
-        callback: (val) => {
-            if (!val) {
+        callback: (value) => {
+            if (!value) {
                 return;
             }
 
             // Since we used the same key that used to store another object, let's confirm that the current object is
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
-                !_.isObject(val) ||
-                !_.has(val, 'type') ||
-                (!(val.type === CONST.ONYX_UPDATE_TYPES.HTTPS && _.has(val, 'request') && _.has(val, 'response')) && !(val.type === CONST.ONYX_UPDATE_TYPES.PUSHER && _.has(val, 'updates')))
+                !(typeof value === 'object' && !!value) ||
+                !('type' in value) ||
+                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) && !(value.type === CONST.ONYX_UPDATE_TYPES.PUSHER && value.updates))
             ) {
                 console.debug('[OnyxUpdateManager] Invalid format found for updates, cleaning and unpausing the queue');
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
@@ -50,9 +49,9 @@ export default () => {
                 return;
             }
 
-            const updateParams = val;
-            const lastUpdateIDFromServer = val.lastUpdateID;
-            const previousUpdateIDFromServer = val.previousUpdateID;
+            const updateParams = value;
+            const lastUpdateIDFromServer = value.lastUpdateID;
+            const previousUpdateIDFromServer = value.previousUpdateID;
 
             // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
             // we need to perform one of the 2 possible cases:
@@ -76,7 +75,7 @@ export default () => {
                 canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates();
             } else {
                 // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
-                console.debug(`[OnyxUpdateManager] Client is behind the server by ${previousUpdateIDFromServer - lastUpdateIDAppliedToClient} so fetching incremental updates`);
+                console.debug(`[OnyxUpdateManager] Client is behind the server by ${Number(previousUpdateIDFromServer) - lastUpdateIDAppliedToClient} so fetching incremental updates`);
                 Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
                     lastUpdateIDFromServer,
                     previousUpdateIDFromServer,
