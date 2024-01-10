@@ -1,6 +1,8 @@
 import type * as OnyxCommon from './OnyxCommon';
 
 type Form = {
+    [key: string]: unknown;
+
     /** Controls the loading state of the form */
     isLoading?: boolean;
 

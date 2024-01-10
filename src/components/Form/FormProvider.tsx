@@ -36,14 +36,12 @@ function getInitialValueByType(valueType?: ValueType): InitialDefaultValue {
     }
 }
 
-type GenericFormValues = Form & Record<string, unknown>;
-
 type FormProviderOnyxProps = {
     /** Contains the form state that must be accessed outside the component */
-    formState: OnyxEntry<GenericFormValues>;
+    formState: OnyxEntry<Form>;
 
     /** Contains draft values for each input in the form */
-    draftValues: OnyxEntry<GenericFormValues>;
+    draftValues: OnyxEntry<Form>;
 
     /** Information about the network */
     network: OnyxEntry<Network>;
@@ -86,7 +84,7 @@ function FormProvider(
 ) {
     const inputRefs = useRef<InputRefs>({} as InputRefs);
     const touchedInputs = useRef<Record<string, boolean>>({});
-    const [inputValues, setInputValues] = useState<GenericFormValues>(() => ({...draftValues}));
+    const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<Errors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
 
@@ -185,7 +183,7 @@ function FormProvider(
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
 
     const resetForm = useCallback(
-        (optionalValue: GenericFormValues) => {
+        (optionalValue: Form) => {
             Object.keys(inputValues).forEach((inputID) => {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
@@ -348,12 +346,13 @@ export default withOnyx<FormProviderProps, FormProviderOnyxProps>({
     network: {
         key: ONYXKEYS.NETWORK,
     },
+    // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we had to cast the keys to any
     formState: {
-        // @ts-expect-error TODO: fix this
-        key: ({formID}) => formID,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        key: ({formID}) => formID as any,
     },
     draftValues: {
-        // @ts-expect-error TODO: fix this
-        key: (props) => `${props.formID}Draft` as const,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        key: (props) => `${props.formID}Draft` as any,
     },
 })(forwardRef(FormProvider)) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID>, keyof FormProviderOnyxProps>) => ReactNode;

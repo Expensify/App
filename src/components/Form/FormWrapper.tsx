@@ -168,7 +168,8 @@ FormWrapper.displayName = 'FormWrapper';
 
 export default withOnyx<FormWrapperProps, FormWrapperOnyxProps>({
     formState: {
-        // FIX: Fabio plz help 😂
-        key: (props) => props.formID as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
+        // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we had to cast the keys to any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        key: (props) => props.formID as any,
     },
 })(FormWrapper);
