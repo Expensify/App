@@ -44,7 +44,7 @@ const propTypes = {
     /** The transaction from the parent report action */
     transaction: transactionPropTypes,
 
-    /** Any violations associated with the report */
+    /** Any violations associated with the transaction */
     transactionViolations: transactionViolationsPropType,
 
     ...basePropTypes,
