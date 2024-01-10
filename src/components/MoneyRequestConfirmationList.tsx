@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -46,13 +45,12 @@ import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
 type MoneyRequestConfirmationListOnyxProps = {
     iou: OnyxEntry<OnyxTypes.IOU>;
-    policyTaxRates: any;
-    session: OnyxTypes.Session;
-    transaction: OnyxTypes.Transaction;
+    policyTaxRates: OnyxEntry<OnyxTypes.PolicyTaxRate>;
+    session: OnyxEntry<OnyxTypes.Session>;
     mileageRate: OnyxEntry<MileageRate>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategory>;
     policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
@@ -150,6 +148,8 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         hasSmartScanFailed?: boolean;
 
         reportActionID?: string;
+
+        transaction: OnyxTypes.Transaction;
     };
 
 function MoneyRequestConfirmationList({
@@ -210,7 +210,7 @@ function MoneyRequestConfirmationList({
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories)));
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -244,12 +244,12 @@ function MoneyRequestConfirmationList({
                   : iouAmount,
               isDistanceRequest ? mileageRate?.currency : iouCurrencyCode,
           );
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxKey = policyTaxRates?.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxRateTitle = transaction.taxRate?.text || defaultTaxName;
+    const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState<TranslationPaths | null>(null);
@@ -286,7 +286,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate.rate);
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate);
         IOU.setMoneyRequestAmount(amount);
     }, [shouldCalculateDistanceAmount, distance, mileageRate?.rate, mileageRate?.unit]);
 
@@ -398,8 +398,10 @@ function MoneyRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipantsMemo, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetailsMemo)];
-    }, [selectedParticipantsMemo, hasMultipleParticipants, payeePersonalDetailsMemo]);
+        // TODO: check if this is needed
+        const myIOUAmount = IOUUtils.calculateAmount(selectedParticipantsMemo.length, iouAmount, iouCurrencyCode ?? '', true);
+        return [...selectedParticipantsMemo, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetailsMemo, String(myIOUAmount))];
+    }, [hasMultipleParticipants, selectedParticipantsMemo, iouAmount, iouCurrencyCode, payeePersonalDetailsMemo]);
 
     useEffect(() => {
         if (!isDistanceRequest) {
@@ -428,14 +430,14 @@ function MoneyRequestConfirmationList({
             }
             onSelectParticipant(option);
         },
-        [session.accountID, onSelectParticipant],
+        [session?.accountID, onSelectParticipant],
     );
 
     /**
      * Navigate to report details or profile of selected user
      */
-    const navigateToReportOrUserDetail = (option) => {
-        if (option.accountID) {
+    const navigateToReportOrUserDetail = (option: Participant | OnyxTypes.Report) => {
+        if ('accountID' in option) {
             const activeRoute = Navigation.getActiveRouteWithoutParams();
 
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
@@ -505,6 +507,7 @@ function MoneyRequestConfirmationList({
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
+                // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 onPress={confirm}
@@ -565,6 +568,7 @@ function MoneyRequestConfirmationList({
 
     const receiptData = ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename);
     return (
+        // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
         <OptionsSelector
             sections={optionSelectorSections}
             onSelectRow={canModifyParticipantsValue ? selectParticipant : navigateToReportOrUserDetail}
@@ -614,7 +618,7 @@ function MoneyRequestConfirmationList({
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(iouType, reportID));
                     }}
-                    style={[styles.moneyRequestMenuItem, styles.mt2]}
+                    style={{...styles.moneyRequestMenuItem, ...styles.mt2}}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -743,11 +747,13 @@ function MoneyRequestConfirmationList({
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={taxRateTitle}
-                            description={policyTaxRates.name}
+                            description={policyTaxRates?.name}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
                             }
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -758,11 +764,13 @@ function MoneyRequestConfirmationList({
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={formattedTaxAmount}
-                            description={policyTaxRates.name}
+                            description={policyTaxRates?.name}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
                             }
                             disabled={didConfirm}
                             interactive={!isReadOnly}
@@ -787,33 +795,29 @@ function MoneyRequestConfirmationList({
 
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
-export default compose(
-    withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        policyCategories: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-        },
-        policyTags: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-        },
-        mileageRate: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            selector: DistanceRequestUtils.getDefaultMileageRate,
-        },
-        splitTransactionDraft: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-        },
-        policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        policyTaxRates: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
-        },
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-    }),
-    withCurrentUserPersonalDetails,
-)(MoneyRequestConfirmationList);
+const MoneyRequestConfirmationListWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(MoneyRequestConfirmationList);
+
+export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    policyCategories: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+    },
+    policyTags: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+    },
+    mileageRate: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        selector: DistanceRequestUtils.getDefaultMileageRate,
+    },
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    policyTaxRates: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
+    },
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+})(MoneyRequestConfirmationListWithCurrentUserPersonalDetails);

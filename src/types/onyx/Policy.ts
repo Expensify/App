@@ -90,6 +90,10 @@ type Policy = {
     isTaxTrackingEnabled?: boolean;
 
     disabledFields?: Record<string, boolean>;
+
+    requiresCategory?: boolean;
+
+    requiresTag?: boolean;
 };
 
 export default Policy;

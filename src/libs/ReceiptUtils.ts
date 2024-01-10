@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {ImageSourcePropType} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import ReceiptHTML from '@assets/images/receipt-html.png';
@@ -28,7 +29,7 @@ type FileNameAndExtension = {
  * @param receiptPath
  * @param receiptFileName
  */
-function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
+function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
     const path = transaction?.receipt?.source ?? receiptPath ?? '';
     // filename of uploaded image or last part of remote URI
@@ -39,7 +40,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
         if (hasEReceipt) {
-            return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+            return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction?.transactionID), transaction};
         }
 
         // For local files, we won't have a thumbnail yet

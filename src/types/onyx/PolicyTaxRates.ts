@@ -7,6 +7,10 @@ type PolicyTaxRate = {
 
     /** Whether the tax is disabled */
     isDisabled?: boolean;
+
+    defaultExternalID: string;
+
+    taxes: PolicyTaxRates;
 };
 
 type PolicyTaxRates = Record<string, PolicyTaxRate>;

@@ -204,7 +204,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     shouldBlockSelection?: boolean;
 
     /** Whether should render title as HTML or as Text */
-    shouldParseTitle?: false;
+    shouldParseTitle?: boolean;
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
