@@ -23,7 +23,7 @@ type ThreeDotsMenuProps = {
     iconTooltip?: TranslationPaths;
 
     /** icon for the popup trigger */
-    icon: IconAsset;
+    icon?: IconAsset;
 
     /** Any additional styles to pass to the icon container. */
     iconStyles?: ViewStyle[];

@@ -1,22 +1,11 @@
 import type {ReactNode} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type IconAsset from '@src/types/utils/IconAsset';
-
-type ThreeDotsMenuItems = {
-    /** An icon element displayed on the left side */
-    icon?: IconAsset;
-
-    /** Text label */
-    text: string;
-
-    /** A callback triggered when the item is selected */
-    onSelected: () => void;
-};
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Title of the Header */
@@ -62,7 +51,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldDisableThreeDotsButton?: boolean;
 
     /** List of menu items for more(three dots) menu */
-    threeDotsMenuItems?: ThreeDotsMenuItems[];
+    threeDotsMenuItems?: PopoverMenuItem[];
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
