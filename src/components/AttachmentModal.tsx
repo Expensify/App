@@ -427,8 +427,6 @@ function AttachmentModal({
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen;
     }
 
-    console.log('children', children);
-
     return (
         <>
             <Modal
