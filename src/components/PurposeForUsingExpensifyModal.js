@@ -163,49 +163,47 @@ function PurposeForUsingExpensifyModal(props) {
     ];
 
     return (
-            <Modal
-                type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                isVisible={isModalOpen}
-                onClose={closeModal}
-                innerContainerStyle={styles.pt0}
-                shouldUseCustomBackdrop={!isSmallScreenWidth}
-            >
-                <View
-                    style={{maxHeight: windowHeight}}
-                >
-                    <ScrollView>
-                        <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
-                            <Lottie
-                                source={LottieAnimations.Hands}
-                                style={styles.w100}
-                                webStyle={styles.w100}
-                                autoPlay
-                                loop
-                            />
-                            <HeaderWithBackButton
-                                shouldShowCloseButton
-                                shouldShowBackButton={false}
-                                onCloseButtonPress={closeModal}
-                                shouldOverlay
-                                iconFill={theme.iconColorfulBackground}
-                            />
-                        </View>
-                        <View style={[styles.w100, styles.ph5, styles.pv5]}>
-                            <Text
-                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                                numberOfLines={2}
-                            >
-                                {translate('purposeForExpensify.welcomeMessage')}
-                            </Text>
-                            <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
-                        </View>
-                        <MenuItemList
-                            menuItems={menuItems}
-                            shouldUseSingleExecution
+        <Modal
+            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+            isVisible={isModalOpen}
+            onClose={closeModal}
+            innerContainerStyle={styles.pt0}
+            shouldUseCustomBackdrop={!isSmallScreenWidth}
+        >
+            <View style={{maxHeight: windowHeight}}>
+                <ScrollView>
+                    <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
+                        <Lottie
+                            source={LottieAnimations.Hands}
+                            style={styles.w100}
+                            webStyle={styles.w100}
+                            autoPlay
+                            loop
                         />
-                    </ScrollView>
-                </View>
-            </Modal>
+                        <HeaderWithBackButton
+                            shouldShowCloseButton
+                            shouldShowBackButton={false}
+                            onCloseButtonPress={closeModal}
+                            shouldOverlay
+                            iconFill={theme.iconColorfulBackground}
+                        />
+                    </View>
+                    <View style={[styles.w100, styles.ph5, styles.pv5]}>
+                        <Text
+                            style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                            numberOfLines={2}
+                        >
+                            {translate('purposeForExpensify.welcomeMessage')}
+                        </Text>
+                        <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+                    </View>
+                    <MenuItemList
+                        menuItems={menuItems}
+                        shouldUseSingleExecution
+                    />
+                </ScrollView>
+            </View>
+        </Modal>
     );
 }
 
