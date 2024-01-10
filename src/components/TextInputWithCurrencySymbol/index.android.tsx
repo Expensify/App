@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import _ from 'underscore';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import BaseTextInputWithCurrencySymbol from './BaseTextInputWithCurrencySymbol';
-import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
+import type {TextInputWithCurrencySymbolProps, TextInputWithCurrencySymbolPropsWithForwardedRef} from './types';
 
-function TextInputWithCurrencySymbol(props) {
+function TextInputWithCurrencySymbol({forwardedRef, onSelectionChange = () => {}, ...props}: TextInputWithCurrencySymbolPropsWithForwardedRef) {
     const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
 
     useEffect(() => {
@@ -13,31 +13,27 @@ function TextInputWithCurrencySymbol(props) {
     return (
         <BaseTextInputWithCurrencySymbol
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, 'forwardedRef')}
-            ref={props.forwardedRef}
+            {...props}
+            ref={forwardedRef}
             onSelectionChange={(e) => {
                 if (skipNextSelectionChange) {
                     setSkipNextSelectionChange(false);
                     return;
                 }
-                props.onSelectionChange(e);
+                onSelectionChange(e);
             }}
         />
     );
 }
 
-TextInputWithCurrencySymbol.propTypes = textInputWithCurrencySymbolPropTypes.propTypes;
-TextInputWithCurrencySymbol.defaultProps = textInputWithCurrencySymbolPropTypes.defaultProps;
 TextInputWithCurrencySymbol.displayName = 'TextInputWithCurrencySymbol';
 
-const TextInputWithCurrencySymbolWithRef = React.forwardRef((props, ref) => (
+const TextInputWithCurrencySymbolWithRef = React.forwardRef((props: TextInputWithCurrencySymbolProps, ref: BaseTextInputRef) => (
     <TextInputWithCurrencySymbol
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
-
-TextInputWithCurrencySymbolWithRef.displayName = 'TextInputWithCurrencySymbolWithRef';
 
 export default TextInputWithCurrencySymbolWithRef;

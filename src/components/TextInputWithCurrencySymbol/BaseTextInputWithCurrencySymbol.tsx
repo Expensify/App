@@ -1,44 +1,53 @@
 import React from 'react';
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
+import type {TextInputWithCurrencySymbolProps, TextInputWithCurrencySymbolPropsWithForwardedRef} from './types';
 
-function BaseTextInputWithCurrencySymbol(props) {
+function BaseTextInputWithCurrencySymbol({
+    forwardedRef,
+    formattedAmount,
+    onChangeAmount = () => {},
+    onCurrencyButtonPress = () => {},
+    placeholder,
+    selectedCurrencyCode,
+    selection,
+    onSelectionChange = () => {},
+    onKeyPress = () => {},
+}: TextInputWithCurrencySymbolPropsWithForwardedRef) {
     const {fromLocaleDigit} = useLocalize();
-    const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
-    const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
+    const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(selectedCurrencyCode);
+    const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
 
     const currencySymbolButton = (
         <CurrencySymbolButton
-            currencySymbol={currencySymbol}
-            onCurrencyButtonPress={props.onCurrencyButtonPress}
+            currencySymbol={currencySymbol ?? ''}
+            onCurrencyButtonPress={onCurrencyButtonPress}
         />
     );
 
     /**
      * Set a new amount value properly formatted
-     *
-     * @param {String} text - Changed text from user input
      */
-    const setFormattedAmount = (text) => {
+    const setFormattedAmount = (text: string) => {
         const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
-        props.onChangeAmount(newAmount);
+        onChangeAmount(newAmount);
     };
 
     const amountTextInput = (
         <AmountTextInput
-            formattedAmount={props.formattedAmount}
+            formattedAmount={formattedAmount}
             onChangeAmount={setFormattedAmount}
-            placeholder={props.placeholder}
-            ref={props.forwardedRef}
-            selection={props.selection}
+            placeholder={placeholder}
+            ref={forwardedRef}
+            selection={selection}
             onSelectionChange={(e) => {
-                props.onSelectionChange(e);
+                onSelectionChange(e);
             }}
-            onKeyPress={props.onKeyPress}
+            onKeyPress={onKeyPress}
         />
     );
 
@@ -59,18 +68,14 @@ function BaseTextInputWithCurrencySymbol(props) {
     );
 }
 
-BaseTextInputWithCurrencySymbol.propTypes = textInputWithCurrencySymbolPropTypes.propTypes;
-BaseTextInputWithCurrencySymbol.defaultProps = textInputWithCurrencySymbolPropTypes.defaultProps;
 BaseTextInputWithCurrencySymbol.displayName = 'BaseTextInputWithCurrencySymbol';
 
-const BaseTextInputWithCurrencySymbolWithRef = React.forwardRef((props, ref) => (
+const BaseTextInputWithCurrencySymbolWithRef = React.forwardRef((props: TextInputWithCurrencySymbolProps, ref: BaseTextInputRef) => (
     <BaseTextInputWithCurrencySymbol
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
-
-BaseTextInputWithCurrencySymbolWithRef.displayName = 'BaseTextInputWithCurrencySymbolWithRef';
 
 export default BaseTextInputWithCurrencySymbolWithRef;

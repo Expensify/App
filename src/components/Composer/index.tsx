@@ -19,7 +19,7 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
-import type {ComposerProps} from './types';
+import type ComposerProps from './types';
 
 /**
  * Retrieves the characters from the specified cursor position up to the next space or new line.

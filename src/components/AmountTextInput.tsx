@@ -1,8 +1,8 @@
 import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {TextSelection} from './Composer/types';
+import type TextSelection from '@src/types/utils/TextSelection';
 import TextInput from './TextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
@@ -20,7 +20,7 @@ type AmountTextInputProps = {
     selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
-    onSelectionChange?: () => void;
+    onSelectionChange?: (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
 
     /** Style for the input */
     style?: StyleProp<TextStyle>;

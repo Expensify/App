@@ -1,9 +1,5 @@
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-
-type TextSelection = {
-    start: number;
-    end?: number;
-};
+import type TextSelection from '@src/types/utils/TextSelection';
 
 type ComposerProps = {
     /** Maximum number of lines in the text input */
@@ -73,4 +69,4 @@ type ComposerProps = {
     shouldContainScroll?: boolean;
 };
 
-export type {TextSelection, ComposerProps};
+export default ComposerProps;

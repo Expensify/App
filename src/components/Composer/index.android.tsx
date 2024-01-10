@@ -6,7 +6,7 @@ import RNTextInput from '@components/RNTextInput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import type {ComposerProps} from './types';
+import type ComposerProps from './types';
 
 function Composer(
     {
