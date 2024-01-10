@@ -45,15 +45,6 @@ type WorkspaceListPageOnyxProps = {
 
 type WorkspaceListPageProps = WorkspaceListPageOnyxProps;
 
-const defaultProps = {
-    policies: {},
-    allPolicyMembers: {},
-    reimbursementAccount: {},
-    userWallet: {
-        currentBalance: 0,
-    },
-};
-
 const workspaceFeatures = [
     {
         icon: Illustrations.MoneyReceipts,
@@ -86,10 +77,12 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
 }
 
 function WorkspacesListPage({
-    policies,
-    allPolicyMembers,
-    reimbursementAccount,
-    userWallet,
+    policies = {},
+    allPolicyMembers = {},
+    reimbursementAccount = {},
+    userWallet = {
+        currentBalance: 0,
+    } as OnyxEntry<UserWallet>,
 }: {
     policies: OnyxCollection<PolicyType>;
     allPolicyMembers: OnyxCollection<PolicyMembers>;
@@ -193,7 +186,6 @@ function WorkspacesListPage({
     );
 }
 
-WorkspacesListPage.defaultProps = defaultProps;
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
