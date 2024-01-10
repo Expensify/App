@@ -410,7 +410,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             if (!userCanModifyParticipants.current) {
                 formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
                     ...participant,
-                    isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
                 }));
             }
 
