@@ -15,6 +15,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
+import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -97,23 +98,37 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
-const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
-const SPACER = 30;
-const AMOUNT_OF_ITEMS_BEFORE_LINKED_ONE = 15;
+const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
+const SPACER = 16;
+const PAGINATION_SIZE = 15;
 
-let listIDCount = 1;
-const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
-    const [edgeID, setEdgeID] = useState();
+let listIDCount = Math.round(Math.random() * 100);
+
+/**
+ * useHandleList manages the logic for handling a list of messages with pagination and dynamic loading.
+ * It determines the part of the message array to display ('cattedArray') based on the current linked message,
+ * and manages pagination through 'paginate' function.
+ *
+ * @param {string} linkedID - ID of the linked message used for initial focus.
+ * @param {array} messageArray - Array of messages.
+ * @param {function} fetchFn - Function to fetch more messages.
+ * @param {string} route - Current route, used to reset states on route change.
+ * @param {boolean} isLoading - Loading state indicator.
+ * @param {object} reportScrollManager - Manages scrolling functionality.
+ * @returns {object} An object containing the sliced message array, the pagination function,
+ *                   index of the linked message, and a unique list ID.
+ */
+const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading, reportScrollManager) => {
+    // we don't set edgeID on initial render as linkedID as it should trigger cattedArray after linked message was positioned
+    const [edgeID, setEdgeID] = useState('');
     const isCuttingForFirstRender = useRef(true);
-    const isCuttingForFirstBatch = useRef(false);
 
     useLayoutEffect(() => {
-        setEdgeID();
+        setEdgeID('');
     }, [route, linkedID]);
 
     const listID = useMemo(() => {
         isCuttingForFirstRender.current = true;
-        isCuttingForFirstBatch.current = false;
         listIDCount += 1;
         return listIDCount;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,12 +153,10 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
         if (isCuttingForFirstRender.current) {
             return messageArray.slice(index, messageArray.length);
         } else {
-            // Sometimes the layout is wrong. This helps get the slide right for one item.
-            const dynamicBatchSize = isCuttingForFirstBatch.current ? 1 : AMOUNT_OF_ITEMS_BEFORE_LINKED_ONE;
-            const newStartIndex = index >= dynamicBatchSize ? index - dynamicBatchSize : 0;
-            isCuttingForFirstBatch.current = false;
+            const newStartIndex = index >= PAGINATION_SIZE ? index - PAGINATION_SIZE : 0;
             return newStartIndex ? messageArray.slice(newStartIndex, messageArray.length) : messageArray;
         }
+        // edgeID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [linkedID, messageArray, index, isLoading, edgeID]);
 
@@ -152,22 +165,19 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading) => {
     const paginate = useCallback(
         ({firstReportActionID}) => {
             // This function is a placeholder as the actual pagination is handled by cattedArray
-            // It's here if you need to trigger any side effects during pagination
             if (!hasMoreCashed) {
                 isCuttingForFirstRender.current = false;
                 fetchFn();
             }
             if (isCuttingForFirstRender.current) {
+                // This is a workaround because 'autoscrollToTopThreshold' does not always function correctly.
+                // We manually trigger a scroll to a slight offset to ensure the expected scroll behavior.
+                reportScrollManager.ref.current?.scrollToOffset({animated: false, offset: 1});
                 isCuttingForFirstRender.current = false;
-                isCuttingForFirstBatch.current = true;
-                InteractionManager.runAfterInteractions(() => {
-                    setEdgeID(firstReportActionID);
-                });
-            } else {
-                setEdgeID(firstReportActionID);
             }
+            setEdgeID(firstReportActionID);
         },
-        [fetchFn, hasMoreCashed],
+        [fetchFn, hasMoreCashed, reportScrollManager.ref],
     );
 
     return {
@@ -182,6 +192,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
+    const reportScrollManager = useReportScrollManager();
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
@@ -221,10 +232,11 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         fetchFunc,
         linkedIdIndex,
         listID,
-    } = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route, !!reportActionID && props.isLoadingInitialReportActions);
+    } = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route, !!reportActionID && props.isLoadingInitialReportActions, reportScrollManager);
+
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
-    const oldestReportAction = _.last(reportActions);
+    const oldestReportAction = useMemo(() => _.last(reportActions), [reportActions]);
     const isWeReachedTheOldestAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     /**
@@ -238,6 +250,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
             return;
         }
+
         Report.openReport({reportID, reportActionID});
     };
 
@@ -253,6 +266,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         if (!reportActionID) {
             return;
         }
+
         Report.openReport({reportID, reportActionID});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route]);
@@ -335,13 +349,13 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, reportID]);
+    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, isWeReachedTheOldestAction, reportID]);
 
     const firstReportActionID = useMemo(() => lodashGet(newestReportAction, 'reportActionID'), [newestReportAction]);
     const handleLoadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         () => {
-            if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions) {
+            if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions || props.network.isOffline) {
                 return;
             }
             const isContentSmallerThanList = checkIfContentSmallerThanList();
@@ -358,6 +372,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             hasNewestReportAction,
             fetchFunc,
             firstReportActionID,
+            props.network.isOffline,
         ],
     );
 
@@ -407,6 +422,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 policy={props.policy}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
+                reportScrollManager={reportScrollManager}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>

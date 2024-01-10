@@ -11,7 +11,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -142,6 +141,7 @@ function ReportActionsList({
     isComposerFullSize,
     listID,
     onContentSizeChange,
+    reportScrollManager,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -158,7 +158,6 @@ function ReportActionsList({
     };
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-    const reportScrollManager = useReportScrollManager();
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);

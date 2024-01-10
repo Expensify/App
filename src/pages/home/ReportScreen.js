@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -173,10 +173,10 @@ function ReportScreen({
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const firstRenderRef = useRef(true);
-    const isLinkingLoaderRef = useRef(!!reportActionID);
+    const shouldTriggerLoadingRef = useRef(!!reportActionID);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
+    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionID);
 
     const reportActions = useMemo(() => {
         if (!!allReportActions && allReportActions.length === 0) {
@@ -189,18 +189,6 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActionID, allReportActions, isOffline]);
 
-    // We define this here because if we have a cached elements, reportActions would trigger them immediately, causing a visible blink. Therefore, it's necessary to define it simultaneously with reportActions. We use a ref for this purpose, as there's no need to trigger a re-render, unlike changing the state with isLoadingInitialReportActions would do.
-    useMemo(() => {
-        isLinkingLoaderRef.current = !!reportActionID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
-    useMemo(() => {
-        if (reportMetadata.isLoadingInitialReportActions) {
-            return;
-        }
-        isLinkingLoaderRef.current = false;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportMetadata.isLoadingInitialReportActions]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
@@ -210,6 +198,15 @@ function ReportScreen({
         Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
+
+    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
+    useMemo(() => {
+        shouldTriggerLoadingRef.current = !!reportActionID;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, reportActionID]);
+    useLayoutEffect(() => {
+        setLinkingToMessage(!!reportActionID);
+    }, [route, reportActionID]);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -507,9 +504,22 @@ function ReportScreen({
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const shouldShowSkeleton = useMemo(
-        () => isLinkingLoaderRef.current || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
-        [isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions],
+        () => isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
+        [isLinkingToMessage, isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions],
     );
+
+    // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
+    useEffect(() => {
+        if (reportMetadata.isLoadingInitialReportActions && shouldTriggerLoadingRef.current) {
+            shouldTriggerLoadingRef.current = false;
+            return;
+        }
+        if (!reportMetadata.isLoadingInitialReportActions && !shouldTriggerLoadingRef.current) {
+            shouldTriggerLoadingRef.current = false;
+            setLinkingToMessage(false);
+        }
+    }, [reportMetadata.isLoadingInitialReportActions]);
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -563,8 +573,6 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
-                                        isLinkingToMessage={isLinkingToMessage}
-                                        setLinkingToMessageTrigger={setLinkingToMessageTrigger}
                                         fetchReport={fetchReport}
                                         reportActionID={reportActionID}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
