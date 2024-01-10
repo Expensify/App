@@ -1,15 +1,15 @@
+import {chain, isEmpty} from 'lodash';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import {isEmpty, chain} from 'lodash';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import type {TranslationPaths} from '@src/languages/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 function KeyboardShortcutsPage() {
     const styles = useThemeStyles();
