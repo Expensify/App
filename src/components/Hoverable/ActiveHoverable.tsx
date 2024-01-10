@@ -1,32 +1,15 @@
 import type {Ref} from 'react';
 import {cloneElement, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import mergeRefs from '@libs/mergeRefs';
 import {getReturnValue} from '@libs/ValueUtils';
 import CONST from '@src/CONST';
 import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
-type UseHoveredReturnType = [boolean, (newValue: boolean) => void];
-// This is a workaround specifically for the web part of comment linking. Without this adjustment, you might observe sliding effects due to conflicts between  MVCPFlatList implementation and this file. Check it once https://github.com/necolas/react-native-web/pull/2588 is merged
-function useHovered(initialValue: boolean, runHoverAfterInteraction: boolean): UseHoveredReturnType {
-    const [state, setState] = useState(initialValue);
 
-    const interceptedSetState = useCallback((newValue: boolean) => {
-        if (runHoverAfterInteraction) {
-            InteractionManager.runAfterInteractions(() => {
-                setState(newValue);
-            });
-        } else {
-            setState(newValue);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    return [state, interceptedSetState];
-}
-
-function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children, runHoverAfterInteraction = false}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
-    const [isHovered, setIsHovered] = useHovered(false, runHoverAfterInteraction);
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
+    const [isHovered, setIsHovered] = useState(false);
 
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
@@ -40,7 +23,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children, r
             }
             setIsHovered(hovered);
         },
-        [setIsHovered, shouldHandleScroll],
+        [shouldHandleScroll],
     );
 
     useEffect(() => {
@@ -64,7 +47,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children, r
         });
 
         return () => scrollingListener.remove();
-    }, [setIsHovered, shouldHandleScroll]);
+    }, [shouldHandleScroll]);
 
     useEffect(() => {
         // Do not mount a listener if the component is not hovered
@@ -89,7 +72,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children, r
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [setIsHovered, isHovered, elementRef]);
+    }, [isHovered, elementRef]);
 
     useEffect(() => {
         const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
@@ -130,7 +113,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children, r
 
             child.props.onBlur?.(event);
         },
-        [setIsHovered, child.props],
+        [child.props],
     );
 
     return cloneElement(child, {
