@@ -341,7 +341,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
-    policy,
+    policy = {},
     policyTags,
     policyCategories,
     hasOutstandingChildRequest = false,
@@ -918,13 +918,16 @@ function createDistanceRequest(report, participant, comment, created, category, 
  * @param {String} transactionThreadReportID
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created] Present when updated the date field
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  * @param {Boolean} onlyIncludeChangedFields
  *                      When 'true', then the returned params will only include the transaction details for the fields that were changed.
  *                      When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
  *                      This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
  * @returns {object}
  */
-function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFields) {
+function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy = {}, policyTags, policyCategories, onlyIncludeChangedFields) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -1050,6 +1053,13 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         }
     }
 
+    // Add optimistic transaction violations
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
+    });
+
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1088,6 +1098,13 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         value: iouReport,
     });
 
+    // Reset transaction violations to their original state
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
+    });
+
     return {
         params,
         onyxData: {optimisticData, successData, failureData},
@@ -1100,12 +1117,15 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
  * @param {String} transactionID
  * @param {String} transactionThreadReportID
  * @param {String} val
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
+function updateMoneyRequestDate(transactionID, transactionThreadReportID, val, policy, policyTags, policyCategories) {
     const transactionChanges = {
         created: val,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestDate', params, onyxData);
 }
 
@@ -1115,12 +1135,15 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {String} val
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, val) {
+function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, val, policy, policyTags, policyCategories) {
     const transactionChanges = {
         merchant: val,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestMerchant', params, onyxData);
 }
 
@@ -1130,12 +1153,15 @@ function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, va
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {String} tag
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
+function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag, policy, policyTags, policyCategories) {
     const transactionChanges = {
         tag,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestTag', params, onyxData);
 }
 
@@ -1149,10 +1175,12 @@ function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
  * @param {Number} [transactionChanges.amount]
  * @param {Object} [transactionChanges.comment]
  * @param {Object} [transactionChanges.waypoints]
- *
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, false);
+function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories) {
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, false);
     API.write('UpdateDistanceRequest', params, onyxData);
 }
 
@@ -2170,8 +2198,11 @@ function setDraftSplitTransaction(transactionID, transactionChanges = {}) {
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function editRegularMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function editRegularMoneyRequest(transactionID, transactionThreadReportID, transactionChanges, policy = {}, policyTags, policyCategories) {
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -2225,6 +2256,13 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
+    const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
+    // TODO
+    const previousViolationsOnyxData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
+    };
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2255,6 +2293,11 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
                 lastReadTime: currentTime,
                 lastVisibleActionCreated: currentTime,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolationsOnyxData,
         },
         ...(!isScanning
             ? [
@@ -2379,6 +2422,11 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
                 lastVisibleActionCreated: transactionThread.lastVisibleActionCreated,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: previousViolationsOnyxData,
+        },
     ];
 
     // STEP 6: Call the API endpoint
@@ -2405,12 +2453,15 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
  * @param {object} transaction
  * @param {String} transactionThreadReportID
  * @param {Object} transactionChanges
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
+function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
-        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
     } else {
-        editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+        editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
     }
 }
 
@@ -2421,13 +2472,16 @@ function editMoneyRequest(transaction, transactionThreadReportID, transactionCha
  * @param {String} transactionThreadReportID
  * @param {String} currency
  * @param {Number} amount
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadReportID, currency, amount) {
+function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadReportID, currency, amount, policy, policyTags, policyCategories) {
     const transactionChanges = {
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestAmountAndCurrency', params, onyxData);
 }
 
