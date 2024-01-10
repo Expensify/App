@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -19,49 +19,31 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import policyMemberPropType from '@pages/policyMemberPropType';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, UserWallet} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-const propTypes = {
+type WorkspaceListPageOnyxProps = {
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            ID: PropTypes.string,
-
-            /** The name of the policy */
-            name: PropTypes.string,
-
-            /** The type of the policy */
-            type: PropTypes.string,
-
-            /** The user's role in the policy */
-            role: PropTypes.string,
-
-            /** The current action that is waiting to happen on the policy */
-            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-        }),
-    ),
+    policies: OnyxCollection<PolicyType>;
 
     /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+    allPolicyMembers: OnyxCollection<PolicyMembers>;
 
     /** The user's wallet account */
-    userWallet: PropTypes.shape({
-        /** The user's current wallet balance */
-        currentBalance: PropTypes.number,
-    }),
+    userWallet: OnyxEntry<UserWallet>;
 };
+
+type WorkspaceListPageProps = WorkspaceListPageOnyxProps;
 
 const defaultProps = {
     policies: {},
@@ -89,11 +71,8 @@ const workspaceFeatures = [
 
 /**
  * Dismisses the errors on one item
- *
- * @param {string} policyID
- * @param {string} pendingAction
  */
-function dismissWorkspaceError(policyID, pendingAction) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
@@ -106,7 +85,17 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+function WorkspacesListPage({
+    policies,
+    allPolicyMembers,
+    reimbursementAccount,
+    userWallet,
+}: {
+    policies: OnyxCollection<PolicyType>;
+    allPolicyMembers: OnyxCollection<PolicyMembers>;
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    userWallet: OnyxEntry<UserWallet>;
+}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -116,18 +105,14 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {String|undefined} the user's wallet balance
      */
-    function getWalletBalance(isPaymentItem) {
-        return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
-    }
+    const getWalletBalance = (isPaymentItem: Boolean) => {
+        return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet?.currentBalance) : undefined;
+    };
 
     /**
      * Gets the menu item for each workspace
-     *
-     * @param {Object} item
-     * @param {Number} index
-     * @returns {JSX}
      */
-    function getMenuItem(item, index) {
+    const getMenuItem = (item: any, index: Number) => {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.wallet';
 
@@ -154,32 +139,31 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 />
             </OfflineWithFeedback>
         );
-    }
+    };
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
      */
     const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map((policy) => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                title: policy?.name,
+                icon: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
+                iconType: policy?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy?.id as string)),
                 iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                pendingAction: policy.pendingAction,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: policy?.pendingAction,
+                errors: policy?.errors,
+                dismissError: () => dismissWorkspaceError(policy?.id || '', policy?.pendingAction as OnyxCommon.PendingAction),
+                disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy((policy) => policy.title.toLowerCase())
+            .sortBy((policy) => policy?.title?.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
+    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
@@ -209,13 +193,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     );
 }
 
-WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default compose(
     withPolicyAndFullscreenLoading,
-    withOnyx({
+    withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
