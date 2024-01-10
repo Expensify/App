@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -27,28 +27,38 @@ import type {AddressSearchProps} from './types';
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-function AddressSearch({
-    canUseCurrentLocation = false,
-    containerStyles,
-    defaultValue,
-    errorText = '',
-    hint = '',
-    innerRef,
-    inputID,
-    isLimitedToUSA = false,
-    label,
-    maxInputLength,
-    onBlur,
-    onInputChange,
-    onPress,
-    predefinedPlaces = undefined,
-    preferredLocale,
-    renamedInputKeys,
-    resultTypes = 'address',
-    shouldSaveDraft = false,
-    value,
-    locationBias,
-}: AddressSearchProps) {
+function AddressSearch(
+    {
+        canUseCurrentLocation = false,
+        containerStyles,
+        defaultValue,
+        errorText = '',
+        hint = '',
+        inputID,
+        isLimitedToUSA = false,
+        label,
+        maxInputLength,
+        onBlur,
+        onInputChange,
+        onPress,
+        predefinedPlaces = [],
+        preferredLocale,
+        renamedInputKeys = {
+            street: 'addressStreet',
+            street2: 'addressStreet2',
+            city: 'addressCity',
+            state: 'addressState',
+            zipCode: 'addressZipCode',
+            lat: 'addressLat',
+            lng: 'addressLng',
+        },
+        resultTypes = 'address',
+        shouldSaveDraft = false,
+        value,
+        locationBias,
+    }: AddressSearchProps,
+    innerRef: ForwardedRef<HTMLElement>,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -165,7 +175,7 @@ function AddressSearch({
         }
 
         // Set the state to be the same as the city in case the state is empty.
-        if (values.state) {
+        if (!values.state) {
             values.state = values.city;
         }
 
@@ -174,7 +184,7 @@ function AddressSearch({
         if (!values.street && details.adr_address) {
             const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
             const adr_address = details.adr_address.match(streetAddressRegex);
-            const streetAddressFallback = adr_address ? adr_address[1] : null;
+            const streetAddressFallback = adr_address ? adr_address?.[1] : null;
             if (streetAddressFallback) {
                 values.street = streetAddressFallback;
             }
@@ -186,14 +196,14 @@ function AddressSearch({
             values.street += `, ${subpremise}`;
         }
 
-        const isValidCountryCode = Object.keys(CONST.ALL_COUNTRIES).find((foundCountry) => foundCountry === country);
+        const isValidCountryCode = !!Object.keys(CONST.ALL_COUNTRIES).find((foundCountry) => foundCountry === country);
         if (isValidCountryCode) {
             values.country = country;
         }
 
         if (inputID) {
-            Object.keys(values).forEach((inputValue, key) => {
-                const inputKey = renamedInputKeys?.key ?? key;
+            Object.entries(values).forEach(([key, inputValue]) => {
+                const inputKey = renamedInputKeys?.[key] ?? key;
                 if (!inputKey) {
                     return;
                 }
@@ -253,7 +263,7 @@ function AddressSearch({
 
     const renderHeaderComponent = () => (
         <>
-            {predefinedPlaces?.length && predefinedPlaces.length > 0 && (
+            {predefinedPlaces.length > 0 && (
                 <>
                     {/* This will show current location button in list if there are some recent destinations */}
                     {shouldShowCurrentLocationButton && (
@@ -277,7 +287,8 @@ function AddressSearch({
     }, []);
 
     const listEmptyComponent = useCallback(
-        () => (isOffline ?? !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+        () =>
+            !!isOffline && !!isTyping ? <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text> : null,
         [isOffline, isTyping, styles, translate],
     );
 
@@ -378,9 +389,11 @@ function AddressSearch({
                                 setIsTyping(true);
                                 if (inputID) {
                                     onInputChange?.(text);
+                                } else {
+                                    onInputChange({street: text});
                                 }
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
-                                if (!text && !predefinedPlaces) {
+                                if (!text && !predefinedPlaces.length) {
                                     setDisplayListViewBorder(false);
                                 }
                             },
@@ -429,18 +442,6 @@ function AddressSearch({
     );
 }
 
-AddressSearch.displayName = 'AddressSearch';
+AddressSearch.displayName = 'AddressSearchWithRef';
 
-const AddressSearchWithRef = forwardRef(
-    (props: AddressSearchProps, ref: ForwardedRef<HTMLElement>): ReactNode => (
-        <AddressSearch
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    ),
-);
-
-AddressSearchWithRef.displayName = 'AddressSearchWithRef';
-
-export default AddressSearchWithRef;
+export default forwardRef(AddressSearch);

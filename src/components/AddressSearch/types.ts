@@ -1,12 +1,11 @@
-import type {ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */
     onPress: () => void;
+
     /** Boolean to indicate if the button is clickable */
     isDisabled?: boolean;
 };
@@ -16,10 +15,9 @@ type RenamedInputKeysProps = {
     street2: string;
     city: string;
     state: string;
-    lat: number;
-    lng: number;
+    lat: string;
+    lng: string;
     zipCode: string;
-    key?: number;
 };
 
 type OnPressProps = {
@@ -29,9 +27,13 @@ type OnPressProps = {
     name: string;
 };
 
+type StreetValue = {
+    street: string;
+};
+
 type AddressSearchProps = {
     /** The ID used to uniquely identify the input in a Form */
-    inputID: string;
+    inputID?: string;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
@@ -46,7 +48,7 @@ type AddressSearchProps = {
     hint?: string;
 
     /** The label to display for the field */
-    label?: string;
+    label: string;
 
     /** The value to set the field to initially */
     value?: string;
@@ -55,7 +57,7 @@ type AddressSearchProps = {
     defaultValue?: string;
 
     /** A callback function when the value of this field has changed */
-    onInputChange?: (value: string | RenamedInputKeysProps, key?: number) => void;
+    onInputChange: (value: string | RenamedInputKeysProps | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;
@@ -73,7 +75,7 @@ type AddressSearchProps = {
     predefinedPlaces?: Place[];
 
     /** A map of inputID key names */
-    renamedInputKeys?: RenamedInputKeysProps;
+    renamedInputKeys: RenamedInputKeysProps;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
@@ -85,10 +87,7 @@ type AddressSearchProps = {
     locationBias?: string;
 
     /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale?: ValueOf<typeof CONST.LOCALES> | null;
-
-    /** Ref to pass to TextInput component */
-    innerRef?: ForwardedRef<HTMLElement>;
+    preferredLocale?: Locale;
 };
 
 export type {CurrentLocationButtonProps, AddressSearchProps};

@@ -10,7 +10,7 @@ import getButtonState from '@libs/getButtonState';
 import colors from '@styles/theme/colors';
 import type {CurrentLocationButtonProps} from './types';
 
-function CurrentLocationButton({onPress, isDisabled}: CurrentLocationButtonProps) {
+function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
