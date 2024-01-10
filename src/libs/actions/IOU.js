@@ -1110,21 +1110,6 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 }
 
 /**
- * Updates the billable field of a money request
- *
- * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} val
- */
-function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
-    const transactionChanges = {
-        billable: val,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestBillable', params, onyxData);
-}
-
-/**
  * Updates the merchant field of a money request
  *
  * @param {String} transactionID
@@ -2497,37 +2482,38 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
-    let updatedIOUReport = {...iouReport};
-    const updatedReportPreviewAction = {...reportPreviewAction};
-    updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-    if (ReportUtils.isExpenseReport(iouReport)) {
-        updatedIOUReport = {...iouReport};
+    let updatedIOUReport = null;
+    let updatedReportPreviewAction = null;
+    if (!shouldDeleteIOUReport) {
+        if (ReportUtils.isExpenseReport(iouReport)) {
+            updatedIOUReport = {...iouReport};
 
-        // Because of the Expense reports are stored as negative values, we add the total from the amount
-        updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
-    } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReport,
-            reportAction.actorAccountID,
-            TransactionUtils.getAmount(transaction, false),
-            TransactionUtils.getCurrency(transaction),
-            true,
-        );
-    }
+            // Because of the Expense reports are stored as negative values, we add the total from the amount
+            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
+        } else {
+            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+                iouReport,
+                reportAction.actorAccountID,
+                TransactionUtils.getAmount(transaction, false),
+                TransactionUtils.getCurrency(transaction),
+                true,
+            );
+        }
 
-    updatedIOUReport.lastMessageText = iouReportLastMessageText;
-    updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        updatedIOUReport.lastMessageText = iouReportLastMessageText;
+        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
-    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
-        amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
-    });
-    updatedReportPreviewAction.message[0].text = messageText;
-    updatedReportPreviewAction.message[0].html = messageText;
-
-    if (reportPreviewAction.childMoneyRequestCount > 0) {
-        updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+        updatedReportPreviewAction = {...reportPreviewAction};
+        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
+        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
+            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
+        });
+        updatedReportPreviewAction.message[0].text = messageText;
+        updatedReportPreviewAction.message[0].html = messageText;
+        if (reportPreviewAction.childMoneyRequestCount > 0) {
+            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+        }
     }
 
     // STEP 5: Build Onyx data
@@ -2561,12 +2547,12 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
               ]
             : []),
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: updatedReportAction,
+            value: shouldDeleteIOUReport ? null : updatedReportAction,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
@@ -2609,34 +2595,9 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [reportAction.reportActionID]: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                      },
+                [reportAction.reportActionID]: {pendingAction: null},
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                          errors: null,
-                      },
-            },
-        },
-        ...(shouldDeleteIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: null,
-                  },
-              ]
-            : []),
     ];
 
     const failureData = [
@@ -2955,10 +2916,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @param {Object} iouReport
  * @param {Object} recipient
  * @param {String} paymentMethodType
- * @param {Boolean} full
  * @returns {Object}
  */
-function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType, full) {
+function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         -iouReport.total,
@@ -3086,7 +3046,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
-            full,
         },
         optimisticData,
         successData,
@@ -3130,7 +3089,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport, full = true) {
+function approveMoneyRequest(expenseReport) {
     const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
 
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
@@ -3195,11 +3154,7 @@ function approveMoneyRequest(expenseReport, full = true) {
         });
     }
 
-    API.write(
-        'ApproveMoneyRequest',
-        {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID, full},
-        {optimisticData, successData, failureData},
-    );
+    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -3269,7 +3224,7 @@ function submitReport(expenseReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
+                [expenseReport.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
@@ -3324,11 +3279,11 @@ function submitReport(expenseReport) {
  * @param {String} paymentType
  * @param {Object} chatReport
  * @param {Object} iouReport
- * @param {Boolean} full
+ * @param {String} reimbursementBankAccountState
  */
-function payMoneyRequest(paymentType, chatReport, iouReport, full) {
+function payMoneyRequest(paymentType, chatReport, iouReport) {
     const recipient = {accountID: iouReport.ownerAccountID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
@@ -3609,8 +3564,7 @@ function getIOUReportID(iou, route) {
  */
 function putOnHold(transactionID, comment, reportID) {
     const createdDate = new Date();
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(createdDate);
-    const createdCommentReportAction = ReportUtils.buildOptimisticHoldReportActionComment(comment, new Date(createdDate.getTime() + 1));
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment, DateUtils.getDBTime(createdDate));
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
@@ -3620,7 +3574,6 @@ function putOnHold(transactionID, comment, reportID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: createdReportAction,
-                [createdCommentReportAction.reportActionID]: createdCommentReportAction,
             },
         },
         {
@@ -3630,6 +3583,16 @@ function putOnHold(transactionID, comment, reportID) {
                 comment: {
                     hold: createdReportAction.reportActionID,
                 },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
             },
         },
     ];
@@ -3653,7 +3616,7 @@ function putOnHold(transactionID, comment, reportID) {
             transactionID,
             comment,
         },
-        {optimisticData, successData: [], failureData},
+        {optimisticData, successData, failureData},
     );
 }
 
@@ -3687,6 +3650,13 @@ function unholdRequest(transactionID, reportID) {
     ];
 
     const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3757,7 +3727,6 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
-    updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,

@@ -27,7 +27,7 @@ import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
-import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
+import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
@@ -244,7 +244,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 )}
             </View>
             {isHoldMenuVisible && (
-                <ProcessMoneyRequestHoldMenu
+                <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
                     requestType={confirmationType}
                     fullAmount={fullAmount}

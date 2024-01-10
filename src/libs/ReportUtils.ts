@@ -996,12 +996,6 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  */
 function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-
-    // Early return false in case not having any transaction
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
     return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
@@ -1494,6 +1488,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     }
 
     const personalDetails = getPersonalDetailsForAccountID(accountID);
+    // console.log(personalDetails);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
     // This is to check if account is an invite/optimistically created one
@@ -1553,6 +1548,17 @@ function getDisplayNamesWithTooltips(
             // Then fallback on accountID as the final sorting criteria.
             return first.accountID - second.accountID;
         });
+}
+
+/**
+ * Gets a joined string of display names from the list of display name with tooltip objects.
+ *
+ */
+function getDisplayNamesStringFromTooltips(displayNamesWithTooltips: DisplayNameWithTooltips | undefined) {
+    return displayNamesWithTooltips
+        ?.map(({displayName}) => displayName)
+        .filter(Boolean)
+        .join(', ');
 }
 
 /**
@@ -1643,9 +1649,9 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
 
 /**
  * Determines if the option requires action from the current user. This can happen when it:
-    - is unread and the user was mentioned in one of the unread comments
-    - is for an outstanding task waiting on the user
-    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ - is unread and the user was mentioned in one of the unread comments
+ - is for an outstanding task waiting on the user
+ - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
@@ -2419,7 +2425,6 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: File): Opti
             attachmentInfo,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
-            isOptimisticAction: true,
         },
     };
 }
@@ -2915,10 +2920,10 @@ function buildOptimisticReportPreview(
         accountID: iouReport?.managerID ?? 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? 0,
-        childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && isNotEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
+        childReportID,
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
     };
 }
@@ -3142,27 +3147,31 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+function buildOptimisticHoldReportAction(comment: string, created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: `held this request`,
+                text: `held this money request with the comment: ${comment}`,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: comment,
             },
         ],
         person: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
+                style: 'strong',
                 text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
             },
         ],
-        automatic: true,
+        automatic: false,
         avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created,
         shouldShow: true,
@@ -3176,14 +3185,14 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
 function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: `unheld this request`,
+                text: `unheld this money request`,
             },
         ],
         person: [
@@ -3193,38 +3202,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
                 text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
             },
         ],
-        automatic: true,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created,
-        shouldShow: true,
-    };
-}
-
-/**
- * Returns the necessary reportAction user comment user provided to put on hold optimistically
- * @param [created] - Action created time
- */
-function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: `${comment}`,
-            },
-        ],
-        person: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
-            },
-        ],
-        automatic: true,
+        automatic: false,
         avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created,
         shouldShow: true,
@@ -3856,7 +3834,6 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
             return isDraftExpenseReport(report);
         }
-
         return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
@@ -4025,13 +4002,6 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-    // If the Money Request report is marked for deletion, let us prevent any further write action.
-    if (isMoneyRequestReport(report)) {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-        if (parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return false;
-        }
-    }
     return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
 }
 
@@ -4211,11 +4181,6 @@ function getTaskAssigneeChatOnyxData(
                 value: optimisticAssigneeReport,
             },
         );
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: {isOptimisticAction: null}},
-        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -4419,6 +4384,14 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 /**
  * Check if Report has any held expenses
  */
+function isHoldCreator(transaction: Transaction, reportID: string): boolean {
+    const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction.comment?.hold}`);
+    return isActionCreator(holdReportAction);
+}
+
+/**
+ * Check if Report has any held expenses
+ */
 function hasHeldExpenses(iouReportID: string): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
     return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
@@ -4450,6 +4423,7 @@ function getNonHeldAndFullAmount(iouReportID: string): string[] {
 
     return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
 }
+
 /**
  * Checks if thread replies should be displayed
  */
@@ -4534,6 +4508,7 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportNotificationPreference,
@@ -4655,16 +4630,16 @@ export {
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
+    isHoldCreator,
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     getNonHeldAndFullAmount,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     buildOptimisticHoldReportAction,
-    buildOptimisticHoldReportActionComment,
     buildOptimisticUnHoldReportAction,
     shouldDisplayThreadReplies,
     shouldDisableThread,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};
