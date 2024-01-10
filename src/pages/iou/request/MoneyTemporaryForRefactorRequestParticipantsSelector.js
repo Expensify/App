@@ -96,6 +96,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     didScreenTransitionEnd,
 }) {
     const styles = useThemeStyles();
+    const [isOptionsDataReady, setIsOptionsDataReady] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
         recentReports: [],
@@ -225,7 +226,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         maxParticipantsReached,
         _.some(participants, (participant) => lodashGet(participant, 'searchText', '').toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
         if (!didScreenTransitionEnd) {
@@ -262,6 +262,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         });
+        setIsOptionsDataReady(ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails))
     }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, iouRequestType, didScreenTransitionEnd]);
 
     // When search term updates we will fetch any reports
@@ -326,7 +327,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                shouldShowOptions={isOptionsDataReady}
                 shouldShowReferralCTA
                 referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
