@@ -219,7 +219,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom={isOffline}
-            shouldShowOfflineIndicatorSmallWidth={false}
+            shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}

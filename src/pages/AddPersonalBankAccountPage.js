@@ -97,7 +97,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={shouldShowSuccess}
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorSmallWidth={false}
+            shouldShowOfflineIndicator={false}
             testID={AddPersonalBankAccountPage.displayName}
         >
             <HeaderWithBackButton

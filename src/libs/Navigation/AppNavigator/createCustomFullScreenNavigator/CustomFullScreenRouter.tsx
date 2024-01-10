@@ -10,8 +10,7 @@ type State = NavigationState | PartialState<NavigationState>;
 const isAtLeastOneInState = (state: State, screenName: string): boolean => !!state.routes.find((route) => route.name === screenName);
 
 /**
- * Adds report route without any specific reportID to the state.
- * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
+ * Adds central pane to the full screen settings
  */
 const addCentralPaneNavigatorRoute = (state: State) => {
     const centralPaneNavigatorRoute = {

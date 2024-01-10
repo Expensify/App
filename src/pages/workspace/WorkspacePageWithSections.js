@@ -68,7 +68,7 @@ const propTypes = {
     /** Option to show the loading page while the API is calling */
     shouldShowLoading: PropTypes.bool,
 
-    shouldShowOfflineIndicator: PropTypes.bool,
+    shouldShowOfflineIndicatorInWideScreen: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -81,7 +81,7 @@ const defaultProps = {
     shouldSkipVBBACall: false,
     backButtonRoute: '',
     shouldShowLoading: true,
-    shouldShowOfflineIndicator: false,
+    shouldShowOfflineIndicatorInWideScreen: false,
 };
 
 function fetchData(skipVBBACal) {
@@ -105,7 +105,7 @@ function WorkspacePageWithSections({
     shouldSkipVBBACall,
     user,
     shouldShowLoading,
-    shouldShowOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
 }) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
@@ -134,7 +134,7 @@ function WorkspacePageWithSections({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={WorkspacePageWithSections.displayName}
-            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
