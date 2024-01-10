@@ -57,7 +57,7 @@ type AddressSearchProps = {
     defaultValue?: string;
 
     /** A callback function when the value of this field has changed */
-    onInputChange: (value: string | RenamedInputKeysProps | StreetValue, key?: string) => void;
+    onInputChange: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;
@@ -90,4 +90,4 @@ type AddressSearchProps = {
     preferredLocale?: Locale;
 };
 
-export type {CurrentLocationButtonProps, AddressSearchProps};
+export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps};

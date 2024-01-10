@@ -20,7 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps} from './types';
+import type {AddressSearchProps, RenamedInputKeysProps} from './types';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -203,7 +203,7 @@ function AddressSearch(
 
         if (inputID) {
             Object.entries(values).forEach(([key, inputValue]) => {
-                const inputKey = renamedInputKeys?.[key] ?? key;
+                const inputKey = renamedInputKeys?.[key as keyof RenamedInputKeysProps] ?? key;
                 if (!inputKey) {
                     return;
                 }
