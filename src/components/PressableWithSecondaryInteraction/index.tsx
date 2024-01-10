@@ -1,11 +1,11 @@
 import React, {forwardRef, useEffect, useRef} from 'react';
-import {GestureResponderEvent} from 'react-native';
-import {PressableRef} from '@components/Pressable/GenericPressable/types';
+import type {GestureResponderEvent} from 'react-native';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import PressableWithSecondaryInteractionProps from './types';
+import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */
 function PressableWithSecondaryInteraction(
