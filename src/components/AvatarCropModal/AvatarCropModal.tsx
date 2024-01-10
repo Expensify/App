@@ -342,7 +342,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         translateX.value,
         imageContainerSize,
         translateY.value,
-        props,
         rotation.value,
         isLoading,
     ]);
