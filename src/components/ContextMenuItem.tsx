@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle} from 'react';
+import {GestureResponderEvent} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -27,7 +28,7 @@ type ContextMenuItemProps = {
     isMini?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onPress: () => void;
+    onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => void;
 
     /** A description text to show under the title */
     description?: string;
@@ -52,7 +53,7 @@ function ContextMenuItem(
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const triggerPressAndUpdateSuccess = (event) => {
+    const triggerPressAndUpdateSuccess = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
         if (!isThrottledButtonActive) {
             return;
         }

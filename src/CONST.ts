@@ -3106,6 +3106,8 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 } as const;
 
 export default CONST;
