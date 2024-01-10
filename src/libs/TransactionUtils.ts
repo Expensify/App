@@ -140,11 +140,12 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function isMerchantMissing(transaction: Transaction) {
+    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    }
     const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
-    const isModifiedMerchantEmpty = !transaction.modifiedMerchant || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === '';
-
-    return isMerchantEmpty && isModifiedMerchantEmpty;
+    return isMerchantEmpty;
 }
 
 function isAmountMissing(transaction: Transaction) {
