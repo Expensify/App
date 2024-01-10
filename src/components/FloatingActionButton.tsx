@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import type {GestureResponderEvent, Role} from 'react-native';
 import {Platform, View} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -134,4 +134,4 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
 
 FloatingActionButton.displayName = 'FloatingActionButton';
 
-export default FloatingActionButton;
+export default forwardRef(FloatingActionButton);
