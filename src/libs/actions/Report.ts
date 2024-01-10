@@ -23,7 +23,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
