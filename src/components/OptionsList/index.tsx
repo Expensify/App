@@ -1,5 +1,6 @@
 import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useRef} from 'react';
 import {Keyboard} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseOptionsList from './BaseOptionsList';
