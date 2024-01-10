@@ -4,12 +4,12 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
+type MoneyRequestField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
 /**
  * Map from Violation Names to the field where that violation can occur.
  */
-const violationFields: Record<ViolationName, ViolationField> = {
+const violationFields: Record<ViolationName, MoneyRequestField> = {
     allTagLevelsRequired: 'tag',
     autoReportedRejectedExpense: 'merchant',
     billableExpense: 'billable',
@@ -45,11 +45,11 @@ const violationFields: Record<ViolationName, ViolationField> = {
     taxRequired: 'tax',
 };
 
-type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
+type ViolationsMap = Map<MoneyRequestField, TransactionViolation[]>;
 
 function useViolations(violations: TransactionViolation[]) {
     const violationsByField = useMemo((): ViolationsMap => {
-        const violationGroups = new Map<ViolationField, TransactionViolation[]>();
+        const violationGroups = new Map<MoneyRequestField, TransactionViolation[]>();
 
         for (const violation of violations) {
             const field = violationFields[violation.name];
@@ -60,7 +60,7 @@ function useViolations(violations: TransactionViolation[]) {
         return violationGroups ?? new Map();
     }, [violations]);
 
-    const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
+    const getViolationsForField = useCallback((field: MoneyRequestField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
         getViolationsForField,
@@ -68,4 +68,4 @@ function useViolations(violations: TransactionViolation[]) {
 }
 
 export default useViolations;
-export type {ViolationField};
+export type {MoneyRequestField};

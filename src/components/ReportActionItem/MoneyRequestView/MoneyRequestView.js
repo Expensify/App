@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -26,13 +27,13 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
@@ -42,7 +43,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ReportActionItemImage from './ReportActionItemImage';
+import useMoneyRequestViewErrors from './useMoneyRequestViewErrors';
 
 const violationNames = lodashValues(CONST.VIOLATIONS);
 
@@ -228,6 +229,14 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
+    const {getErrorForField} = useMoneyRequestViewErrors({
+        transactionViolations,
+        hasErrors,
+        isEmptyMerchant,
+        transactionDate,
+        transactionAmount,
+    });
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
@@ -274,9 +283,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
+                        error={getErrorForField('amount')}
                     />
-                    {canUseViolations && <ViolationMessages violations={getViolationsForField('amount')} />}
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
                     <MenuItemWithTopDescription
@@ -289,9 +297,9 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        error={getErrorForField('comment')}
                         numberOfLinesTitle={0}
                     />
-                    {canUseViolations && <ViolationMessages violations={getViolationsForField('comment')} />}
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
@@ -314,9 +322,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                             brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            error={getErrorForField('merchant')}
                         />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
@@ -328,9 +335,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
+                        error={getErrorForField('date')}
                     />
-                    {canUseViolations && <ViolationMessages violations={getViolationsForField('date')} />}
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
@@ -342,8 +348,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
                             brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={getErrorForField('category')}
                         />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('category')} />}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && (
@@ -356,8 +362,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                             brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={getErrorForField('tag')}
                         />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
                     </OfflineWithFeedback>
                 )}
                 {isCardTransaction && (
@@ -379,13 +385,13 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 isOn={transactionBillable}
                                 onToggle={saveBillable}
                             />
+                            {hasViolations('billable') && (
+                                <ViolationMessages
+                                    violations={getViolationsForField('billable')}
+                                    isLast
+                                />
+                            )}
                         </View>
-                        {hasViolations('billable') && (
-                            <ViolationMessages
-                                violations={getViolationsForField('billable')}
-                                isLast
-                            />
-                        )}
                     </>
                 )}
             </View>
