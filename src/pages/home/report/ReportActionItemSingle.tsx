@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,8 +22,8 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import {Icon} from '@src/types/onyx/OnyxCommon';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -187,8 +188,8 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={actorAccountID}
-                delegateAccountID={action.delegateAccountID}
+                accountID={Number(actorAccountID ?? 0)}
+                delegateAccountID={Number(action.delegateAccountID ?? 0)}
                 icon={icon}
             >
                 <View>
