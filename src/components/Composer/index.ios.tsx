@@ -1,8 +1,9 @@
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
-import RNTextInput from '@components/RNTextInput';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -31,6 +32,7 @@ function Composer(
 
     const styles = useThemeStyles();
     const theme = useTheme();
+    const markdownStyle = useMarkdownStyle();
 
     /**
      * Set the TextInput Ref
@@ -70,7 +72,7 @@ function Composer(
     const composerStyles = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
-        <RNTextInput
+        <MarkdownTextInput
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
@@ -78,6 +80,7 @@ function Composer(
             rejectResponderTermination={false}
             smartInsertDelete={false}
             style={[composerStyles, styles.verticalAlignMiddle]}
+            markdownStyle={markdownStyle}
             maxNumberOfLines={maxNumberOfLines}
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}

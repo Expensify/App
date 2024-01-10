@@ -59,6 +59,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
+    "@expensify/react-native-live-markdown": "git+ssh://git@github.com/software-mansion-labs/react-native-live-markdown.git#3f2c3e77f5c193836cceae731423bf350a8229e3",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
     "@formatjs/intl-listformat": "^7.2.2",

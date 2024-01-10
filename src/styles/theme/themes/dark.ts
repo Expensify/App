@@ -20,6 +20,7 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    syntax: colors.productDark600,
     link: colors.blue300,
     linkHover: colors.blue100,
     buttonDefaultBG: colors.productDark400,
