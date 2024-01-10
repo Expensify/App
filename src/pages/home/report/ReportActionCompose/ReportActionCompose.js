@@ -343,8 +343,8 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, isReportReadyForDisplay]);
 
-    const onDisplayFileInModal = () => {
-        attachementModalRef.current.displayFileInModal();
+    const onDisplayFileInModal = (file) => {
+        attachementModalRef.current.displayFileInModal(file);
     };
 
     return (
