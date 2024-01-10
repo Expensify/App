@@ -11,9 +11,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const propTypes = {
-    /** The function that is called when a menu item is pressed */
-    onAddPaymentMethod: PropTypes.func.isRequired,
+type WalletEmptyStateProps = {
+    onAddPaymentMethod: () => void;
 };
 
 const WALLET_FEATURES = [
@@ -31,7 +30,7 @@ const WALLET_FEATURES = [
     },
 ];
 
-function WalletEmptyState({onAddPaymentMethod}) {
+function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     return (
@@ -57,8 +56,5 @@ function WalletEmptyState({onAddPaymentMethod}) {
         </IllustratedHeaderPageLayout>
     );
 }
-
-WalletEmptyState.displayName = 'WalletEmptyState';
-WalletEmptyState.propTypes = propTypes;
 
 export default WalletEmptyState;

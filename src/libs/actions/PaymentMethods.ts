@@ -71,10 +71,10 @@ function openWalletPage() {
 }
 
 function getMakeDefaultPaymentOnyxData(
-    bankAccountID: number,
-    fundID: number,
-    previousPaymentMethod: PaymentMethod,
-    currentPaymentMethod: PaymentMethod,
+    bankAccountID: number | null,
+    fundID: number | null,
+    previousPaymentMethod?: PaymentMethod,
+    currentPaymentMethod?: PaymentMethod,
     isOptimisticData = true,
 ): OnyxUpdate[] {
     const onyxData: OnyxUpdate[] = [
@@ -130,10 +130,10 @@ function getMakeDefaultPaymentOnyxData(
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  */
-function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod: PaymentMethod, currentPaymentMethod: PaymentMethod) {
+function makeDefaultPaymentMethod(bankAccountID: number | null, fundID: number | null, previousPaymentMethod?: PaymentMethod, currentPaymentMethod?: PaymentMethod) {
     type MakeDefaultPaymentMethodParams = {
-        bankAccountID: number;
-        fundID: number;
+        bankAccountID: number | null;
+        fundID: number | null;
     };
 
     const parameters: MakeDefaultPaymentMethodParams = {

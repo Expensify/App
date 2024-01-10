@@ -33,5 +33,7 @@ type TCardDetails = {
     };
 };
 
+type CardList = Record<string, Card>;
+
 export default Card;
-export type {TCardDetails};
+export type {TCardDetails, CardList};

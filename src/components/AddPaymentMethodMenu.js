@@ -122,11 +122,8 @@ AddPaymentMethodMenu.propTypes = propTypes;
 AddPaymentMethodMenu.defaultProps = defaultProps;
 AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(AddPaymentMethodMenu);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(AddPaymentMethodMenu);
