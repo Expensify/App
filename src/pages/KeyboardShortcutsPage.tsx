@@ -8,25 +8,24 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+
+type Shortcut = {
+    displayName: string;
+    descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy';
+};
 
 function KeyboardShortcutsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shortcuts = Object.values(CONST.KEYBOARD_SHORTCUTS)
-        .filter((shortcut) => shortcut.descriptionKey !== undefined && shortcut.descriptionKey !== null)
         .map((shortcut) => {
             const platformAdjustedModifiers = KeyboardShortcut.getPlatformEquivalentForKeys(shortcut.modifiers);
             return {
                 displayName: KeyboardShortcut.getDisplayName(shortcut.shortcutKey, platformAdjustedModifiers),
                 descriptionKey: shortcut.descriptionKey,
             };
-        });
-
-    type Shortcut = {
-        displayName: string;
-        descriptionKey: string | null;
-    };
+        })
+        .filter((shortcut): shortcut is Shortcut => !!shortcut.descriptionKey);
     /**
      * Render the information of a single shortcut
      * @param shortcut - The shortcut to render
@@ -35,7 +34,7 @@ function KeyboardShortcutsPage() {
         <MenuItem
             key={shortcut.displayName}
             title={shortcut.displayName}
-            description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}` as TranslationPaths)}
+            description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
             wrapperStyle={[styles.ph0, styles.cursorAuto]}
             interactive={false}
         />
