@@ -64,6 +64,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
+                    // @ts-expect-error TODO: Remove when SelectionList is migrated to TS
                     shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
