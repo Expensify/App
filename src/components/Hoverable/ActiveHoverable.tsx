@@ -8,7 +8,7 @@ import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 type UseHoveredReturnType = [boolean, (newValue: boolean) => void];
-
+// This is a workaround specifically for the web part of comment linking. Without this adjustment, you might observe sliding effects due to conflicts between  MVCPFlatList implementation and this file. Check it once https://github.com/necolas/react-native-web/pull/2588 is merged
 function useHovered(initialValue: boolean, runHoverAfterInteraction: boolean): UseHoveredReturnType {
     const [state, setState] = useState(initialValue);
 
@@ -20,7 +20,7 @@ function useHovered(initialValue: boolean, runHoverAfterInteraction: boolean): U
         } else {
             setState(newValue);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return [state, interceptedSetState];
 }
