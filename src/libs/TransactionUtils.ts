@@ -568,7 +568,7 @@ function getDefaultTaxName(policyTaxRates: PolicyTaxRates, transaction: Transact
 }
 
 /**
- * Get's the tax name
+ * Gets the tax name
  */
 function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
     const taxName = `${taxes[transactionTaxCode].name}`;
