@@ -160,7 +160,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
 
     const saveCategory = useCallback(
         ({category: newCategory}) => {
-            let updatedCategory = newCategory === transactionCategory ? '' : newCategory;
+            const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
             IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
             Navigation.dismissModal();
         },
