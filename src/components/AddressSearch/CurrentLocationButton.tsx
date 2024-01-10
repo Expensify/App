@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Text} from 'react-native';
 import Icon from '@components/Icon';
@@ -9,21 +8,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import colors from '@styles/theme/colors';
+import type {CurrentLocationButtonProps} from './types';
 
-const propTypes = {
-    /** Callback that runs when location button is clicked */
-    onPress: PropTypes.func,
-
-    /** Boolean to indicate if the button is clickable */
-    isDisabled: PropTypes.bool,
-};
-
-const defaultProps = {
-    isDisabled: false,
-    onPress: () => {},
-};
-
-function CurrentLocationButton({onPress, isDisabled}) {
+function CurrentLocationButton({onPress, isDisabled}: CurrentLocationButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -48,7 +35,5 @@ function CurrentLocationButton({onPress, isDisabled}) {
 }
 
 CurrentLocationButton.displayName = 'CurrentLocationButton';
-CurrentLocationButton.propTypes = propTypes;
-CurrentLocationButton.defaultProps = defaultProps;
 
 export default CurrentLocationButton;

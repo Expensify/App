@@ -1,184 +1,67 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+/* eslint-disable @typescript-eslint/naming-convention */
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef, ReactNode} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import _ from 'underscore';
+import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
-import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
+import type {AddressSearchProps} from './types';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-const propTypes = {
-    /** The ID used to uniquely identify the input in a Form */
-    inputID: PropTypes.string,
-
-    /** Saves a draft of the input value when used in a form */
-    shouldSaveDraft: PropTypes.bool,
-
-    /** Callback that is called when the text input is blurred */
-    onBlur: PropTypes.func,
-
-    /** Error text to display */
-    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
-
-    /** Hint text to display */
-    hint: PropTypes.string,
-
-    /** The label to display for the field */
-    label: PropTypes.string.isRequired,
-
-    /** The value to set the field to initially */
-    value: PropTypes.string,
-
-    /** The value to set the field to initially */
-    defaultValue: PropTypes.string,
-
-    /** A callback function when the value of this field has changed */
-    onInputChange: PropTypes.func.isRequired,
-
-    /** A callback function when an address has been auto-selected */
-    onPress: PropTypes.func,
-
-    /** Customize the TextInput container */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Should address search be limited to results in the USA */
-    isLimitedToUSA: PropTypes.bool,
-
-    /** Shows a current location button in suggestion list */
-    canUseCurrentLocation: PropTypes.bool,
-
-    /** A list of predefined places that can be shown when the user isn't searching for something */
-    predefinedPlaces: PropTypes.arrayOf(
-        PropTypes.shape({
-            /** A description of the location (usually the address) */
-            description: PropTypes.string,
-
-            /** The name of the location */
-            name: PropTypes.string,
-
-            /** Data required by the google auto complete plugin to know where to put the markers on the map */
-            geometry: PropTypes.shape({
-                /** Data about the location */
-                location: PropTypes.shape({
-                    /** Lattitude of the location */
-                    lat: PropTypes.number,
-
-                    /** Longitude of the location */
-                    lng: PropTypes.number,
-                }),
-            }),
-        }),
-    ),
-
-    /** A map of inputID key names */
-    renamedInputKeys: PropTypes.shape({
-        street: PropTypes.string,
-        street2: PropTypes.string,
-        city: PropTypes.string,
-        state: PropTypes.string,
-        lat: PropTypes.string,
-        lng: PropTypes.string,
-        zipCode: PropTypes.string,
-    }),
-
-    /** Maximum number of characters allowed in search input */
-    maxInputLength: PropTypes.number,
-
-    /** The result types to return from the Google Places Autocomplete request */
-    resultTypes: PropTypes.string,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
-    /** Location bias for querying search results. */
-    locationBias: PropTypes.string,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    inputID: undefined,
-    shouldSaveDraft: false,
-    onBlur: () => {},
-    onPress: () => {},
-    errorText: '',
-    hint: '',
-    value: undefined,
-    defaultValue: undefined,
-    containerStyles: [],
-    isLimitedToUSA: false,
-    canUseCurrentLocation: false,
-    renamedInputKeys: {
-        street: 'addressStreet',
-        street2: 'addressStreet2',
-        city: 'addressCity',
-        state: 'addressState',
-        zipCode: 'addressZipCode',
-        lat: 'addressLat',
-        lng: 'addressLng',
-    },
-    maxInputLength: undefined,
-    predefinedPlaces: [],
-    resultTypes: 'address',
-    locationBias: undefined,
-};
-
 function AddressSearch({
-    canUseCurrentLocation,
+    canUseCurrentLocation = false,
     containerStyles,
     defaultValue,
-    errorText,
-    hint,
+    errorText = '',
+    hint = '',
     innerRef,
     inputID,
-    isLimitedToUSA,
+    isLimitedToUSA = false,
     label,
     maxInputLength,
-    network,
     onBlur,
     onInputChange,
     onPress,
-    predefinedPlaces,
+    predefinedPlaces = undefined,
     preferredLocale,
     renamedInputKeys,
-    resultTypes,
-    shouldSaveDraft,
-    translate,
+    resultTypes = 'address',
+    shouldSaveDraft = false,
     value,
     locationBias,
-}) {
+}: AddressSearchProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-    const [searchValue, setSearchValue] = useState(value || defaultValue || '');
-    const [locationErrorCode, setLocationErrorCode] = useState(null);
+    const [searchValue, setSearchValue] = useState(value ?? defaultValue ?? '');
+    const [locationErrorCode, setLocationErrorCode] = useState<number | null>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
-    const containerRef = useRef();
+    const containerRef = useRef<View>(null);
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -189,18 +72,18 @@ function AddressSearch({
         [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
-    const saveLocationDetails = (autocompleteData, details) => {
-        const addressComponents = details.address_components;
+    const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
+        const addressComponents = details?.address_components;
         if (!addressComponents) {
             // When there are details, but no address_components, this indicates that some predefined options have been passed
             // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
             // amount of data massaging needs to happen for what the parent expects to get from this function.
-            if (_.size(details)) {
-                onPress({
-                    address: autocompleteData.description || lodashGet(details, 'description', ''),
-                    lat: lodashGet(details, 'geometry.location.lat', 0),
-                    lng: lodashGet(details, 'geometry.location.lng', 0),
-                    name: lodashGet(details, 'name'),
+            if (details) {
+                onPress?.({
+                    address: autocompleteData.description,
+                    lat: details.geometry.location.lat,
+                    lng: details.geometry.location.lng,
+                    name: details.name,
                 });
             }
             return;
@@ -243,15 +126,15 @@ function AddressSearch({
             country: countryFallbackLongName = '',
             state: stateAutoCompleteFallback = '',
             city: cityAutocompleteFallback = '',
-        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
-        const countryFallback = _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
+        const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
-        const country = countryPrimary || countryFallback;
+        const country = countryPrimary ?? countryFallback ?? '';
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-            name: lodashGet(details, 'name', ''),
+            name: details.name ?? '',
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
             // Make sure country is updated first, since city and state will be reset if the country changes
@@ -264,9 +147,9 @@ function AddressSearch({
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
-            lat: lodashGet(details, 'geometry.location.lat', 0),
-            lng: lodashGet(details, 'geometry.location.lng', 0),
-            address: autocompleteData.description || lodashGet(details, 'formatted_address', ''),
+            lat: details.geometry.location.lat ?? 0,
+            lng: details.geometry.location.lng ?? 0,
+            address: autocompleteData.description ?? details.formatted_address ?? '',
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -282,7 +165,7 @@ function AddressSearch({
         }
 
         // Set the state to be the same as the city in case the state is empty.
-        if (_.isEmpty(values.state)) {
+        if (values.state) {
             values.state = values.city;
         }
 
@@ -291,7 +174,7 @@ function AddressSearch({
         if (!values.street && details.adr_address) {
             const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
             const adr_address = details.adr_address.match(streetAddressRegex);
-            const streetAddressFallback = lodashGet(adr_address, [1], null);
+            const streetAddressFallback = adr_address ? adr_address[1] : null;
             if (streetAddressFallback) {
                 values.street = streetAddressFallback;
             }
@@ -299,28 +182,28 @@ function AddressSearch({
 
         // Not all pages define the Address Line 2 field, so in that case we append any additional address details
         // (e.g. Apt #) to Address Line 1
-        if (subpremise && typeof renamedInputKeys.street2 === 'undefined') {
+        if (subpremise && typeof renamedInputKeys?.street2 === 'undefined') {
             values.street += `, ${subpremise}`;
         }
 
-        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        const isValidCountryCode = Object.keys(CONST.ALL_COUNTRIES).find((foundCountry) => foundCountry === country);
         if (isValidCountryCode) {
             values.country = country;
         }
 
         if (inputID) {
-            _.each(values, (inputValue, key) => {
-                const inputKey = lodashGet(renamedInputKeys, key, key);
+            Object.keys(values).forEach((inputValue, key) => {
+                const inputKey = renamedInputKeys?.key ?? key;
                 if (!inputKey) {
                     return;
                 }
-                onInputChange(inputValue, inputKey);
+                onInputChange?.(inputValue, inputKey);
             });
         } else {
-            onInputChange(values);
+            onInputChange?.(values);
         }
 
-        onPress(values);
+        onPress?.(values);
     };
 
     /** Gets the user's current location and registers success/error callbacks */
@@ -351,7 +234,7 @@ function AddressSearch({
                     address: CONST.YOUR_LOCATION_TEXT,
                     name: CONST.YOUR_LOCATION_TEXT,
                 };
-                onPress(location);
+                onPress?.(location);
             },
             (errorData) => {
                 if (!shouldTriggerGeolocationCallbacks.current) {
@@ -368,19 +251,22 @@ function AddressSearch({
         );
     };
 
-    const renderHeaderComponent = () =>
-        predefinedPlaces.length > 0 && (
-            <>
-                {/* This will show current location button in list if there are some recent destinations */}
-                {shouldShowCurrentLocationButton && (
-                    <CurrentLocationButton
-                        onPress={getCurrentLocation}
-                        isDisabled={network.isOffline}
-                    />
-                )}
-                {!value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{translate('common.recentDestinations')}</Text>}
-            </>
-        );
+    const renderHeaderComponent = () => (
+        <>
+            {predefinedPlaces?.length && predefinedPlaces.length > 0 && (
+                <>
+                    {/* This will show current location button in list if there are some recent destinations */}
+                    {shouldShowCurrentLocationButton && (
+                        <CurrentLocationButton
+                            onPress={getCurrentLocation}
+                            isDisabled={isOffline}
+                        />
+                    )}
+                    {!value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{translate('common.recentDestinations')}</Text>}
+                </>
+            )}
+        </>
+    );
 
     // eslint-disable-next-line arrow-body-style
     useEffect(() => {
@@ -391,11 +277,8 @@ function AddressSearch({
     }, []);
 
     const listEmptyComponent = useCallback(
-        () =>
-            network.isOffline || !isTyping ? null : (
-                <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>
-            ),
-        [network.isOffline, isTyping, styles, translate],
+        () => (isOffline ?? !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+        [isOffline, isTyping, styles, translate],
     );
 
     const listLoader = useCallback(
@@ -441,6 +324,7 @@ function AddressSearch({
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
                         renderRow={(data) => {
+                            // const convertedData = data as unknown as ExtendedPlace;
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
@@ -464,27 +348,15 @@ function AddressSearch({
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
-                            ref: (node) => {
-                                if (!innerRef) {
-                                    return;
-                                }
-
-                                if (_.isFunction(innerRef)) {
-                                    innerRef(node);
-                                    return;
-                                }
-
-                                // eslint-disable-next-line no-param-reassign
-                                innerRef.current = node;
-                            },
+                            ref: innerRef,
                             label,
                             containerStyles,
                             errorText,
-                            hint: displayListViewBorder || (predefinedPlaces.length === 0 && shouldShowCurrentLocationButton) || (canUseCurrentLocation && isTyping) ? undefined : hint,
+                            hint: displayListViewBorder || (predefinedPlaces?.length === 0 && shouldShowCurrentLocationButton) || (canUseCurrentLocation && isTyping) ? undefined : hint,
                             value,
                             defaultValue,
                             inputID,
@@ -498,20 +370,17 @@ function AddressSearch({
                                     setIsFocused(false);
                                     setIsTyping(false);
                                 }
-                                onBlur();
+                                onBlur?.();
                             },
                             autoComplete: 'off',
-                            onInputChange: (text) => {
+                            onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
                                 if (inputID) {
-                                    onInputChange(text);
-                                } else {
-                                    onInputChange({street: text});
+                                    onInputChange?.(text);
                                 }
-
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
-                                if (_.isEmpty(text) && _.isEmpty(predefinedPlaces)) {
+                                if (!text && !predefinedPlaces) {
                                     setDisplayListViewBorder(false);
                                 }
                             },
@@ -530,22 +399,21 @@ function AddressSearch({
                         isRowScrollable={false}
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
-                        onLayout={(event) => {
+                        onLayout={(event: LayoutChangeEvent) => {
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
-                            predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
+                            predefinedPlaces?.length === 0 &&
+                            shouldShowCurrentLocationButton && (
                                 <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
-                                        isDisabled={network.isOffline}
+                                        isDisabled={isOffline}
                                     />
                                 </View>
-                            ) : (
-                                <></>
                             )
                         }
                         placeholder=""
@@ -561,18 +429,18 @@ function AddressSearch({
     );
 }
 
-AddressSearch.propTypes = propTypes;
-AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-const AddressSearchWithRef = React.forwardRef((props, ref) => (
-    <AddressSearch
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+const AddressSearchWithRef = forwardRef(
+    (props: AddressSearchProps, ref: ForwardedRef<HTMLElement>): ReactNode => (
+        <AddressSearch
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    ),
+);
 
 AddressSearchWithRef.displayName = 'AddressSearchWithRef';
 
-export default compose(withNetwork(), withLocalize)(AddressSearchWithRef);
+export default AddressSearchWithRef;
