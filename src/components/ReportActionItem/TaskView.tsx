@@ -1,9 +1,8 @@
-import lodashGet from 'lodash/get';
+import _ from 'lodash';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import _ from 'underscore';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -65,7 +64,7 @@ function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: Tas
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([report.managerID], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, lodashGet(policy, 'role', ''));
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role ?? '');
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -75,7 +74,7 @@ function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: Tas
         <View>
             <OfflineWithFeedback
                 shouldShowErrorMessages
-                errors={lodashGet(report, 'errorFields.editTask') ?? lodashGet(report, 'errorFields.createTask')}
+                errors={report.errorFields?.editTask ?? report.errorFields?.createTask}
                 onClose={() => Task.clearTaskErrors(report.reportID)}
                 errorRowStyles={styles.ph5}
             >
@@ -102,7 +101,7 @@ function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: Tas
                             accessibilityLabel={taskTitle || translate('task.task')}
                         >
                             {({pressed}) => (
-                                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.reportName')}>
+                                <OfflineWithFeedback pendingAction={report.pendingFields?.reportName}>
                                     <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
@@ -144,7 +143,7 @@ function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: Tas
                         </PressableWithSecondaryInteraction>
                     )}
                 </Hoverable>
-                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
+                <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                     <MenuItemWithTopDescription
                         shouldParseTitle
                         description={translate('task.description')}
@@ -159,7 +158,7 @@ function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: Tas
                     />
                 </OfflineWithFeedback>
                 {report.managerID ? (
-                    <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.managerID')}>
+                    <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
                         <MenuItem
                             label={translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
