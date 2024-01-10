@@ -95,6 +95,7 @@ const defaultProps = {
     screenShareRequest: null,
     isCheckingPublicRoom: true,
     focusModeNotification: false,
+    lastVisitedPath: undefined,
 };
 
 const SplashScreenHiddenContext = React.createContext({});
