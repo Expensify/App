@@ -3611,6 +3611,12 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             backgroundColor: theme.splashBG,
         },
+        splashScreenVideoContainerIOS: {
+            flex: 1,
+            backgroundColor: theme.splashBG,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
         splashScreenVideo: {
             width: '100%',
             // Aspect ratio from video files, important, so the view is only as high as the video

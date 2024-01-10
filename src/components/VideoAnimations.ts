@@ -3,7 +3,12 @@ const ExpensifySonicMinimalNonvocal = require('../../assets/videos/native/Expens
 const ExpensifyFullVocal = require('../../assets/videos/native/Expensify_Sonic_Full_Vocal.mp4');
 const ExpensifyFullNonvocal = require('../../assets/videos/native/Expensify_Sonic_Full_Nonvocal.mp4');
 
-const splashVideoVariants = [
+type VideoVariant = {
+    file: NodeRequire;
+    fileName: string;
+};
+
+const splashVideoVariants: VideoVariant[] = [
     {file: ExpensifyFullNonvocal, fileName: 'Full Nonvocal'},
     {file: ExpensifyFullVocal, fileName: 'Full Vocal'},
     {file: ExpensifySonicMinimalNonvocal, fileName: 'Sonic Minimal Nonvocal'},
