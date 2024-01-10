@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,7 +26,7 @@ type ThreeDotsMenuProps = {
     icon?: IconAsset;
 
     /** Any additional styles to pass to the icon container. */
-    iconStyles?: ViewStyle[];
+    iconStyles?: StyleProp<ViewStyle>;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -57,7 +57,7 @@ function ThreeDotsMenu({
     iconTooltip = 'common.more',
     icon = Expensicons.ThreeDots,
     iconFill,
-    iconStyles = [],
+    iconStyles,
     onIconPress = () => {},
     menuItems,
     anchorPosition,
@@ -107,7 +107,7 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, ...iconStyles]}
+                        style={[styles.touchableButtonImage, iconStyles]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate(iconTooltip)}
                     >
