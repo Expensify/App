@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {LayoutChangeEvent,GestureResponderEvent} from 'react-native';
-import { View} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';

@@ -1,5 +1,5 @@
-import type ZoomRange from '@components/MultiGestureCanvas/types';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type ZoomRange from '@components/MultiGestureCanvas/types';
 
 type ImageViewProps = {
     /** Whether source url requires authentication */
