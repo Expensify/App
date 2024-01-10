@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Search from '@components/Search';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
