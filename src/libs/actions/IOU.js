@@ -1054,11 +1054,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     }
 
     // Add optimistic transaction violations
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-        value: ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
-    });
+    optimisticData.push(ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories));
 
     // Clear out the error fields and loading states on success
     successData.push({
@@ -2272,7 +2268,6 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
     const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
-    // TODO
     const previousViolationsOnyxData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -2309,11 +2304,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
                 lastVisibleActionCreated: currentTime,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: updatedViolationsOnyxData,
-        },
+        updatedViolationsOnyxData,
         ...(!isScanning
             ? [
                   {
