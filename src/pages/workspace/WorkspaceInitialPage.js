@@ -60,7 +60,6 @@ function dismissError(policyID) {
 function WorkspaceInitialPage(props) {
     const styles = useThemeStyles();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
     const waitForNavigate = useWaitForNavigation();
@@ -70,42 +69,6 @@ function WorkspaceInitialPage(props) {
     const {translate} = useLocalize();
 
     const policyID = useMemo(() => policy.id, [policy]);
-    const [policyReports] = useMemo(() => {
-        const reports = [];
-        let admins;
-        let announce;
-        _.each(props.reports, (report) => {
-            if (!report || report.policyID !== policyID) {
-                return;
-            }
-
-            reports.push(report);
-
-            if (!report.reportID || ReportUtils.isThread(report)) {
-                return;
-            }
-
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) {
-                admins = report;
-                return;
-            }
-
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE) {
-                announce = report;
-            }
-        });
-        return [reports, admins, announce];
-    }, [policyID, props.reports]);
-
-    /**
-     * Call the delete policy and hide the modal
-     */
-    const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports, policy.name);
-        setIsDeleteModalOpen(false);
-        // Pop the deleted workspace page before opening workspace settings.
-        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-    }, [policyID, policy.name, policyReports]);
 
     useEffect(() => {
         const policyDraftId = lodashGet(props.policyDraft, 'id', null);
@@ -259,16 +222,6 @@ function WorkspaceInitialPage(props) {
                     onCancel={() => setIsCurrencyModalOpen(false)}
                     prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
                     confirmText={translate('workspace.bankAccount.updateToUSD')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    title={translate('workspace.common.delete')}
-                    isVisible={isDeleteModalOpen}
-                    onConfirm={confirmDeleteAndHideModal}
-                    onCancel={() => setIsDeleteModalOpen(false)}
-                    prompt={translate('workspace.common.deleteConfirmation')}
-                    confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                 />
