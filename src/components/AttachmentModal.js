@@ -19,7 +19,6 @@ import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -34,6 +33,7 @@ import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import transactionPropTypes from './transactionPropTypes';
@@ -47,7 +47,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 
 const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]),
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
@@ -94,6 +94,9 @@ const propTypes = {
 
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment: PropTypes.bool,
+
+    /** Whether the receipt can be replaced */
+    canEditReceipt: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -112,6 +115,7 @@ const defaultProps = {
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
     isReceiptAttachment: false,
+    canEditReceipt: false,
 };
 
 function AttachmentModal(props) {
@@ -125,7 +129,7 @@ function AttachmentModal(props) {
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
-    const [source, setSource] = useState(props.source);
+    const [source, setSource] = useState(() => props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
@@ -357,25 +361,37 @@ function AttachmentModal(props) {
         setIsModalOpen(true);
     }, []);
 
-    const sourceForAttachmentView = props.source || source;
+    useEffect(() => {
+        setSource(() => props.source);
+    }, [props.source]);
+
+    useEffect(() => {
+        setIsAuthTokenRequired(props.isAuthTokenRequired);
+    }, [props.isAuthTokenRequired]);
+
+    const sourceForAttachmentView = source || props.source;
 
     const threeDotsMenuItems = useMemo(() => {
         if (!props.isReceiptAttachment || !props.parentReport || !props.parentReportActions) {
             return [];
         }
-        const menuItems = [];
-        const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
 
-        const canEdit =
-            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT) &&
-            !TransactionUtils.isDistanceRequest(props.transaction);
-        if (canEdit) {
+        const menuItems = [];
+        if (props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
                 text: props.translate('common.replace'),
                 onSelected: () => {
                     closeModal();
-                    Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            props.transaction.transactionID,
+                            props.report.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 },
             });
         }
@@ -384,7 +400,7 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && canEdit) {
+        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('receipt.deleteReceipt'),
@@ -395,7 +411,7 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file, source]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.

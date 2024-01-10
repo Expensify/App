@@ -1,3 +1,4 @@
+import {truncate} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -151,8 +152,9 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
-    const description = requestComment;
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
@@ -164,10 +166,16 @@ function MoneyRequestPreview(props) {
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
+    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
+
+    let merchantOrDescription = requestMerchant;
+    if (!shouldShowMerchant) {
+        merchantOrDescription = description || '';
+    } else if (hasPendingWaypoints) {
+        merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
+    }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
-
-    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
 
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
@@ -202,7 +210,7 @@ function MoneyRequestPreview(props) {
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
@@ -315,21 +323,12 @@ function MoneyRequestPreview(props) {
                                     </View>
                                 )}
                             </View>
-                            {shouldShowMerchant && !props.isBillSplit && (
-                                <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
-                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : requestMerchant}
-                                    </Text>
-                                </View>
-                            )}
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {(shouldShowDescription || (shouldShowMerchant && props.isBillSplit)) && (
-                                        <Text style={[styles.colorMuted]}>{shouldShowDescription ? description : requestMerchant}</Text>
-                                    )}
+                                    {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
