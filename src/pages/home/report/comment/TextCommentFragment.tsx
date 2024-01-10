@@ -37,7 +37,7 @@ type TextCommentFragmentProps = {
     iouMessage?: string;
 };
 
-function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAsGroup, iouMessage}: TextCommentFragmentProps) {
+function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAsGroup, iouMessage=''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = '', text} = fragment;
