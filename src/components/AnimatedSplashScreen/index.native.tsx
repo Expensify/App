@@ -54,8 +54,8 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
                 },
             ]}
         >
-            {/* We wrap the space around the video with two views that fill the background.
-                This is because on android when overlaying semi transparent views their colors
+            {/* We wrap the space around the video with two views that fill the background, instead of the
+                parent view having a background. This is because on android when overlaying semi transparent views their colors
                 are blend together and the result looks odd, as you'd be able to see the video view frame then.
             */}
             <View style={styles.splashScreenFillView} />
