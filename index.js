@@ -9,4 +9,4 @@ import additionalAppSetup from './src/setup';
 
 enableLegacyWebImplementation(true);
 AppRegistry.registerComponent(Config.APP_NAME, () => App);
-additionalAppSetup();
+additionalAppSetup();;;;

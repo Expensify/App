@@ -44,7 +44,7 @@ Onyx.registerLogger(({level, message}) => {
     } else {
         Log.info(message);
     }
-});
+});;;;;
 
 const propTypes = {
     /* Onyx Props */

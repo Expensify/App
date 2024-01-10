@@ -12,7 +12,7 @@ const fs = (__nccwpck_require__(7147).promises);
 const path = __nccwpck_require__(1017);
 const getMajorVersion = __nccwpck_require__(6688);
 const getMinorVersion = __nccwpck_require__(8447);
-const getPatchVersion = __nccwpck_require__(2866);
+const getPatchVersion = __nccwpck_require__(2866);;;;;;
 const getBuildVersion = __nccwpck_require__(4016);
 
 // Filepath constants
