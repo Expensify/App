@@ -27,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPanePath';
+import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
@@ -268,7 +268,7 @@ function InitialSettingsPage(props) {
                                 onSecondaryInteraction={
                                     !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
                                 }
-                                focused={activeRoute && activeRoute.startsWith(item.routeName, 1)}
+                                focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', '')}
                                 isPaneMenu
                             />
                         );

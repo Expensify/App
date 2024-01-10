@@ -114,6 +114,7 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
+        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -208,7 +209,7 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CURRENCY: 'Workspace_Overview_Currency',
-        NAME: 'Workspace_Name',
+        NAME: 'Workspace_Overview_Name',
     },
 
     EDIT_REQUEST: {
@@ -238,6 +239,7 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
+    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',

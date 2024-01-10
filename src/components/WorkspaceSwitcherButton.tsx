@@ -4,6 +4,8 @@ import CONST from '@src/CONST';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import SubscriptAvatar from './SubscriptAvatar';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 function WorkspaceSwitcherButton() {
     const {translate} = useLocalize();
@@ -13,11 +15,13 @@ function WorkspaceSwitcherButton() {
             accessibilityRole={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('common.workspaces')}
             accessible
-            onPress={() => {}}
+            onPress={() => {
+                Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
+            }}
         >
             <SubscriptAvatar
-                mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
-                subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}
+                mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}}
+                subscriptIcon={{source: Expensicons.DownArrow, width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE, height: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE}}
                 showTooltip={false}
                 noMargin
             />

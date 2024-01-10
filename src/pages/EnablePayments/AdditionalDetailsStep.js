@@ -87,7 +87,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     const shouldAskForFullSSN = walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
     /**
-     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     * @param {Object} values The values object is passed from FormProvider and contains info for each form element that has an inputID
      * @returns {Object}
      */
     const validate = (values) => {
@@ -128,7 +128,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     };
 
     /**
-     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     * @param {Object} values The values object is passed from FormProvider and contains info for each form element that has an inputID
      */
     const activateWallet = (values) => {
         const personalDetails = {
@@ -149,7 +149,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
     if (!_.isEmpty(walletAdditionalDetails.questions)) {
         return (
             <ScreenWrapper
-                shouldShowOfflineIndicator={false}
+                shouldShowOfflineIndicatorSmallWidth={false}
                 style={[styles.flex1, styles.pt0]}
                 keyboardAvoidingViewBehavior="height"
                 testID={AdditionalDetailsStep.displayName}

@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';
@@ -58,11 +59,15 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
         initialRouteName,
     });
 
+    const styles = useThemeStyles();
     const stateToRender = getStateToRender(state);
 
     return (
-        <ScreenWrapper testID={CustomBottomTabNavigator.displayName}>
-            <View style={{flex: 1}}>
+        <ScreenWrapper
+            testID={CustomBottomTabNavigator.displayName}
+            shouldShowOfflineIndicatorSmallWidth={false}
+        >
+            <View style={styles.flex1}>
                 <TopBar />
                 <NavigationContent>
                     <StackView

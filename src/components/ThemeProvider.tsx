@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
+// eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';

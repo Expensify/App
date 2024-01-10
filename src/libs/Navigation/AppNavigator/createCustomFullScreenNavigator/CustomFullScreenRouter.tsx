@@ -2,7 +2,7 @@ import type {NavigationState, ParamListBase, PartialState, RouterConfigOptions, 
 import {StackRouter} from '@react-navigation/native';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import SCREENS from '@src/SCREENS';
-import type {ResponsiveStackNavigatorRouterOptions} from './types';
+import type {FullScreenNavigatorRouterOptions} from './types';
 
 // TODO: export states to separate file
 type State = NavigationState | PartialState<NavigationState>;
@@ -29,7 +29,7 @@ const addCentralPaneNavigatorRoute = (state: State) => {
     (state.index as number) = state.routes.length - 1;
 };
 
-function CustomFullScreenRouter(options: ResponsiveStackNavigatorRouterOptions) {
+function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
     return {
@@ -44,7 +44,6 @@ function CustomFullScreenRouter(options: ResponsiveStackNavigatorRouterOptions) 
         },
         getRehydratedState(partialState: StackNavigationState<ParamListBase>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
             const isSmallScreenWidth = getIsSmallScreenWidth();
-            // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
             if (!isAtLeastOneInState(partialState, SCREENS.SETTINGS_CENTRAL_PANE) && !isSmallScreenWidth) {
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
 

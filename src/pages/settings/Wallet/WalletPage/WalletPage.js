@@ -17,8 +17,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import Text from '@components/Text';
-import WalletSection from '@components/WalletSection';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -333,13 +333,16 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             {shouldShowEmptyState ? (
                 <WalletEmptyState onAddPaymentMethod={paymentMethodPressed} />
             ) : (
-                <ScreenWrapper testID={WalletPage.displayName}>
+                <ScreenWrapper
+                    testID={WalletPage.displayName}
+                    shouldShowOfflineIndicator
+                >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <View style={[styles.flex1, styles.mb4]}>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <ScrollView>
                             <OfflineWithFeedback
                                 style={styles.flex1}
@@ -349,7 +352,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                 errorRowStyles={[styles.ph6]}
                             >
                                 {hasWallet && (
-                                    <WalletSection
+                                    <Section
                                         icon={Illustrations.MoneyIntoWallet}
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
@@ -448,10 +451,10 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                 }}
                                             </KYCWall>
                                         </>
-                                    </WalletSection>
+                                    </Section>
                                 )}
                                 {hasAssignedCard ? (
-                                    <WalletSection
+                                    <Section
                                         icon={Illustrations.CreditCardsNew}
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
@@ -470,9 +473,9 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                             buttonRef={addPaymentMethodAnchorRef}
                                             onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         />
-                                    </WalletSection>
+                                    </Section>
                                 ) : null}
-                                <WalletSection
+                                <Section
                                     icon={Illustrations.BankArrow}
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('walletPage.bankAccounts')}
@@ -489,7 +492,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         shouldEnableScroll={false}
                                         style={styles.mt5}
                                     />
-                                </WalletSection>
+                                </Section>
                             </OfflineWithFeedback>
                         </ScrollView>
                     </View>

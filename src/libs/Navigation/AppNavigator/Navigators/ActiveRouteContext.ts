@@ -1,5 +1,5 @@
 import React from 'react';
 
-const ActiveRouteContext = React.createContext<string>('');
+const ActiveRouteContext = React.createContext('');
 
 export default ActiveRouteContext;

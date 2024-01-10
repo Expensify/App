@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
@@ -23,15 +24,18 @@ const propTypes = {
 
 function WorkspaceBillsPage(props) {
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
             headerText={props.translate('workspace.common.bills')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
+            shouldShowOfflineIndicator
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.workspaceSection, styles.mt6]}>
+                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
                 </View>

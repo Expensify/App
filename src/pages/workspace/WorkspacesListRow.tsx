@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -50,7 +51,7 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
         case CONST.POLICY.TYPE.TEAM:
             return Illustrations.Mailbox;
         default:
-            throw new Error(`Don't know which icon to serve for workspace type`);
+            return Illustrations.Mailbox;
     }
 };
 
@@ -66,6 +67,8 @@ function WorkspacesListRow({
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
+    const threeDotsMenuContainerRef = useRef<View>(null);
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -78,7 +81,7 @@ function WorkspacesListRow({
             case CONST.POLICY.TYPE.TEAM:
                 return translate('workspace.type.collect');
             default:
-                throw new Error(`Don't know a friendly workspace name for this workspace type`);
+                return translate('workspace.type.free');
         }
     }, [workspaceType, translate]);
 
@@ -163,11 +166,23 @@ function WorkspacesListRow({
                 </View>
             </View>
             {isWide && (
-                <ThreeDotsMenu
-                    menuItems={menuItems}
-                    anchorPosition={{top: 0, right: 0}}
-                    iconStyles={[styles.mr2]}
-                />
+                <View ref={threeDotsMenuContainerRef}>
+                    <ThreeDotsMenu
+                        onIconPress={() => {
+                            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                setThreeDotsMenuPosition({
+                                    horizontal: x,
+                                    vertical: y + height + variables.componentBorderRadiusSmall,
+                                });
+                            });
+                        }}
+                        menuItems={menuItems}
+                        anchorPosition={threeDotsMenuPosition}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        iconStyles={[styles.mr2]}
+                        shouldOverlay
+                    />
+                </View>
             )}
         </View>
     );
