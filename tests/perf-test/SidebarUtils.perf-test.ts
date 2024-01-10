@@ -64,7 +64,7 @@ test('[SidebarUtils] getOptionData on 5k reports', async () => {
 test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
     const currentReportId = '1';
     const allReports = getMockedReports();
-    const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+    const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
     const policies = createCollection<Policy>(
         (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
