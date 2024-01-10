@@ -1,5 +1,6 @@
 import type {TNode} from 'react-native-render-html';
-import type {Predicate} from './types';
+
+type Predicate = (node: TNode) => boolean;
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -47,7 +48,7 @@ function isChildOfNode(tnode: TNode, predicate: Predicate): boolean {
  * Finding node with name 'comment' flags that we are rendering a comment.
  */
 function isChildOfComment(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && isCommentTag(node.domNode?.name));
+    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && isCommentTag(node.domNode.name));
 }
 
 /**
@@ -55,7 +56,7 @@ function isChildOfComment(tnode: TNode): boolean {
  * Finding a node with the name 'h1' flags that we are rendering inside an h1 element.
  */
 function isChildOfH1(tnode: TNode): boolean {
-    return isChildOfNode(tnode, (node) => node.domNode?.name !== null && node.domNode?.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'h1');
 }
 
 export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1};

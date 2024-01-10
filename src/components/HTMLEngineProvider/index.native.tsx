@@ -1,8 +1,8 @@
 import React from 'react';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import type {HTMLEngineProviderProps} from './types';
 
-function HTMLEngineProvider({children}: HTMLEngineProviderProps) {
+function HTMLEngineProvider({children}: ChildrenProps) {
     return <BaseHTMLEngineProvider enableExperimentalBRCollapsing>{children}</BaseHTMLEngineProvider>;
 }
 

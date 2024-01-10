@@ -1,10 +1,10 @@
 import React from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import type {HTMLEngineProviderProps} from './types';
 
-function HTMLEngineProvider({children = null}: HTMLEngineProviderProps) {
+function HTMLEngineProvider({children}: ChildrenProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return <BaseHTMLEngineProvider textSelectable={!DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth}>{children}</BaseHTMLEngineProvider>;
