@@ -22,7 +22,7 @@ type BaseVideoChatButtonAndMenuProps = VideoChatButtonAndMenuProps & {
     googleMeetURL: string;
 };
 
-function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
+function BaseVideoChatButtonAndMenu({googleMeetURL, isConcierge = false, guideCalendarLink}: BaseVideoChatButtonAndMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -46,7 +46,7 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
             text: translate('videoChatButtonAndMenu.googleMeet'),
             onPress: () => {
                 setIsVideoChatMenuActive(false);
-                Link.openExternalLink(props.googleMeetURL);
+                Link.openExternalLink(googleMeetURL);
             },
         },
     ];
@@ -90,8 +90,8 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
                             videoChatButtonRef.current?.blur();
 
                             // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                            if (props.isConcierge && props.guideCalendarLink) {
-                                Link.openExternalLink(props.guideCalendarLink);
+                            if (isConcierge && guideCalendarLink) {
+                                Link.openExternalLink(guideCalendarLink);
                                 return;
                             }
                             setIsVideoChatMenuActive((previousVal) => !previousVal);
@@ -124,7 +124,6 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
                             wrapperStyle={styles.mr3}
                             key={text}
                             icon={icon}
-                            iconType={CONST.ICON_TYPE_ICON}
                             title={text}
                             onPress={onPress}
                         />
