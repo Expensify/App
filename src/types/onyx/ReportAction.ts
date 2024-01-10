@@ -1,11 +1,12 @@
-import {ValueOf} from 'type-fest';
-import {AvatarSource} from '@libs/UserUtils';
-import CONST from '@src/CONST';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
-import * as OnyxCommon from './OnyxCommon';
-import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
-import {NotificationPreference} from './Report';
-import {Receipt} from './Transaction';
+import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type * as OnyxCommon from './OnyxCommon';
+import type {Decision, Reaction} from './OriginalMessage';
+import type OriginalMessage from './OriginalMessage';
+import type {NotificationPreference} from './Report';
+import type {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -193,6 +194,9 @@ type ReportActionBase = {
 
     /** We manually add this field while sorting to detect the end of the list */
     isNewestReportAction?: boolean;
+
+    /** Flag for checking if data is from optimistic data */
+    isOptimisticAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
@@ -200,4 +204,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};
