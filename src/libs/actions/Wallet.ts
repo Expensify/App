@@ -1,11 +1,12 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
-import CONST from '@src/CONST';
+import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {WalletAdditionalQuestionDetails} from '@src/types/onyx';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type WalletTerms = {
     hasAcceptedTerms: boolean;
@@ -66,8 +67,7 @@ function openOnfidoFlow() {
         {},
         {
             optimisticData,
-            successData: finallyData,
-            failureData: finallyData,
+            finallyData,
         },
     );
 }
@@ -120,8 +120,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
 
     API.write('UpdatePersonalDetailsForWallet', personalDetails, {
         optimisticData,
-        successData: finallyData,
-        failureData: finallyData,
+        finallyData,
     });
 }
 
@@ -282,8 +281,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
 
     API.write('AnswerQuestionsForWallet', requestParams, {
         optimisticData,
-        successData: finallyData,
-        failureData: finallyData,
+        finallyData,
     });
 }
 
