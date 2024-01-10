@@ -370,7 +370,7 @@ function addActions(reportID: string, text = '', file?: File) {
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey]) => {
-        successReportActions[actionKey] = {pendingAction: null};
+        successReportActions[actionKey] = {pendingAction: null, isOptimisticAction: null};
     });
 
     const successData: OnyxUpdate[] = [
@@ -942,6 +942,7 @@ function readNewestAction(reportID: string) {
     };
 
     API.write('ReadNewestAction', parameters, {optimisticData});
+    DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
 /**

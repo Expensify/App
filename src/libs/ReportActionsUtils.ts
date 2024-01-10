@@ -378,8 +378,18 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction && !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const isPending = !!reportAction.pendingAction;
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+}
+
+/**
+ * Checks if the new marker should be hidden for the report action.
+ */
+function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!reportAction) {
+        return true;
+    }
+    return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -841,6 +851,7 @@ export {
     isWhisperAction,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
+    shouldHideNewMarker,
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
