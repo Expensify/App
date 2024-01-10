@@ -66,8 +66,8 @@ type MoneyRequestInformation = {
     chatReport: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
     iouAction: OptimisticIOUReportAction;
-    createdChatReportActionID: string | number;
-    createdIOUReportActionID: string | number;
+    createdChatReportActionID: string;
+    createdIOUReportActionID: string;
     reportPreviewAction: OnyxTypes.ReportAction;
     onyxData: OnyxData;
 };
@@ -755,10 +755,10 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    // TODO: Remove this type once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+    // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category) as OptimisticPolicyRecentlyUsedCategories;
 
-    // TODO: Remove this type once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+    // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag) as OptimisticPolicyRecentlyUsedTags;
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -854,8 +854,8 @@ function getMoneyRequestInformation(
         chatReport,
         transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
-        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '0',
+        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : '0',
         reportPreviewAction,
         onyxData: {
             optimisticData,
@@ -916,8 +916,8 @@ function createDistanceRequest(
         chatReportID: string;
         transactionID: string;
         reportActionID: string;
-        createdChatReportActionID: string | number;
-        createdIOUReportActionID: string | number;
+        createdChatReportActionID: string;
+        createdIOUReportActionID: string;
         reportPreviewReportActionID: string;
         waypoints: string;
         created: string;
@@ -1247,8 +1247,8 @@ function requestMoney(
         chatReportID: string;
         transactionID: string;
         reportActionID: string;
-        createdChatReportActionID: string | number;
-        createdIOUReportActionID: string | number;
+        createdChatReportActionID: string;
+        createdIOUReportActionID: string;
         reportPreviewReportActionID: string;
         receipt: Receipt;
         receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
