@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type AnchorAlignment from '@src/types/onyx/AnchorAlignment';
+import type {AnchorAlignment} from '@src/types/onyx';
 import Button from './Button';
 import HoldMenuSectionList from './HoldMenuSectionList';
 import type {PopoverAnchorPosition} from './Modal/types';

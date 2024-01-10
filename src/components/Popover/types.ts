@@ -1,7 +1,7 @@
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import type AnchorAlignment from '@src/types/onyx/AnchorAlignment';
+import type {AnchorAlignment} from '@src/types/onyx';
 
 type PopoverDimensions = {
     width: number;

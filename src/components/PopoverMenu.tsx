@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type AnchorAlignment from '@src/types/onyx/AnchorAlignment';
+import type {AnchorAlignment} from '@src/types/onyx';
 import MenuItem from './MenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
