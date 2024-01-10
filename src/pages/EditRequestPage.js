@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -47,9 +47,6 @@ const propTypes = {
     /** The report object for the thread report */
     report: reportPropTypes,
 
-    /** The parent report object for the thread report */
-    parentReport: reportPropTypes,
-
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -65,14 +62,13 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    parentReport: {},
     policyCategories: {},
     policyTags: {},
     parentReportActions: {},
     transaction: {},
 };
 
-function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -93,7 +89,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     const tagListName = PolicyUtils.getTagListName(policyTags);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     // A flag for showing the categories page
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
@@ -104,7 +100,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit, transaction)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, fieldToEdit)) {
             return;
         }
 
@@ -112,7 +108,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit, transaction]);
+    }, [parentReportAction, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -147,6 +143,24 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
             Navigation.dismissModal();
         },
         [transaction, report],
+    );
+
+    const saveMerchant = useCallback(
+        ({merchant: newMerchant}) => {
+            const newTrimmedMerchant = newMerchant.trim();
+
+            // In case the merchant hasn't been changed, do not make the API request.
+            // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+            if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            // An empty newTrimmedMerchant is only possible for the P2P IOU case
+            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+            Navigation.dismissModal();
+        },
+        [transactionMerchant, transaction, report],
     );
 
     const saveTag = useCallback(
@@ -207,23 +221,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
                 isPolicyExpenseChat={isPolicyExpenseChat}
-                onSubmit={(transactionChanges) => {
-                    const newTrimmedMerchant = transactionChanges.merchant.trim();
-
-                    // In case the merchant hasn't been changed, do not make the API request.
-                    // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-                    if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-
-                    // This is possible only in case of IOU requests.
-                    if (newTrimmedMerchant === '') {
-                        editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
-                        return;
-                    }
-                    editMoneyRequest({merchant: newTrimmedMerchant});
-                }}
+                onSubmit={saveMerchant}
             />
         );
     }
@@ -302,9 +300,6 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
