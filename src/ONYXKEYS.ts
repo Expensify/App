@@ -530,5 +530,7 @@ type OnyxValues = {
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
 
+type LastPaymentMethod = Record<string, string>;
+
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap,LastPaymentMethod};

@@ -10,10 +10,11 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
+import type {LastPaymentMethod} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {AnchorAlignment, LastPaymentMethod, Report} from '@src/types/onyx';
+import type {AnchorAlignment, Report} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -26,6 +27,8 @@ type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: string) => void;
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
+type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
+
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
     nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
@@ -36,7 +39,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     onPress: (paymentType: PaymentType) => void;
 
     /** The route to redirect if user does not have a payment method setup */
-    enablePaymentsRoute: typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
+    enablePaymentsRoute: EnablePaymentsRoute;
 
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;

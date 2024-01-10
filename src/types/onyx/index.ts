@@ -16,7 +16,6 @@ import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IOU from './IOU';
-import type LastPaymentMethod from './LastPaymentMethod';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -139,6 +138,5 @@ export type {
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
-    LastPaymentMethod,
     AnchorAlignment,
 };
