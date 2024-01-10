@@ -135,15 +135,16 @@ function ReportPreview(props) {
     const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
-    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(() => {
-        return {
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+        () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
             areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
             hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
-        };
+        }),
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to run when transactions get updated
-    }, [props.transactions, props.iouReportID, props.action]);
+        [props.transactions, props.iouReportID, props.action],
+    );
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
