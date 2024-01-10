@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useRef} from 'react';
 import {Keyboard} from 'react-native';
 import _ from 'underscore';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -64,4 +64,4 @@ const OptionsListWithRef = forwardRef((props, ref) => (
 
 OptionsListWithRef.displayName = 'OptionsListWithRef';
 
-export default withWindowDimensions(OptionsListWithRef);
+export default withWindowDimensions(memo(OptionsListWithRef));

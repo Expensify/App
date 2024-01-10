@@ -11,6 +11,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
@@ -34,6 +35,7 @@ import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -287,14 +289,52 @@ function ReportScreen({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
+    const allPersonalDetails = usePersonalDetails();
+
+    /**
+     * @param {String} text
+     */
+    const handleCreateTask = useCallback(
+        (text) => {
+            /**
+             * Matching task rule by group
+             * Group 1: Start task rule with []
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 3: Title is remaining characters
+             */
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+
+            const match = text.match(taskRegex);
+            if (!match) {
+                return false;
+            }
+            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            if (!title) {
+                return false;
+            }
+            const email = match[1] ? match[1].trim() : undefined;
+            let assignee = {};
+            if (email) {
+                assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+            }
+            Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+            return true;
+        },
+        [allPersonalDetails, report.policyID, route],
+    );
+
     /**
      * @param {String} text
      */
     const onSubmitComment = useCallback(
         (text) => {
+            const isTaskCreated = handleCreateTask(text);
+            if (isTaskCreated) {
+                return;
+            }
             Report.addComment(getReportID(route), text);
         },
-        [route],
+        [route, handleCreateTask],
     );
 
     // Clear notifications for the current report when it's opened and re-focused
