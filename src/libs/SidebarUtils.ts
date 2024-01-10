@@ -155,9 +155,8 @@ function getOrderedReportIDs(
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
         const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
-        const doesReportTransactionThreadHaveViolations = Boolean(
-            betas.includes(CONST.BETAS.VIOLATIONS) && parentReportAction && ReportUtils.doesTransactionThreadHaveViolations({report, transactionViolations, parentReportAction}),
-        );
+        const doesReportTransactionThreadHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -165,7 +164,7 @@ function getOrderedReportIDs(
             betas,
             policies,
             excludeEmptyChats: true,
-            doesReportTransactionThreadHaveViolations,
+            doesReportHaveViolations: doesReportTransactionThreadHaveViolations,
         });
     });
 

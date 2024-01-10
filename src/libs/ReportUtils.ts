@@ -3487,7 +3487,7 @@ function shouldReportBeInOptionList({
     betas,
     policies,
     excludeEmptyChats = false,
-    doesReportTransactionThreadHaveViolations,
+    doesReportHaveViolations,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
@@ -3495,7 +3495,7 @@ function shouldReportBeInOptionList({
     betas: Beta[];
     policies: OnyxCollection<Policy>;
     excludeEmptyChats?: boolean;
-    doesReportTransactionThreadHaveViolations: boolean;
+    doesReportHaveViolations: boolean;
 }) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -3556,7 +3556,7 @@ function shouldReportBeInOptionList({
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && doesReportTransactionThreadHaveViolations) {
+    if (isExpenseRequest(report) && doesReportHaveViolations) {
         return true;
     }
 

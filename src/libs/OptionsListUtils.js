@@ -1322,15 +1322,14 @@ function getOptions(
         const {parentReportID, parentReportActionID} = report || {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
         const parentReportAction = canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {};
-        const doesReportTransactionThreadHaveViolations =
-            betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const doesReportHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: Navigation.getTopmostReportId(),
             betas,
             policies,
-            doesReportTransactionThreadHaveViolations,
+            doesReportHaveViolations,
         });
     });
 

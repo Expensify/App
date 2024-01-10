@@ -22,7 +22,7 @@ const triggerUnreadUpdate = () => {
             currentReportId: currentReportID ?? '',
             betas: [],
             policies: {},
-            doesReportTransactionThreadHaveViolations: false,
+            doesReportHaveViolations: false,
         });
     });
     updateUnread(unreadReports.length);
