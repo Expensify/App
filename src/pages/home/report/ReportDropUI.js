@@ -6,7 +6,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
@@ -15,7 +14,6 @@ const propTypes = {
 };
 
 function ReportDropUI({onDrop}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
@@ -23,7 +21,6 @@ function ReportDropUI({onDrop}) {
             <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.mb3}>
                     <Icon
-                        fill={theme.icon}
                         src={Expensicons.DragAndDrop}
                         width={100}
                         height={100}
