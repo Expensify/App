@@ -8,7 +8,7 @@ import ReceiptSVG from '@assets/images/receipt-svg.png';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
@@ -32,7 +32,7 @@ type FileNameAndExtension = {
  */
 function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
-    const errors = _.findLast(transaction.errors) as OnyxCommon.ReceiptError | null;
+    const errors = _.findLast(transaction.errors) as ReceiptError | null;
     const path = errors?.source ?? transaction?.receipt?.source ?? receiptPath ?? '';
     // filename of uploaded image or last part of remote URI
     const filename = errors?.filename ?? transaction?.filename ?? receiptFileName ?? '';

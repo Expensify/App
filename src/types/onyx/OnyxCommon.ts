@@ -8,10 +8,6 @@ type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | 
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type ReceiptError = {error?: string; source: string; filename: string};
-
-type ReceiptErrors = Record<string, ReceiptError>;
-
 type Errors = Record<string, string>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
@@ -33,4 +29,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, ReceiptError, ReceiptErrors};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};

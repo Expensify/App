@@ -39,6 +39,7 @@ import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -225,7 +226,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         errors={transaction.errors}
                         errorRowStyles={[styles.ml4]}
                         onClose={() => {
-                            IOU.clearError(transaction.transactionID);
+                            Transaction.clearError(transaction.transactionID);
                         }}
                     >
                         <View style={styles.moneyRequestViewImage}>
