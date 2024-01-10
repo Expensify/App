@@ -323,7 +323,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadOlderChats = () => {
+    const loadOlderChats = useCallback(() => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
@@ -335,7 +335,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    };
+    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, reportID]);
 
     const firstReportActionID = useMemo(() => lodashGet(newestReportAction, 'reportActionID'), [newestReportAction]);
     const handleLoadNewerChats = useCallback(

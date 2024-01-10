@@ -1,8 +1,9 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx/lib/types';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const memoryOnlyKeys = [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST];
+const memoryOnlyKeys: OnyxKey[] = [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST];
 
 const enable = () => {
     Log.info('[MemoryOnlyKeys] enabled');
