@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 function ErrorBodyText() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    
     return (
         <Text>
             {`${translate('genericErrorPage.body.helpTextMobile')} `}
