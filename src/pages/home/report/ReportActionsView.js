@@ -5,7 +5,6 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -342,8 +341,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
-
-        const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (!oldestReportAction || isWeReachedTheOldestAction) {
