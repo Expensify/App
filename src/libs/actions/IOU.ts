@@ -368,8 +368,8 @@ function buildOnyxDataForMoneyRequest(
     isNewChatReport: boolean,
     isNewIOUReport: boolean,
     policy?: OnyxTypes.Policy | EmptyObject,
-    policyTags: OnyxTypes.PolicyTags = {},
-    policyCategories: OnyxTypes.PolicyCategories = {},
+    policyTags?: OnyxTypes.PolicyTags,
+    policyCategories?: OnyxTypes.PolicyCategories,
     hasOutstandingChildRequest = false,
 ): OnyxUpdate[][] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
@@ -634,7 +634,7 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTags, !!policy.requiresCategory, policyCategories);
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTags ?? {}, !!policy.requiresCategory, policyCategories ?? {});
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -706,7 +706,7 @@ function getMoneyRequestInformation(
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
 
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        needsToBeManuallySubmitted = isFromPaidPolicy && !(!!policy?.isHarvestingEnabled || false);
+        needsToBeManuallySubmitted = isFromPaidPolicy && !policy?.isHarvestingEnabled;
 
         // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
         if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
@@ -1804,7 +1804,7 @@ function startSplitBill(
             ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-    const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat || false;
+    const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
     const receiptObject: Receipt = {state, source};
