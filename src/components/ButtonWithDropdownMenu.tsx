@@ -80,7 +80,7 @@ function ButtonWithDropdownMenu({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const caretButton = useRef<View | HTMLDivElement>(null);
+    const caretButton = useRef<View & HTMLDivElement>(null);
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
@@ -125,7 +125,7 @@ function ButtonWithDropdownMenu({
                     />
 
                     <Button
-                        ref={caretButton as RefObject<View>}
+                        ref={caretButton}
                         success
                         isDisabled={isDisabled}
                         style={[styles.pl0]}
@@ -167,7 +167,7 @@ function ButtonWithDropdownMenu({
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
-                    anchorRef={caretButton as RefObject<HTMLDivElement>}
+                    anchorRef={caretButton}
                     withoutOverlay
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
