@@ -452,7 +452,7 @@ function ComposerWithSuggestions({
 
             focus();
         },
-        [checkComposerVisibility, focus, replaceSelectionWithText],
+        [checkComposerVisibility, focus],
     );
 
     const blur = useCallback(() => {
