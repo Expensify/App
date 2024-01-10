@@ -158,7 +158,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
-            name: userPersonalDetail.login,
+            name: ReportUtils.getDisplayNameForParticipant(accountID),
         };
     });
 }

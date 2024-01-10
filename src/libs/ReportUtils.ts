@@ -1556,6 +1556,13 @@ function getDisplayNamesWithTooltips(
 }
 
 /**
+ * Return the concatenated string of the display name of a list user
+ */
+function getUserDetailsTooltipText(accountIDs: number[]): string {
+    return accountIDs.map((accountIDs) => getDisplayNameForParticipant(accountIDs)).join(', ');
+}
+
+/**
  * For a deleted parent report action within a chat report,
  * let us return the appropriate display message
  *
@@ -4533,6 +4540,7 @@ export {
     shouldAutoFocusOnKeyPress,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    getUserDetailsTooltipText
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};

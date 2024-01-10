@@ -1,11 +1,10 @@
 import React, {memo, useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
+import {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -13,6 +12,7 @@ import Avatar from './Avatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
+import * as ReportUtils from '@libs/ReportUtils';
 
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
@@ -143,7 +143,7 @@ function MultipleAvatars({
     if (icons.length === 1 && !shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={Number(icons[0].id)}
+                accountID={icons[0].id}
                 icon={icons[0]}
                 fallbackUserDetails={{
                     displayName: icons[0].name,
@@ -184,7 +184,7 @@ function MultipleAvatars({
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
                                 key={`stackedAvatars-${icon.id}`}
-                                accountID={Number(icon.id)}
+                                accountID={icon.id}
                                 icon={icon}
                                 fallbackUserDetails={{
                                     displayName: icon.name,
@@ -214,7 +214,7 @@ function MultipleAvatars({
                         {avatars.length > maxAvatarsInRow && (
                             <Tooltip
                                 // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).join(', ')}
+                                text={ReportUtils.getUserDetailsTooltipText(icons.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).map((icon) => Number(icon.id)))}
                             >
                                 <View
                                     style={[
@@ -256,7 +256,7 @@ function MultipleAvatars({
                 <View style={avatarContainerStyles}>
                     <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[0].type) : {}]}>
                         <UserDetailsTooltip
-                            accountID={Number(icons[0].id)}
+                            accountID={icons[0].id}
                             icon={icons[0]}
                             fallbackUserDetails={{
                                 displayName: icons[0].name,
@@ -277,7 +277,7 @@ function MultipleAvatars({
                         <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
-                                    accountID={Number(icons[1].id)}
+                                    accountID={icons[1].id}
                                     icon={icons[1]}
                                     fallbackUserDetails={{
                                         displayName: icons[1].name,
