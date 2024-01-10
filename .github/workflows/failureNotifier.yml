@@ -1,0 +1,108 @@
+name: Notify on Workflow Failure
+
+on:
+  workflow_run:
+    workflows: ["Process new code merged to main"]
+    types:
+      - completed
+
+jobs:
+  notify-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch Workflow Run Details
+        id: fetch-workflow-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = "${{ github.event.workflow_run.id }}";
+            const runData = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId
+            });
+            return runData.data;
+
+      - name: Fetch Workflow Run Jobs
+        id: fetch-workflow-jobs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = "${{ github.event.workflow_run.id }}";
+            const jobsData = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+            return jobsData.data;
+      
+      - name: Get merged pull request number
+        id: getMergedPullRequestNumber
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        with:
+          github_token: ${{ github.token }}
+
+
+      - name: Process Each Failed Job
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          script: |
+            const prNumber = ${{ steps.getMergedPullRequestNumber.outputs.number }};
+            const runData = ${{fromJSON(steps.fetch-workflow-details.outputs.result)}};
+            const jobs = ${{fromJSON(steps.fetch-workflow-jobs.outputs.result)}};
+            const failureLabel = 'workflow-failure';
+
+            const prData = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const pr = prData.data;
+
+            const prLink = pr.html_url;
+            const prAuthor = pr.user.login;
+            const prMerger = pr.merged_by.login;
+
+            for (let i=0; i<jobs.total_count; i++) {
+              if (jobs.jobs[i].conclusion == 'failure') {
+                const jobName = jobs.jobs[i].name;
+                const jobLink = jobs.jobs[i].html_url;
+                const issues = await github.rest.issues.listForRepo({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  labels: failureLabel,
+                  state: 'open'
+                });
+                const existingIssue = issues.data.find(issue => issue.title.includes(jobName));
+                if (!existingIssue) {
+                  const issueTitle = `🔍 Investigation Needed: ${jobName} Failure due to PR Merge 🔍`;
+                  const issueBody = `🚨 **Failure Summary** 🚨:\n\n
+                  - **📋 Job Name**: [${jobName}](${jobLink})\n
+                  - **🔧 Failure in Workflow**: Main branch\n
+                  - **🔗 Triggered by PR**: [PR Link](${prLink})\n
+                  - **👤 PR Author**: @${prAuthor}\n
+                  - **🤝 Merged by**: @${prMerger}\n\n
+                  ⚠️ **Action Required** ⚠️:\n\n
+                  🛠️ A recent merge appears to have caused a failure in the job named [${jobName}](${jobLink}).
+                  This issue has been automatically created and labeled with \`${failureLabel}\` for investigation. \n\n
+                  👀 **Please look into the following**:\n
+                  1. **Why the PR caused the job to fail?**\n
+                  2. **Address any underlying issues.**\n\n
+                  🐛 We appreciate your help in squashing this bug!`;
+                  github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: issueTitle,
+                    body: issueBody,
+                    labels: [failureLabel],
+                    assignees: [prMerger, prAuthor]
+                  });
+                }
+              }
+            }
