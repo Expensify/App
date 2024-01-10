@@ -1,7 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import Picker from '@components/Picker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -36,7 +36,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
 
     return (
         // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
@@ -57,7 +57,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
                 defaultValue={defaultIncorporationType}
                 shouldSaveDraft
             />
-        </Form>
+        </FormProvider>
     );
 }
 

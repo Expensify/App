@@ -4178,8 +4178,8 @@ const styles = (theme: ThemeColors) =>
 
         interactiveStepHeaderStepText: {
             fontSize: variables.fontSizeLabel,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
-            fontWeight: fontWeightBold,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         interactiveStepHeaderCompletedStepButton: {
@@ -4206,7 +4206,7 @@ const styles = (theme: ThemeColors) =>
         },
         confirmBankInfoText: {
             fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             color: theme.text,
         },
         confirmBankInfoCompanyIcon: {
@@ -4223,7 +4223,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 50,
         },
         confirmBankInfoNumber: {
-            fontFamily: fontFamily.MONOSPACE,
+            fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
