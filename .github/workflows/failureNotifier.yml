@@ -84,19 +84,19 @@ jobs:
                 const existingIssue = issues.data.find(issue => issue.title.includes(jobName));
                 if (!existingIssue) {
                   const issueTitle = `🔍 Investigation Needed: ${jobName} Failure due to PR Merge 🔍`;
-                  const issueBody = `🚨 **Failure Summary** 🚨:\n\n
-                  - **📋 Job Name**: [${jobName}](${jobLink})\n
-                  - **🔧 Failure in Workflow**: Main branch\n
-                  - **🔗 Triggered by PR**: [PR Link](${prLink})\n
-                  - **👤 PR Author**: @${prAuthor}\n
-                  - **🤝 Merged by**: @${prMerger}\n\n
-                  ⚠️ **Action Required** ⚠️:\n\n
-                  🛠️ A recent merge appears to have caused a failure in the job named [${jobName}](${jobLink}).
-                  This issue has been automatically created and labeled with \`${failureLabel}\` for investigation. \n\n
-                  👀 **Please look into the following**:\n
-                  1. **Why the PR caused the job to fail?**\n
-                  2. **Address any underlying issues.**\n\n
-                  🐛 We appreciate your help in squashing this bug!`;
+                  const issueBody = `🚨 **Failure Summary** 🚨:\n\n` +
+                  `- **📋 Job Name**: [${jobName}](${jobLink})\n` +
+                  `- **🔧 Failure in Workflow**: Main branch\n` +
+                  `- **🔗 Triggered by PR**: [PR Link](${prLink})\n` +
+                  `- **👤 PR Author**: @${prAuthor}\n` +
+                  `- **🤝 Merged by**: @${prMerger}\n\n` +
+                  `⚠️ **Action Required** ⚠️:\n\n` +
+                  `🛠️ A recent merge appears to have caused a failure in the job named [${jobName}](${jobLink}).\n` +
+                  `This issue has been automatically created and labeled with \`${failureLabel}\` for investigation. \n\n` +
+                  `👀 **Please look into the following**:\n` +
+                  `1. **Why the PR caused the job to fail?**\n` +
+                  `2. **Address any underlying issues.**\n\n` +
+                  `🐛 We appreciate your help in squashing this bug!`;
                   github.rest.issues.create({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
