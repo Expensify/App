@@ -51,6 +51,8 @@ type Routes = Record<string, Route>;
 
 type Transaction = {
     amount: number;
+    taxAmount?: number;
+    taxCode?: string;
     billable: boolean;
     category: string;
     comment: Comment;
