@@ -180,7 +180,6 @@ function IOURequestStepWaypoint({
             address: values.address,
             name: values.name || null,
         };
-        console.log('timddd action', action);
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
         if (backTo) {
             Navigation.goBack(backTo);
