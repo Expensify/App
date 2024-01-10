@@ -67,7 +67,7 @@ test('[SidebarLinks] should render Sidebar with 500 reports stored', () => {
             Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 ...mockedResponseMap,
@@ -111,7 +111,7 @@ test('[SidebarLinks] should scroll and click some of the items', () => {
             Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                 ...mockedResponseMap,

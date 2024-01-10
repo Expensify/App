@@ -145,6 +145,24 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transaction, report],
     );
 
+    const saveMerchant = useCallback(
+        ({merchant: newMerchant}) => {
+            const newTrimmedMerchant = newMerchant.trim();
+
+            // In case the merchant hasn't been changed, do not make the API request.
+            // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+            if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            // An empty newTrimmedMerchant is only possible for the P2P IOU case
+            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+            Navigation.dismissModal();
+        },
+        [transactionMerchant, transaction, report],
+    );
+
     const saveTag = useCallback(
         ({tag: newTag}) => {
             let updatedTag = newTag;
@@ -212,23 +230,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
                 isPolicyExpenseChat={isPolicyExpenseChat}
-                onSubmit={(transactionChanges) => {
-                    const newTrimmedMerchant = transactionChanges.merchant.trim();
-
-                    // In case the merchant hasn't been changed, do not make the API request.
-                    // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
-                    if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-
-                    // This is possible only in case of IOU requests.
-                    if (newTrimmedMerchant === '') {
-                        editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
-                        return;
-                    }
-                    editMoneyRequest({merchant: newTrimmedMerchant});
-                }}
+                onSubmit={saveMerchant}
             />
         );
     }
