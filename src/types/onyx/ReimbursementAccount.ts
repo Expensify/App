@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxTypes from './index';
 import type * as OnyxCommon from './OnyxCommon';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
@@ -48,5 +49,7 @@ type ReimbursementAccount = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type ReimbursementAccountForm = ReimbursementAccount & OnyxTypes.Form;
+
 export default ReimbursementAccount;
-export type {BankAccountStep, BankAccountSubStep};
+export type {BankAccountStep, BankAccountSubStep, ReimbursementAccountForm};

@@ -1,3 +1,4 @@
+import type * as OnyxTypes from './index';
 import type * as OnyxCommon from './OnyxCommon';
 
 type Form = {
@@ -23,6 +24,11 @@ type DateOfBirthForm = Form & {
     dob?: string;
 };
 
+type DisplayNameForm = OnyxTypes.Form & {
+    firstName: string;
+    lastName: string;
+};
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm};
+export type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm};

@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as OnyxTypes from './types/onyx';
+import {ReimbursementAccountForm, ReimbursementAccountFormDraft} from './types/onyx';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
 /**
@@ -408,8 +409,8 @@ type OnyxValues = {
     [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
-    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount & OnyxTypes.Form;
-    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT]: OnyxTypes.ReimbursementAccountDraft & OnyxTypes.Form;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccountForm;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT]: OnyxTypes.ReimbursementAccountFormDraft;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: string | number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
@@ -475,8 +476,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.Form & {firstName: string; lastName: string};
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.Form & {firstName: string; lastName: string};
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.DisplayNameForm;
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM]: OnyxTypes.Form;
