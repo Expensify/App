@@ -30,6 +30,7 @@ function useMoneyRequestViewErrors(params: UseMoneyRequestViewErrorsParams) {
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const {getViolationsForField} = useViolations(transactionViolations);
+    const hasViolations = useCallback((field: MoneyRequestField) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
 
     const getErrorForField = useCallback(
         (field: Exclude<MoneyRequestField, 'receipt'>) => {
@@ -54,14 +55,14 @@ function useMoneyRequestViewErrors(params: UseMoneyRequestViewErrorsParams) {
                 return translate(translationPath);
             }
 
-            if (canUseViolations) {
+            if (canUseViolations && hasViolations(field)) {
                 const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
             return '';
         },
-        [canUseViolations, hasErrors, getViolationsForField, translate, transactionAmount, isEmptyMerchant, transactionDate],
+        [transactionAmount, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
     return {getErrorForField};

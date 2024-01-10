@@ -176,7 +176,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
-    const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -282,7 +281,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                        brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={getErrorForField('amount')}
                     />
                 </OfflineWithFeedback>
@@ -296,7 +295,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={getErrorForField('comment')}
                         numberOfLinesTitle={0}
                     />
@@ -321,7 +320,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={getErrorForField('merchant')}
                         />
                     </OfflineWithFeedback>
@@ -334,7 +333,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                        brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={getErrorForField('date')}
                     />
                 </OfflineWithFeedback>
@@ -347,7 +346,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
-                            brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={getErrorForField('category')}
                         />
                     </OfflineWithFeedback>
@@ -361,7 +360,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
-                            brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={getErrorForField('tag')}
                         />
                     </OfflineWithFeedback>
@@ -385,7 +384,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 isOn={transactionBillable}
                                 onToggle={saveBillable}
                             />
-                            {hasViolations('billable') && (
+                            {getErrorForField('comment') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}
                                     isLast
