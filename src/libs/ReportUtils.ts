@@ -1559,7 +1559,7 @@ function getDisplayNamesWithTooltips(
  * Return the concatenated string of the display name of a list user
  */
 function getUserDetailsTooltipText(accountIDs: number[]): string {
-    return accountIDs.map((accountIDs) => getDisplayNameForParticipant(accountIDs)).join(', ');
+    return accountIDs.map((accountID) => getDisplayNameForParticipant(accountID)).join(', ');
 }
 
 /**
@@ -4540,7 +4540,7 @@ export {
     shouldAutoFocusOnKeyPress,
     shouldDisplayThreadReplies,
     shouldDisableThread,
-    getUserDetailsTooltipText
+    getUserDetailsTooltipText,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};

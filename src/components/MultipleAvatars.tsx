@@ -1,10 +1,12 @@
 import React, {memo, useMemo} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {AvatarSource} from '@libs/UserUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -12,7 +14,6 @@ import Avatar from './Avatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
-import * as ReportUtils from '@libs/ReportUtils';
 
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
@@ -214,7 +215,9 @@ function MultipleAvatars({
                         {avatars.length > maxAvatarsInRow && (
                             <Tooltip
                                 // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={ReportUtils.getUserDetailsTooltipText(icons.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).map((icon) => Number(icon.id)))}
+                                text={ReportUtils.getUserDetailsTooltipText(
+                                    icons.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).map((icon) => Number(icon.id)),
+                                )}
                             >
                                 <View
                                     style={[
