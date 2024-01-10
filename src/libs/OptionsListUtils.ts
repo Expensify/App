@@ -180,6 +180,7 @@ Onyx.connect({
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 const allReportActions: Record<string, ReportActions> = {};
+const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -191,6 +192,17 @@ Onyx.connect({
         const sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
         lastReportActions[reportID] = sortedReportActions[0];
+
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        const reportActionsForDisplay = sortedReportActions.filter(
+            (reportAction, actionKey) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionUtils.isWhisperAction(reportAction) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
@@ -611,7 +623,8 @@ function createOption(
             hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
                 ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
                 : '';
-        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
+
+        let lastMessageText = lastMessageTextFromReport;
         const lastReportAction = lastReportActions[report.reportID ?? ''];
         if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
             const archiveReason = lastReportAction.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -625,12 +638,19 @@ function createOption(
             }
         }
 
+        const lastAction = visibleReportActionItems[report.reportID];
+        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
+
+        if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
+            lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
+        }
+
         if (result.isThread || result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
         }

@@ -39,8 +39,10 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
+    const isOldValuePartialMerchant = valueName === Localize.translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    if (!oldValue) {
+    // In case of a partial merchant value, we want to avoid user seeing the "(none)" value in the message.
+    if (!oldValue || isOldValuePartialMerchant) {
         const fragment = Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
     } else if (!newValue) {
