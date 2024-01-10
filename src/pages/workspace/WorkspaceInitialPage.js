@@ -168,7 +168,11 @@ function WorkspaceInitialPage(props) {
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     return (
-        <ScreenWrapper testID={WorkspaceInitialPage.displayName}>
+        <ScreenWrapper
+            testID={WorkspaceInitialPage.displayName}
+            includePaddingTop={false}
+            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
+        >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 shouldShow={shouldShowNotFoundPage}

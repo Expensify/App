@@ -72,7 +72,11 @@ function AllSettingsScreen() {
     }, [isSmallScreenWidth, styles.sectionMenuItem, translate, waitForNavigate]);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper
+            testID={AllSettingsScreen.displayName}
+            includePaddingTop={false}
+            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
+        >
             <Breadcrumbs
                 breadcrumbs={[
                     {
