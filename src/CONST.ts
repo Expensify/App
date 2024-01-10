@@ -3067,6 +3067,11 @@ const CONST = {
         CAROUSEL: 3,
     },
 
+    BRICK_ROAD: {
+        GBR: 'GBR',
+        RBR: 'RBR',
+    },
+
     VIOLATIONS: {
         ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
         AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
