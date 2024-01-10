@@ -155,6 +155,9 @@ function ReportPreview(props) {
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    if (TransactionUtils.isPartialMerchant(formattedMerchant)) {
+        formattedMerchant = null;
+    }
     const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
     if (hasPendingWaypoints) {
         formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
