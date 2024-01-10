@@ -11,7 +11,6 @@ import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -71,7 +70,6 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={!isEmptyObject(errors) || !!errorMessage || !isEmptyObject(formState?.errorFields)}
                         isLoading={!!formState?.isLoading}
-                        // eslint-disable-next-line no-extra-boolean-cast
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
@@ -95,8 +93,7 @@ function FormWrapper({
                             if (formContentRef.current) {
                                 // We measure relative to the content root, not the scroll view, as that gives
                                 // consistent results across mobile and web
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                focusInput?.measureLayout?.(formContentRef.current, (_x: number, y: number) =>
+                                focusInput?.measureLayout?.(formContentRef.current, (X: number, y: number) =>
                                     formRef.current?.scrollTo({
                                         y: y - 10,
                                         animated: false,

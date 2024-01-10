@@ -82,7 +82,7 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-    const inputRefs = useRef<InputRefs>({} as InputRefs);
+    const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<Errors>({});
@@ -90,7 +90,7 @@ function FormProvider(
 
     const onValidate = useCallback(
         (values: OnyxFormValuesFields, shouldClearServerError = true) => {
-            const trimmedStringValues = ValidationUtils.prepareValues(values) as OnyxFormValuesFields;
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
