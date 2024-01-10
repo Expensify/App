@@ -7,6 +7,9 @@ import ViolationsUtils from '@libs/ViolationsUtils';
 import type {TranslationPaths} from '@src/languages/types';
 import type {TransactionViolation} from '@src/types/onyx';
 
+// receipt can display more than one violation so we can't use the error prop
+// so we exclude it from this type so it will throw an error if someone tries to
+// use it
 type FieldsWithErrors = Exclude<MoneyRequestField, 'receipt'>;
 
 type FieldCheck = {
@@ -24,9 +27,7 @@ type UseMoneyRequestViewErrorsParams = {
     transactionAmount: number;
 };
 
-function useMoneyRequestViewErrors(params: UseMoneyRequestViewErrorsParams) {
-    const {transactionViolations, hasErrors, isEmptyMerchant, transactionDate, transactionAmount} = params;
-
+function useMoneyRequestViewErrors({transactionViolations, hasErrors, isEmptyMerchant, transactionDate, transactionAmount}: UseMoneyRequestViewErrorsParams) {
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const {getViolationsForField} = useViolations(transactionViolations);
