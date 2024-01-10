@@ -32,7 +32,6 @@ function KeyboardShortcutsPage() {
     /**
      * Render the information of a single shortcut
      * @param shortcut - The shortcut to render
-     * @returns
      */
     const renderShortcut = (shortcut: Shortcut) => (
         <MenuItem
