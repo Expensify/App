@@ -343,6 +343,8 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             return;
         }
 
+        const oldestReportAction = _.last(props.reportActions);
+
         // Don't load more chats if we're already at the beginning of the chat history
         if (!oldestReportAction || isWeReachedTheOldestAction) {
             return;

@@ -1,19 +1,19 @@
-import {useEffect, useState} from 'react';
-import type UseActiveElement from './types';
+import {useEffect, useRef} from 'react';
+import type UseActiveElementRole from './types';
 
 /**
  * Listens for the focusin and focusout events and sets the DOM activeElement to the state.
  * On native, we just return null.
  */
-const useActiveElement: UseActiveElement = () => {
-    const [active, setActive] = useState(document.activeElement);
+const useActiveElementRole: UseActiveElementRole = () => {
+    const activeRoleRef = useRef(document?.activeElement?.role);
 
     const handleFocusIn = () => {
-        setActive(document.activeElement);
+        activeRoleRef.current = document?.activeElement?.role;
     };
 
     const handleFocusOut = () => {
-        setActive(null);
+        activeRoleRef.current = null;
     };
 
     useEffect(() => {
@@ -26,7 +26,7 @@ const useActiveElement: UseActiveElement = () => {
         };
     }, []);
 
-    return active;
+    return activeRoleRef.current;
 };
 
-export default useActiveElement;
+export default useActiveElementRole;
