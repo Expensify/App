@@ -16,7 +16,7 @@ const platformNames = {
  * @returns {String}
  */
 function toTitleCase(str) {
-    return str.split(' ').map((word, i) => {
+    return _.map(str.split(' '), (word, i) => {
         if (i !== 0 && (word.toLowerCase() === 'a' || word.toLowerCase() === 'the' || word.toLowerCase() === 'and')) {
             return word.toLowerCase();
         }
