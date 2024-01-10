@@ -1054,7 +1054,8 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     }
 
     // Add optimistic transaction violations
-    optimisticData.push(ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories));
+    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    optimisticData.push(ViolationsUtils.getViolationsOnyxData(transaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories));
 
     // Clear out the error fields and loading states on success
     successData.push({
@@ -1098,7 +1099,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-        value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
+        value: currentTransactionViolations,
     });
 
     return {
@@ -2267,12 +2268,15 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
-    const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
-    const previousViolationsOnyxData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-        value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
-    };
+    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        currentTransactionViolations,
+        policy.requiresTag,
+        policyTags,
+        policy.requiresCategory,
+        policyCategories,
+    );
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2431,7 +2435,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: previousViolationsOnyxData,
+            value: currentTransactionViolations,
         },
     ];
 
