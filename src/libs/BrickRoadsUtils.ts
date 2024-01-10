@@ -1,8 +1,9 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
