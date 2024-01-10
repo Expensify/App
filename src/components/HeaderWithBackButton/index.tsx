@@ -62,7 +62,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    // @ts-expect-error TODO: Remove this once useKeyboardState (https://github.com/Expensify/App/issues/24941) is migrated to TypeScript.
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
 
