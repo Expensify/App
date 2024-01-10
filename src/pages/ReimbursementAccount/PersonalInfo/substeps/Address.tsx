@@ -1,31 +1,28 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
+type AddressOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    ...subStepPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-};
+type AddressProps = AddressOnyxProps & SubStepProps;
 
 const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
@@ -38,7 +35,7 @@ const INPUT_KEYS = {
 
 const REQUIRED_FIELDS = [personalInfoStepKey.STREET, personalInfoStepKey.CITY, personalInfoStepKey.STATE, personalInfoStepKey.ZIP_CODE];
 
-const validate = (values) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
     if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
@@ -52,23 +49,24 @@ const validate = (values) => {
     return errors;
 };
 
-function Address({reimbursementAccount, onNext, isEditing}) {
+function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultValues = {
-        street: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.STREET, ''),
-        city: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.CITY, ''),
-        state: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.STATE, ''),
-        zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.ZIP_CODE, ''),
+        street: reimbursementAccount?.achData?.[personalInfoStepKey.STREET] ?? '',
+        city: reimbursementAccount?.achData?.[personalInfoStepKey.CITY] ?? '',
+        state: reimbursementAccount?.achData?.[personalInfoStepKey.STATE] ?? '',
+        zipCode: reimbursementAccount?.achData?.[personalInfoStepKey.ZIP_CODE] ?? '',
     };
 
-    const handleSubmit = (values) => {
+    const handleSubmit = (values: BankAccounts.PersonalAddress) => {
         BankAccounts.addPersonalAddressForDraft(values);
         onNext();
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -87,20 +85,15 @@ function Address({reimbursementAccount, onNext, isEditing}) {
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
                 />
-                <HelpLinks
-                    translate={translate}
-                    containerStyles={[styles.mt5]}
-                />
+                <HelpLinks containerStyles={[styles.mt5]} />
             </View>
         </FormProvider>
     );
 }
 
-Address.propTypes = propTypes;
-Address.defaultProps = defaultProps;
 Address.displayName = 'Address';
 
-export default withOnyx({
+export default withOnyx<AddressProps, AddressOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

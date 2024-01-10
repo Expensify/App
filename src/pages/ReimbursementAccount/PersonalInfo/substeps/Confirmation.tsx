@@ -1,6 +1,6 @@
-import lodashGet from 'lodash/get';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -9,52 +9,44 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 
-const propTypes = {
+type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    ...subStepPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
+type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
+function Confirmation({reimbursementAccount = {}, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
+    const isLoading = reimbursementAccount?.isLoading ?? false;
     const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     return (
         <ScreenWrapper
             testID={Confirmation.displayName}
             style={[styles.pt0]}
-            scrollEnabled
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.legalName')}
-                    title={`${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]} ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]}`}
+                    title={`${values[personalInfoStepKeys.FIRST_NAME]} ${values[personalInfoStepKeys.LAST_NAME]}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(0);
@@ -62,7 +54,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.dob')}
-                    title={values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB]}
+                    title={values[personalInfoStepKeys.DOB]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(1);
@@ -70,7 +62,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.last4SSN')}
-                    title={values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]}
+                    title={values[personalInfoStepKeys.SSN_LAST_4]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(2);
@@ -78,9 +70,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.address')}
-                    title={`${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]}, ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]}, ${
-                        values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]
-                    } ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]}`}
+                    title={`${values[personalInfoStepKeys.STREET]}, ${values[personalInfoStepKeys.CITY]}, ${values[personalInfoStepKeys.STATE]} ${values[personalInfoStepKeys.ZIP_CODE]}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(3);
@@ -115,7 +105,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
                             type="error"
-                            messages={{0: error}}
+                            messages={{error}}
                         />
                     )}
                     <Button
@@ -131,11 +121,9 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     );
 }
 
-Confirmation.propTypes = propTypes;
-Confirmation.defaultProps = defaultProps;
 Confirmation.displayName = 'Confirmation';
 
-export default withOnyx({
+export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

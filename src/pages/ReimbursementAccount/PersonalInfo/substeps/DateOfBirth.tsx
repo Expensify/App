@@ -1,41 +1,35 @@
 import {subYears} from 'date-fns';
-import lodashGet from 'lodash/get';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
+type DateOfBirthOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    ...subStepPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
+type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
 
 const personalInfoDobKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB;
 
-const validate = (values) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoDobKey]);
 
     if (values.dob) {
@@ -49,16 +43,17 @@ const validate = (values) => {
     return errors;
 };
 
-function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
+function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}: DateOfBirthProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const dobDefaultValue = getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoDobKey, '') || lodashGet(reimbursementAccountDraft, personalInfoDobKey, '');
+    const dobDefaultValue = reimbursementAccount?.achData?.[personalInfoDobKey] ?? reimbursementAccountDraft?.[personalInfoDobKey] ?? '';
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -69,6 +64,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={DatePicker}
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={personalInfoDobKey}
@@ -80,19 +76,14 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
                 maxDate={maxDate}
                 shouldSaveDraft
             />
-            <HelpLinks
-                translate={translate}
-                containerStyles={[styles.mt5]}
-            />
+            <HelpLinks containerStyles={[styles.mt5]} />
         </FormProvider>
     );
 }
 
-DateOfBirth.propTypes = propTypes;
-DateOfBirth.defaultProps = defaultProps;
 DateOfBirth.displayName = 'DateOfBirth';
 
-export default withOnyx({
+export default withOnyx<DateOfBirthProps, DateOfBirthOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

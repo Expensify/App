@@ -30,7 +30,7 @@ type RequestorStepProps = {
     requestorAddressCity?: string;
     requestorAddressState?: string;
     requestorAddressZipCode?: string;
-    dob?: string | Date;
+    dob?: string;
     ssnLast4?: string;
     isControllingOfficer?: boolean;
     isOnfidoSetupComplete?: boolean;
