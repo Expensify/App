@@ -4,9 +4,9 @@ import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEng
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     /** Whether text elements should be selectable */
