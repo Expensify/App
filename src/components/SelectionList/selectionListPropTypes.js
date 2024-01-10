@@ -191,7 +191,7 @@ const propTypes = {
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
     /** Whether to show the toolip text */
-    shouldShowTooltip: PropTypes.bool,
+    shouldShowTooltips: PropTypes.bool,
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,

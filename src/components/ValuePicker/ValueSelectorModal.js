@@ -69,6 +69,7 @@ function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onI
                     onSelectRow={onItemSelected}
                     initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation
+                    shouldShowTooltips={false}
                 />
             </ScreenWrapper>
         </Modal>

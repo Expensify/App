@@ -63,7 +63,7 @@ function BaseSelectionList({
     disableKeyboardShortcuts = false,
     children,
     shouldStopPropagation = false,
-    shouldShowTooltip = true,
+    shouldShowTooltips = true,
     shouldUseDynamicMaxToRenderPerBatch = false,
 }) {
     const theme = useTheme();
@@ -304,7 +304,7 @@ function BaseSelectionList({
         const isDisabled = section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const showTooltip = normalizedIndex < 10;
+        const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
             <BaseListItem
@@ -312,7 +312,7 @@ function BaseSelectionList({
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 isHide={!maxToRenderPerBatch}
-                showTooltip={showTooltip && shouldShowTooltip}
+                showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 disableIsFocusStyle={disableInitialFocusOptionStyle}
