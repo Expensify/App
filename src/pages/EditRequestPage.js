@@ -162,7 +162,14 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             }
 
             // An empty newTrimmedMerchant is only possible for the P2P IOU case
-            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestMerchant(
+                transaction.transactionID,
+                report.reportID,
+                newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                policy,
+                policyTags,
+                policyCategories,
+            );
             Navigation.dismissModal();
         },
         [transactionMerchant, transaction, report, policy, policyTags, policyCategories],
