@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -152,7 +151,12 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const {
+        amount: requestAmount,
+        currency: requestCurrency,
+        comment: requestComment,
+        merchant,
+    } = !_.isEmpty(props.transaction) ? ReportUtils.getTransactionDetails(props.transaction) : ReportActionsUtils.getOriginalTransactionDetails(props.action);
     const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
@@ -272,77 +276,71 @@ function MoneyRequestPreview(props) {
                             size={1}
                         />
                     )}
-                    {_.isEmpty(props.transaction) &&
-                    !ReportActionsUtils.isMessageDeleted(props.action) &&
-                    lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
-                        <MoneyRequestSkeletonView />
-                    ) : (
-                        <View style={styles.moneyRequestPreviewBoxText}>
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
+                    <View style={styles.moneyRequestPreviewBoxText}>
+                        <View style={[styles.flexRow]}>
+                            <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
+                                {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
+                            </Text>
+                            {!isSettled && hasFieldErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={theme.danger}
+                                />
+                            )}
+                        </View>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text
+                                    style={[
+                                        styles.textHeadline,
+                                        props.isBillSplit &&
+                                            StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                        isDeleted && styles.lineThrough,
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {displayAmount}
                                 </Text>
-                                {!isSettled && hasFieldErrors && (
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={theme.danger}
-                                    />
-                                )}
-                            </View>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text
-                                        style={[
-                                            styles.textHeadline,
-                                            props.isBillSplit &&
-                                                StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
-                                            isDeleted && styles.lineThrough,
-                                        ]}
-                                        numberOfLines={1}
-                                    >
-                                        {displayAmount}
-                                    </Text>
-                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
-                                        <View style={styles.defaultCheckmarkWrapper}>
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.iconSuccessFill}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
-                                {props.isBillSplit && (
-                                    <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                        <MultipleAvatars
-                                            icons={sortedParticipantAvatars}
-                                            shouldStackHorizontally
-                                            size="small"
-                                            isHovered={props.isHovered}
-                                            shouldUseCardBackground
+                                {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                    <View style={styles.defaultCheckmarkWrapper}>
+                                        <Icon
+                                            src={Expensicons.Checkmark}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}
                             </View>
-                            <View style={[styles.flexRow, styles.mt1]}>
-                                <View style={[styles.flex1]}>
-                                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
-                                    )}
-                                    {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
+                            {props.isBillSplit && (
+                                <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                    <MultipleAvatars
+                                        icons={sortedParticipantAvatars}
+                                        shouldStackHorizontally
+                                        size="small"
+                                        isHovered={props.isHovered}
+                                        shouldUseCardBackground
+                                    />
                                 </View>
-                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                        {translate('iou.amountEach', {
-                                            amount: CurrencyUtils.convertToDisplayString(
-                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
-                                                requestCurrency,
-                                            ),
-                                        })}
-                                    </Text>
-                                )}
-                            </View>
+                            )}
                         </View>
-                    )}
+                        <View style={[styles.flexRow, styles.mt1]}>
+                            <View style={[styles.flex1]}>
+                                {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                    <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
+                                )}
+                                {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
+                            </View>
+                            {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                    {translate('iou.amountEach', {
+                                        amount: CurrencyUtils.convertToDisplayString(
+                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                            requestCurrency,
+                                        ),
+                                    })}
+                                </Text>
+                            )}
+                        </View>
+                    </View>
                 </View>
             </OfflineWithFeedback>
         </View>

@@ -6,7 +6,7 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, ChangeLog, IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -38,6 +38,13 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+
+type OriginalTransactionDetails = {
+    amount: number;
+    currency: string;
+    merchant: string;
+    comment: string;
+};
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -810,6 +817,19 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
+/**
+ * Build TransactionDetails from the IOU report action's originalMessage
+ */
+function getOriginalTransactionDetails(reportAction: OnyxEntry<ReportAction>): OriginalTransactionDetails {
+    const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
+    return {
+        amount: originalMessage?.amount ?? 0,
+        currency: originalMessage?.currency ?? '',
+        comment: originalMessage?.comment ?? '',
+        merchant: '', // We currently don't have a merchant field in the originalMessage
+    };
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -860,6 +880,7 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
+    getOriginalTransactionDetails,
 };
 
 export type {LastVisibleMessage};
