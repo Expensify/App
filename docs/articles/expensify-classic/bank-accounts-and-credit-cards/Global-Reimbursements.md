@@ -1,6 +1,6 @@
 ---
 title: International Reimbursements
-description: Internationa Reimbursements
+description: International Reimbursements
 ---
 # Overview
 
