@@ -24,6 +24,7 @@ function WorkspaceInvoicesFirstSection({policyID}: WorkspaceInvoicesFirstSection
         <Section
             title={translate('workspace.invoices.invoiceClientsAndCustomers')}
             icon={Illustrations.InvoiceBlue}
+            isCentralPane
             menuItems={[
                 {
                     title: translate('workspace.invoices.sendInvoice'),

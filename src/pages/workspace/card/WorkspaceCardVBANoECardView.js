@@ -33,6 +33,7 @@ function WorkspaceCardVBANoECardView(props) {
             <Section
                 title={props.translate('workspace.card.header')}
                 icon={Illustrations.CreditCardsNew}
+                isCentralPane
             >
                 <View style={[styles.mv3]}>
                     <UnorderedList

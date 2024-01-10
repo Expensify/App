@@ -49,6 +49,9 @@ type SectionProps = ChildrenProps & {
 
     /** Customize the Icon container */
     iconContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether the section is in the central pane of the layout */
+    isCentralPane?: boolean;
 };
 
 function Section({
@@ -64,13 +67,14 @@ function Section({
     subtitleMuted = false,
     title,
     titleStyles,
+    isCentralPane = false,
 }: SectionProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <>
-            <View style={[styles.pageWrapper, styles.cardSection, containerStyles, isSmallScreenWidth ? styles.p5 : styles.p8]}>
+            <View style={[styles.pageWrapper, styles.cardSection, containerStyles, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
                 {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                     <IconSection
                         icon={icon}
