@@ -1,15 +1,18 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import type {LayoutChangeEvent,GestureResponderEvent} from 'react-native';
+import { View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
+import RESIZE_MODES from '@components/Image/resizeModes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
+import viewRef from '@src/types/utils/viewRef';
+import type * as ImageViewTypes from './types';
 
-function ImageView({isAuthTokenRequired, url, fileName, onError}) {
+function ImageView({isAuthTokenRequired = false, url, fileName, onError = () => {}}: ImageViewTypes.ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
@@ -27,16 +30,10 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const [zoomScale, setZoomScale] = useState(0);
     const [zoomDelta, setZoomDelta] = useState({offsetX: 0, offsetY: 0});
 
-    const scrollableRef = useRef(null);
+    const scrollableRef = useRef<HTMLDivElement>(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-    /**
-     * @param {Number} newContainerWidth
-     * @param {Number} newContainerHeight
-     * @param {Number} newImageWidth
-     * @param {Number} newImageHeight
-     */
-    const setScale = (newContainerWidth, newContainerHeight, newImageWidth, newImageHeight) => {
+    const setScale = (newContainerWidth: number, newContainerHeight: number, newImageWidth: number, newImageHeight: number) => {
         if (!newContainerWidth || !newImageWidth || !newContainerHeight || !newImageHeight) {
             return;
         }
@@ -44,10 +41,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
         setZoomScale(newZoomScale);
     };
 
-    /**
-     * @param {SyntheticEvent} e
-     */
-    const onContainerLayoutChanged = (e) => {
+    const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
         const {width, height} = e.nativeEvent.layout;
         setScale(width, height, imgWidth, imgHeight);
 
@@ -55,12 +49,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
         setContainerWidth(width);
     };
 
-    /**
-     * When open image, set image width, height.
-     * @param {Number} imageWidth
-     * @param {Number} imageHeight
-     */
-    const setImageRegion = (imageWidth, imageHeight) => {
+    const setImageRegion = (imageWidth: number, imageHeight: number) => {
         if (imageHeight <= 0) {
             return;
         }
@@ -78,32 +67,23 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
         setIsZoomed(false);
     };
 
-    const imageLoad = ({nativeEvent}) => {
+    const imageLoad = ({nativeEvent}: {nativeEvent: ImageViewTypes.ImageLoadNativeEventData}) => {
         setImageRegion(nativeEvent.width, nativeEvent.height);
         setIsLoading(false);
     };
 
-    /**
-     * @param {SyntheticEvent} e
-     */
-    const onContainerPressIn = (e) => {
+    const onContainerPressIn = (e: GestureResponderEvent) => {
         const {pageX, pageY} = e.nativeEvent;
         setIsMouseDown(true);
         setInitialX(pageX);
         setInitialY(pageY);
-        setInitialScrollLeft(scrollableRef.current.scrollLeft);
-        setInitialScrollTop(scrollableRef.current.scrollTop);
+        setInitialScrollLeft(scrollableRef.current?.scrollLeft ?? 0);
+        setInitialScrollTop(scrollableRef.current?.scrollTop ?? 0);
     };
 
-    /**
-     * Convert touch point to zoomed point
-     * @param {Boolean} x x point when click zoom
-     * @param {Boolean} y y point when click zoom
-     * @returns {Object} converted touch point
-     */
-    const getScrollOffset = (x, y) => {
-        let offsetX;
-        let offsetY;
+    const getScrollOffset = (x: number, y: number) => {
+        let offsetX = 0;
+        let offsetY = 0;
 
         // Container size bigger than clicked position offset
         if (x <= containerWidth / 2) {
@@ -121,10 +101,8 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
         return {offsetX, offsetY};
     };
 
-    /**
-     * @param {SyntheticEvent} e
-     */
-    const onContainerPress = (e) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onContainerPress = (e: any) => {
         if (!isZoomed && !isDragging) {
             if (e.nativeEvent) {
                 const {offsetX, offsetY} = e.nativeEvent;
@@ -148,13 +126,10 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
         }
     };
 
-    /**
-     * @param {SyntheticEvent} e
-     */
     const trackPointerPosition = useCallback(
-        (e) => {
+        (e: MouseEvent) => {
             // Whether the pointer is released inside the ImageView
-            const isInsideImageView = scrollableRef.current.contains(e.nativeEvent.target);
+            const isInsideImageView = scrollableRef.current?.contains(e.target as Node);
 
             if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
                 setIsDragging(false);
@@ -165,14 +140,14 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     );
 
     const trackMovement = useCallback(
-        (e) => {
+        (e: MouseEvent) => {
             if (!isZoomed) {
                 return;
             }
 
-            if (isDragging && isMouseDown) {
-                const x = e.nativeEvent.x;
-                const y = e.nativeEvent.y;
+            if (isDragging && isMouseDown && scrollableRef.current) {
+                const x = e.x;
+                const y = e.y;
                 const moveX = initialX - x;
                 const moveY = initialY - y;
                 scrollableRef.current.scrollLeft = initialScrollLeft + moveX;
@@ -218,7 +193,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                     style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
                     // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                     // Both `center` and `contain` keeps the image centered on both x and y axis.
-                    resizeMode={zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
+                    resizeMode={zoomScale > 1 ? RESIZE_MODES.center : RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
                     onError={onError}
@@ -229,7 +204,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     }
     return (
         <View
-            ref={scrollableRef}
+            ref={viewRef(scrollableRef)}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
         >
@@ -249,7 +224,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
-                    resizeMode={Image.resizeMode.contain}
+                    resizeMode={RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
                     onError={onError}
@@ -261,8 +236,6 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     );
 }
 
-ImageView.propTypes = imageViewPropTypes;
-ImageView.defaultProps = imageViewDefaultProps;
 ImageView.displayName = 'ImageView';
 
 export default ImageView;

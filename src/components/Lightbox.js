@@ -44,7 +44,7 @@ const propTypes = {
     activeIndex: PropTypes.number,
 
     /** Additional styles to add to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: PropTypes.oneOfType([PropTypes.bool, PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
