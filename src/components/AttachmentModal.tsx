@@ -101,7 +101,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     headerTitle?: string;
 
     /** The report that has this attachment */
-    report?: OnyxTypes.Report;
+    report?: OnyxEntry<OnyxTypes.Report>;
 
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow?: () => void;
@@ -196,9 +196,8 @@ function AttachmentModal({
      * If our attachment is a PDF, return the unswipeablge Modal type.
      */
     const getModalType = useCallback(
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        (sourceURL: string, _file: FileObject) =>
-            sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || translate('attachmentView.unknownFilename'))))
+        (sourceURL: string, fileobject: FileObject) =>
+            sourceURL && (Str.isPDF(sourceURL) || (fileobject && Str.isPDF(fileobject.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
         [translate],
@@ -241,6 +240,7 @@ function AttachmentModal({
         if (!isModalOpen || isConfirmButtonDisabled) {
             return;
         }
+
         if (onConfirm) {
             onConfirm(lodashExtend(file, {source: sourceState}));
         }
@@ -266,16 +266,15 @@ function AttachmentModal({
         Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const isValidFile = useCallback((_file: FileObject) => {
-        if (_file.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+    const isValidFile = useCallback((fileobject: FileObject) => {
+        if (fileobject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
             setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if (_file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (fileobject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
             setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
@@ -285,9 +284,8 @@ function AttachmentModal({
         return true;
     }, []);
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const isDirectoryCheck = useCallback((_data: FileObject) => {
-        if ('webkitGetAsEntry' in _data && typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+    const isDirectoryCheck = useCallback((data: FileObject) => {
+        if ('webkitGetAsEntry' in data && typeof data.webkitGetAsEntry === 'function' && data.webkitGetAsEntry().isDirectory) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
@@ -297,14 +295,13 @@ function AttachmentModal({
     }, []);
 
     const validateAndDisplayFileToUpload = useCallback(
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        (_data: FileObject) => {
-            if (!isDirectoryCheck(_data)) {
+        (data: FileObject) => {
+            if (!isDirectoryCheck(data)) {
                 return;
             }
-            let fileObject: FileObject = _data;
-            if ('getAsFile' in _data && typeof _data.getAsFile === 'function') {
-                fileObject = _data.getAsFile();
+            let fileObject: FileObject = data;
+            if ('getAsFile' in data && typeof data.getAsFile === 'function') {
+                fileObject = data.getAsFile();
             }
             if (!fileObject) {
                 return;
@@ -429,6 +426,8 @@ function AttachmentModal({
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen;
     }
+
+    console.log('children', children);
 
     return (
         <>
