@@ -410,7 +410,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             if (!userCanModifyParticipants.current) {
                 formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
                     ...participant,
-                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                    isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
                 }));
             }
 
@@ -438,7 +438,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
-                isDisabled: !isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
             sections.push({
                 title: translate('common.to'),
@@ -459,7 +459,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         translate,
         shouldDisablePaidBySection,
         userCanModifyParticipants,
-        isPolicyExpenseChat,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -497,7 +496,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const navigateToReportOrUserDetail = (option) => {
         const activeRoute = Navigation.getActiveRouteWithoutParams();
-        
+
         if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
