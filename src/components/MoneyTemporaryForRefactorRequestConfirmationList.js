@@ -438,7 +438,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
-                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: !isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
             sections.push({
                 title: translate('common.to'),
@@ -459,6 +459,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         translate,
         shouldDisablePaidBySection,
         userCanModifyParticipants,
+        isPolicyExpenseChat,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -495,12 +496,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * @param {Object} option
      */
     const navigateToReportOrUserDetail = (option) => {
+        const activeRoute = Navigation.getActiveRouteWithoutParams();
+        
         if (option.accountID) {
-            const activeRoute = Navigation.getActiveRouteWithoutParams();
-
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
         } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
         }
     };
 
