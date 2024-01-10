@@ -80,7 +80,7 @@ type ChildrenProps = {
 
 type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source?: string;
+    source?: AvatarSource;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: Partial<File>) => void) | null;
@@ -153,7 +153,6 @@ function AttachmentModal({
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
@@ -220,11 +219,13 @@ function AttachmentModal({
      */
     const downloadAttachment = useCallback(() => {
         let sourceURL = sourceState;
-        if (isAuthTokenRequiredState) {
+        if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL ?? '');
         }
 
-        fileDownload(sourceURL, file?.name ?? '');
+        if (typeof sourceURL === 'string') {
+            fileDownload(sourceURL, file?.name ?? '');
+        }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
