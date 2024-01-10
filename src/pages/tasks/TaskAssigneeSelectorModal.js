@@ -104,7 +104,7 @@ function TaskAssigneeSelectorModal(props) {
             false,
             {},
             [],
-            false,
+            true,
         );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
@@ -119,8 +119,12 @@ function TaskAssigneeSelectorModal(props) {
     }, [props, searchValue, allPersonalDetails, isLoading]);
 
     useEffect(() => {
-        updateOptions();
-    }, [searchValue, updateOptions]);
+        const debouncedSearch = _.debounce(updateOptions, 200);
+        debouncedSearch();
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -259,8 +263,11 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+    }),
+    withOnyx({
         rootParentReportPolicy: {
-            key: ({report}) => {
+            key: ({reports, route}) => {
+                const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID || '0'}`];
                 const rootParentReport = ReportUtils.getRootParentReport(report);
                 return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
             },
