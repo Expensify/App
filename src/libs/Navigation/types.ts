@@ -398,7 +398,6 @@ type RightModalNavigatorParamList = {
 
 type SettingsCentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
-    [SCREENS.SETTINGS.WORKSPACES]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
