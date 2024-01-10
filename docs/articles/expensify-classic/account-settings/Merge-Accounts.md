@@ -19,7 +19,7 @@ Merging two accounts together is fairly straightforward. Let’s go over how to 
 8. Paste the code into the required field
 If you have any questions about this process, feel free to reach out to Concierge for some assistance!
 
-# FAQ
+{% include faq-begin.md %}
 ## Can you merge accounts from the mobile app?
 No, accounts can only be merged from the full website at expensify.com.
 ## Can I administratively merge two accounts together?
@@ -34,3 +34,5 @@ Yes! Please see below:
 - If you have two accounts with two different verified domains, you cannot merge them together.
 ## What happens to my “personal” Individual workspace when merging accounts?
 The old “personal” Individual workspace is deleted. If you plan to submit reports under a different workspace in the future, ensure that any reports on the Individual workspace in the old account are marked as Open before merging the accounts. You can typically do this by selecting “Undo Submit” on any submitted reports. 
+
+{% include faq-end.md %}

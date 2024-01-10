@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
-import * as Browser from '@libs/Browser';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -350,7 +350,7 @@ function MoneyRequestParticipantsSelector({
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
                 onChangeText={setSearchTermAndSearchInServer}
-                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}

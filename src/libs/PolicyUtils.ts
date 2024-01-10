@@ -1,9 +1,10 @@
 import Str from 'expensify-common/lib/str';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
@@ -13,10 +14,7 @@ type UnitRate = {rate: number};
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
-    return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy =>
-            policy !== null && policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
