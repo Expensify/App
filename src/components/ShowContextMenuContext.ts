@@ -1,12 +1,19 @@
-import React from 'react';
+import {createContext} from 'react';
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type ReportAction from '@src/types/onyx/ReportAction';
+import type {Report, ReportAction} from '@src/types/onyx';
 
-const ShowContextMenuContext = React.createContext({
+type ShowContextMenuContextProps = {
+    anchor: RNText | null;
+    report: Report | null;
+    action: ReportAction | undefined;
+    checkIfContextMenuActive: () => void;
+};
+
+const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
     report: null,
     action: undefined,

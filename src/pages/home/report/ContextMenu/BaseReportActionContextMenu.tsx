@@ -37,6 +37,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     reportActionID: string;
 
     /** The ID of the original report from which the given reportAction is first created. */
+    // originalReportID is used in withOnyx to get the reportActions for the original report
     // eslint-disable-next-line react/no-unused-prop-types
     originalReportID: string;
 
@@ -57,13 +58,13 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
-    anchor: MutableRefObject<HTMLElement | null>;
+    anchor?: MutableRefObject<HTMLElement | null>;
 
     /** Flag to check if the chat participant is Chronos */
-    isChronosReport: boolean;
+    isChronosReport?: boolean;
 
     /** Whether the provided report is an archived room */
-    isArchivedRoom: boolean;
+    isArchivedRoom?: boolean;
 
     /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
     isPinnedChat?: boolean;

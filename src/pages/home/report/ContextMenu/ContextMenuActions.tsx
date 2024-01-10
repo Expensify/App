@@ -30,7 +30,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionText(reportAction: OnyxEntry<ReportAction>) {
+function getActionText(reportAction: OnyxEntry<ReportAction>): string {
     const message = reportAction?.message?.at(-1) ?? null;
     return message?.html ?? '';
 }
@@ -51,7 +51,7 @@ type ShouldShow = (
     reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
     betas: OnyxEntry<Beta[]>,
-    menuTarget: MutableRefObject<HTMLElement | null>,
+    menuTarget: MutableRefObject<HTMLElement | null> | undefined,
     isChronosReport: boolean,
     reportID: string,
     isPinnedChat: boolean,

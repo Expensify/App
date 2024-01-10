@@ -1,4 +1,4 @@
-import type {ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {EmitterSubscription, View} from 'react-native';
 import {Dimensions} from 'react-native';
@@ -12,39 +12,27 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
-import type {ContextMenuType, ShowContextMenu} from './ReportActionContextMenu';
-
-type HideContextMenu = (onHideActionCallback?: () => void) => void;
-
-type ShowDeleteModal = (reportID: string, reportAction: ReportAction, shouldSetModalVisibility?: boolean, onConfirm?: () => void, onCancel?: () => void) => void;
-
-type IsActiveReportAction = (actionID: string) => boolean;
-
-type PopoverReportActionContextMenuRef = {
-    showContextMenu: ShowContextMenu;
-    hideContextMenu: HideContextMenu;
-    showDeleteModal: ShowDeleteModal;
-    hideDeleteModal: () => void;
-    isActiveReportAction: IsActiveReportAction;
-    instanceID: string;
-    runAndResetOnPopoverHide: () => void;
-    clearActiveReportAction: () => void;
-    contentRef: RefObject<View>;
-};
+import type {ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
 type ContextMenuAnchorCallback = (x: number, y: number) => void;
+
 type ContextMenuAnchor = {measureInWindow: (callback: ContextMenuAnchorCallback) => void};
 
+type Location = {
+    x: number;
+    y: number;
+};
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<PopoverReportActionContextMenuRef>) {
+function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
-    const typeRef = useRef<ContextMenuType | undefined>(undefined);
+    const typeRef = useRef<ContextMenuType>();
     const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
+    const reportActionDraftMessageRef = useRef<string>();
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -85,7 +73,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
         () =>
-            new Promise<{x: number; y: number}>((resolve) => {
+            new Promise<Location>((resolve) => {
                 if (contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
                     contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
                 } else {
@@ -125,7 +113,8 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     }, [measureContextMenuAnchorPosition]);
 
     /** Whether Context Menu is active for the Report Action. */
-    const isActiveReportAction: IsActiveReportAction = (actionID) => !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
+    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) =>
+        !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
         reportActionIDRef.current = '0';
@@ -150,7 +139,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
      * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
-    const showContextMenu: ShowContextMenu = (
+    const showContextMenu: ReportActionContextMenu['showContextMenu'] = (
         type,
         event,
         selection,
@@ -227,7 +216,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: HideContextMenu = (onHideActionCallback) => {
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (onHideActionCallback) => {
         if (typeof onHideActionCallback === 'function') {
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
@@ -259,7 +248,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     };
 
     /** Opens the Confirm delete action modal */
-    const showDeleteModal: ShowDeleteModal = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
         onComfirmDeleteModal.current = onConfirm;
 

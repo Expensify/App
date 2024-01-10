@@ -1,6 +1,6 @@
 import type {BaseReportActionContextMenuProps} from '@pages/home/report/ContextMenu/BaseReportActionContextMenu';
 
-type MiniReportActionContextMenuProps = BaseReportActionContextMenuProps & {
+type MiniReportActionContextMenuProps = Omit<BaseReportActionContextMenuProps, 'isMini'> & {
     /** Should the reportAction this menu is attached to have the appearance of being grouped with the previous reportAction? */
     displayAsGroup?: boolean;
 };

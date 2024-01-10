@@ -52,7 +52,7 @@ function PopoverWithoutOverlay(
                 close: onClose,
                 anchorRef,
             });
-            removeOnClose = Modal.setCloseModal(() => onClose());
+            removeOnClose = Modal.setCloseModal(onClose);
         } else {
             onModalHide();
             close(anchorRef);
