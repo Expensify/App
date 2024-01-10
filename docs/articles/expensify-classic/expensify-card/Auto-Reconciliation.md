@@ -5,7 +5,7 @@ description: Everything you need to know about Expensify Card Auto-Reconciliatio
 <!-- The lines above are required by Jekyll to process the .md file -->
 
 # Overview
-If your company uses the Expensify Card, and connects to a direct accounting integration, you can auto-reconcile card spending each month.
+If your company uses the Expensify Visa® Commercial Card, and connects to a direct accounting integration, you can auto-reconcile card spending each month.
 
 The integrations that auto-reconciliation are available on are:
 
@@ -168,7 +168,7 @@ If Auto-Reconciliation is disabled for your company's Expensify Cards, a Domain 
 2. Each time a monthly settlement occurs, Expensify calculates the total purchase amount since the last settlement and creates a Journal Entry. This entry credits the settlement bank account (GL Account) and debits the Expensify Liability Account in Intacct.
 3. As expenses are approved and exported to Intacct, Expensify credits the Liability Account and debits the appropriate expense categories.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What are the timeframes for auto-reconciliation in Expensify?
 We offer either daily or monthly auto-reconciliation: 
@@ -209,3 +209,5 @@ To address this, please follow these steps:
 2. Go to the General Ledger (GL) account where your daily Expensify Card settlement withdrawals are recorded, and locate entries for the dates identified in Step 1.
 3. Adjust each settlement entry so that it now posts to the Clearing Account.
 4. Create a Journal Entry or Receive Money Transaction to clear the balance in the Liability Account using the funds currently held in the Clearing Account, which was set up in Step 2. 
+
+{% include faq-end.md %}

@@ -1,5 +1,5 @@
-import CONST from '@src/CONST';
-import {type ColorScheme, type StatusBarStyle} from '..';
+import type CONST from '@src/CONST';
+import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
 
@@ -68,7 +68,6 @@ type ThemeColors = {
     dropUIBG: Color;
     receiptDropUIBG: Color;
     checkBox: Color;
-    pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
