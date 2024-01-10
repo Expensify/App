@@ -64,4 +64,4 @@ exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${new
         console.log(stdout);
         console.error(stderr);
         core.setFailed('An error occurred in the `npm version` command');
-    });;;;;;
+    });

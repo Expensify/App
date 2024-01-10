@@ -27,4 +27,4 @@ const defaultProps = {
     policyRecentlyUsedCategories: [],
 };
 
-export {propTypes, defaultProps};;;;;;
+export {propTypes, defaultProps};

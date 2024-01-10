@@ -12,7 +12,7 @@ function format(entry) {
 }
 
 function log(...msgs) {
-    process.stdout.write(`${_.map(msgs, format).join(' ')}\n`);;;;
+    process.stdout.write(`${_.map(msgs, format).join(' ')}\n`);
 }
 
 module.exports = {
