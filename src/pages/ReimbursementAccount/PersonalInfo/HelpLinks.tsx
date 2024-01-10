@@ -10,12 +10,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type HelpLinkPropTypes = {
+type HelpLinkProps = {
     /** Style for wrapping View */
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function HelpLinks({containerStyles}: HelpLinkPropTypes) {
+function HelpLinks({containerStyles}: HelpLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
