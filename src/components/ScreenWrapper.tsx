@@ -77,7 +77,7 @@ type ScreenWrapperProps = {
     shouldEnableMinHeight?: boolean;
 
     /** Whether to show offline indicator */
-    shouldShowOfflineIndicator?: boolean;
+    shouldShowOfflineIndicatorSmallWidth?: boolean;
 
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
@@ -86,6 +86,9 @@ type ScreenWrapperProps = {
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
     navigation?: StackNavigationProp<RootStackParamList>;
+
+    /** Is central pane */
+    shouldShowOfflineIndicator?: boolean;
 };
 
 function ScreenWrapper(
@@ -99,13 +102,14 @@ function ScreenWrapper(
         shouldEnablePickerAvoiding = true,
         headerGapStyles,
         children,
-        shouldShowOfflineIndicator = true,
+        shouldShowOfflineIndicatorSmallWidth = true,
         offlineIndicatorStyle,
         style,
         shouldDismissKeyboardBeforeClose = true,
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        shouldShowOfflineIndicator = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -198,7 +202,7 @@ function ScreenWrapper(
                 }
 
                 // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
+                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicatorSmallWidth)) {
                     paddingStyle.paddingBottom = paddingBottom;
                 }
 
@@ -237,7 +241,13 @@ function ScreenWrapper(
                                               })
                                             : children
                                     }
-                                    {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {isSmallScreenWidth && shouldShowOfflineIndicatorSmallWidth && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                    {!isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                        <OfflineIndicator
+                                            containerStyles={[]}
+                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                        />
+                                    )}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>

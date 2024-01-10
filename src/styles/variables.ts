@@ -14,7 +14,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 export default {
     // do we need to change it?
     bottomTabHeight: 80,
-    contentHeaderHeight: getValueUsingPixelRatio(65, 100),
+    contentHeaderHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
@@ -145,7 +145,7 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
-    tabSelectorButtonHeight: 40,
+    tabSelectorButtonHeight: 42,
     tabSelectorButtonPadding: 12,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
@@ -184,7 +184,7 @@ export default {
     bankCardWidth: 40,
     bankCardHeight: 26,
     workspaceTypeIconWidth: 34,
-    workspaceSectionMaxWidth: 560,
+    workspaceSectionMaxWidth: 600,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -200,4 +200,5 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
+    holdMenuIconSize: 64,
 } as const;

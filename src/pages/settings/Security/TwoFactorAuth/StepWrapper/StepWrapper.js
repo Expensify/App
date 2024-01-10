@@ -23,7 +23,7 @@ function StepWrapper({
 
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicatorSmallWidth={false}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             testID={StepWrapper.displayName}
         >

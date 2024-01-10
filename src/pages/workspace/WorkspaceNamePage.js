@@ -1,16 +1,12 @@
 import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import withWindowDimensions from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
@@ -87,6 +83,7 @@ function WorkspaceNamePage({policy}) {
                         defaultValue={policy.name}
                         maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         spellCheck={false}
+                        autoFocus
                     />
                 </View>
             </FormProvider>
@@ -98,11 +95,4 @@ WorkspaceNamePage.propTypes = propTypes;
 WorkspaceNamePage.defaultProps = defaultProps;
 WorkspaceNamePage.displayName = 'WorkspaceNamePage';
 
-export default compose(
-    withPolicy,
-    withWindowDimensions,
-    withOnyx({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    }),
-    withNetwork(),
-)(WorkspaceNamePage);
+export default withPolicy(WorkspaceNamePage);

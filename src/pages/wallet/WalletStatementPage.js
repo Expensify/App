@@ -93,7 +93,7 @@ function WalletStatementPage(props) {
 
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicatorSmallWidth={false}
             includeSafeAreaPaddingBottom={false}
             testID={WalletStatementPage.displayName}
         >

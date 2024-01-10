@@ -7,7 +7,6 @@ import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Breadcrumbs from '@components/Breadcrumbs';
 import ConfirmModal from '@components/ConfirmModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,7 +17,6 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -70,10 +68,9 @@ function WorkspaceInitialPage(props) {
     const activeRoute = useActiveRoute();
 
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
 
     const policyID = useMemo(() => policy.id, [policy]);
-    const [policyReports, adminsRoom, announceRoom] = useMemo(() => {
+    const [policyReports] = useMemo(() => {
         const reports = [];
         let admins;
         let announce;
@@ -198,31 +195,6 @@ function WorkspaceInitialPage(props) {
         },
     ];
 
-    const threeDotsMenuItems = useMemo(() => {
-        const items = [
-            {
-                icon: Expensicons.Trashcan,
-                text: translate('workspace.common.delete'),
-                onSelected: () => setIsDeleteModalOpen(true),
-            },
-        ];
-        if (adminsRoom) {
-            items.push({
-                icon: Expensicons.Hashtag,
-                text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                onSelected: () => Navigation.dismissModal(adminsRoom.reportID),
-            });
-        }
-        if (announceRoom) {
-            items.push({
-                icon: Expensicons.Hashtag,
-                text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                onSelected: () => Navigation.dismissModal(announceRoom.reportID),
-            });
-        }
-        return items;
-    }, [adminsRoom, announceRoom, translate]);
-
     const prevPolicy = usePrevious(policy);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -233,91 +205,74 @@ function WorkspaceInitialPage(props) {
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceInitialPage.displayName}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={shouldShowNotFoundPage}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workspace.common.workspace')}
-                        shouldShowThreeDotsButton
-                        shouldShowGetAssistanceButton
-                        singleExecution={singleExecution}
-                        shouldDisableGetAssistanceButton={isExecuting}
-                        shouldDisableThreeDotsButton={isExecuting}
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
-                        <OfflineWithFeedback
-                            pendingAction={policy.pendingAction}
-                            onClose={() => dismissError(policy.id)}
-                            errors={policy.errors}
-                            errorRowStyles={[styles.ph5, styles.pv2]}
-                        >
-                            <View style={[styles.mh3, styles.flex1]}>
-                                <Breadcrumbs
-                                    breadcrumbs={[
-                                        {
-                                            type: CONST.BREADCRUMB_TYPE.STRONG,
-                                            text: policyName,
-                                        },
-                                        {
-                                            text: translate('common.settings'),
-                                        },
-                                    ]}
-                                    style={[styles.pb2, styles.ph5]}
+        <ScreenWrapper testID={WorkspaceInitialPage.displayName}>
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                shouldShow={shouldShowNotFoundPage}
+                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+            >
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
+                            type: CONST.BREADCRUMB_TYPE.STRONG,
+                            text: policyName,
+                        },
+                        {
+                            text: translate('common.settings'),
+                        },
+                    ]}
+                    style={[styles.ph5, styles.pb5]}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
+                    <OfflineWithFeedback
+                        pendingAction={policy.pendingAction}
+                        onClose={() => dismissError(policy.id)}
+                        errors={policy.errors}
+                        errorRowStyles={[styles.ph5, styles.pv2]}
+                    >
+                        <View style={[styles.pb4, styles.mh3]}>
+                            {/*
+                                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
+                                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
+                                */}
+                            {_.map(menuItems, (item) => (
+                                <MenuItem
+                                    key={item.translationKey}
+                                    disabled={hasPolicyCreationError || isExecuting}
+                                    interactive={!hasPolicyCreationError}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={styles.sectionMenuItem}
+                                    focused={activeRoute && activeRoute.startsWith(item.routeName)}
+                                    isPaneMenu
                                 />
-                                {/*
-                   Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
-                   In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
-                */}
-                                {_.map(menuItems, (item) => (
-                                    <MenuItem
-                                        key={item.translationKey}
-                                        disabled={hasPolicyCreationError || isExecuting}
-                                        interactive={!hasPolicyCreationError}
-                                        title={translate(item.translationKey)}
-                                        icon={item.icon}
-                                        onPress={item.action}
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                        wrapperStyle={styles.sectionMenuItem}
-                                        focused={activeRoute && activeRoute.startsWith(item.routeName)}
-                                        isPaneMenu
-                                    />
-                                ))}
-                            </View>
-                        </OfflineWithFeedback>
-                    </ScrollView>
-                    <ConfirmModal
-                        title={translate('workspace.bankAccount.workspaceCurrency')}
-                        isVisible={isCurrencyModalOpen}
-                        onConfirm={confirmCurrencyChangeAndHideModal}
-                        onCancel={() => setIsCurrencyModalOpen(false)}
-                        prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                        confirmText={translate('workspace.bankAccount.updateToUSD')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.common.delete')}
-                        isVisible={isDeleteModalOpen}
-                        onConfirm={confirmDeleteAndHideModal}
-                        onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={translate('workspace.common.deleteConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                </FullPageNotFoundView>
-            )}
+                            ))}
+                        </View>
+                    </OfflineWithFeedback>
+                </ScrollView>
+                <ConfirmModal
+                    title={translate('workspace.bankAccount.workspaceCurrency')}
+                    isVisible={isCurrencyModalOpen}
+                    onConfirm={confirmCurrencyChangeAndHideModal}
+                    onCancel={() => setIsCurrencyModalOpen(false)}
+                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                    confirmText={translate('workspace.bankAccount.updateToUSD')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <ConfirmModal
+                    title={translate('workspace.common.delete')}
+                    isVisible={isDeleteModalOpen}
+                    onConfirm={confirmDeleteAndHideModal}
+                    onCancel={() => setIsDeleteModalOpen(false)}
+                    prompt={translate('workspace.common.deleteConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
