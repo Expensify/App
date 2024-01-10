@@ -38,7 +38,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 initialRouteName: SCREENS.HOME,
                 screens: {
                     [SCREENS.HOME]: ROUTES.HOME,
-                    [SCREENS.HOME_ROOT]: ROUTES.HOME_ROOT,
                     [SCREENS.ALL_SETTINGS]: ROUTES.ALL_SETTINGS,
                     [SCREENS.WORKSPACE.INITIAL]: {
                         path: ROUTES.WORKSPACE_INITIAL.route,
