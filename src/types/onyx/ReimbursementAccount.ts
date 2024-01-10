@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
-import type {BeneficialOwnersStepDraftProps, CompanyStepProps} from './ReimbursementAccountDraft';
+import type {BeneficialOwnersStepDraftProps, CompanyStepProps, RequestorStepProps} from './ReimbursementAccountDraft';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
@@ -26,7 +26,8 @@ type ACHData = {
     /** Bank account number */
     accountNumber?: string;
 } & BeneficialOwnersStepDraftProps &
-    CompanyStepProps;
+    CompanyStepProps &
+    RequestorStepProps;
 
 type ReimbursementAccount = {
     /** Whether we are loading the data via the API */

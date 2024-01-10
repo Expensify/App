@@ -1,32 +1,31 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type HelpLinkProps = {
     /** Style for wrapping View */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Translate function */
-    translate: PropTypes.func.isRequired,
+    containerStyles?: StyleProp<ViewStyle>;
 };
 
-const defaultProps = {
-    containerStyles: [],
-};
-
-function HelpLinks({containerStyles, translate}) {
+function HelpLinks({containerStyles}: HelpLinkProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
-            <Icon src={Expensicons.QuestionMark} />
+            <Icon
+                src={Expensicons.QuestionMark}
+                fill={theme.icon}
+            />
             <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                 <TextLink
                     style={[styles.textMicro]}
@@ -36,7 +35,7 @@ function HelpLinks({containerStyles, translate}) {
                 </TextLink>
                 <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
                 <TextLink
-                    style={[styles.textMicro, styles.textLink]}
+                    style={[styles.textMicro]}
                     href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
                 >
                     {translate('requestorStep.isMyDataSafe')}
@@ -47,7 +46,5 @@ function HelpLinks({containerStyles, translate}) {
 }
 
 HelpLinks.displayName = 'HelpLinks';
-HelpLinks.propTypes = propTypes;
-HelpLinks.defaultProps = defaultProps;
 
 export default HelpLinks;

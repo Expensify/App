@@ -1,48 +1,46 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount} from '@src/types/onyx';
+import type {FormValues} from '@src/types/onyx/Form';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
+type FullNameOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    ...subStepPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-};
+type FullNameProps = FullNameOnyxProps & SubStepProps;
 
 const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 const REQUIRED_FIELDS = [personalInfoStepKey.FIRST_NAME, personalInfoStepKey.LAST_NAME];
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-function FullName({reimbursementAccount, onNext, isEditing}) {
+function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultValues = {
-        firstName: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.FIRST_NAME, ''),
-        lastName: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.LAST_NAME, ''),
+        firstName: reimbursementAccount?.achData?.[personalInfoStepKey.FIRST_NAME] ?? '',
+        lastName: reimbursementAccount?.achData?.[personalInfoStepKey.LAST_NAME] ?? '',
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -56,6 +54,7 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
                 <View style={[styles.flex2, styles.mb5]}>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID={personalInfoStepKey.FIRST_NAME}
                         label={translate('personalInfoStep.legalFirstName')}
@@ -67,6 +66,7 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                 </View>
                 <View style={[styles.flex2, styles.mb3]}>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID={personalInfoStepKey.LAST_NAME}
                         label={translate('personalInfoStep.legalLastName')}
@@ -76,17 +76,15 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
                         shouldSaveDraft
                     />
                 </View>
-                <HelpLinks translate={translate} />
+                <HelpLinks />
             </View>
         </FormProvider>
     );
 }
 
-FullName.propTypes = propTypes;
-FullName.defaultProps = defaultProps;
 FullName.displayName = 'FullName';
 
-export default withOnyx({
+export default withOnyx<FullNameProps, FullNameOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

@@ -1,14 +1,12 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const personalInfoKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
-
-type PersonalInfoData = Record<ValueOf<typeof personalInfoKeys>, string>;
 
 /**
  * Returns the initial substep for the Personal Info step based on already existing data
  */
-function getInitialSubstepForPersonalInfo(data: PersonalInfoData): number {
+function getInitialSubstepForPersonalInfo(data: RequestorStepProps): number {
     if (data[personalInfoKeys.FIRST_NAME] === '' && data[personalInfoKeys.LAST_NAME] === '') {
         return 0;
     }

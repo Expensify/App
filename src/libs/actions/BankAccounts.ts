@@ -50,6 +50,13 @@ type BusinessAddress = {
     addressZipCode?: string;
 };
 
+type PersonalAddress = {
+    requestorAddressStreet?: string;
+    requestorAddressCity?: string;
+    requestorAddressState?: string;
+    requestorAddressZipCode?: string;
+};
+
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
@@ -528,4 +535,4 @@ export {
     setReimbursementAccountLoading,
 };
 
-export type {BusinessAddress};
+export type {BusinessAddress, PersonalAddress};
