@@ -57,7 +57,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldShowOfflineIndicatorSmallWidth={false}
+            shouldShowOfflineIndicator={false}
             testID={RequestorOnfidoStep.displayName}
         >
             <HeaderWithBackButton

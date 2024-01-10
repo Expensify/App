@@ -920,6 +920,13 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -25,
         },
 
+        offlineIndicatorBottomTabBar: {
+            paddingLeft: 20,
+            paddingTop: 5,
+            paddingBottom: 5,
+            marginBottom: -25,
+        },
+
         offlineIndicatorRow: {
             height: 25,
         },

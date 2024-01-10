@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Search from '@components/Search';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
@@ -9,22 +9,9 @@ import SignInOrAvatarWithOptionalStatus from '@pages/home/sidebar/SignInOrAvatar
 import * as Session from '@userActions/Session';
 import ROUTES from '@src/ROUTES';
 
-type Props = {
-    isCreateMenuOpen?: boolean;
-};
-
-function TopBar({isCreateMenuOpen = false}: Props) {
+function TopBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const showSearchPage = useCallback(() => {
-        if (isCreateMenuOpen) {
-            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SEARCH);
-    }, [isCreateMenuOpen]);
 
     return (
         <View
@@ -34,13 +21,10 @@ function TopBar({isCreateMenuOpen = false}: Props) {
             <WorkspaceSwitcherButton />
             <Search
                 placeholder={translate('sidebarScreen.buttonSearch')}
-                onPress={Session.checkIfActionIsAllowed(showSearchPage)}
+                onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
                 containerStyle={styles.flexGrow1}
             />
-            <SignInOrAvatarWithOptionalStatus
-                // @ts-expect-error TODO: Remove this once Sidebar page (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
-                isCreateMenuOpen={isCreateMenuOpen}
-            />
+            <SignInOrAvatarWithOptionalStatus />
         </View>
     );
 }

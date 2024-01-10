@@ -109,6 +109,7 @@ function WorkspaceReimburseView(props) {
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
+                isCentralPane
                 menuItems={[
                     {
                         title: translate('workspace.reimburse.viewAllReceipts'),
@@ -136,6 +137,7 @@ function WorkspaceReimburseView(props) {
             <Section
                 title={translate('workspace.reimburse.trackDistance')}
                 icon={Illustrations.TrackShoe}
+                isCentralPane
             >
                 <View style={[styles.mv3]}>
                     <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>

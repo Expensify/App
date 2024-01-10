@@ -65,7 +65,7 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
     return (
         <ScreenWrapper
             testID={CustomBottomTabNavigator.displayName}
-            shouldShowOfflineIndicatorSmallWidth={false}
+            shouldShowOfflineIndicator={false}
         >
             <View style={styles.flex1}>
                 <TopBar />

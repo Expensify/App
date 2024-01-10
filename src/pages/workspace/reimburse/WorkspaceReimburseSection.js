@@ -53,6 +53,7 @@ function WorkspaceReimburseSection(props) {
             <Section
                 title={props.translate('workspace.reimburse.reimburseReceipts')}
                 icon={Illustrations.MoneyWings}
+                isCentralPane
             >
                 <View style={[styles.mv3]}>
                     <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
@@ -78,6 +79,7 @@ function WorkspaceReimburseSection(props) {
                 <Section
                     title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                     icon={Illustrations.TreasureChest}
+                    isCentralPane
                     menuItems={[
                         {
                             title: props.translate('workspace.reimburse.reimburseReceipts'),
@@ -98,6 +100,7 @@ function WorkspaceReimburseSection(props) {
                 <Section
                     title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                     icon={Illustrations.OpenSafe}
+                    isCentralPane
                 >
                     <View style={[styles.mv3]}>
                         <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
