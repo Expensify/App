@@ -49,6 +49,7 @@ type ACHContractStepProps = {
     hasOtherBeneficialOwners?: boolean;
     acceptTermsAndConditions?: boolean;
     certifyTrueInformation?: boolean;
+    isAuthorizedToUseBankAccount?: boolean;
     beneficialOwners?: string;
     beneficialOwnerKeys?: string[];
 };
