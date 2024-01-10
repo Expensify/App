@@ -558,7 +558,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 }
 
 /**
- * Get's the default tax name
+ * Gets the default tax name
  */
 function getDefaultTaxName(policyTaxRates: PolicyTaxRates, transaction: Transaction) {
     const defaultTaxKey = policyTaxRates.defaultExternalID;
