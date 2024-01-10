@@ -5,6 +5,9 @@ module.exports = {
     core: {
         builder: 'webpack5',
     },
+    typescript: {
+        reactDocgen: 'react-docgen-typescript-plugin'
+    },
     managerHead: (head) => `
         ${head}
         ${process.env.ENV === 'staging' ? '<meta name="robots" content="noindex">' : ''}
