@@ -1,7 +1,7 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
-import AnchorForAttachmentsOnlyProps from './types';
+import type AnchorForAttachmentsOnlyProps from './types';
 
 function AnchorForAttachmentsOnly(props: AnchorForAttachmentsOnlyProps) {
     const styles = useThemeStyles();

@@ -1,5 +1,5 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {type OnyxEntry, withOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -9,8 +9,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Download as OnyxDownload} from '@src/types/onyx';
-import AnchorForAttachmentsOnlyProps from './types';
+import type {Download as OnyxDownload} from '@src/types/onyx';
+import type AnchorForAttachmentsOnlyProps from './types';
 
 type BaseAnchorForAttachmentsOnlyOnyxProps = {
     /** If a file download is happening */
