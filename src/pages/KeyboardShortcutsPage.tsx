@@ -1,11 +1,12 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import _ from 'underscore';
+import {isEmpty, chain} from 'lodash';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import type {TranslationPaths} from '@src/languages/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
@@ -13,8 +14,8 @@ import CONST from '@src/CONST';
 function KeyboardShortcutsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const shortcuts = _.chain(CONST.KEYBOARD_SHORTCUTS)
-        .filter((shortcut) => !_.isEmpty(shortcut.descriptionKey))
+    const shortcuts = chain(CONST.KEYBOARD_SHORTCUTS)
+        .filter((shortcut) => !isEmpty(shortcut.descriptionKey))
         .map((shortcut) => {
             const platformAdjustedModifiers = KeyboardShortcut.getPlatformEquivalentForKeys(shortcut.modifiers);
             return {
@@ -24,18 +25,20 @@ function KeyboardShortcutsPage() {
         })
         .value();
 
+    type Shortcut = {
+        displayName: string;
+        descriptionKey: string | null; // Update the type to allow for null values
+    };
     /**
      * Render the information of a single shortcut
-     * @param {Object} shortcut
-     * @param {String} shortcut.displayName
-     * @param {String} shortcut.descriptionKey
-     * @returns {React.Component}
+     * @param shortcut - The shortcut to render
+     * @returns
      */
-    const renderShortcut = (shortcut) => (
+    const renderShortcut = (shortcut: Shortcut) => (
         <MenuItem
             key={shortcut.displayName}
             title={shortcut.displayName}
-            description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
+            description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}` as TranslationPaths)}
             wrapperStyle={[styles.ph0, styles.cursorAuto]}
             interactive={false}
         />
@@ -49,8 +52,8 @@ function KeyboardShortcutsPage() {
             <HeaderWithBackButton title={translate('keyboardShortcutsPage.title')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.mb3, styles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
-                    {_.map(shortcuts, renderShortcut)}
+                    <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
+                    {shortcuts.map(renderShortcut)}
                 </View>
             </ScrollView>
         </ScreenWrapper>
