@@ -9,5 +9,9 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).NotificationService</string>
 	</dict>
+	<key>CFBundleVersion</key>
+	<string>1.4.23.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.4.23</string>
 </dict>
 </plist>

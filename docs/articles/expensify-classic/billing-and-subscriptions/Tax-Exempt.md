@@ -15,6 +15,8 @@ Once your account is marked as tax-exempt, the corresponding state tax will no l
 
 If you need to remove your tax-exempt status, let your Account Manager know or contact Concierge.
 
-# FAQ
+{% include faq-begin.md %}
 ## What happens to my past Expensify bills that incorrectly had tax added to them? 
 Expensify can provide a refund for the tax you were charged on your previous bills. Please let your Account Manager know or contact Concierge if this is the case.
+
+{% include faq-end.md %}
