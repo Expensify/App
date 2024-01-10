@@ -356,7 +356,7 @@ function BaseOptionsSelector(props) {
         if (allOptions.length <= focusedIndex) {
             return;
         }
-        scrollToIndex(props.focusedIndex);
+        scrollToIndex(focusedIndex);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allOptions.length, focusedIndex, props.focusedIndex, props.selectedOptions, value]);
 
