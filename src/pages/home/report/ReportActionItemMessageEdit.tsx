@@ -270,6 +270,7 @@ function ReportActionItemMessageEdit(
 
             draftRef.current = newDraft;
 
+            // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
             debouncedSaveDraft(newDraft);
         },
         [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
