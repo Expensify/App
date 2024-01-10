@@ -4322,6 +4322,10 @@ function navigateToPrivateNotes(report: Report, session: Session) {
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
 }
 
+/**
+ * Given a report field and a report, get the title of the field.
+ * This is specially useful when we have a report field of type formula.
+ */
 function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField) {
     const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
 
