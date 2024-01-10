@@ -1,5 +1,4 @@
-import type CustomRefObject from '@src/types/utils/CustomRefObject';
-import type ControlSelectionModule from './types';
+import type {ControlSelectionModule, SelectionElement} from './types';
 
 /**
  * Block selection on the whole app
@@ -20,25 +19,25 @@ function unblock() {
 /**
  * Block selection on particular element
  */
-function blockElement<T>(ref?: CustomRefObject<T> | null) {
-    if (!ref) {
+function blockElement<T>(element?: SelectionElement<T> | null) {
+    if (!element) {
         return;
     }
 
     // eslint-disable-next-line no-param-reassign
-    ref.onselectstart = () => false;
+    element.onselectstart = () => false;
 }
 
 /**
  * Unblock selection on particular element
  */
-function unblockElement<T>(ref?: CustomRefObject<T> | null) {
-    if (!ref) {
+function unblockElement<T>(element?: SelectionElement<T> | null) {
+    if (!element) {
         return;
     }
 
     // eslint-disable-next-line no-param-reassign
-    ref.onselectstart = () => true;
+    element.onselectstart = () => true;
 }
 
 const ControlSelection: ControlSelectionModule = {

@@ -1,34 +1,29 @@
-import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
+import type {GestureEvent, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import gestureHandlerPropTypes from './gestureHandlerPropTypes';
+import {SelectionElement} from '@libs/ControlSelection/types';
 
-const propTypes = {
+type SliderProps = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
-    onGesture: gestureHandlerPropTypes,
+    onGesture: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
 
     /** X position of the slider knob */
-    sliderValue: PropTypes.shape({value: PropTypes.number}),
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    onGesture: () => {},
-    sliderValue: {},
+    sliderValue: {
+        value: number;
+    };
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-function Slider(props) {
+function Slider({onGesture = () => {}, sliderValue = {value: 0}}: SliderProps) {
     const styles = useThemeStyles();
-    const sliderValue = props.sliderValue;
     const [tooltipIsVisible, setTooltipIsVisible] = useState(true);
+    const {translate} = useLocalize();
 
     // A reanimated memoized style, which tracks
     // a translateX shared value and updates the slider position.
@@ -40,18 +35,20 @@ function Slider(props) {
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
         <View
-            ref={ControlSelection.blockElement}
+            ref={(el) => {
+                ControlSelection.blockElement<View>(el as SelectionElement<View>);
+            }}
             style={styles.sliderBar}
         >
             <PanGestureHandler
                 onBegan={() => setTooltipIsVisible(false)}
                 onEnded={() => setTooltipIsVisible(true)}
-                onGestureEvent={props.onGesture}
+                onGestureEvent={onGesture}
             >
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]}>
                     {tooltipIsVisible && (
                         <Tooltip
-                            text={props.translate('common.zoom')}
+                            text={translate('common.zoom')}
                             shiftVertical={-2}
                         >
                             <View style={[styles.sliderKnobTooltipView]} />
@@ -64,6 +61,5 @@ function Slider(props) {
 }
 
 Slider.displayName = 'Slider';
-Slider.propTypes = propTypes;
-Slider.defaultProps = defaultProps;
-export default withLocalize(Slider);
+
+export default Slider;

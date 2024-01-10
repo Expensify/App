@@ -1,10 +1,10 @@
-import type CustomRefObject from '@src/types/utils/CustomRefObject';
+type SelectionElement<T> = T & {onselectstart: () => boolean};
 
 type ControlSelectionModule = {
     block: () => void;
     unblock: () => void;
-    blockElement: <T>(ref?: CustomRefObject<T> | null) => void;
-    unblockElement: <T>(ref?: CustomRefObject<T> | null) => void;
+    blockElement: <T>(element?: SelectionElement<T> | null) => void;
+    unblockElement: <T>(element?: SelectionElement<T> | null) => void;
 };
 
-export default ControlSelectionModule;
+export type {ControlSelectionModule, SelectionElement};

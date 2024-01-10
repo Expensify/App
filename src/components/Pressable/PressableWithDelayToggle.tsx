@@ -78,7 +78,7 @@ function PressableWithDelayToggle(
             return;
         }
         temporarilyDisableInteractions();
-        onPress();
+        onPress?.();
     };
 
     // Due to limitations in RN regarding the vertical text alignment of non-Text elements,
