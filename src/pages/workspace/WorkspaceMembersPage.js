@@ -455,8 +455,8 @@ function WorkspaceMembersPage(props) {
                         })
                     }
                 />
-                <View style={[styles.w100, styles.flex1]}>
-                    <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
+                <View style={[styles.w100, styles.flex1, styles.mt6]}>
+                    <View style={[styles.w100, styles.flexRow, styles.ph5]}>
                         <Button
                             medium
                             success
