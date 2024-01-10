@@ -27,7 +27,7 @@ type CalendarPickerProps = {
     maxDate?: Date;
 
     /** A function called when the date is selected */
-    onSelected?: (selectedDate: Date | string) => void;
+    onSelected?: (selectedDate: string) => void;
 };
 
 function CalendarPicker({
