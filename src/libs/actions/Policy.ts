@@ -966,7 +966,7 @@ function hideWorkspaceAlertMessage(policyID: string) {
 }
 
 function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: NewCustomUnit, lastModified: number) {
-    if (!currentCustomUnit.customUnitID || !newCustomUnit?.customUnitID || !newCustomUnit.rates?.customUnitRateID || !currentCustomUnit.rates?.customUnitRateID) {
+    if (!currentCustomUnit.customUnitID || !newCustomUnit?.customUnitID || !newCustomUnit.rates?.customUnitRateID) {
         return;
     }
 
