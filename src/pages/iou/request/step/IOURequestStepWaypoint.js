@@ -81,7 +81,7 @@ const defaultProps = {
 function IOURequestStepWaypoint({
     recentWaypoints,
     route: {
-        params: {action, iouType, pageIndex, reportID, transactionID},
+        params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
     userLocation,
@@ -135,7 +135,7 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${pageIndex}`] || '';
@@ -180,7 +180,12 @@ function IOURequestStepWaypoint({
             address: values.address,
             name: values.name || null,
         };
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
+        console.log('timddd action', action);
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
