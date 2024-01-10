@@ -49,6 +49,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         body,
     })
         .then((response) => {
+            // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
             if (match && addSkewList.includes(match) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
