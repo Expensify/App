@@ -196,8 +196,8 @@ function AttachmentModal({
      * If our attachment is a PDF, return the unswipeablge Modal type.
      */
     const getModalType = useCallback(
-        (sourceURL: string, fileobject: FileObject) =>
-            sourceURL && (Str.isPDF(sourceURL) || (fileobject && Str.isPDF(fileobject.name || translate('attachmentView.unknownFilename'))))
+        (sourceURL: string, fileObject: FileObject) =>
+            sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
         [translate],
@@ -266,15 +266,15 @@ function AttachmentModal({
         Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);
 
-    const isValidFile = useCallback((fileobject: FileObject) => {
-        if (fileobject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+    const isValidFile = useCallback((fileObject: FileObject) => {
+        if (fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
             setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if (fileobject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
             setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
