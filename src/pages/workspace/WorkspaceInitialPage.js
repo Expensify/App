@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -20,9 +19,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -35,9 +32,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     ...policyPropTypes,
-
-    /** All reports shared with the user (coming from Onyx) */
-    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
