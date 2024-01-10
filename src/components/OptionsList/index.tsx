@@ -1,6 +1,5 @@
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
-import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseOptionsList from './BaseOptionsList';
@@ -52,4 +51,4 @@ function OptionsList(props: OptionsListProps, ref: ForwardedRef<OptionsListType>
 
 OptionsList.displayName = 'OptionsList';
 
-export default forwardRef(OptionsList);
+export default memo(forwardRef(OptionsList));

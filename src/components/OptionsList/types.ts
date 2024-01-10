@@ -115,6 +115,9 @@ type OptionsListProps = {
 
     /** Callback to fire when the multiple selector (tickbox or button) is clicked */
     onAddToSelection: () => void;
+
+    /** Safe area style */
+    safeAreaPaddingBottomStyle?: StyleProp<ViewStyle>;
 };
 
 type BaseOptionListProps = OptionsListProps & {
