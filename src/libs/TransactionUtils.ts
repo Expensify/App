@@ -294,7 +294,9 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 }
 
 /**
- * Return the currency field from the transaction, return the modifiedCurrency if present.
+ * Return the currency information from the transaction.
+ *
+ * For a transaction with a failed smart scan needs to use the currency field, otherwise needs to use the modifiedCurrency if present.
  */
 function getCurrency(transaction: OnyxEntry<Transaction>): string {
     const currency = transaction?.modifiedCurrency ?? '';
