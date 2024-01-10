@@ -107,7 +107,7 @@ function WorkspacesListRow({
                 />
                 <Text
                     numberOfLines={1}
-                    style={[styles.flexGrow1, styles.textStrong]}
+                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
                 >
                     {title}
                 </Text>
@@ -150,10 +150,10 @@ function WorkspacesListRow({
                     height={variables.workspaceTypeIconWidth}
                     additionalStyles={styles.workspaceTypeWrapper}
                 />
-                <View style={styles.dFlex}>
+                <View style={styles.flex1}>
                     <Text
                         numberOfLines={1}
-                        style={styles.labelStrong}
+                        style={[styles.labelStrong]}
                     >
                         {userFriendlyWorkspaceType}
                     </Text>
