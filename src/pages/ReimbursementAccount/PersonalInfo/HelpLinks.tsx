@@ -25,7 +25,7 @@ function HelpLinks({containerStyles}: HelpLinkPropTypes) {
             <Icon
                 src={Expensicons.QuestionMark}
                 fill={theme.icon}
-            />{' '}
+            />
             <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                 <TextLink
                     style={[styles.textMicro]}

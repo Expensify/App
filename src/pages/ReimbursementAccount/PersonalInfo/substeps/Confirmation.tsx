@@ -29,7 +29,7 @@ type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function Confirmation({reimbursementAccount = {}, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
+function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
