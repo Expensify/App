@@ -159,7 +159,9 @@ test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
     const policies = getMockedPolicies();
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInGSDMode, betas, policies, doesReportHaveViolations: false}), {runs});
+    await measureFunction(() => ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInGSDMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}), {
+        runs,
+    });
 });
 
 test('[ReportUtils] getWorkspaceIcon on 5k policies', async () => {

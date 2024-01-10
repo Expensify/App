@@ -1330,6 +1330,8 @@ function getOptions(
             betas,
             policies,
             doesReportHaveViolations,
+            isInGSDMode: false,
+            excludeEmptyChats: false,
         });
     });
 

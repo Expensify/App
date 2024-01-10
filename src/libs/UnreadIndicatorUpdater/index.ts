@@ -23,6 +23,8 @@ const triggerUnreadUpdate = () => {
             betas: [],
             policies: {},
             doesReportHaveViolations: false,
+            isInGSDMode: false,
+            excludeEmptyChats: false,
         });
     });
     updateUnread(unreadReports.length);

@@ -3483,18 +3483,18 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 function shouldReportBeInOptionList({
     report,
     currentReportId,
-    isInGSDMode = false,
+    isInGSDMode,
     betas,
     policies,
-    excludeEmptyChats = false,
+    excludeEmptyChats,
     doesReportHaveViolations,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
-    isInGSDMode?: boolean;
+    isInGSDMode: boolean;
     betas: Beta[];
     policies: OnyxCollection<Policy>;
-    excludeEmptyChats?: boolean;
+    excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
 }) {
     const isInDefaultMode = !isInGSDMode;
