@@ -88,7 +88,7 @@ function IOURequestStepWaypoint({
     userLocation,
 }) {
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -220,7 +220,7 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline && windowWidth < 800)]}
+                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline, isSmallScreenWidth)]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}

@@ -91,7 +91,7 @@ const defaultProps = {
 
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints, userLocation}) {
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -223,7 +223,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline && windowWidth < 800)]}
+                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline, isSmallScreenWidth)]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}

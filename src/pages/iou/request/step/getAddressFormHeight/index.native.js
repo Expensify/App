@@ -1,7 +1,7 @@
 /**
  * get the height of Form view in GooglePlacesAutocomplete.
  * @param {Number} windowHeight the height of windows
- * @param {Boolean} isOffline Whether network is offline
+ * @param {Boolean} isOffline Whether device is
  * @returns {Object} styles for the Form height.
  */
 function getAddressFormHeight(windowHeight, isOffline) {
