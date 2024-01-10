@@ -3,7 +3,7 @@
 
 /* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
-import {Merge} from 'type-fest';
+import type {Merge} from 'type-fest';
 import pkg from '../../package.json';
 import getPlatform from './getPlatform';
 import * as Network from './Network';

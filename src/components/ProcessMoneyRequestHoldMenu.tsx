@@ -1,73 +1,63 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import * as IOU from '@userActions/IOU';
-import * as OnyxTypes from '@src/types/onyx';
-import DecisionModal from './DecisionModal';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Button from './Button';
+import HoldMenuSectionList from './HoldMenuSectionList';
+import type {PopoverAnchorPosition} from './Modal/types';
+import Popover from './Popover';
+import type {AnchorAlignment} from './Popover/types';
+import Text from './Text';
+import TextPill from './TextPill';
 
 type ProcessMoneyRequestHoldMenuProps = {
-    /** The chat report this report is linked to */
-    chatReport: OnyxTypes.Report;
-
-    /** Full amount of expense report to pay */
-    fullAmount: string;
-
-    /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: boolean;
-
-    /** Whether modal is visible */
+    /** Whether the content is visible */
     isVisible: boolean;
 
-    /** The report currently being looked at */
-    moneyRequestReport: OnyxTypes.IOU;
-
-    /** Not held amount of expense report */
-    nonHeldAmount?: string;
-
-    /** Callback for closing modal */
+    /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
-    /** Type of payment */
-    paymentType: string;
+    /** Method to trigger when pressing confirm button */
+    onConfirm: () => void;
 
-    /** Type of action handled either 'pay' or 'approve' */
-    requestType: string;
+    /** The anchor position of the popover menu */
+    anchorPosition?: PopoverAnchorPosition;
+
+    /** The anchor alignment of the popover menu */
+    anchorAlignment: AnchorAlignment;
+
+    /** The anchor ref of the popover menu */
+    anchorRef: React.RefObject<HTMLElement>;
 };
 
-function ProcessMoneyRequestHoldMenu({
-    requestType,
-    nonHeldAmount,
-    fullAmount,
-    isSmallScreenWidth = false,
-    onClose,
-    isVisible,
-    paymentType,
-    chatReport,
-    moneyRequestReport,
-}: ProcessMoneyRequestHoldMenuProps) {
+function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = requestType === 'approve';
-
-    const onSubmit = (full: boolean) => {
-        if (isApprove) {
-            IOU.approveMoneyRequest(moneyRequestReport, full);
-        } else {
-            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
-        }
-        onClose();
-    };
+    const styles = useThemeStyles();
 
     return (
-        <DecisionModal
-            title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
-            onClose={onClose}
+        <Popover
             isVisible={isVisible}
-            prompt={translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')}
-            firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
-            secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
-            onFirstOptionSubmit={() => onSubmit(false)}
-            onSecondOptionSubmit={() => onSubmit(true)}
-            isSmallScreenWidth={isSmallScreenWidth}
-        />
+            onClose={onClose}
+            anchorPosition={anchorPosition}
+            anchorRef={anchorRef}
+            anchorAlignment={anchorAlignment}
+            disableAnimation={false}
+            withoutOverlay={false}
+        >
+            <View style={[styles.mh5, styles.mv5]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                    <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>;
+                </View>
+                <HoldMenuSectionList />
+                <Button
+                    success
+                    style={[styles.mt5]}
+                    text={translate('common.buttonConfirm')}
+                    onPress={onConfirm}
+                />
+            </View>
+        </Popover>
     );
 }
 

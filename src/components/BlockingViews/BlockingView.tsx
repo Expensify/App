@@ -1,6 +1,7 @@
 import React from 'react';
-import {ImageSourcePropType, View} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import type {ImageSourcePropType} from 'react-native';
+import {View} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -9,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 
 type BlockingViewProps = {
     /** Expensicon for the page */

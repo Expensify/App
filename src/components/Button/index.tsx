@@ -1,6 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {ForwardedRef, useCallback} from 'react';
-import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {useCallback} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -12,8 +14,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
-import IconAsset from '@src/types/utils/IconAsset';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
@@ -169,16 +171,16 @@ function Button(
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isFocused, isDisabled, isLoading, event)) {
+            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
                 return;
             }
             onPress();
         },
-        [isDisabled, isFocused, isLoading, onPress],
+        [isDisabled, isLoading, onPress],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
-        isActive: pressOnEnter && !shouldDisableEnterShortcut,
+        isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
         shouldBubble: allowBubble,
         priority: enterKeyEventListenerPriority,
         shouldPreventDefault: false,

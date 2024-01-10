@@ -6,7 +6,9 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useStyleUtils from '@hooks/useStyleUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 
