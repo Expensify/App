@@ -1,4 +1,5 @@
 import type {ComponentType} from 'react';
+import type {OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type SubStepProps = {
     /** value indicating whether user is editing one of the sub steps */
@@ -22,7 +23,7 @@ type UseSubStep<T = void> = {
     bodyContent: Array<ComponentType<SubStepProps & T>>;
 
     /** called on last sub step  */
-    onFinished: () => void;
+    onFinished: (data?: OnfidoData) => void;
 
     /** index of initial sub step to display */
     startFrom?: number;
