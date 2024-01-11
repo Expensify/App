@@ -13,7 +13,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useActiveElement from '@hooks/useActiveElement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +21,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {BaseSelectionListProps, FlattenedSectionsReturn, RadioItem, Section, User} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, User} from './types';
 
 function BaseSelectionList(
     {
@@ -65,7 +65,7 @@ function BaseSelectionList(
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
     const shouldShowSelectAll = !!onSelectAll;
-    const activeElement = useActiveElement();
+    const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
@@ -145,7 +145,7 @@ function BaseSelectionList(
     const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElement?.role && (activeElement.role === CONST.ROLE.BUTTON ?? activeElement.role === CONST.ROLE.CHECKBOX);
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
 
     /**
      * Scrolls to the desired item index in the section list
