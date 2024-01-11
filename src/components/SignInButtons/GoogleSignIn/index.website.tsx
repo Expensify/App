@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import Response from '@src/types/modules/google';
+import type Response from '@src/types/modules/google';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;
