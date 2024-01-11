@@ -1488,7 +1488,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string | undefined {
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string {
     if (!accountID) {
         return '';
     }

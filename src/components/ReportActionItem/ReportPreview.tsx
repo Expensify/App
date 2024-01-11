@@ -1,23 +1,19 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import refPropTypes from '@components/refPropTypes';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -27,103 +23,78 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy, Report, ReportAction, Session} from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImages from './ReportActionItemImages';
 
-const propTypes = {
-    /** All the data of the action */
-    action: PropTypes.shape(reportActionPropTypes).isRequired,
+type PaymentVerbTranslationPath = 'iou.payerSpent' | 'iou.payerOwes' | 'iou.payerPaid';
 
-    /** The associated chatReport */
-    chatReportID: PropTypes.string.isRequired,
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
-    /** The active IOUReport, used for Onyx subscription */
-    // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.string.isRequired,
-
-    /** The report's policyID, used for Onyx subscription */
-    policyID: PropTypes.string.isRequired,
-
+type ReportPreviewOnyxProps = {
     /** The policy tied to the money request report */
-    policy: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
+    policy: OnyxEntry<Policy>;
 
-        /** Type of the policy */
-        type: PropTypes.string,
-
-        /** The role of the current user in the policy */
-        role: PropTypes.string,
-
-        /** Whether Scheduled Submit is turned on for this policy */
-        isHarvestingEnabled: PropTypes.bool,
-    }),
-
-    /* Onyx Props */
-    /** chatReport associated with iouReport */
-    chatReport: reportPropTypes,
-
-    /** Extra styles to pass to View wrapper */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    /** ChatReport associated with iouReport */
+    chatReport: OnyxEntry<Report>;
 
     /** Active IOU Report for current report */
-    iouReport: PropTypes.shape({
-        /** AccountID of the manager in this iou report */
-        managerID: PropTypes.number,
-
-        /** AccountID of the creator of this iou report */
-        ownerAccountID: PropTypes.number,
-
-        /** Outstanding amount in cents of this transaction */
-        total: PropTypes.number,
-
-        /** Currency of outstanding amount of this transaction */
-        currency: PropTypes.string,
-
-        /** Is the iouReport waiting for the submitter to add a credit bank account? */
-        isWaitingOnBankAccount: PropTypes.bool,
-    }),
+    iouReport: OnyxEntry<Report>;
 
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
+    session: OnyxEntry<Session>;
+};
+
+type ReportPreviewProps = ReportPreviewOnyxProps & {
+    /** All the data of the action */
+    action: ReportAction;
+
+    /** The associated chatReport */
+    chatReportID: string;
+
+    /** The active IOUReport, used for Onyx subscription */
+    iouReportID: string;
+
+    /** The report's policyID, used for Onyx subscription */
+    policyID: string;
+
+    /** Extra styles to pass to View wrapper */
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: refPropTypes,
+    contextMenuAnchor?: ContextMenuAnchor;
 
     /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive: PropTypes.func,
+    checkIfContextMenuActive?: () => void;
 
     /** Whether a message is a whisper */
-    isWhisper: PropTypes.bool,
+    isWhisper?: boolean;
 
-    ...withLocalizePropTypes,
+    /** Whether the corresponding report action item is hovered */
+    isHovered?: boolean;
 };
 
-const defaultProps = {
-    contextMenuAnchor: null,
-    chatReport: {},
-    containerStyles: [],
-    iouReport: {},
-    checkIfContextMenuActive: () => {},
-    session: {
-        accountID: null,
-    },
-    isWhisper: false,
-    policy: {
-        isHarvestingEnabled: false,
-    },
-};
-
-function ReportPreview(props) {
+function ReportPreview({
+    iouReport,
+    session,
+    policy,
+    iouReportID,
+    policyID,
+    chatReportID,
+    chatReport,
+    action,
+    containerStyles,
+    contextMenuAnchor,
+    isHovered = false,
+    isWhisper = false,
+    checkIfContextMenuActive = () => {},
+}: ReportPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -133,35 +104,37 @@ function ReportPreview(props) {
     const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
     const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
 
-    const managerID = props.iouReport.managerID || 0;
-    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
-    const policyType = lodashGet(props.policy, 'type');
+    const managerID = iouReport?.managerID ?? 0;
+    const isCurrentUserManager = managerID === session?.accountID;
+    const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
+    const policyType = policy?.type;
 
-    const iouSettled = ReportUtils.isSettled(props.iouReportID);
-    const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
-    const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(props.action);
-    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
-    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(props.iouReport);
+    const iouSettled = ReportUtils.isSettled(iouReportID);
+    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
+    const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(action);
+    const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
 
-    const isApproved = ReportUtils.isReportApproved(props.iouReport);
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(props.iouReport);
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
-    const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
+    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const hasErrors = hasReceipts && hasMissingSmartscanFields;
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
-    const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
+    const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
-    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
-    if (hasPendingWaypoints) {
-        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
+    const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && transactionsWithReceipts.every((transaction) => transaction.pendingFields?.waypoints);
+    if (formattedMerchant && hasPendingWaypoints) {
+        formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
     const previewSubtitle =
+        // Formatted merchant can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         formattedMerchant ||
-        props.translate('iou.requestCount', {
+        translate('iou.requestCount', {
             count: numberOfRequests,
             scanningReceipts: numberOfScanningReceipts,
         });
@@ -170,67 +143,71 @@ function ReportPreview(props) {
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => props.chatReport.isOwnPolicyExpenseChat && !props.policy.isHarvestingEnabled,
-        [props.chatReport.isOwnPolicyExpenseChat, props.policy.isHarvestingEnabled],
+        () => chatReport?.isOwnPolicyExpenseChat && !policy?.isHarvestingEnabled,
+        [chatReport?.isOwnPolicyExpenseChat, policy?.isHarvestingEnabled],
     );
 
-    const getDisplayAmount = () => {
+    const getDisplayAmount = (): string => {
         if (hasPendingWaypoints) {
-            return props.translate('common.tbd');
+            return translate('common.tbd');
         }
         if (totalDisplaySpend) {
-            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
         if (isScanning) {
-            return props.translate('iou.receiptScanning');
+            return translate('iou.receiptScanning');
         }
         if (hasOnlyDistanceRequests) {
-            return props.translate('common.tbd');
+            return translate('common.tbd');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmount = '';
-        const actionMessage = lodashGet(props.action, ['message', 0, 'text'], '');
+        const actionMessage = action.message?.[0]?.text ?? '';
         const splits = actionMessage.split(' ');
-        for (let i = 0; i < splits.length; i++) {
-            if (/\d/.test(splits[i])) {
-                displayAmount = splits[i];
+
+        splits.forEach((split) => {
+            if (!/\d/.test(split)) {
+                return;
             }
-        }
+
+            displayAmount = split;
+        });
+
         return displayAmount;
     };
 
     const getPreviewMessage = () => {
         if (isScanning) {
-            return props.translate('common.receipt');
+            return translate('common.receipt');
         }
-        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         if (isApproved) {
-            return props.translate('iou.managerApproved', {manager: payerOrApproverName});
+            return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        let paymentVerb = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
-        if (iouSettled || props.iouReport.isWaitingOnBankAccount) {
+        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        let paymentVerb: PaymentVerbTranslationPath = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
         }
-        return props.translate(paymentVerb, {payer: managerName});
+        return translate(paymentVerb, {payer: managerName});
     };
 
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
     useEffect(() => {
         const unsubscribeOnyxTransaction = onyxSubscribe({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
             callback: (allTransactions) => {
-                if (_.isEmpty(allTransactions)) {
+                if (isEmptyObject(allTransactions)) {
                     return;
                 }
 
-                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
-                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
-                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
+                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(iouReportID));
+                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action));
+                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(iouReportID));
+                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(iouReportID));
             },
         });
 
@@ -240,15 +217,15 @@ function ReportPreview(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPaidGroupPolicy
         ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
@@ -258,25 +235,27 @@ function ReportPreview(props) {
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>
-            <View style={[styles.chatItemMessage, ...props.containerStyles]}>
+        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.preview}>
+            <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                    // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
+                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role="button"
-                    accessibilityLabel={props.translate('iou.viewDetails')}
+                    accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    <View style={[styles.reportPreviewBox, !!isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {hasReceipts && (
                             <ReportActionItemImages
+                                // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                                 images={lastThreeReceipts}
                                 total={transactionsWithReceipts.length}
-                                isHovered={props.isHovered || isScanning}
+                                isHovered={!!isHovered || isScanning}
                                 size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                             />
                         )}
@@ -295,7 +274,7 @@ function ReportPreview(props) {
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                     <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                    {ReportUtils.isSettled(props.iouReportID) && (
+                                    {ReportUtils.isSettled(iouReportID) && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
@@ -314,11 +293,12 @@ function ReportPreview(props) {
                             )}
                             {shouldShowSettlementButton && (
                                 <SettlementButton
-                                    currency={props.iouReport.currency}
-                                    policyID={props.policyID}
-                                    chatReportID={props.chatReportID}
-                                    iouReport={props.iouReport}
-                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
+                                    currency={iouReport?.currency}
+                                    policyID={policyID}
+                                    chatReportID={chatReportID}
+                                    iouReport={iouReport}
+                                    onPress={(paymentType: PaymentMethodType) => chatReport && iouReport && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
                                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                     addBankAccountRoute={bankAccountRoute}
                                     shouldHidePaymentOptions={!shouldShowPayButton}
@@ -340,7 +320,7 @@ function ReportPreview(props) {
                                     success={isWaitingForSubmissionFromCurrentUser}
                                     text={translate('common.submit')}
                                     style={styles.mt3}
-                                    onPress={() => IOU.submitReport(props.iouReport)}
+                                    onPress={() => iouReport && IOU.submitReport(iouReport)}
                                 />
                             )}
                         </View>
@@ -351,24 +331,19 @@ function ReportPreview(props) {
     );
 }
 
-ReportPreview.propTypes = propTypes;
-ReportPreview.defaultProps = defaultProps;
 ReportPreview.displayName = 'ReportPreview';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        chatReport: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-        },
-        iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(ReportPreview);
+export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+    },
+    iouReport: {
+        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ReportPreview);
