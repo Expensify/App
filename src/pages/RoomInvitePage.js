@@ -1,4 +1,4 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
