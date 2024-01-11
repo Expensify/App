@@ -38,7 +38,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reports: {},
     ...policyDefaultProps,
     reimbursementAccount: {},
 };
@@ -236,9 +235,6 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 export default compose(
     withPolicyAndFullscreenLoading,
     withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
