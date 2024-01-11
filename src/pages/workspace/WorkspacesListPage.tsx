@@ -1,7 +1,7 @@
+import _ from 'lodash';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -28,7 +27,8 @@ import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, UserWallet} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {PolicyRoute, WithPolicyOnyxProps} from './withPolicy';
-import withPolicyAndFullscreenLoading, {WithPolicyAndFullscreenLoadingOnyxProps} from './withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingOnyxProps} from './withPolicyAndFullscreenLoading';
 
 type WorkspaceListPageOnyxProps = {
     /** The list of this user's policies */
@@ -44,7 +44,7 @@ type WorkspaceListPageOnyxProps = {
     userWallet: OnyxEntry<UserWallet>;
 };
 
-type withPolicyAndFullscreenLoadingProps = React.ComponentType<
+type WithPolicyAndFullscreenLoadingProps = React.ComponentType<
     WithPolicyOnyxProps & {
         route: PolicyRoute;
     } & WithPolicyAndFullscreenLoadingOnyxProps
@@ -97,17 +97,14 @@ function WorkspacesListPage({
     const {isOffline} = useNetwork();
 
     /**
-     * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-     * @returns {String|undefined} the user's wallet balance
+     Get the user's wallet balance
      */
-    const getWalletBalance = (isPaymentItem: Boolean) => {
-        return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet?.currentBalance) : undefined;
-    };
+    const getWalletBalance = (isPaymentItem: boolean) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet?.currentBalance) : undefined);
 
     /**
      * Gets the menu item for each workspace
      */
-    const getMenuItem = (item: any, index: Number) => {
+    const getMenuItem = (item: any, index: number) => {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.wallet';
 
@@ -150,10 +147,10 @@ function WorkspacesListPage({
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy?.id as string)),
                 iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy?.pendingAction,
                 errors: policy?.errors,
-                dismissError: () => dismissWorkspaceError(policy?.id || '', policy?.pendingAction as OnyxCommon.PendingAction),
+                dismissError: () => dismissWorkspaceError(policy?.id ?? '', policy?.pendingAction as OnyxCommon.PendingAction),
                 disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy((policy) => policy?.title?.toLowerCase())
@@ -182,7 +179,7 @@ function WorkspacesListPage({
                     description="workspace.emptyWorkspace.subtitle"
                 />
             ) : (
-                _.map(workspaces, (item, index) => getMenuItem(item, index))
+                workspaces.map((item, index) => getMenuItem(item, index))
             )}
         </IllustratedHeaderPageLayout>
     );
@@ -204,5 +201,5 @@ export default withPolicyAndFullscreenLoading(
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
-    })(WorkspacesListPage) as withPolicyAndFullscreenLoadingProps,
+    })(WorkspacesListPage) as WithPolicyAndFullscreenLoadingProps,
 );
