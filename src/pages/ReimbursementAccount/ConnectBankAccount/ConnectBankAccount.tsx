@@ -1,8 +1,7 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -11,37 +10,31 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import EnableBankAccount from '@pages/ReimbursementAccount/EnableBankAccount/EnableBankAccount';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account, ReimbursementAccount} from '@src/types/onyx';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
-const propTypes = {
+type ConnectBankAccountOnyxProps = {
+    /** User's account who is setting up bank account */
+    account: OnyxEntry<Account>;
+};
+
+type ConnectBankAccountProps = ConnectBankAccountOnyxProps & {
     /** Bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccount;
 
     /** Handles back button press */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    /** User's account who is setting up bank account */
-    account: PropTypes.shape({
-        /** If user has two-factor authentication enabled */
-        requiresTwoFactorAuth: PropTypes.bool,
-    }),
+    onBackButtonPress: () => void;
 };
 
-const defaultProps = {
-    account: {
-        requiresTwoFactorAuth: false,
-    },
-};
-
-function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) {
+function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const bankAccountState = lodashGet(reimbursementAccount, 'achData.state', '');
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
+    const bankAccountState = reimbursementAccount.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === BankAccount.STATE.OPEN) {
@@ -53,10 +46,10 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
         );
     }
 
-    const maxAttemptsReached = lodashGet(reimbursementAccount, 'maxAttemptsReached', false);
+    const maxAttemptsReached = reimbursementAccount.maxAttemptsReached ?? false;
     const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === BankAccount.STATE.VERIFYING;
     const isBankAccountPending = bankAccountState === BankAccount.STATE.PENDING;
-    const requiresTwoFactorAuth = lodashGet(account, 'requiresTwoFactorAuth', false);
+    const requiresTwoFactorAuth = account?.requiresTwoFactorAuth ?? false;
 
     return (
         <ScreenWrapper
@@ -74,7 +67,7 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
                 <View style={[styles.m5, styles.flex1]}>
                     <Text>
                         {translate('connectBankAccountStep.maxAttemptsReached')} {translate('common.please')}{' '}
-                        <TextLink onPress={Report.navigateToConciergeChat}>{translate('common.contactUs')}</TextLink>.
+                        <TextLink onPress={handleNavigateToConciergeChat}>{translate('common.contactUs')}</TextLink>.
                     </Text>
                 </View>
             )}
@@ -94,11 +87,9 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
     );
 }
 
-ConnectBankAccount.propTypes = propTypes;
-ConnectBankAccount.defaultProps = defaultProps;
 ConnectBankAccount.displayName = 'ConnectBankAccount';
 
-export default withOnyx({
+export default withOnyx<ConnectBankAccountProps, ConnectBankAccountOnyxProps>({
     account: {
         key: ONYXKEYS.ACCOUNT,
     },

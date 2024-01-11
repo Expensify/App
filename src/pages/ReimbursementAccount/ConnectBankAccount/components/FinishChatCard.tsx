@@ -1,5 +1,3 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import Button from '@components/Button';
@@ -10,21 +8,22 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
+import type {ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
-const propTypes = {
-    requiresTwoFactorAuth: PropTypes.bool.isRequired,
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+type FinishChatCardProps = {
+    requiresTwoFactorAuth: boolean;
+    reimbursementAccount: ReimbursementAccount;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldShowResetModal = lodashGet(reimbursementAccount, 'shouldShowResetModal', false);
+    const shouldShowResetModal = reimbursementAccount.shouldShowResetModal ?? false;
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -37,7 +36,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}) {
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <Button
                     text={translate('connectBankAccountStep.letsChatCTA')}
-                    onPress={Report.navigateToConciergeChat}
+                    onPress={handleNavigateToConciergeChat}
                     icon={Expensicons.ChatBubble}
                     iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
@@ -58,7 +57,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}) {
     );
 }
 
-FinishChatCard.propTypes = propTypes;
 FinishChatCard.displayName = 'FinishChatCard';
 
 export default FinishChatCard;
