@@ -524,8 +524,9 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transaction: Transaction, transactionViolations: TransactionViolations): boolean {
-    return Boolean(transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+function hasViolation(transaction: Transaction | string, transactionViolations: TransactionViolations): boolean {
+    const transactionId = typeof transaction === 'string' ? transaction : transaction.transactionID;
+    return Boolean(transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionId]?.some((violation: TransactionViolation) => violation.type === 'violation'));
 }
 
 function getTransactionViolations({transactionID}: Transaction, transactionViolations: TransactionViolations): TransactionViolation[] | null {
