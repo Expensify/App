@@ -112,6 +112,7 @@ function PurposeForUsingExpensifyModal() {
             onPress: () => completeModalAndClose(messageCopy.track, 'newDotTrack'),
             shouldShowRightIcon: true,
             numberOfLinesTitle: 2,
+            link: undefined,
         },
         {
             key: 'purposeForExpensify.submit',
@@ -121,6 +122,7 @@ function PurposeForUsingExpensifyModal() {
             onPress: () => completeModalAndClose(messageCopy.submit, 'newDotSubmit'),
             shouldShowRightIcon: true,
             numberOfLinesTitle: 2,
+            link: undefined,
         },
         {
             key: 'purposeForExpensify.manageTeam',
@@ -130,6 +132,7 @@ function PurposeForUsingExpensifyModal() {
             onPress: () => completeModalAndClose(messageCopy.business, 'newDotManageTeam'),
             shouldShowRightIcon: true,
             numberOfLinesTitle: 2,
+            link: undefined,
         },
         {
             key: 'purposeForExpensify.splitChat',
@@ -139,6 +142,7 @@ function PurposeForUsingExpensifyModal() {
             onPress: () => completeModalAndClose(messageCopy.chatSplit, 'newDotSplitChat'),
             shouldShowRightIcon: true,
             numberOfLinesTitle: 2,
+            link: undefined,
         },
     ];
 

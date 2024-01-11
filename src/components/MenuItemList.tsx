@@ -15,7 +15,7 @@ type MenuItemWithLink = MenuItemProps & {
 
 type MenuItemListProps = {
     /** An array of props that are pass to individual MenuItem components */
-    menuItems: MenuItemWithLink[] | MenuItemProps[];
+    menuItems: MenuItemWithLink[];
 
     /** Whether or not to use the single execution hook */
     shouldUseSingleExecution?: boolean;
