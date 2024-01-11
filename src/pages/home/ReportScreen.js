@@ -134,17 +134,6 @@ function getReportID(route) {
     // Placing the default value outside of `lodash.get()` is intentional.
     return String(lodashGet(route, 'params.reportID') || 0);
 }
-/**
- * Get the currently viewed report ID as number
- *
- * @param {Object} route
- * @param {Object} route.params
- * @param {String} route.params.reportID
- * @returns {String}
- */
-function getReportActionID(route) {
-    return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
-}
 
 function ReportScreen({
     betas,
@@ -168,26 +157,27 @@ function ReportScreen({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const {reportActionID, reportID} = getReportActionID(route);
-
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const firstRenderRef = useRef(true);
-    const shouldTriggerLoadingRef = useRef(!!reportActionID);
+    const reportIDFromRoute = getReportID(route);
+    const reportActionIDFromRoute = lodashGet(route, 'params.reportActionID', null);
+    const shouldTriggerLoadingRef = useRef(!!reportActionIDFromRoute);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionID);
+    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const reportActions = useMemo(() => {
         if (!!allReportActions && allReportActions.length === 0) {
             return [];
         }
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
-        const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
-        const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
+        const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedReportActions, reportActionIDFromRoute);
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        const reportActionsWithoutDeleted = currentRangeOfReportActions.filter((item) => ReportActionsUtils.shouldReportActionBeVisible(item, item.reportActionID));
         return reportActionsWithoutDeleted;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActionID, allReportActions, isOffline]);
+    }, [reportActionIDFromRoute, allReportActions, isOffline]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
@@ -200,13 +190,10 @@ function ReportScreen({
     }
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
-    useMemo(() => {
-        shouldTriggerLoadingRef.current = !!reportActionID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, reportActionID]);
     useLayoutEffect(() => {
-        setLinkingToMessage(!!reportActionID);
-    }, [route, reportActionID]);
+        shouldTriggerLoadingRef.current = !!reportActionIDFromRoute;
+        setLinkingToMessage(!!reportActionIDFromRoute);
+    }, [route, reportActionIDFromRoute]);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -218,7 +205,7 @@ function ReportScreen({
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
+    const isLoading = !reportIDFromRoute || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
@@ -241,7 +228,7 @@ function ReportScreen({
 
     let headerView = (
         <HeaderView
-            reportID={reportID}
+            reportID={reportIDFromRoute}
             onNavigationMenuButtonClicked={goBack}
             personalDetails={personalDetails}
             report={report}
@@ -286,8 +273,8 @@ function ReportScreen({
     }, [route, report]);
 
     const fetchReport = useCallback(() => {
-        Report.openReport({reportID, reportActionID: reportActionID || ''});
-    }, [reportID, reportActionID]);
+        Report.openReport({reportID: reportIDFromRoute, reportActionID: reportActionIDFromRoute || ''});
+    }, [reportIDFromRoute, reportActionIDFromRoute]);
     const isFocused = useIsFocused();
 
     useEffect(() => {
@@ -463,7 +450,7 @@ function ReportScreen({
     ]);
 
     useEffect(() => {
-        if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+        if (!ReportUtils.isValidReportIDFromPath(reportIDFromRoute)) {
             return;
         }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -472,10 +459,10 @@ function ReportScreen({
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportLeavingEvents(reportID);
+            Report.subscribeToReportLeavingEvents(reportIDFromRoute);
             didSubscribeToReportLeavingEvents.current = true;
         }
-    }, [report, didSubscribeToReportLeavingEvents, reportID]);
+    }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
 
     const onListLayout = useCallback((e) => {
         setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
@@ -504,8 +491,8 @@ function ReportScreen({
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const shouldShowSkeleton = useMemo(
-        () => isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
-        [isLinkingToMessage, isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions],
+        () => isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions),
+        [isLinkingToMessage, isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionIDFromRoute, reportMetadata.isLoadingInitialReportActions],
     );
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
@@ -515,7 +502,6 @@ function ReportScreen({
             return;
         }
         if (!reportMetadata.isLoadingInitialReportActions && !shouldTriggerLoadingRef.current) {
-            shouldTriggerLoadingRef.current = false;
             setLinkingToMessage(false);
         }
     }, [reportMetadata.isLoadingInitialReportActions]);
@@ -574,7 +560,7 @@ function ReportScreen({
                                         reportActions={reportActions}
                                         report={report}
                                         fetchReport={fetchReport}
-                                        reportActionID={reportActionID}
+                                        reportActionID={reportActionIDFromRoute}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
@@ -626,7 +612,6 @@ export default compose(
             allReportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
-                selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,

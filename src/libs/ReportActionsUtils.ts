@@ -216,25 +216,19 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 
     return sortedActions;
 }
-
-/**
- * Returns the range of report actions from the given array which include current id
- * the range is consistent
- *
- * param {ReportAction[]} array
- * param {String} id
- * returns {ReportAction}
- */
-function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction[] {
+// Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
+// See unit tests for example of inputs and expected outputs.
+function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
     let index;
 
     if (id) {
-        index = array.findIndex((obj) => obj.reportActionID === id);
+        index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
     } else {
-        index = array.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     }
 
     if (index === -1) {
+        Log.hmmm('[getContinuousReportActionChain] The linked reportAction is missing and needs to be fetched');
         return [];
     }
 
@@ -244,23 +238,23 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
     // Iterate forwards through the array, starting from endIndex. This loop checks the continuity of actions by:
     // 1. Comparing the current item's previousReportActionID with the next item's reportActionID.
     //    This ensures that we are moving in a sequence of related actions from newer to older.
-    while (endIndex < array.length - 1 && array[endIndex].previousReportActionID === array[endIndex + 1].reportActionID) {
+    while (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) {
         endIndex++;
     }
 
-    // Iterate backwards through the array, starting from startIndex. This loop has two main checks:
+    // Iterate backwards through the sortedReportActions, starting from startIndex. This loop has two main checks:
     // 1. It compares the current item's reportActionID with the previous item's previousReportActionID.
     //    This is to ensure continuity in a sequence of actions.
     // 2. If the first condition fails, it then checks if the previous item has a pendingAction of 'add'.
     //    This additional check is to include recently sent messages that might not yet be part of the established sequence.
     while (
-        (startIndex > 0 && array[startIndex].reportActionID === array[startIndex - 1].previousReportActionID) ||
-        array[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
+        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
     ) {
         startIndex--;
     }
 
-    return array.slice(startIndex, endIndex + 1);
+    return sortedReportActions.slice(startIndex, endIndex + 1);
 }
 
 /**
@@ -533,7 +527,8 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
 function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
-    const filteredReportActions = Object.entries(reportActions ?? {}).map((entry) => entry[1]);
+    const filteredReportActions = Object.values(reportActions ?? {});
+
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
@@ -897,7 +892,7 @@ export {
     shouldReportActionBeVisible,
     shouldHideNewMarker,
     shouldReportActionBeVisibleAsLastAction,
-    getRangeFromArrayByID,
+    getContinuousReportActionChain,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
