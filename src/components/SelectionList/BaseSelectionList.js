@@ -40,6 +40,7 @@ function BaseSelectionList({
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
+    textInputHint = '',
     textInputMaxLength,
     inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
@@ -413,6 +414,7 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
+                                    hint={textInputHint}
                                     role={CONST.ROLE.PRESENTATION}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
