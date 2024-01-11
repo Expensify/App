@@ -7,9 +7,9 @@ import CONST from '@src/CONST';
 
 /**
  * Apple Sign In method for iOS that returns identityToken.
- * @returns {Promise<string>}
+ * @returns Promise that returns a string when resolved
  */
-function appleSignInRequest() {
+function appleSignInRequest(): Promise<string | null | undefined> {
     return appleAuth
         .performRequest({
             requestedOperation: appleAuth.Operation.LOGIN,
@@ -20,7 +20,7 @@ function appleSignInRequest() {
         .then((response) =>
             appleAuth.getCredentialStateForUser(response.user).then((credentialState) => {
                 if (credentialState !== appleAuth.State.AUTHORIZED) {
-                    Log.alert('[Apple Sign In] Authentication failed. Original response: ', response);
+                    Log.alert('[Apple Sign In] Authentication failed. Original response: ', {response});
                     throw new Error('Authentication failed');
                 }
                 return response.identityToken;
@@ -30,7 +30,6 @@ function appleSignInRequest() {
 
 /**
  * Apple Sign In button for iOS.
- * @returns {React.Component}
  */
 function AppleSignIn() {
     const handleSignIn = () => {
