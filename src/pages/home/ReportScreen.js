@@ -268,6 +268,11 @@ function ReportScreen({
         return reportIDFromPath !== '' && report.reportID && !isTransitioning;
     }, [route, report]);
 
+    const isShowReportActionList = useMemo(
+      () => isReportReadyForDisplay && !isLoading && !(_.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions),
+      [isReportReadyForDisplay, isLoading, reportActions, reportMetadata.isLoadingInitialReportActions],
+  );
+
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [reportIDFromRoute, reportActionIDFromRoute]);
@@ -551,7 +556,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && (
+                                {isShowReportActionList && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
