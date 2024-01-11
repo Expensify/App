@@ -36,7 +36,7 @@ function WorkspaceCardPage(props) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID, isUsingECard) => (
-                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}

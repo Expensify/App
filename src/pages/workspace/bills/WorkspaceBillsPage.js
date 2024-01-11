@@ -35,7 +35,7 @@ function WorkspaceBillsPage(props) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
                 </View>

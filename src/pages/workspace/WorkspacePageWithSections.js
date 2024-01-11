@@ -150,7 +150,6 @@ function WorkspacePageWithSections({
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
-                    shouldShowBorderBottom
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
