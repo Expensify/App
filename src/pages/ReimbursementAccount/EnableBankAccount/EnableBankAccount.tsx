@@ -20,7 +20,7 @@ import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, User} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type EnableBankAccountOnyxProps = {
     /** Object with various information about the user */
@@ -40,10 +40,10 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
     const {translate} = useLocalize();
 
     const achData = reimbursementAccount?.achData ?? {};
-    const {icon, iconSize} = getBankIcon({bankName: achData?.bankName, styles});
+    const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
     const isUsingExpensifyCard = user?.isUsingExpensifyCard;
     const formattedBankAccountNumber = achData.accountNumber ? `${translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
-    const bankName = achData?.addressName;
+    const bankAccountOwnerName = achData.addressName;
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
@@ -73,7 +73,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                         onClose={BankAccounts.resetReimbursementAccount}
                     >
                         <MenuItem
-                            title={bankName}
+                            title={bankAccountOwnerName}
                             description={formattedBankAccountNumber}
                             icon={icon}
                             iconWidth={iconSize}
@@ -104,7 +104,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                             icon={Expensicons.Close}
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                            disabled={Boolean(pendingAction) || isEmptyObject(errors)}
+                            disabled={Boolean(pendingAction) || isNotEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>

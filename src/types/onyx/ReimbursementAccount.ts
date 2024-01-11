@@ -30,6 +30,7 @@ type ACHData = {
     /** Bank account name */
     bankName?: BankName;
 
+    /** Bank account owner name */
     addressName?: string;
 } & BeneficialOwnersStepDraftProps &
     CompanyStepProps &
@@ -62,6 +63,7 @@ type ReimbursementAccount = {
 
     pendingAction?: OnyxCommon.PendingAction;
 
+    /** Should display modal to reset datq */
     shouldShowResetModal?: boolean;
 };
 

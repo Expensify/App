@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -43,8 +44,10 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={styles.textHeadline}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
-            <StatePicker
-                // @ts-expect-error TODO: Remove this once StatePicker (https://github.com/Expensify/App/issues/25112) is migrated to TypeScript
+            <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+                InputComponent={StatePicker}
+                fomrID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={companyIncorporationStateKey}
                 label={translate('businessInfoStep.incorporationState')}
                 defaultValue={defaultCompanyIncorporationState}
