@@ -80,7 +80,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
-    const hasRouteError = !!transaction?.errorFields?.route;
+    const hasRouteError = Boolean(transaction?.errorFields?.route);
     const hasRoute = TransactionUtils.hasRoute((transaction ?? {}) as Transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
@@ -171,7 +171,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
-            return ErrorUtils.getLatestErrorField(transaction, 'route');
+            return ErrorUtils.getLatestErrorField((transaction ?? {}) as Transaction, 'route');
         }
 
         if (Object.keys(validatedWaypoints).length < 2) {
@@ -237,9 +237,8 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
                     ListFooterComponent={
                         <DistanceRequestFooter
                             waypoints={waypoints}
-                            hasRouteError={hasRouteError}
                             navigateToWaypointEditPage={navigateToWaypointEditPage}
-                            transaction={transaction}
+                            transaction={transaction as Transaction}
                         />
                     }
                 />
