@@ -476,9 +476,23 @@ export default [
         textTranslateKey: 'reportActionContextMenu.menu',
         icon: Expensicons.ThreeDots,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
-        onPress: (closePopover, {reportAction, reportID, event, anchor, selection, draftMessage}) => {
+        onPress: (closePopover, {reportAction, reportID, event, anchor, selection, draftMessage, checkIfContextMenuActive}) => {
             const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-            showContextMenu(CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, event, selection, anchor, reportID, reportAction.reportActionID, originalReportID, draftMessage);
+            const originalReport = ReportUtils.getReport(originalReportID);
+            showContextMenu(
+                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                event,
+                selection,
+                anchor,
+                reportID,
+                reportAction.reportActionID,
+                originalReportID,
+                draftMessage,
+                checkIfContextMenuActive,
+                checkIfContextMenuActive,
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
+            );
         },
         getDescription: () => {},
     },
