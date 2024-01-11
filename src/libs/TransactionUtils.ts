@@ -533,7 +533,6 @@ function getTransactionViolations({transactionID}: Transaction, transactionViola
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 
-
 /**
  * this is the formulae to calculate tax
  */

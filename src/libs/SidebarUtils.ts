@@ -126,7 +126,8 @@ function getOrderedReportIDs(
     const reportActionCount = allReportActions?.[reportIDKey]?.length ?? 1;
 
     // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify([currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+    const cachedReportsKey = JSON.stringify(
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
         /**
          *  Exclude some properties not to overwhelm a cached key value with huge data,
          *  which we don't need to store in a cacheKey
