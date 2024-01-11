@@ -597,20 +597,20 @@ function ComposerWithSuggestions({
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
                 />
-
-                {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
-                    <EmojiPickerButton
-                        isDisabled={isBlockedFromConcierge || disabled}
-                        onModalHide={focus}
-                        onEmojiSelected={(...args) => replaceSelectionWithText(...args)}
-                        emojiPickerID={reportID}
-                    />
-                )}
-                <SendButton
-                    isDisabled={isSendDisabled || isCommentEmpty}
-                    handleSendMessage={sendMessage}
-                />
             </View>
+
+            {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                <EmojiPickerButton
+                    isDisabled={isBlockedFromConcierge || disabled}
+                    onModalHide={focus}
+                    onEmojiSelected={(...args) => replaceSelectionWithText(...args)}
+                    emojiPickerID={reportID}
+                />
+            )}
+            <SendButton
+                isDisabled={isSendDisabled || isCommentEmpty}
+                handleSendMessage={sendMessage}
+            />
 
             <Suggestions
                 ref={suggestionsRef}
