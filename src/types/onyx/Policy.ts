@@ -79,7 +79,7 @@ type Policy = {
     customUnits?: Record<string, CustomUnit>;
 
     /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
+    areChatRoomsEnabled?: boolean;
 
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;

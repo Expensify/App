@@ -2179,8 +2179,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     type PersonalDetailsOnyxData = {
         optimisticData: OnyxUpdate[];
-        successData: OnyxUpdate[];
-        failureData: OnyxUpdate[];
+        finallyData: OnyxUpdate[];
     };
 
     const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
@@ -2198,7 +2197,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.successData;
+    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2209,7 +2208,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
             },
         },
-        ...newPersonalDetailsOnyxData.failureData,
+        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     type InviteToRoomParameters = {

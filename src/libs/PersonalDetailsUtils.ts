@@ -92,7 +92,7 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
  * @param accountIDs Array of user accountIDs
  * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): Required<OnyxData> {
+function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): OnyxData {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
@@ -123,7 +123,7 @@ function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): 
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -133,8 +133,7 @@ function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): 
 
     return {
         optimisticData,
-        successData,
-        failureData: [],
+        finallyData,
     };
 }
 

@@ -24,7 +24,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
-type AnnounceRoomMembers = {
+type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
     onyxFailureData: OnyxUpdate[];
 };
@@ -66,12 +66,8 @@ Onyx.connect({
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
-
-            type MergeQueries = Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>>;
-            type SetQueries = Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null>;
-
-            const cleanUpMergeQueries: MergeQueries = {};
-            const cleanUpSetQueries: SetQueries = {};
+            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
@@ -279,17 +275,13 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
         });
     });
 
-    // We don't need success data since the push notification will update
-    // the onyxData for all connected clients.
-    const successData: OnyxUpdate[] = [];
-
     type DeleteWorkspaceParams = {
         policyID: string;
     };
 
     const params: DeleteWorkspaceParams = {policyID};
 
-    API.write('DeleteWorkspace', params, {optimisticData, successData, failureData});
+    API.write('DeleteWorkspace', params, {optimisticData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
@@ -307,9 +299,9 @@ function isAdminOfFreePolicy(policies?: PoliciesRecord): boolean {
 /**
  * Build optimistic data for adding members to the announcement room
  */
-function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]): AnnounceRoomMembers {
+function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
-    const announceRoomMembers: AnnounceRoomMembers = {
+    const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
     };
@@ -346,9 +338,9 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): AnnounceRoomMembers {
+function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
-    const announceRoomMembers: AnnounceRoomMembers = {
+    const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
     };
@@ -610,7 +602,13 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
+
+    type PersonalDetailsOnyxData = {
+        optimisticData: OnyxUpdate[];
+        finallyData: OnyxUpdate[];
+    };
+
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs) as PersonalDetailsOnyxData;
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
 
@@ -657,7 +655,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
                 return {...accountIDsWithClearedPendingAction, [accountID]: value};
             }, {}),
         },
-        ...newPersonalDetailsOnyxData.successData,
+        ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxSuccessData,
     ];
 
@@ -670,7 +668,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: failureMembersState,
         },
-        ...newPersonalDetailsOnyxData.failureData,
+        ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxFailureData,
         ...announceRoomMembers.onyxFailureData,
     ];
@@ -713,7 +711,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -730,9 +728,6 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 avatar: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatar,
-                pendingFields: {
-                    avatar: null,
-                },
             },
         },
     ];
@@ -747,7 +742,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
         file,
     };
 
-    API.write('UpdateWorkspaceAvatar', params, {optimisticData, successData, failureData});
+    API.write('UpdateWorkspaceAvatar', params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -920,9 +915,6 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     });
 }
 
-/**
- * @param policyID The id of the workspace / policy
- */
 function clearWorkspaceGeneralSettingsErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
