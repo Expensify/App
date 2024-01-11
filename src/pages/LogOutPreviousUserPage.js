@@ -31,6 +31,10 @@ const defaultProps = {
     },
 };
 
+// This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
+// out if the transition is for another user.
+//
+// This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage(props) {
     useEffect(() => {
         Linking.getInitialURL().then((transitionURL) => {
