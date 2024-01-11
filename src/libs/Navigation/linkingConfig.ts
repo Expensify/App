@@ -479,7 +479,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             },
 
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                initialRouteName: SCREENS.SETTINGS.ROOT,
                 screens: {
                     [SCREENS.SETTINGS.ROOT]: {
                         path: ROUTES.SETTINGS,

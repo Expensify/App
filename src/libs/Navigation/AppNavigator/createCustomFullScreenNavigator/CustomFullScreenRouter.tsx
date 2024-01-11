@@ -1,32 +1,53 @@
-import type {NavigationState, ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
-// TODO: export states to separate file
-type State = NavigationState | PartialState<NavigationState>;
+type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
 
-const isAtLeastOneInState = (state: State, screenName: string): boolean => !!state.routes.find((route) => route.name === screenName);
+const isAtLeastOneInState = (state: StackState, screenName: string): boolean => !!state.routes.find((route) => route.name === screenName);
 
-/**
- * Adds central pane to the full screen settings
- */
-const addCentralPaneNavigatorRoute = (state: State) => {
-    const centralPaneNavigatorRoute = {
-        name: SCREENS.SETTINGS_CENTRAL_PANE,
-        state: {
-            routes: [
-                {
-                    name: SCREENS.SETTINGS.PROFILE.ROOT,
-                },
-            ],
-        },
-    };
-    state.routes.splice(1, 0, centralPaneNavigatorRoute);
-    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
-    (state.index as number) = state.routes.length - 1;
-};
+function adaptStateIfNecessary(state: StackState) {
+    const isSmallScreenWidth = getIsSmallScreenWidth();
+    // If the screen is wide, there should be at least two screens inside:
+    // - SETINGS.ROOT to cover left pane.
+    // - SETTINGS_CENTRAL_PANE to cover central pane.
+    if (!isSmallScreenWidth) {
+        if (!isAtLeastOneInState(state, SCREENS.SETTINGS.ROOT)) {
+            // @ts-expect-error Updating read only property
+            // noinspection JSConstantReassignment
+            state.stale = true; // eslint-disable-line
+
+            // This is necessary for ts to narrow type down to PartialState.
+            if (state.stale === true) {
+                // Push the root screen to fill left pane.
+                state.routes.unshift({name: SCREENS.SETTINGS.ROOT});
+            }
+        }
+        if (!isAtLeastOneInState(state, SCREENS.SETTINGS_CENTRAL_PANE)) {
+            // @ts-expect-error Updating read only property
+            // noinspection JSConstantReassignment
+            state.stale = true; // eslint-disable-line
+
+            // Unshift the default settings central pane screen.
+            if (state.stale === true) {
+                state.routes.push({
+                    name: SCREENS.SETTINGS_CENTRAL_PANE,
+                    state: {
+                        routes: [
+                            {
+                                name: SCREENS.SETTINGS.PROFILE.ROOT,
+                            },
+                        ],
+                    },
+                });
+            }
+        }
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
+        (state.index as number) = state.routes.length - 1;
+    }
+}
 
 function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
@@ -34,22 +55,18 @@ function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
-            const isSmallScreenWidth = getIsSmallScreenWidth();
             const initialState = stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
-            if (!isAtLeastOneInState(initialState, SCREENS.SETTINGS_CENTRAL_PANE) && !isSmallScreenWidth) {
-                addCentralPaneNavigatorRoute(initialState);
+            adaptStateIfNecessary(initialState);
+
+            // If we needed to modify the state we need to rehydrate it to get keys for new routes.
+            if (initialState.stale) {
+                return stackRouter.getRehydratedState(initialState, {routeNames, routeParamList, routeGetIdList});
             }
+
             return initialState;
         },
-        getRehydratedState(partialState: StackNavigationState<ParamListBase>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            const isSmallScreenWidth = getIsSmallScreenWidth();
-            if (!isAtLeastOneInState(partialState, SCREENS.SETTINGS_CENTRAL_PANE) && !isSmallScreenWidth) {
-                // If we added a route we need to make sure that the state.stale is true to generate new key for this route
-
-                // eslint-disable-next-line no-param-reassign
-                (partialState.stale as boolean) = true;
-                addCentralPaneNavigatorRoute(partialState);
-            }
+        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
+            adaptStateIfNecessary(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;
         },
