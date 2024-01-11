@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {memo, useCallback, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
@@ -124,20 +124,10 @@ const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
 
 const KeyboardShortcutComponent = memo(
     ({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) => {
-        const isFocused = useRef(false);
+        const isFocused = useIsFocused();
         const activeElementRole = useActiveElementRole();
 
         const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
-
-        useFocusEffect(
-            useCallback(() => {
-                isFocused.current = true;
-
-                return () => {
-                    isFocused.current = false;
-                };
-            }, []),
-        );
 
         const keyboardShortcutCallback = useCallback(
             (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -146,19 +136,18 @@ const KeyboardShortcutComponent = memo(
                 }
                 onPress();
             },
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            [isDisabled, isLoading],
+            [isDisabled, isLoading, onPress],
         );
 
         const config = useMemo(
             () => ({
-                isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused.current,
+                isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
                 shouldBubble: allowBubble,
                 priority: enterKeyEventListenerPriority,
                 shouldPreventDefault: false,
             }),
             // eslint-disable-next-line react-hooks/exhaustive-deps
-            [shouldDisableEnterShortcut],
+            [shouldDisableEnterShortcut, isFocused],
         );
 
         useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
