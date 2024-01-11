@@ -67,12 +67,13 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         }
 
         const scrollOffset = getScrollOffset();
+        lastScrollOffsetRef.current = scrollOffset;
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
             const subview = contentView.childNodes[i];
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
-            if (subviewOffset > scrollOffset || i === contentViewLength - 1) {
+            if (subviewOffset > scrollOffset) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
                 firstVisibleViewRef.current = subview;
                 break;
@@ -125,6 +126,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
                 }
 
                 adjustForMaintainVisibleContentPosition();
+                prepareForMaintainVisibleContentPosition();
             });
         });
         mutationObserver.observe(contentView, {
@@ -134,7 +136,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         });
 
         mutationObserverRef.current = mutationObserver;
-    }, [adjustForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
+    }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
 
     React.useEffect(() => {
         requestAnimationFrame(() => {
@@ -168,13 +170,11 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
 
     const onScrollInternal = React.useCallback(
         (ev) => {
-            lastScrollOffsetRef.current = getScrollOffset();
-
             prepareForMaintainVisibleContentPosition();
 
             onScroll?.(ev);
         },
-        [getScrollOffset, prepareForMaintainVisibleContentPosition, onScroll],
+        [prepareForMaintainVisibleContentPosition, onScroll],
     );
 
     return (
