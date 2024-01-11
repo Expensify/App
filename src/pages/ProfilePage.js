@@ -8,12 +8,11 @@ import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
-import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,7 +29,6 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -124,9 +122,6 @@ function ProfilePage(props) {
     const hasMinimumDetails = !_.isEmpty(details.avatar);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
-    // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
-    const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
-
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
     const hasStatus = !!statusEmojiCode;
@@ -146,132 +141,124 @@ function ProfilePage(props) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <HeaderWithBackButton
-                title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
-            />
-            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                {hasMinimumDetails && (
-                    <ScrollView>
-                        <View style={styles.avatarSectionWrapper}>
-                            <AttachmentModal
-                                headerTitle={displayName}
-                                source={UserUtils.getFullSizeAvatar(avatar, accountID)}
-                                isAuthTokenRequired
-                                originalFileName={originalFileName}
-                                fallbackSource={fallbackIcon}
-                            >
-                                {({show}) => (
-                                    <PressableWithoutFocus
-                                        style={[styles.noOutline]}
-                                        onPress={show}
-                                        accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                    >
-                                        <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={UserUtils.getAvatar(avatar, accountID)}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                                fallbackIcon={fallbackIcon}
-                                            />
-                                        </OfflineWithFeedback>
-                                    </PressableWithoutFocus>
-                                )}
-                            </AttachmentModal>
-                            {Boolean(displayName) && (
-                                <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
-                                    numberOfLines={1}
+            <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
+                <HeaderWithBackButton
+                    title={props.translate('common.profile')}
+                    onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                />
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
+                    {hasMinimumDetails && (
+                        <ScrollView>
+                            <View style={styles.avatarSectionWrapper}>
+                                <AttachmentModal
+                                    headerTitle={displayName}
+                                    source={UserUtils.getFullSizeAvatar(avatar, accountID)}
+                                    isAuthTokenRequired
+                                    originalFileName={originalFileName}
+                                    fallbackSource={fallbackIcon}
                                 >
-                                    {displayName}
-                                </Text>
-                            )}
-                            {hasStatus && (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                    {({show}) => (
+                                        <PressableWithoutFocus
+                                            style={[styles.noOutline]}
+                                            onPress={show}
+                                            accessibilityLabel={props.translate('common.profile')}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        >
+                                            <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                                <Avatar
+                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={UserUtils.getAvatar(avatar, accountID)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                    fallbackIcon={fallbackIcon}
+                                                />
+                                            </OfflineWithFeedback>
+                                        </PressableWithoutFocus>
+                                    )}
+                                </AttachmentModal>
+                                {Boolean(displayName) && (
                                     <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                         numberOfLines={1}
                                     >
-                                        {props.translate('statusPage.status')}
+                                        {displayName}
                                     </Text>
-                                    <Text>{statusContent}</Text>
-                                </View>
-                            )}
+                                )}
+                                {hasStatus && (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {props.translate('statusPage.status')}
+                                        </Text>
+                                        <Text>{statusContent}</Text>
+                                    </View>
+                                )}
 
-                            {login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    </Text>
-                                    <CommunicationsLink value={phoneOrEmail}>
-                                        <UserDetailsTooltip accountID={details.accountID}>
-                                            <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : login}</Text>
-                                        </UserDetailsTooltip>
-                                    </CommunicationsLink>
-                                </View>
-                            ) : null}
-                            {pronouns ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {props.translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>{pronouns}</Text>
-                                </View>
-                            ) : null}
-                            {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
-                        </View>
-                        {shouldShowNotificationPreference && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={notificationPreference}
-                                description={props.translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
-                                wrapperStyle={[styles.mtn6, styles.mb5]}
-                            />
-                        )}
-                        {!isCurrentUser && !Session.isAnonymousUser() && (
-                            <MenuItem
-                                title={`${props.translate('common.message')}${displayName}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.ChatBubble}
-                                onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
-                            />
-                        )}
-                        {!_.isEmpty(props.report) && (
-                            <MenuItem
-                                title={`${props.translate('privateNotes.title')}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
-                                brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            />
-                        )}
-                    </ScrollView>
-                )}
-                {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                {shouldShowBlockingView && (
-                    <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
-                        iconWidth={variables.modalTopIconWidth}
-                        iconHeight={variables.modalTopIconHeight}
-                        title={props.translate('notFound.notHere')}
-                        shouldShowLink
-                        link={props.translate('notFound.goBackHome')}
-                    />
-                )}
-            </View>
+                                {login ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        </Text>
+                                        <CommunicationsLink value={phoneOrEmail}>
+                                            <UserDetailsTooltip accountID={details.accountID}>
+                                                <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : login}</Text>
+                                            </UserDetailsTooltip>
+                                        </CommunicationsLink>
+                                    </View>
+                                ) : null}
+                                {pronouns ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {props.translate('profilePage.preferredPronouns')}
+                                        </Text>
+                                        <Text numberOfLines={1}>{pronouns}</Text>
+                                    </View>
+                                ) : null}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                            </View>
+                            {shouldShowNotificationPreference && (
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={notificationPreference}
+                                    description={props.translate('notificationPreferencesPage.label')}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
+                                    wrapperStyle={[styles.mtn6, styles.mb5]}
+                                />
+                            )}
+                            {!isCurrentUser && !Session.isAnonymousUser() && (
+                                <MenuItem
+                                    title={`${props.translate('common.message')}${displayName}`}
+                                    titleStyle={styles.flex1}
+                                    icon={Expensicons.ChatBubble}
+                                    onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
+                                    wrapperStyle={styles.breakAll}
+                                    shouldShowRightIcon
+                                />
+                            )}
+                            {!_.isEmpty(props.report) && (
+                                <MenuItem
+                                    title={`${props.translate('privateNotes.title')}`}
+                                    titleStyle={styles.flex1}
+                                    icon={Expensicons.Pencil}
+                                    onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
+                                    wrapperStyle={styles.breakAll}
+                                    shouldShowRightIcon
+                                    brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                                />
+                            )}
+                        </ScrollView>
+                    )}
+                    {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
