@@ -88,22 +88,6 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
 }
 
 /**
- * Build message fragment for the created property when this value was changed
- */
-function buildMessageFragmentForCreated(setFragments: string[], removalFragments: string[], changeFragments: string[], reportActionOriginalMessage?: ExpenseOriginalMessage) {
-    const {created, oldCreated} = reportActionOriginalMessage ?? {};
-
-    if (!oldCreated || !created) {
-        return;
-    }
-
-    // Take only the YYYY-MM-DD value as the original date includes timestamp
-    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
-
-    buildMessageFragmentForValue(created, formattedOldCreated, Localize.translateLocal('common.date'), false, setFragments, removalFragments, changeFragments);
-}
-
-/**
  * Get the report action message when expense has been modified.
  *
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
@@ -159,7 +143,19 @@ function getForReportAction(reportAction: ReportAction): string {
         );
     }
 
-    buildMessageFragmentForCreated(setFragments, removalFragments, changeFragments, reportActionOriginalMessage);
+    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage.created,
+            formattedOldCreated,
+            Localize.translateLocal('common.date'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(
