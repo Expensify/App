@@ -1955,5 +1955,4 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
-    selectWorkspace,
 };
