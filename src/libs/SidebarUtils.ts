@@ -129,8 +129,8 @@ function getOrderedReportIDs(
     const cachedReportsKey = JSON.stringify(
         [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
         /**
-             *  Exclude some properties not to overwhelm a cached key value with huge data,
-             *  which we don't need to store in a cacheKey
+         *  Exclude some properties not to overwhelm a cached key value with huge data,
+         *  which we don't need to store in a cacheKey
          */
         (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
     );
