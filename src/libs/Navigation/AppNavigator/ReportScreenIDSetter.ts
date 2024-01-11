@@ -1,11 +1,13 @@
 import {useEffect} from 'react';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportMetadata} from '@src/types/onyx';
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
+import Navigation from '../Navigation';
 
 type ReportScreenIDSetterComponentProps = {
     /** Available reports that would be displayed in this navigator */
@@ -34,6 +36,13 @@ const getLastAccessedReportID = (
     openOnAdminRoom: boolean,
     reportMetadata: OnyxCollection<ReportMetadata>,
 ): string | undefined => {
+    const currentRoute = Navigation.getActiveRoute();
+    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
+
+    if (reportID) {
+        return reportID;
+    }
+
     const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom, reportMetadata);
     return lastReport?.reportID;
 };

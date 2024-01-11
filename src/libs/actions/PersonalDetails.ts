@@ -1,7 +1,9 @@
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -9,8 +11,9 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import * as Session from './Session';
 
 type FirstAndLastName = {
     firstName: string;
@@ -40,20 +43,19 @@ Onyx.connect({
 });
 
 /**
- * Returns the displayName for a user
+ * Creates a new displayName for a user based on passed personal details or login.
  */
-function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> | null): string {
+function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail ?? allPersonalDetails?.[login];
 
-    if (!userDetails) {
+    if (!personalDetails) {
         return userLogin;
     }
 
-    const firstName = userDetails.firstName ?? '';
-    const lastName = userDetails.lastName ?? '';
+    const firstName = personalDetails.firstName ?? '';
+    const lastName = personalDetails.lastName ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
 
     // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
@@ -147,7 +149,7 @@ function updateDisplayName(firstName: string, lastName: string) {
                         [currentUserAccountID]: {
                             firstName,
                             lastName,
-                            displayName: getDisplayName(currentUserEmail ?? '', {
+                            displayName: createDisplayName(currentUserEmail ?? '', {
                                 firstName,
                                 lastName,
                             }),
@@ -262,6 +264,10 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
     if (!currentUserAccountID) {
         return;
     }
@@ -269,9 +275,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
     type UpdateAutomaticTimezoneParams = {
         timezone: string;
     };
-
+    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(timezone),
+        timezone: JSON.stringify(formatedTimezone),
     };
 
     API.write('UpdateAutomaticTimezone', parameters, {
@@ -281,7 +287,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone,
+                        timezone: formatedTimezone,
                     },
                 },
             },
@@ -559,7 +565,7 @@ export {
     deleteAvatar,
     extractFirstAndLastNameFromAvailableDetails,
     getCountryISO,
-    getDisplayName,
+    createDisplayName,
     getPrivatePersonalDetails,
     openPersonalDetailsPage,
     openPublicProfilePage,

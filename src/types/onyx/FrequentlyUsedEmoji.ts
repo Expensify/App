@@ -12,7 +12,7 @@ type FrequentlyUsedEmoji = {
     lastUpdatedAt: number;
 
     /** The emoji skin tone type */
-    types?: string[];
+    types?: readonly string[];
 
     /** The emoji keywords */
     keywords?: string[];

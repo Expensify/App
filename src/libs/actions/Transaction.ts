@@ -7,10 +7,9 @@ import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, Transaction} from '@src/types/onyx';
-import {OnyxData} from '@src/types/onyx/Request';
-import {WaypointCollection} from '@src/types/onyx/Transaction';
-import * as IOU from './IOU';
+import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -59,13 +58,13 @@ function addStop(transactionID: string) {
 }
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
-    IOU.resetMoneyRequestAmount_temporaryForRefactor(transactionID);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
             },
         },
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -102,7 +101,6 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 }
 
 function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean) {
-    IOU.resetMoneyRequestAmount_temporaryForRefactor(transaction.transactionID);
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -135,6 +133,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
+        amount: CONST.IOU.DEFAULT_AMOUNT,
     };
 
     if (!isRemovedWaypointEmpty) {
@@ -243,12 +242,11 @@ function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) 
  *                             which will replace the existing ones.
  */
 function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
-    IOU.resetMoneyRequestAmount_temporaryForRefactor(transactionID);
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
-
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,
