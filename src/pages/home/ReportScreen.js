@@ -165,7 +165,7 @@ function ReportScreen({
     const shouldTriggerLoadingRef = useRef(!!reportActionIDFromRoute);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
+    const [isPrepareLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const reportActions = useMemo(() => {
         if (!!allReportActions && allReportActions.length === 0) {
@@ -197,10 +197,6 @@ function ReportScreen({
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-
-    // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
-
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
@@ -296,12 +292,12 @@ function ReportScreen({
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route) && !isLoadingInitialReportActions) {
+        if (report.reportID && report.reportID === getReportID(route) && !reportMetadata.isLoadingInitialReportActions) {
             return;
         }
 
         fetchReport();
-    }, [report.reportID, route, isLoadingInitialReportActions, fetchReport]);
+    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions, fetchReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -491,8 +487,8 @@ function ReportScreen({
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const shouldShowSkeleton = useMemo(
-        () => isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions),
-        [isLinkingToMessage, isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionIDFromRoute, reportMetadata.isLoadingInitialReportActions],
+        () => isPrepareLinkingToMessage || !isReportReadyForDisplay || isLoading || reportMetadata.isLoadingInitialReportActions,
+        [isPrepareLinkingToMessage, isReportReadyForDisplay, isLoading, reportMetadata.isLoadingInitialReportActions],
     );
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.

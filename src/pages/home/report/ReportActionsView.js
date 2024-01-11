@@ -1,6 +1,3 @@
-/* eslint-disable no-else-return */
-
-/* eslint-disable rulesdir/prefer-underscore-method */
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -84,18 +81,6 @@ const defaultProps = {
         authTokenType: '',
     },
 };
-
-/**
- * Get the currently viewed report ID as number
- *
- * @param {Object} route
- * @param {Object} route.params
- * @param {String} route.params.reportID
- * @returns {String}
- */
-function getReportActionID(route) {
-    return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
-}
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
 const SPACER = 16;
@@ -192,7 +177,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
     const reportScrollManager = useReportScrollManager();
-    const {reportActionID} = getReportActionID(route);
+    const reportActionID = lodashGet(route, 'params.reportActionID', null);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const contentListHeight = useRef(0);
