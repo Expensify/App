@@ -4,8 +4,11 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 type ResponsiveStackNavigatorConfig = {
     isSmallScreenWidth: boolean;
 };
+type GetIsSmallScreenWidth = {
+    getIsSmallScreenWidth: Function;
+};
 
-type ResponsiveStackNavigatorRouterOptions = StackRouterOptions;
+type ResponsiveStackNavigatorRouterOptions = StackRouterOptions & GetIsSmallScreenWidth;
 
 type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> &
     ResponsiveStackNavigatorConfig;

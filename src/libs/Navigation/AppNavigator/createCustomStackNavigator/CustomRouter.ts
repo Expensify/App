@@ -66,8 +66,9 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
         ...stackRouter,
         getRehydratedState(partialState: StackNavigationState<ParamListBase>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
             const isSmallScreenWidth = getIsSmallScreenWidth();
+            console.log(`isSmallScreenWidth: ${isSmallScreenWidth}`);
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !isSmallScreenWidth) {
+            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
 
                 // eslint-disable-next-line no-param-reassign
