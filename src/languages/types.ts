@@ -74,6 +74,10 @@ type WelcomeToRoomParams = {
     roomName: string;
 };
 
+type UsePlusButtonParams = {
+    additionalText: string;
+};
+
 type ReportArchiveReasonsClosedParams = {
     displayName: string;
 };
@@ -379,6 +383,7 @@ export type {
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
+    UsePlusButtonParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
     WelcomeNoteParams,

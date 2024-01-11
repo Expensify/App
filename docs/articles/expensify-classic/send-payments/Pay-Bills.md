@@ -70,7 +70,17 @@ To mark a Bill as paid outside of Expensify:
 
 **Fees:** None
 
-# FAQ
+# Deep Dive: How company bills and vendor invoices are processed in Expensify 
+
+Here is how a vendor or supplier bill goes from received to paid in Expensify: 
+
+1. When a vendor or supplier bill is received in Expensify via, the document is SmartScanned automatically and a Bill is created. The Bill is owned by the primary domain contact, who will see the Bill on the Reports page on their default group policy. 
+2. When the Bill is ready for processing, it is submitted and follows the primary domain contact’s approval workflow. Each time the Bill is approved, it is visible in the next approver's Inbox. 
+3. The final approver pays the Bill from their Expensify account on the web via one of the methods.
+4. The Bill is coded with the relevant imported GL codes from a connected accounting software. After it has finished going through the approval workflow the Bill can be exported back to the accounting package connected to the policy.
+
+
+{% include faq-begin.md %}
 
 ## What is my company's billing intake email? 
 Your billing intake email is [yourdomain.com]@expensify.cash. Example, if your domain is `company.io` your billing email is `company.io@expensify.cash`. 
@@ -100,11 +110,4 @@ Payments are currently only supported for users paying in United States Dollars 
 
 A Bill is a payable which represents an amount owed to a payee (usually a vendor or supplier), and is usually created from a vendor invoice. An Invoice is a receivable, and indicates an amount owed to you by someone else. 
 
-# Deep Dive: How company bills and vendor invoices are processed in Expensify 
-
-Here is how a vendor or supplier bill goes from received to paid in Expensify: 
-
-1. When a vendor or supplier bill is received in Expensify via, the document is SmartScanned automatically and a Bill is created. The Bill is owned by the primary domain contact, who will see the Bill on the Reports page on their default group policy. 
-2. When the Bill is ready for processing, it is submitted and follows the primary domain contact’s approval workflow. Each time the Bill is approved, it is visible in the next approver's Inbox. 
-3. The final approver pays the Bill from their Expensify account on the web via one of the methods.
-4. The Bill is coded with the relevant imported GL codes from a connected accounting software. After it has finished going through the approval workflow the Bill can be exported back to the accounting package connected to the policy.
+{% include faq-end.md %}

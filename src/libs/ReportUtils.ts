@@ -1001,6 +1001,12 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  */
 function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+
+    // Early return false in case not having any transaction
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
     return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
@@ -1493,7 +1499,6 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     }
 
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // console.log(personalDetails);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
     // This is to check if account is an invite/optimistically created one
@@ -1553,17 +1558,6 @@ function getDisplayNamesWithTooltips(
             // Then fallback on accountID as the final sorting criteria.
             return first.accountID - second.accountID;
         });
-}
-
-/**
- * Gets a joined string of display names from the list of display name with tooltip objects.
- *
- */
-function getDisplayNamesStringFromTooltips(displayNamesWithTooltips: DisplayNameWithTooltips | undefined) {
-    return displayNamesWithTooltips
-        ?.map(({displayName}) => displayName)
-        .filter(Boolean)
-        .join(', ');
 }
 
 /**
@@ -2421,7 +2415,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: File): Opti
             ],
             automatic: false,
             avatar: allPersonalDetails?.[currentUserAccountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-            created: DateUtils.getDBTime(),
+            created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
                     translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -2435,6 +2429,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: File): Opti
             attachmentInfo,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
+            isOptimisticAction: true,
         },
     };
 }
@@ -2964,10 +2959,10 @@ function buildOptimisticReportPreview(
         accountID: iouReport?.managerID ?? 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? 0,
+        childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && isNotEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
-        childReportID,
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
     };
 }
@@ -3812,6 +3807,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
             return isDraftExpenseReport(report);
         }
+
         return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
@@ -3980,6 +3976,13 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    // If the Money Request report is marked for deletion, let us prevent any further write action.
+    if (isMoneyRequestReport(report)) {
+        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+        if (parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
+    }
     return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
 }
 
@@ -4159,6 +4162,11 @@ function getTaskAssigneeChatOnyxData(
                 value: optimisticAssigneeReport,
             },
         );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: {isOptimisticAction: null}},
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -4365,6 +4373,14 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
+ * Checks if thread replies should be displayed
+ */
+function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
+    const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
+    return hasReplies && !!reportAction.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
+}
+
+/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4440,7 +4456,6 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
-    getDisplayNamesStringFromTooltips,
     getReportName,
     getReport,
     getReportNotificationPreference,
@@ -4565,7 +4580,8 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    shouldDisplayThreadReplies,
     shouldDisableThread,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
