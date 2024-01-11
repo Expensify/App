@@ -327,7 +327,7 @@ describe('ReportActionsUtils', () => {
                 {reportActionID: 12, previousReportActionID: 11},
             ];
             // Reversing the input array to simulate descending order sorting as per our data structure
-            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), 8);
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), 10);
             input.pop();
             expect(result).toStrictEqual(expectedResult.reverse());
         });

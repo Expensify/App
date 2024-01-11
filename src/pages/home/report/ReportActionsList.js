@@ -25,6 +25,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import getInitialNumToRender from './getInitialNumToRender/index';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -360,10 +361,10 @@ function ReportActionsList({
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-        if (linkedReportActionID && !isNative) {
+        if (linkedReportActionID) {
             // For web and desktop environments, it's crucial to set this value equal to or higher than the 'batch per render' setting. If it's set lower, the 'onStartReached' event will be triggered excessively, every time an additional item enters the virtualized list.
 
-            return Math.max(numToRender, 50);
+            return getInitialNumToRender(numToRender);
         }
         return numToRender;
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID, isNative]);

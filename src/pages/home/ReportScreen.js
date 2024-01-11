@@ -19,7 +19,6 @@ import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportI
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -64,6 +63,9 @@ const propTypes = {
 
     /** The report currently being looked at */
     report: reportPropTypes,
+
+    /** Array of all report actions for this report */
+    allReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
@@ -162,7 +164,6 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {isOffline} = useNetwork();
     const flatListRef = useRef();
     const reactionListRef = useRef();
     const firstRenderRef = useRef(true);
@@ -174,16 +175,13 @@ function ReportScreen({
     const [isPrepareLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const reportActions = useMemo(() => {
-        if (!!allReportActions && allReportActions.length === 0) {
+        if (_.isEmpty(allReportActions)) {
             return [];
         }
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, false);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
         const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedReportActions, reportActionIDFromRoute);
-        // eslint-disable-next-line rulesdir/prefer-underscore-method
-        const reportActionsWithoutDeleted = currentRangeOfReportActions.filter((item) => ReportActionsUtils.shouldReportActionBeVisible(item, item.reportActionID));
-        return reportActionsWithoutDeleted;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActionIDFromRoute, allReportActions, isOffline]);
+        return _.filter(currentRangeOfReportActions, (reportAction) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID));
+    }, [reportActionIDFromRoute, allReportActions]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
@@ -265,7 +263,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isShowReportActionList = useMemo(
+    const shouldShowReportActionList = useMemo(
         () => isReportReadyForDisplay && !isLoading && !(_.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions),
         [isReportReadyForDisplay, reportActions, isLoading, reportMetadata.isLoadingInitialReportActions],
     );
@@ -551,7 +549,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isShowReportActionList && (
+                                {shouldShowReportActionList && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
