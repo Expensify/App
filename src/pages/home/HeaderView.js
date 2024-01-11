@@ -92,7 +92,7 @@ function HeaderView(props) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const participants = lodashGet(props.report, 'participantAccountIDs', []);
+    const participants = ReportUtils.isGroupChat(props.report) ? ReportUtils.getVisibleMemberIDs(props.report) : lodashGet(props.report, 'participantAccountIDs', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
