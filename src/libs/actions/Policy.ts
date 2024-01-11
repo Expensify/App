@@ -764,7 +764,7 @@ function deleteWorkspaceAvatar(policyID: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -780,9 +780,6 @@ function deleteWorkspaceAvatar(policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    avatar: null,
-                },
                 errorFields: {
                     avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
                 },
@@ -796,7 +793,7 @@ function deleteWorkspaceAvatar(policyID: string) {
 
     const params: DeleteWorkspaceAvatarParams = {policyID};
 
-    API.write('DeleteWorkspaceAvatar', params, {optimisticData, successData, failureData});
+    API.write('DeleteWorkspaceAvatar', params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -863,7 +860,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -879,9 +876,6 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    generalSettings: null,
-                },
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
@@ -910,7 +904,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
 
     API.write('UpdateWorkspaceGeneralSettings', params, {
         optimisticData,
-        successData,
+        finallyData,
         failureData,
     });
 }
