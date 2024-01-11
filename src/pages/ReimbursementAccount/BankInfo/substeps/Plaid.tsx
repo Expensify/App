@@ -76,7 +76,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     const selectedPlaidAccountID = reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '';
 
     return (
-        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             validate={validate}

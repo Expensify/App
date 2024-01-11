@@ -34,7 +34,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
     const defaultCompanyIncorporationState = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationStateKey, '');
 
     return (
-        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
+        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
