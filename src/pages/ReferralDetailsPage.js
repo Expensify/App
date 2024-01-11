@@ -4,18 +4,15 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import ReferralDetailsPageIcon from '@components/ReferralDetailsPageIcon';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
-import getPlatform from '@libs/getPlatform';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,12 +42,9 @@ const defaultProps = {
 function ReferralDetailsPage({route, account}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
     let {contentType} = route.params;
 
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
@@ -66,13 +60,7 @@ function ReferralDetailsPage({route, account}) {
     return (
         <HeaderPageLayout
             title={translate('common.referral')}
-            headerContent={
-                <Icon
-                    src={PaymentHands}
-                    width={isNative ? windowWidth : windowWidth * 2}
-                    height={232}
-                />
-            }
+            headerContent={<ReferralDetailsPageIcon />}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
