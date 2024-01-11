@@ -259,6 +259,8 @@ function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forward
         // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
         // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
         forwardDeletePressedRef.current = key === 'delete' || (_.contains([CONST.OS.MAC_OS, CONST.OS.IOS], getOperatingSystem()) && nativeEvent.ctrlKey && key === 'd');
+
+        forwardDeletePressedRef.current = false;
     };
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
