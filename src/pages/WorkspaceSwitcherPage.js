@@ -106,13 +106,12 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const selectPolicy = useCallback((option) => {
         const policyID = option.policyID;
         Policy.selectWorkspace(policyID);
-
         if (policyID) {
             setSelectedOption(option);
         } else {
             setSelectedOption(undefined);
         }
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigateWithPolicyID(policyID, ROUTES.HOME);
     }, []);
 
     const onChangeText = useCallback((newSearchTerm) => {

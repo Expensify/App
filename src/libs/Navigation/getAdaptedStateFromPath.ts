@@ -186,9 +186,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     return state;
 }
 
-const extractPolicyIDFromPath = (path: string) => path.match(/\/w\/(\d+)\//)?.[1];
+const extractPolicyIDFromPath = (path: string) => path.match(/\/w\/([a-zA-Z0-9]+)\//)?.[1];
 
-const getPathWithoutPolicyID = (path: string) => path.replace(/\/w\/\d+\//, '/');
+const getPathWithoutPolicyID = (path: string) => path.replace(/\/w\/[a-zA-Z0-9]+\//, '/');
 
 const getAdaptedStateFromPath: typeof getStateFromPath = (path, options) => {
     const url = getPathWithoutPolicyID(path);

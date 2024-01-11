@@ -9,6 +9,7 @@ import SCREENS from '@src/SCREENS';
 import dismissModal from './dismissModal';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
+import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
@@ -72,6 +73,11 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
 
     const params = action.payload.params as ActionPayloadParams;
     const screen = params.screen;
+    const policyIdFromState = getPolicyIdFromState(state);
+
+    if (!params.params?.policyID) {
+        params.params = {...params.params, policyID: policyIdFromState};
+    }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
