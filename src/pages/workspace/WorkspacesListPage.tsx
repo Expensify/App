@@ -27,7 +27,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, UserWallet} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import {PolicyRoute, WithPolicyOnyxProps} from './withPolicy';
+import withPolicyAndFullscreenLoading, {WithPolicyAndFullscreenLoadingOnyxProps} from './withPolicyAndFullscreenLoading';
 
 type WorkspaceListPageOnyxProps = {
     /** The list of this user's policies */
@@ -42,6 +43,12 @@ type WorkspaceListPageOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<UserWallet>;
 };
+
+type withPolicyAndFullscreenLoadingProps = React.ComponentType<
+    WithPolicyOnyxProps & {
+        route: PolicyRoute;
+    } & WithPolicyAndFullscreenLoadingOnyxProps
+>;
 
 type WorkspaceListPageProps = WorkspaceListPageOnyxProps;
 
@@ -83,12 +90,7 @@ function WorkspacesListPage({
     userWallet = {
         currentBalance: 0,
     } as OnyxEntry<UserWallet>,
-}: {
-    policies: OnyxCollection<PolicyType>;
-    allPolicyMembers: OnyxCollection<PolicyMembers>;
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    userWallet: OnyxEntry<UserWallet>;
-}) {
+}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -188,8 +190,7 @@ function WorkspacesListPage({
 
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
-export default compose(
-    withPolicyAndFullscreenLoading,
+export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
@@ -203,5 +204,5 @@ export default compose(
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
-    }),
-)(WorkspacesListPage);
+    })(WorkspacesListPage) as withPolicyAndFullscreenLoadingProps,
+);
