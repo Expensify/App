@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
 
-const OPTIONS_LABELS = {
+const OPTIONS_KEYS = {
     DAMAGED: 'damaged',
     STOLEN: 'stolen',
 };
@@ -31,11 +31,11 @@ const OPTIONS_LABELS = {
 /** Options for reason selector */
 const OPTIONS = [
     {
-        key: OPTIONS_LABELS.DAMAGED,
+        key: OPTIONS_KEYS.DAMAGED,
         label: 'reportCardLostOrDamaged.cardDamaged',
     },
     {
-        key: OPTIONS_LABELS.STOLEN,
+        key: OPTIONS_KEYS.STOLEN,
         label: 'reportCardLostOrDamaged.cardLostOrStolen',
     },
 ];
@@ -161,7 +161,7 @@ function ReportCardLostPage({
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
-    const isDamaged = reason && reason.key === OPTIONS_LABELS.DAMAGED;
+    const isDamaged = reason && reason.key === OPTIONS_KEYS.DAMAGED;
 
     return (
         <ScreenWrapper
