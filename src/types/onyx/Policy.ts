@@ -17,20 +17,11 @@ type Attributes = {
     unit: Unit;
 };
 
-type NewCustomUnit = {
-    name: string;
-    customUnitID: string;
-    attributes: Attributes;
-    rates: Rate;
-    pendingAction?: string;
-    errors?: OnyxCommon.Errors;
-};
-
 type CustomUnit = {
     name: string;
     customUnitID: string;
     attributes: Attributes;
-    rates: Record<string, Rate>;
+    rates: Record<string, Rate> | Rate;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
 };
@@ -117,4 +108,4 @@ type Policy = {
 
 export default Policy;
 
-export type {Unit, CustomUnit, NewCustomUnit};
+export type {Unit, CustomUnit};

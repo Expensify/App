@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
+import type {CustomUnit} from '@src/types/onyx/Policy';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -957,7 +957,7 @@ function hideWorkspaceAlertMessage(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
-function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: NewCustomUnit, lastModified: number) {
+function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit, lastModified: number) {
     if (!currentCustomUnit.customUnitID || !newCustomUnit?.customUnitID || !newCustomUnit.rates?.customUnitRateID) {
         return;
     }
@@ -971,7 +971,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID]: {
+                            [newCustomUnit.rates.customUnitRateID as string]: {
                                 ...newCustomUnit.rates,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -994,7 +994,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                         pendingAction: null,
                         errors: null,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID]: {
+                            [newCustomUnit.rates.customUnitRateID as string]: {
                                 pendingAction: null,
                             },
                         },
@@ -1013,7 +1013,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                     [currentCustomUnit.customUnitID]: {
                         customUnitID: currentCustomUnit.customUnitID,
                         rates: {
-                            [newCustomUnit.rates.customUnitRateID]: {
+                            [newCustomUnit.rates.customUnitRateID as string]: {
                                 ...currentCustomUnit.rates,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
