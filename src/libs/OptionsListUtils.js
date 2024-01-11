@@ -486,6 +486,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isExpenseReport: false,
         policyID: null,
         isOptimisticPersonalDetail: false,
+        isServerSearchResult: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -497,6 +498,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail;
+    result.isServerSearchResult = personalDetail.isServerSearchResult;
 
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -1508,6 +1510,9 @@ function getOptions(
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
             const participantNames = getParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
+                return;
+            }
+            if (!searchValue && personalDetailOption.isServerSearchResult) {
                 return;
             }
 

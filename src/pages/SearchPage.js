@@ -62,6 +62,9 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             userToInvite: localUserToInvite,
         } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
 
+        console.log('recentReports', localRecentReports);
+        console.log('personalDetails', localPersonalDetails);
+
         setSearchOptions({
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
