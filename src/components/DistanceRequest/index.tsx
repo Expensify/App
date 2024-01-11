@@ -238,7 +238,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
                         <DistanceRequestFooter
                             waypoints={waypoints}
                             navigateToWaypointEditPage={navigateToWaypointEditPage}
-                            transaction={transaction as Transaction}
+                            transaction={(transaction ?? {}) as Transaction}
                         />
                     }
                 />
