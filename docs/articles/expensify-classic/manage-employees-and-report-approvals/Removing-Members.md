@@ -13,7 +13,7 @@ Removing a member from a workspace disables their ability to use the workspace. 
 
 ![image of members table in a workspace]({{site.url}}/assets/images/ExpensifyHelp_RemovingMembers.png){:width="100%"}
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Will reports from this member on this workspace still be available?
 Yes, as long as the reports have been submitted. You can navigate to the Reports page and enter the member's email in the search field to find them. However, Draft reports will be removed from the workspace, so these will no longer be visible to the Workspace Admin.  
@@ -34,3 +34,5 @@ If a member is a **preferred exporter, billing owner, report approver** or has *
 
 ## How do I remove a user completely from a company account?   
 If you have a Control Workspace and have Domain Control enabled, you will need to remove them from the domain to delete members' accounts entirely and deactivate the Expensify Card.
+
+{% include faq-end.md %}
