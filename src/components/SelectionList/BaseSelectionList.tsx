@@ -55,6 +55,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         children,
         shouldStopPropagation = false,
         shouldUseDynamicMaxToRenderPerBatch = false,
+        rightHandSideComponent,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -303,6 +304,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
             />
         );

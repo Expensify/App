@@ -23,6 +23,7 @@ function BaseListItem<TItem extends User | RadioItem>({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
+    rightHandSideComponent,
     keyForList,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
@@ -30,6 +31,18 @@ function BaseListItem<TItem extends User | RadioItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isRadioItem = item.rightElement === undefined;
+
+    const rightHandSideComponentRender = () => {
+        if (canSelectMultiple || !rightHandSideComponent) {
+            return null;
+        }
+
+        if (typeof rightHandSideComponent === 'function') {
+            return rightHandSideComponent(item);
+        }
+
+        return rightHandSideComponent;
+    };
 
     return (
         <OfflineWithFeedback
@@ -60,7 +73,10 @@ function BaseListItem<TItem extends User | RadioItem>({
                     ]}
                 >
                     {canSelectMultiple && (
-                        <View style={StyleUtils.getCheckboxPressableStyle()}>
+                        <View
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            style={StyleUtils.getCheckboxPressableStyle()}
+                        >
                             <View
                                 style={[
                                     StyleUtils.getCheckboxContainerStyle(20),
@@ -114,7 +130,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                             showTooltip={showTooltip}
                         />
                     )}
-                    {!canSelectMultiple && item.isSelected && (
+                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -127,6 +143,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                             </View>
                         </View>
                     )}
+                    {rightHandSideComponentRender()}
                 </View>
                 {!!item.invitedSecondaryLogin && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>

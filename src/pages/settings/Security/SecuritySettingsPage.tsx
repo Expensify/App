@@ -1,42 +1,22 @@
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-
-    /* Onyx Props */
-
-    /** Holds information about the users account that is logging in */
-    account: PropTypes.shape({
-        /** Whether this account has 2FA enabled or not */
-        requiresTwoFactorAuth: PropTypes.bool,
-    }),
-};
-
-const defaultProps = {
-    account: {},
-};
-
-function SecuritySettingsPage(props) {
+function SecuritySettingsPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = props;
+    const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
 
     const menuItems = useMemo(() => {
@@ -53,13 +33,13 @@ function SecuritySettingsPage(props) {
             },
         ];
 
-        return _.map(baseMenuItems, (item) => ({
+        return baseMenuItems.map((item) => ({
             key: item.translationKey,
-            title: translate(item.translationKey),
+            title: translate(item.translationKey as TranslationPaths),
             icon: item.icon,
-            iconRight: item.iconRight,
             onPress: item.action,
             shouldShowRightIcon: true,
+            link: '',
         }));
     }, [translate, waitForNavigate]);
 
@@ -83,13 +63,6 @@ function SecuritySettingsPage(props) {
     );
 }
 
-SecuritySettingsPage.propTypes = propTypes;
-SecuritySettingsPage.defaultProps = defaultProps;
 SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(SecuritySettingsPage);
+export default SecuritySettingsPage;
