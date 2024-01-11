@@ -45,6 +45,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
+            if (request.finallyData) {
+                return updateHandler(request.finallyData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
