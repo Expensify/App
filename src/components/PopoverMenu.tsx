@@ -1,5 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {RefObject, useRef} from 'react';
+import type {RefObject} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
@@ -126,6 +127,14 @@ function PopoverMenu({
         {isActive: isVisible},
     );
 
+    const onModalHide = () => {
+        setFocusedIndex(-1);
+        if (selectedItemIndex.current !== null) {
+            menuItems[selectedItemIndex.current].onSelected();
+            selectedItemIndex.current = null;
+        }
+    };
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -133,13 +142,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={onClose}
             isVisible={isVisible}
-            onModalHide={() => {
-                setFocusedIndex(-1);
-                if (selectedItemIndex.current !== null) {
-                    menuItems[selectedItemIndex.current].onSelected();
-                    selectedItemIndex.current = null;
-                }
-            }}
+            onModalHide={onModalHide}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}

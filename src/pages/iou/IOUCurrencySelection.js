@@ -86,7 +86,7 @@ function IOUCurrencySelection(props) {
         const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
 
         // Do not dismiss the modal, when a current user can edit this currency of this money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, report.parentReportID, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             return;
         }
 

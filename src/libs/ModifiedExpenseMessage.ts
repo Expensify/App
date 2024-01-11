@@ -2,12 +2,12 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyTags, ReportAction} from '@src/types/onyx';
+import type {PolicyTags, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import {ExpenseOriginalMessage} from './ReportUtils';
+import type {ExpenseOriginalMessage} from './ReportUtils';
 
 let allPolicyTags: Record<string, PolicyTags | null> = {};
 Onyx.connect({
@@ -38,8 +38,10 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
+    const isOldValuePartialMerchant = valueName === Localize.translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    if (!oldValue) {
+    // In case of a partial merchant value, we want to avoid user seeing the "(none)" value in the message.
+    if (!oldValue || isOldValuePartialMerchant) {
         const fragment = Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
     } else if (!newValue) {
