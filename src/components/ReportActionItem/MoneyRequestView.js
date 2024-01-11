@@ -9,7 +9,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
@@ -33,6 +32,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
@@ -43,7 +43,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useMoneyRequestViewErrors from './useMoneyRequestViewErrors';
+import ReportActionItemImage from './ReportActionItemImage';
 
 const violationNames = lodashValues(CONST.VIOLATIONS);
 
@@ -176,6 +176,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
+    const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -228,13 +229,42 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
 
-    const {getErrorForField} = useMoneyRequestViewErrors({
-        transactionViolations,
-        hasErrors,
-        isEmptyMerchant,
-        transactionDate,
-        transactionAmount,
-    });
+    const getErrorForField = useCallback(
+        (field) => {
+            // Checks applied when creating a new money request
+            // NOTE: receipt field can return multiple violations, so we need to handle it separately
+            const fieldChecks = {
+                amount: {
+                    isError: transactionAmount === 0,
+                    translationPath: 'common.error.enterAmount',
+                },
+                merchant: {
+                    isError: isEmptyMerchant,
+                    translationPath: 'common.error.enterMerchant',
+                },
+                date: {
+                    isError: transactionDate === '',
+                    translationPath: 'common.error.enterDate',
+                },
+            };
+
+            const {isError, translationPath} = fieldChecks[field] ? fieldChecks[field] : {};
+
+            // Display form errors when first creating the money request
+            if (hasErrors && isError && translationPath) {
+                return translate(translationPath);
+            }
+
+            // Show violations if there are any
+            if (canUseViolations && hasViolations(field)) {
+                const violations = getViolationsForField(field);
+                return ViolationsUtils.getViolationTranslation(violations[0], translate);
+            }
+
+            return '';
+        },
+        [transactionAmount, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+    );
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
