@@ -18,19 +18,19 @@ type Attributes = {
 };
 
 type NewCustomUnit = {
-    name?: string;
-    customUnitID?: string;
+    name: string;
+    customUnitID: string;
     attributes: Attributes;
-    rates?: Rate;
+    rates: Rate;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
 };
 
 type CustomUnit = {
-    name?: string;
-    customUnitID?: string;
+    name: string;
+    customUnitID: string;
     attributes: Attributes;
-    rates?: Record<string, Rate>;
+    rates: Record<string, Rate>;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
 };
