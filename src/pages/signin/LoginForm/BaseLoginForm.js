@@ -99,6 +99,7 @@ function LoginForm(props) {
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
+    const isLoading = useRef(false);
 
     const {translate} = props;
 
@@ -165,9 +166,10 @@ function LoginForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (props.network.isOffline || props.account.isLoading) {
+        if (props.network.isOffline || props.account.isLoading || isLoading.current) {
             return;
         }
+        isLoading.current = true;
 
         // If account was closed and have success message in Onyx, we clear it here
         if (!_.isEmpty(props.closeAccount.success)) {
@@ -181,6 +183,7 @@ function LoginForm(props) {
         }
 
         if (!validate(login)) {
+            isLoading.current = false;
             return;
         }
 
@@ -220,6 +223,13 @@ function LoginForm(props) {
     }, []);
 
     useEffect(() => {
+        if (props.account.isLoading !== false) {
+            return;
+        }
+        isLoading.current = false;
+    }, [props.account.isLoading]);
+
+    useEffect(() => {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
@@ -234,6 +244,15 @@ function LoginForm(props) {
     useImperativeHandle(props.innerRef, () => ({
         isInputFocused() {
             return input.current && input.current.isFocused();
+        },
+        clearDataAndFocus(clearLogin = true) {
+            if (!input.current) {
+                return;
+            }
+            if (clearLogin) {
+                Session.clearSignInData();
+            }
+            input.current.focus();
         },
     }));
 
