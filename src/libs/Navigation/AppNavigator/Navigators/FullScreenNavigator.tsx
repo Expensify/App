@@ -20,7 +20,7 @@ function FullScreenNavigator() {
 
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+            <RootStack.Navigator>
                 <RootStack.Screen
                     name={SCREENS.SETTINGS.ROOT}
                     options={screenOptions.homeScreen}

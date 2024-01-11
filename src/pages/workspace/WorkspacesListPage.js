@@ -278,7 +278,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 policyID: policy.id,
-                reports: policy.reports,
                 adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
                 announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
                 ownerAccountID: policy.ownerAccountID,
