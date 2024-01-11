@@ -28,6 +28,9 @@ type CommonListItemProps<TItem> = {
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
+
+    /** Component to display on the right side */
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement;
 };
 
 type User = {
@@ -226,6 +229,9 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
+
+    /** Component to display on the right side of each child */
+    rightHandSideComponent?: ReactNode;
 };
 
 type ItemLayout = {
