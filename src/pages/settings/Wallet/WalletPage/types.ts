@@ -1,5 +1,5 @@
-import {OnyxEntry} from 'react-native-onyx';
-import {BankAccountList, Beta, Card, CardList, Fund, FundList, Network, UserWallet, WalletTerms, WalletTransfer} from '@src/types/onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {BankAccountList, CardList, FundList, UserWallet, WalletTerms, WalletTransfer} from '@src/types/onyx';
 
 type WalletPageOnyxProps = {
     /** Wallet balance transfer props */

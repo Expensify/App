@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import type CONST from '@src/CONST';
 
 type AnchorAlignment = {
@@ -22,16 +21,16 @@ type PopoverProps = BaseModalProps & {
     anchorPosition?: PopoverAnchorPosition;
 
     /** The anchor alignment of the popover */
-    anchorAlignment: AnchorAlignment;
+    anchorAlignment?: AnchorAlignment;
 
     /** The anchor ref of the popover */
-    anchorRef: React.RefObject<HTMLElement>;
+    anchorRef?: React.RefObject<HTMLElement>;
 
     /** Whether disable the animations */
-    disableAnimation: boolean;
+    disableAnimation?: boolean;
 
     /** Whether we don't want to show overlay */
-    withoutOverlay: boolean;
+    withoutOverlay?: boolean;
 
     /** The dimensions of the popover */
     popoverDimensions?: PopoverDimensions;
@@ -46,6 +45,4 @@ type PopoverProps = BaseModalProps & {
     children: React.ReactNode;
 };
 
-type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
-
-export type {PopoverProps, PopoverWithWindowDimensionsProps, AnchorAlignment};
+export type {PopoverProps, AnchorAlignment};

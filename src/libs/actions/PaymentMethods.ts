@@ -83,7 +83,7 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      walletLinkedAccountID: bankAccountID || fundID,
+                      walletLinkedAccountID: bankAccountID ?? fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
                       errors: null,
@@ -93,7 +93,7 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      walletLinkedAccountID: bankAccountID || fundID,
+                      walletLinkedAccountID: bankAccountID ?? fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
               },
@@ -320,7 +320,7 @@ type PaymentListKey = typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_L
  * @param paymentListKey The onyx key for the provided payment method
  * @param paymentMethodID
  */
-function clearDeletePaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: string) {
+function clearDeletePaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: number) {
     Onyx.merge(paymentListKey, {
         [paymentMethodID]: {
             pendingAction: null,
@@ -334,7 +334,7 @@ function clearDeletePaymentMethodError(paymentListKey: PaymentListKey, paymentMe
  * @param paymentListKey The onyx key for the provided payment method
  * @param paymentMethodID
  */
-function clearAddPaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: string) {
+function clearAddPaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: number) {
     Onyx.merge(paymentListKey, {
         [paymentMethodID]: null,
     });

@@ -8,8 +8,9 @@ function KYCWall({children, ...props}) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             shouldListenForResize
-            children={children}
-        />
+        >
+            {children}
+        </BaseKYCWall>
     );
 }
 

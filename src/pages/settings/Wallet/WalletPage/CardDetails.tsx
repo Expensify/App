@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import { withOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const defaultPrivatePersonalDetails = {
     address: {
@@ -46,7 +46,7 @@ type CardDetailsProps = CardDetailsOnyxProps & {
     domain: string;
 };
 
-function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetails = defaultPrivatePersonalDetails, domain}: CardDetailsProps) {
+function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetails, domain}: CardDetailsProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
@@ -87,7 +87,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.address')}
-                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails as PrivatePersonalDetails)}
+                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? defaultPrivatePersonalDetails)}
                 interactive={false}
             />
             <TextLink

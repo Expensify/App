@@ -12,7 +12,7 @@ type PopoverContextValue = {
 type AnchorRef = {
     ref: React.RefObject<HTMLElement>;
     close: (anchorRef?: React.RefObject<HTMLElement>) => void;
-    anchorRef: React.RefObject<HTMLElement>;
+    anchorRef?: React.RefObject<HTMLElement>;
     onOpenCallback?: () => void;
     onCloseCallback?: () => void;
 };
