@@ -63,7 +63,7 @@ function ButtonWithDropdownMenu({
     isDisabled = false,
     pressOnEnter = false,
     menuHeaderText = '',
-    style = [],
+    style,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
