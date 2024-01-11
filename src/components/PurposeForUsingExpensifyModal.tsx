@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {useNavigation} from "@react-navigation/native";
 import compose from '@libs/compose';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
@@ -23,10 +24,10 @@ import MenuItemList from './MenuItemList';
 import Modal from './Modal';
 import Text from './Text';
 import withNavigation from './withNavigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import type {WindowDimensionsProps} from "@components/withWindowDimensions/types";
-
-type PurposeForUsingExpensifyModalProps = WindowDimensionsProps;
+import withWindowDimensions from './withWindowDimensions';
+import type {WindowDimensionsProps} from "./withWindowDimensions/types";
+import type {StackNavigationProp} from "@react-navigation/stack";
+import type {RootStackParamList} from "@navigation/types";
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
@@ -79,24 +80,23 @@ const messageCopy = {
         "This will send a money request to each of your friends for however much they owe you, and we'll take care of getting you paid back. Thanks for asking, and let me know how it goes!",
 };
 
-function PurposeForUsingExpensifyModal(props) {
+function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const navigation = useNavigation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
-        const navigationState = props.navigation.getState();
+        const navigationState = navigation.getState();
         const routes = lodashGet(navigationState, 'routes', []);
         const currentRoute = routes[navigationState.index];
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
-            return;
-        }
+
         Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -196,16 +196,6 @@ function PurposeForUsingExpensifyModal(props) {
     );
 }
 
-PurposeForUsingExpensifyModal.propTypes = propTypes;
-PurposeForUsingExpensifyModal.defaultProps = defaultProps;
 PurposeForUsingExpensifyModal.displayName = 'PurposeForUsingExpensifyModal';
 
-export default compose(
-    withWindowDimensions,
-    withNavigation,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(PurposeForUsingExpensifyModal);
+export default PurposeForUsingExpensifyModal;
