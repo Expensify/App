@@ -2217,7 +2217,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
 
     const verb = Localize.translateLocal(verbKey);
-    const preposition = ` ${Localize.translateLocal(prepositionKey)}`;
+    const preposition = Localize.translateLocal(prepositionKey);
 
     const participantAccountIDs = originalMessage.targetAccountIDs ?? [];
     const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
