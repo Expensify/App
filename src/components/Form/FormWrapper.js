@@ -181,6 +181,7 @@ function FormWrapper(props) {
             styles.mt5,
             submitButtonStyles,
             submitButtonText,
+            shouldHideFixErrorsAlert,
         ],
     );
 
