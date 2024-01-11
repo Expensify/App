@@ -315,8 +315,11 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, source: string, filename: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        receipt: {source},
+        filename,
+    });
 }
 
 /**
@@ -3473,8 +3476,8 @@ function detachReceipt(transactionID: string) {
     API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
 }
 
-function replaceReceipt(transactionID: string, receipt: Receipt, filePath: string) {
-    const transaction = allTransactions.transactionID;
+function replaceReceipt(transactionID: string, file: any, source: string) {
+    const transaction = allTransactions.transactionID ?? {};
     const oldReceipt = transaction?.receipt ?? {};
 
     const optimisticData: OnyxUpdate[] = [
@@ -3483,10 +3486,10 @@ function replaceReceipt(transactionID: string, receipt: Receipt, filePath: strin
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: {
-                    source: filePath,
+                    source,
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
-                filename: receipt.name,
+                filename: file.name,
             },
         },
     ];
@@ -3504,12 +3507,12 @@ function replaceReceipt(transactionID: string, receipt: Receipt, filePath: strin
 
     type ReplaceReceiptParams = {
         transactionID: string;
-        receipt: Receipt;
+        receipt: any;
     };
 
     const parameters: ReplaceReceiptParams = {
         transactionID,
-        receipt,
+        receipt: file,
     };
 
     API.write('ReplaceReceipt', parameters, {optimisticData, failureData});
@@ -3593,10 +3596,6 @@ function setMoneyRequestBillable(billable: boolean) {
 
 function setMoneyRequestParticipants(participants: Participant[], isSplitRequest?: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
-}
-
-function setMoneyRequestReceipt(receiptPath: string, receiptFilename: string) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
 }
 
 function setUpDistanceTransaction() {
@@ -3689,7 +3688,7 @@ export {
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
-    setMoneyRequestReceipt_temporaryForRefactor,
+    setMoneyRequestReceipt,
     setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -3700,7 +3699,6 @@ export {
     setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
