@@ -1,5 +1,6 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
