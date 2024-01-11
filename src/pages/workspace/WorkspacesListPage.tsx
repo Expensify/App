@@ -156,7 +156,7 @@ function WorkspacesListPage({
                 pendingAction: policy?.pendingAction,
                 errors: policy?.errors,
                 dismissError: () => {
-                    if (!policy || !policy?.id || !policy?.pendingAction) {
+                    if (!policy?.id || !policy?.pendingAction) {
                         return;
                     }
                     dismissWorkspaceError(policy.id, policy.pendingAction);
