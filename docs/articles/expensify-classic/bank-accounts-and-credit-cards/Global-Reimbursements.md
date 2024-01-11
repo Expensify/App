@@ -79,7 +79,7 @@ Examples of additional requested information:
 
 ## How many people can send reimbursements internationally? 
 
-Once your company is authorized to send global payments, only the individual who went through the verification can reimburse international employees.
+Once your company is authorized to send global payments, the individual who verified the bank account can share it with additional admins on the workspace. That way, multiple workspace members can send international reimbursements. 
 
 ## How long does it take to verify an account for international payments?
 
