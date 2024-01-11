@@ -9,6 +9,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
+import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageNotFoundViewProps = {
     /** Child elements */
@@ -37,6 +38,9 @@ type FullPageNotFoundViewProps = {
 
     /** Function to call when pressing the navigation link */
     onLinkPress: () => void;
+
+    /** Whether we should force the full page view */
+    forceFullPage?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -50,13 +54,14 @@ function FullPageNotFoundView({
     shouldShowLink = true,
     shouldShowBackButton = true,
     onLinkPress = () => Navigation.dismissModal(),
+    forceFullPage = false,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (shouldShow) {
         return (
-            <>
+            <ForceFullScreenView forceFullPage={forceFullPage}>
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
@@ -73,7 +78,7 @@ function FullPageNotFoundView({
                         onLinkPress={onLinkPress}
                     />
                 </View>
-            </>
+            </ForceFullScreenView>
         );
     }
 

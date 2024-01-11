@@ -119,6 +119,8 @@ function WorkspacePageWithSections({
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
 
+    const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
         firstRender.current = false;
@@ -137,9 +139,11 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={goBack}
+                onLinkPress={goBack}
                 shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                forceFullPage
             >
                 <HeaderWithBackButton
                     title={headerText}
