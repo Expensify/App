@@ -20,6 +20,12 @@ type BankAccountValidationFormProps = {
     requiresTwoFactorAuth: boolean;
 };
 
+const getAmountValues = (values: FormValues): Record<string, string> => ({
+    amount1: values?.amount1,
+    amount2: values?.amount2,
+    amount3: values?.amount3,
+});
+
 const filterInput = (amount: string) => {
     const value = amount ? amount.trim() : '';
     if (value === '' || Number.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value, true))) {
@@ -36,9 +42,10 @@ const filterInput = (amount: string) => {
 
 const validate = (values: FormValues) => {
     const errors: Record<string, string> = {};
+    const amountValues = getAmountValues(values);
 
-    Object.values(values).forEach((key) => {
-        const value = values[key];
+    Object.keys(amountValues).forEach((key) => {
+        const value = amountValues[key];
         const filteredValue = filterInput(value);
         if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
             return;
