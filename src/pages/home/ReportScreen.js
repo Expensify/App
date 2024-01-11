@@ -208,7 +208,7 @@ function ReportScreen({
     const isLoading = !reportIDFromRoute || !isSidebarLoaded || _.isEmpty(personalDetails);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
-    const isTopMostReportId = currentReportID === getReportID(route);
+    const isTopMostReportId = currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     useEffect(() => {
@@ -260,12 +260,10 @@ function ReportScreen({
      * @returns {Boolean}
      */
     const isReportReadyForDisplay = useMemo(() => {
-        const reportIDFromPath = getReportID(route);
-
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
-        const isTransitioning = report && report.reportID !== reportIDFromPath;
-        return reportIDFromPath !== '' && report.reportID && !isTransitioning;
-    }, [route, report]);
+        const isTransitioning = report && report.reportID !== reportIDFromRoute;
+        return reportIDFromRoute !== '' && report.reportID && !isTransitioning;
+    }, [report, reportIDFromRoute]);
 
     const isShowReportActionList = useMemo(
         () => isReportReadyForDisplay && !isLoading && !(_.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions),
@@ -285,23 +283,21 @@ function ReportScreen({
     }, [report.reportID, isFocused]);
 
     const fetchReportIfNeeded = useCallback(() => {
-        const reportIDFromPath = getReportID(route);
-
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
-        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
+        if (!ReportUtils.isValidReportIDFromPath(reportIDFromRoute)) {
             return;
         }
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === getReportID(route) && !reportMetadata.isLoadingInitialReportActions) {
+        if (report.reportID && report.reportID === reportIDFromRoute && !reportMetadata.isLoadingInitialReportActions) {
             return;
         }
 
         fetchReport();
-    }, [report.reportID, route, reportMetadata.isLoadingInitialReportActions, fetchReport]);
+    }, [report.reportID, reportMetadata.isLoadingInitialReportActions, fetchReport, reportIDFromRoute]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -339,10 +335,10 @@ function ReportScreen({
             if (email) {
                 assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
             }
-            Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+            Task.createTaskAndNavigate(reportIDFromRoute, title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
             return true;
         },
-        [allPersonalDetails, report.policyID, route],
+        [allPersonalDetails, report.policyID, reportIDFromRoute],
     );
 
     /**
@@ -354,9 +350,9 @@ function ReportScreen({
             if (isTaskCreated) {
                 return;
             }
-            Report.addComment(getReportID(route), text);
+            Report.addComment(reportIDFromRoute, text);
         },
-        [route, handleCreateTask],
+        [handleCreateTask, reportIDFromRoute],
     );
 
     // Clear notifications for the current report when it's opened and re-focused
@@ -398,7 +394,6 @@ function ReportScreen({
 
         const onyxReportID = report.reportID;
         const prevOnyxReportID = prevReport.reportID;
-        const routeReportID = getReportID(route);
 
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
@@ -406,7 +401,7 @@ function ReportScreen({
             (!prevUserLeavingStatus && userLeavingStatus) ||
             // optimistic case
             (prevOnyxReportID &&
-                prevOnyxReportID === routeReportID &&
+                prevOnyxReportID === reportIDFromRoute &&
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
                 (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
@@ -429,7 +424,7 @@ function ReportScreen({
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        if (onyxReportID === prevReport.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
+        if (onyxReportID === prevReport.reportID && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
             return;
         }
 
@@ -447,6 +442,7 @@ function ReportScreen({
         prevReport.parentReportID,
         prevReport.chatType,
         prevReport,
+        reportIDFromRoute,
     ]);
 
     useEffect(() => {
