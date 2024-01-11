@@ -156,10 +156,10 @@ function WorkspacesListPage({
                 pendingAction: policy?.pendingAction,
                 errors: policy?.errors,
                 dismissError: () => {
-                    if (!policy) {
+                    if (!policy || !policy?.id || !policy?.pendingAction) {
                         return;
                     }
-                    dismissWorkspaceError(policy?.id ?? '', policy.pendingAction!);
+                    dismissWorkspaceError(policy.id, policy.pendingAction);
                 },
                 disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
