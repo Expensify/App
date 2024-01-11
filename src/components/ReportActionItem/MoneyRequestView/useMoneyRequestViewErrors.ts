@@ -35,6 +35,7 @@ function useMoneyRequestViewErrors({transactionViolations, hasErrors, isEmptyMer
 
     const getErrorForField = useCallback(
         (field: Exclude<MoneyRequestField, 'receipt'>) => {
+            // Checks applied when creating a new money request
             const fieldChecks: FieldChecks = {
                 amount: {
                     isError: transactionAmount === 0,
@@ -52,10 +53,12 @@ function useMoneyRequestViewErrors({transactionViolations, hasErrors, isEmptyMer
 
             const {isError, translationPath} = fieldChecks[field] ?? {};
 
+            // Display form errors when first creating the money request
             if (hasErrors && isError && translationPath) {
                 return translate(translationPath);
             }
 
+            // Show violations if there are any
             if (canUseViolations && hasViolations(field)) {
                 const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
