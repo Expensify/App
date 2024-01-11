@@ -94,8 +94,10 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             }
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            if (newStatusBarStyle !== statusBarStyle) {
-                updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
+            if (newStatusBarStyle === statusBarStyle) {
+                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor});
+            } else {
+                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
             }
         },
