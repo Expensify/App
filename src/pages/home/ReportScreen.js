@@ -171,7 +171,7 @@ function ReportScreen({
         if (!!allReportActions && allReportActions.length === 0) {
             return [];
         }
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, false);
         const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedReportActions, reportActionIDFromRoute);
         // eslint-disable-next-line rulesdir/prefer-underscore-method
         const reportActionsWithoutDeleted = currentRangeOfReportActions.filter((item) => ReportActionsUtils.shouldReportActionBeVisible(item, item.reportActionID));
