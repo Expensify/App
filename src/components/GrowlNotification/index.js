@@ -93,7 +93,7 @@ function GrowlNotification(_, ref) {
     }, [duration, fling]);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
-    // case we want to trgger an RN's Animated animation, which needs to be done on JS thread.
+    // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
     const flingGesture = Gesture.Fling()
         .direction(Directions.UP)
         .runOnJS(true)
