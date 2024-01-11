@@ -26,6 +26,7 @@ type ThumbnailImageProps = {
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
+    objectPositionTop?: boolean;
 };
 
 type UpdateImageSizeParams = {
@@ -71,7 +72,7 @@ function calculateThumbnailImageSize(width: number, height: number, windowHeight
     return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
 }
 
-function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true}: ThumbnailImageProps) {
+function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth, imageHeight, shouldDynamicallyResize = true, objectPositionTop = false}: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -103,6 +104,7 @@ function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidt
                     url={previewSourceURL}
                     onMeasure={updateImageSize}
                     isAuthTokenRequired={isAuthTokenRequired}
+                    objectPositionTop={objectPositionTop}
                 />
             </View>
         </View>

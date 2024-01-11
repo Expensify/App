@@ -29,6 +29,8 @@ type ImageWithSizeCalculationProps = {
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
+
+    objectPositionTop: boolean;
 };
 
 /**
@@ -37,7 +39,7 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired, objectPositionTop}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
@@ -88,6 +90,7 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
+                objectPositionTop={objectPositionTop}
             />
             {isLoading && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>

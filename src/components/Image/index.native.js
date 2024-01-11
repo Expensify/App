@@ -1,11 +1,12 @@
 import {Image as ImageComponent} from 'expo-image';
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
+import {Image as RNImage} from 'react-native';
 
 const dimensionsCache = new Map();
 
@@ -16,6 +17,7 @@ function resolveDimensions(key) {
 function Image(props) {
     // eslint-disable-next-line react/destructuring-assignment
     const {source, isAuthTokenRequired, session, ...rest} = props;
+    const [aspectRatio, setAspectRatio] = useState();
 
     let imageSource = source;
     if (source && source.uri && typeof source.uri === 'number') {
@@ -33,6 +35,27 @@ function Image(props) {
         };
     }
 
+    const newSource = useMemo(() => {
+        if (isAuthTokenRequired) {
+            const authToken = lodashGet(session, 'encryptedAuthToken', null);
+            return {uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+        }
+        return source;
+    }, [source, isAuthTokenRequired]);
+
+    useEffect(() => {
+        if (props.onLoad == null) {
+            return;
+        }
+        RNImage.getSize(newSource.uri, (width, height) => {
+            props.onLoad({nativeEvent: {width, height}});
+
+            if (props.objectPositionTop) {
+                setAspectRatio(height ? width / height : 'auto');
+            }
+        });
+    }, [props.onLoad, newSource]);
+
     return (
         <ImageComponent
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -45,6 +68,7 @@ function Image(props) {
                     props.onLoad({nativeEvent: {width, height}});
                 }
             }}
+            style={[props.style, aspectRatio !== undefined && {aspectRatio, height: 'auto'}, props.objectPositionTop && !aspectRatio && {opacity: 0}]}
         />
     );
 }

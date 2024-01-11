@@ -291,7 +291,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                 <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={screenOptions.fullScreen}
-                    component={NotFoundPage}
+                    component={() => <NotFoundPage onLinkPress={() => Navigation.navigate(ROUTES.HOME)}/>}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}

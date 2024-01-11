@@ -72,14 +72,18 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired
                 shouldDynamicallyResize={false}
+                objectPositionTop
             />
         );
     } else {
         receiptImageComponent = (
-            <Image
-                source={{uri: thumbnail || image}}
-                style={[styles.w100, styles.h100]}
-            />
+            <View style={[styles.w100, styles.h100]}>
+                <Image
+                    source={{uri: thumbnail || image}}
+                    style={[styles.w100, styles.h100]}
+                    objectPositionTop
+                />
+            </View>
         );
     }
 
