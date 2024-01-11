@@ -1,20 +1,16 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {useNavigation} from "@react-navigation/native";
-import compose from '@libs/compose';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
@@ -23,11 +19,6 @@ import LottieAnimations from './LottieAnimations';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
 import Text from './Text';
-import withNavigation from './withNavigation';
-import withWindowDimensions from './withWindowDimensions';
-import type {WindowDimensionsProps} from "./withWindowDimensions/types";
-import type {StackNavigationProp} from "@react-navigation/stack";
-import type {RootStackParamList} from "@navigation/types";
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
