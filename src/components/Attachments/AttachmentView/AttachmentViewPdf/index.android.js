@@ -15,17 +15,26 @@ function AttachmentViewPdf(props) {
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
 
+    // Reanimated freezes all objects captured in the closure of a worklet.
+    // Since Reanimated 3, entire objects are captured instead of just the relevant properties.
+    // See https://github.com/software-mansion/react-native-reanimated/pull/4060
+    // Because context contains more properties, all of them (most notably the pager ref) were
+    // frozen, which combined with Reanimated using strict mode since 3.6.0 was resulting in errors.
+    // Without strict mode, it would just silently fail.
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#description
+    const shouldPagerScroll = attachmentCarouselPagerContext !== null ? attachmentCarouselPagerContext.shouldPagerScroll : undefined;
+
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0 && attachmentCarouselPagerContext) {
+            if (offsetX.value !== 0 && offsetY.value !== 0 && shouldPagerScroll) {
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
                 if (Math.abs(evt.allTouches[0].absoluteX - offsetX.value) > Math.abs(evt.allTouches[0].absoluteY - offsetY.value) && scaleRef.value === 1) {
-                    attachmentCarouselPagerContext.shouldPagerScroll.value = true;
+                    shouldPagerScroll.value = true;
                 } else {
-                    attachmentCarouselPagerContext.shouldPagerScroll.value = false;
+                    shouldPagerScroll.value = false;
                 }
             }
             offsetX.value = evt.allTouches[0].absoluteX;

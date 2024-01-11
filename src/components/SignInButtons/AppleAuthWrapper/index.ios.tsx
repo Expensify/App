@@ -5,19 +5,18 @@ import * as Session from '@userActions/Session';
 /**
  * Apple Sign In wrapper for iOS
  * revokes the session if the credential is revoked.
- *
- * @returns {null}
  */
 function AppleAuthWrapper() {
     useEffect(() => {
         if (!appleAuth.isSupported) {
             return;
         }
-        const listener = appleAuth.onCredentialRevoked(() => {
+        const removeListener = appleAuth.onCredentialRevoked(() => {
             Session.signOut();
         });
+
         return () => {
-            listener.remove();
+            removeListener();
         };
     }, []);
 
