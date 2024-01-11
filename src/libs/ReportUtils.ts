@@ -2206,27 +2206,25 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
  * @param parentReportAction
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>) {
-    const originalMessage = parentReportAction?.originalMessage as ChangeLog | undefined;
-    let actionMessage: string;
-    const verb =
-        parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? Localize.translateLocal('workspace.invite.invited')
-            : Localize.translateLocal('workspace.invite.removed');
-    const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
+    if (!parentReportAction || !parentReportAction.originalMessage) {
+        return '';
+    }
+    const originalMessage = parentReportAction.originalMessage as ChangeLog;
+    const actionType = parentReportAction.actionName;
+    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+
+    const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
+    const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
+
+    const verb = Localize.translateLocal(verbKey);
+    const preposition = ` ${Localize.translateLocal(prepositionKey)}`;
+
+    const participantAccountIDs = originalMessage.targetAccountIDs ?? [];
     const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
-    actionMessage = `${verb} ${users}`;
+    const roomName = originalMessage.roomName ?? '';
 
-    const roomName = originalMessage?.roomName ?? '';
-    if (roomName) {
-        const preposition =
-            parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
-            parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ` ${Localize.translateLocal('workspace.invite.to')}`
-                : ` ${Localize.translateLocal('workspace.invite.from')}`;
-        actionMessage += `${preposition} ${roomName}`;
-    }
-    return actionMessage;
+    return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
 }
 
 /**
