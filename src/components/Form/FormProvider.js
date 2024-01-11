@@ -73,6 +73,8 @@ const propTypes = {
 
     /** Should validate function be called when the value of the input is changed */
     shouldValidateOnChange: PropTypes.bool,
+
+    shouldHideFixErrorsAlert: PropTypes.bool,
 };
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
@@ -94,6 +96,7 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
+    shouldHideFixErrorsAlert: false,
 };
 
 function getInitialValueByType(valueType) {
