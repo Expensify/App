@@ -20,6 +20,7 @@ import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useThemePreference from "@hooks/useThemePreference";
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -53,6 +54,7 @@ const defaultProps = {
 };
 
 function WalletStatementPage(props) {
+    const themePreference = useThemePreference();
     const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
 
     useEffect(() => {
@@ -89,7 +91,7 @@ function WalletStatementPage(props) {
     const month = yearMonth.substring(4) || getMonth(new Date());
     const monthName = format(new Date(year, month - 1), CONST.DATE.MONTH_FORMAT);
     const title = props.translate('statementPage.title', year, monthName);
-    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
+    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     return (
         <ScreenWrapper
