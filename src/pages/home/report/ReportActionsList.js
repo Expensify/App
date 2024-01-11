@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -138,7 +138,6 @@ function ReportActionsList({
     isComposerFullSize,
 }) {
     const styles = useThemeStyles();
-    const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const route = useRoute();
@@ -151,6 +150,7 @@ function ReportActionsList({
         }
         return cacheUnreadMarkers.get(report.reportID);
     };
+    const reportScrollManager = useReportScrollManager();
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
@@ -262,6 +262,13 @@ function ReportActionsList({
     }, [report.reportID]);
 
     useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
         //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
@@ -282,7 +289,7 @@ function ReportActionsList({
             if (!isFromCurrentUser) {
                 return;
             }
-            reportScrollManager.scrollToBottom();
+            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         });
 
         const cleanup = () => {

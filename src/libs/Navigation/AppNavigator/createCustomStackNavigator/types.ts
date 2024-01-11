@@ -5,7 +5,9 @@ type ResponsiveStackNavigatorConfig = {
     isSmallScreenWidth: boolean;
 };
 
-type ResponsiveStackNavigatorRouterOptions = StackRouterOptions;
+type ResponsiveStackNavigatorRouterOptions = StackRouterOptions & {
+    getIsSmallScreenWidth: () => boolean;
+};
 
 type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> &
     ResponsiveStackNavigatorConfig;
