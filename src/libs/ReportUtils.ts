@@ -1095,11 +1095,23 @@ function getReportNotificationPreference(report: OnyxEntry<Report>): string | nu
 }
 
 /**
- * Returns whether or not the author of the action is this user
- *
+ * Checks if the current user is the action's author
  */
-function isActionCreator(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionCreator(reportAction: OnyxEntry<ReportAction> | Partial<ReportAction>): boolean {
     return reportAction?.actorAccountID === currentUserAccountID;
+}
+
+/**
+ * Returns the notification preference of the action's child report if it exists.
+ * Otherwise, calculates it based on the action's authorship.
+ */
+function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportAction> | Partial<ReportAction>): NotificationPreference {
+    const childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
+    if (childReportNotificationPreference) {
+        return childReportNotificationPreference;
+    }
+
+    return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
 /**
@@ -4533,6 +4545,7 @@ export {
     shouldAutoFocusOnKeyPress,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    getChildReportNotificationPreference,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};

@@ -739,7 +739,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
             '',
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            ReportUtils.getChildReportNotificationPreference(parentReportAction),
             parentReportAction.reportActionID,
             parentReportID,
         );
