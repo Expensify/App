@@ -36,6 +36,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -221,6 +222,8 @@ function MoneyRequestConfirmationList(props) {
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
+
+    const isFromPaidPolicy = props.policy.type === CONST.POLICY.TYPE.TEAM || props.policy.type === CONST.POLICY.TYPE.CORPORATE;
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
@@ -604,7 +607,7 @@ function MoneyRequestConfirmationList(props) {
                     <ConfirmedRoute transaction={props.transaction} />
                 </View>
             )}
-            {(receiptImage || receiptThumbnail) && (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
@@ -613,6 +616,22 @@ function MoneyRequestConfirmationList(props) {
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
+            ) : (
+                isFromPaidPolicy && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.REQUEST,
+                                    transaction.transactionID,
+                                    props.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                    />
+                )
             )}
             {props.shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
