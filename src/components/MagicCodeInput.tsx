@@ -1,7 +1,10 @@
-import React, {ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {NativeSyntheticEvent, StyleSheet, TextInputFocusEventData, TextInputKeyPressEventData, TextInputProps, View} from 'react-native';
-import {HandlerStateChangeEvent, TapGestureHandler, TouchData} from 'react-native-gesture-handler';
-import {AnimatedProps} from 'react-native-reanimated';
+import type {ForwardedRef} from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData, TextInputProps} from 'react-native';
+import { StyleSheet, View, TextInput} from 'react-native';
+import type {HandlerStateChangeEvent, TouchData} from 'react-native-gesture-handler';
+import { TapGestureHandler} from 'react-native-gesture-handler';
+import type {AnimatedProps} from 'react-native-reanimated';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,7 +107,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
     } = props;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // const inputRefs = useRef<HTMLFormElement | React.Component<AnimatedProps<TextInputProps>> | null>();
     const inputRefs = useRef<HTMLFormElement | React.Component<AnimatedProps<TextInputProps>> | null>();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
