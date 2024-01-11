@@ -7,7 +7,7 @@
  */
 function getAddressFormHeight(windowHeight, isOffline, isSmallScreenWidth) {
     return {
-        maxHeight: windowHeight - 65 - (isOffline & isSmallScreenWidth ? 26 : 0),
+        maxHeight: windowHeight - 65 - (isOffline && isSmallScreenWidth ? 26 : 0),
         overflow: 'hidden',
     };
 }
