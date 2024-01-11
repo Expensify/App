@@ -3476,8 +3476,8 @@ function detachReceipt(transactionID: string) {
     API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
 }
 
-function replaceReceipt(transactionID: string, file: any, source: string) {
-    const transaction = allTransactions.transactionID ?? {};
+function replaceReceipt(transactionID: string, file: File, source: string) {
+    const transaction = allTransactions.transactionID;
     const oldReceipt = transaction?.receipt ?? {};
 
     const optimisticData: OnyxUpdate[] = [
@@ -3507,7 +3507,7 @@ function replaceReceipt(transactionID: string, file: any, source: string) {
 
     type ReplaceReceiptParams = {
         transactionID: string;
-        receipt: any;
+        receipt: File;
     };
 
     const parameters: ReplaceReceiptParams = {
