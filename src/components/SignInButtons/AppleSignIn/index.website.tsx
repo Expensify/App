@@ -1,12 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import Config, {NativeConfig} from 'react-native-config';
+import type {NativeConfig} from 'react-native-config';
+import Config from 'react-native-config';
 import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
-import withNavigationFocus, {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import withNavigationFocus from '@components/withNavigationFocus';
 import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
+import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.
