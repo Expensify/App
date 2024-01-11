@@ -165,7 +165,8 @@ function WorkspaceInitialPage(props) {
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includePaddingTop={false}
-            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
+            includeSafeAreaPaddingBottom={false}
+            shouldDisableSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}

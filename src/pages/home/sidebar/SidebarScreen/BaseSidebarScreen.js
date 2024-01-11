@@ -31,7 +31,7 @@ function BaseSidebarScreen(props) {
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
             includePaddingTop={false}
-            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
+            shouldDisableSafeAreaPaddingBottom
         >
             {({insets}) => (
                 <View style={[styles.flex1]}>
