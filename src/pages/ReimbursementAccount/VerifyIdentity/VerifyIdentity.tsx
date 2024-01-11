@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {reimbursementAccountDefaultProps} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +31,7 @@ type VerifyIdentityProps = VerifyIdentityOnyxProps & {
 
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [OnfidoInitialize];
 
-function VerifyIdentity({reimbursementAccount = reimbursementAccountDefaultProps, onBackButtonPress, onCloseButtonPress}: VerifyIdentityProps) {
+function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
