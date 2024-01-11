@@ -11,10 +11,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import type {BaseListItemProps} from './types';
+import type {BaseListItemProps, RadioItem, User} from './types';
 import UserListItem from './UserListItem';
 
-function BaseListItem({
+function BaseListItem<TItem extends User | RadioItem>({
     item,
     isFocused = false,
     isDisabled = false,
@@ -24,7 +24,7 @@ function BaseListItem({
     onSelectRow,
     onDismissError = () => {},
     keyForList,
-}: BaseListItemProps) {
+}: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -95,7 +95,7 @@ function BaseListItem({
                             ]}
                             alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                             isDisabled={isDisabled}
-                            onSelectRow={onSelectRow}
+                            onSelectRow={() => onSelectRow(item)}
                             showTooltip={showTooltip}
                         />
                     ) : (
@@ -110,7 +110,7 @@ function BaseListItem({
                             ]}
                             alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                             isDisabled={isDisabled}
-                            onSelectRow={onSelectRow}
+                            onSelectRow={() => onSelectRow(item)}
                             showTooltip={showTooltip}
                         />
                     )}

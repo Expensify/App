@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
 
-function BaseSelectionList(
+function BaseSelectionList<TItem extends User | RadioItem>(
     {
         sections,
         canSelectMultiple = false,
@@ -55,12 +55,12 @@ function BaseSelectionList(
         children,
         shouldStopPropagation = false,
         shouldUseDynamicMaxToRenderPerBatch = false,
-    }: BaseSelectionListProps,
+    }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const listRef = useRef<RNSectionList<User | RadioItem, Section>>(null);
+    const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
     const textInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
@@ -77,8 +77,8 @@ function BaseSelectionList(
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
      */
-    const flattenedSections = useMemo<FlattenedSectionsReturn>(() => {
-        const allOptions: Array<User | RadioItem> = [];
+    const flattenedSections = useMemo<FlattenedSectionsReturn<TItem>>(() => {
+        const allOptions: TItem[] = [];
 
         const disabledOptionsIndexes: number[] = [];
         let disabledIndex = 0;
@@ -86,7 +86,7 @@ function BaseSelectionList(
         let offset = 0;
         const itemLayouts = [{length: 0, offset}];
 
-        const selectedOptions: Array<User | RadioItem> = [];
+        const selectedOptions: TItem[] = [];
 
         sections.forEach((section, sectionIndex) => {
             const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
@@ -187,7 +187,7 @@ function BaseSelectionList(
      * @param item - the list item
      * @param shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
-    const selectRow = (item: RadioItem | User, shouldUnfocusRow = false) => {
+    const selectRow = (item: TItem, shouldUnfocusRow = false) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -251,7 +251,7 @@ function BaseSelectionList(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    const getItemLayout = (data: SectionListDataType[] | null, flatDataArrayIndex: number) => {
+    const getItemLayout = (data: Array<SectionListDataType<TItem>> | null, flatDataArrayIndex: number) => {
         const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
 
         if (!targetItem) {
@@ -269,7 +269,7 @@ function BaseSelectionList(
         };
     };
 
-    const renderSectionHeader = ({section}: {section: SectionListDataType}) => {
+    const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
         if (!section.title || !section.data) {
             return null;
         }
@@ -285,7 +285,7 @@ function BaseSelectionList(
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<User | RadioItem, Section>) => {
+    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
         const indexOffset = section.indexOffset ? section.indexOffset : 0;
         const normalizedIndex = index + indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -464,7 +464,7 @@ function BaseSelectionList(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item: User | RadioItem) => item.keyForList}
+                                    keyExtractor={(item: TItem) => item.keyForList}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"

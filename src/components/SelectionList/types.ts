@@ -113,13 +113,13 @@ type RadioListItemProps = CommonListItemProps<RadioItem> & {
     item: RadioItem;
 };
 
-type BaseListItemProps = CommonListItemProps<RadioItem | User> & {
-    item: RadioItem | User;
+type BaseListItemProps<TItem extends User | RadioItem> = CommonListItemProps<TItem> & {
+    item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     keyForList?: string;
 };
 
-type Section = {
+type Section<TItem extends User | RadioItem> = {
     /** Title of the section */
     title?: string;
 
@@ -127,21 +127,21 @@ type Section = {
     indexOffset?: number;
 
     /** Array of options */
-    data: Array<User | RadioItem>;
+    data: TItem[];
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean;
 };
 
-type BaseSelectionListProps = Partial<ChildrenProps> & {
+type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Section[];
+    sections: Array<Section<TItem>>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: User | RadioItem) => void;
+    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
@@ -233,9 +233,9 @@ type ItemLayout = {
     offset: number;
 };
 
-type FlattenedSectionsReturn = {
-    allOptions: Array<User | RadioItem>;
-    selectedOptions: Array<User | RadioItem>;
+type FlattenedSectionsReturn<TItem extends User | RadioItem> = {
+    allOptions: TItem[];
+    selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
@@ -243,7 +243,7 @@ type FlattenedSectionsReturn = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType = SectionListData<User | RadioItem, Section>;
+type SectionListDataType<TItem extends User | RadioItem> = SectionListData<TItem, Section<TItem>>;
 
 export type {
     BaseSelectionListProps,
