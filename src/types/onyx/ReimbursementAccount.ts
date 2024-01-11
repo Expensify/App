@@ -63,7 +63,7 @@ type ReimbursementAccount = {
 
     pendingAction?: OnyxCommon.PendingAction;
 
-    /** Should display modal to reset datq */
+    /** Should display modal to reset data */
     shouldShowResetModal?: boolean;
 };
 

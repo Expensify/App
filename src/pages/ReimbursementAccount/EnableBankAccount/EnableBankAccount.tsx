@@ -20,7 +20,7 @@ import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, User} from '@src/types/onyx';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type EnableBankAccountOnyxProps = {
     /** Object with various information about the user */
@@ -104,7 +104,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                             icon={Expensicons.Close}
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                            disabled={Boolean(pendingAction) || isNotEmptyObject(errors)}
+                            disabled={Boolean(pendingAction) || !isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>
