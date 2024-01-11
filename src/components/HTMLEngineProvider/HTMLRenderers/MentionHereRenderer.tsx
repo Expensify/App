@@ -1,26 +1,34 @@
 import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import _ from 'underscore';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
+import type HtmlRendererProps from './types';
 
-function MentionHereRenderer(props) {
+function MentionHereRenderer({style, tnode}: HtmlRendererProps) {
     const StyleUtils = useStyleUtils();
+
+    const styleWithoutColor: StyleProp<TextStyle> =
+        typeof style === 'object'
+            ? {
+                  ...style,
+                  color: undefined,
+              }
+            : {};
+
     return (
         <Text>
             <Text
                 // Passing the true value to the function as here mention is always for the current user
                 color={StyleUtils.getMentionTextColor(true)}
-                style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(true)]}
+                style={[styleWithoutColor, StyleUtils.getMentionStyle(true) as StyleProp<TextStyle>]}
             >
-                <TNodeChildrenRenderer tnode={props.tnode} />
+                <TNodeChildrenRenderer tnode={tnode} />
             </Text>
         </Text>
     );
 }
 
-MentionHereRenderer.propTypes = htmlRendererPropTypes;
 MentionHereRenderer.displayName = 'HereMentionRenderer';
 
 export default MentionHereRenderer;

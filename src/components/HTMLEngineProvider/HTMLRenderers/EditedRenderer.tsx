@@ -1,23 +1,20 @@
 import React from 'react';
-import _ from 'underscore';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize from '@components/withLocalize';
+import type {WithLocalizeProps} from '@components/withLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
+import type HtmlRendererProps from './types';
 
-const propTypes = {
-    ...htmlRendererPropTypes,
-    ...withLocalizePropTypes,
-};
+type EditedRendererProps = WithLocalizeProps & HtmlRendererProps;
 
-function EditedRenderer(props) {
+function EditedRenderer({key, tnode, translate}: EditedRendererProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
-    const isPendingDelete = Boolean(props.tnode.attributes.deleted !== undefined);
+    const defaultRendererProps = {key};
+    const isPendingDelete = Boolean(tnode.attributes.deleted !== undefined);
     return (
         <Text>
             <Text
@@ -33,13 +30,12 @@ function EditedRenderer(props) {
                 color={theme.textSupporting}
                 style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
             >
-                {props.translate('reportActionCompose.edited')}
+                {translate('reportActionCompose.edited')}
             </Text>
         </Text>
     );
 }
 
-EditedRenderer.propTypes = propTypes;
 EditedRenderer.displayName = 'EditedRenderer';
 
 export default withLocalize(EditedRenderer);

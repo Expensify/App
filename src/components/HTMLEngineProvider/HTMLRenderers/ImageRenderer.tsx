@@ -1,6 +1,7 @@
-import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
@@ -12,15 +13,25 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import htmlRendererPropTypes from './htmlRendererPropTypes';
+import type {User} from '@src/types/onyx';
+import type HtmlRendererProps from './types';
 
-const propTypes = {...htmlRendererPropTypes};
+type ImageRendererWithOnyxProps = {
+    /**
+     * Current user
+     */
+    // Following line is disabled because the onyx prop is only being used on the memo HOC
+    // eslint-disable-next-line react/no-unused-prop-types
+    user: OnyxEntry<User>;
+};
 
-function ImageRenderer(props) {
+type ImageRendererProps = ImageRendererWithOnyxProps & HtmlRendererProps;
+
+function ImageRenderer({tnode}: ImageRendererProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const htmlAttribs = props.tnode.attributes;
+    const htmlAttribs = tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
     //
@@ -61,17 +72,20 @@ function ImageRenderer(props) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline]}
+                    style={[styles.noOutline as StyleProp<ViewStyle>]}
                     onPress={() => {
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, source);
+                        // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
+                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID, source);
                         Navigation.navigate(route);
                     }}
                     onLongPress={(event) =>
                         showContextMenuForReport(
                             // Imitate the web event for native renderers
                             {nativeEvent: {...(event.nativeEvent || {}), target: {tagName: 'IMG'}}},
+                            // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
                             anchor,
-                            report.reportID,
+                            // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
+                            report?.reportID,
                             action,
                             checkIfContextMenuActive,
                             ReportUtils.isArchivedRoom(report),
@@ -93,18 +107,15 @@ function ImageRenderer(props) {
     );
 }
 
-ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default withOnyx({
+export default withOnyx<ImageRendererProps, ImageRendererWithOnyxProps>({
     user: {
         key: ONYXKEYS.USER,
     },
 })(
     memo(
         ImageRenderer,
-        (prevProps, nextProps) =>
-            lodashGet(prevProps, 'tnode.attributes') === lodashGet(nextProps, 'tnode.attributes') &&
-            lodashGet(prevProps, 'user.shouldUseStagingServer') === lodashGet(nextProps, 'user.shouldUseStagingServer'),
+        (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
     ),
 );

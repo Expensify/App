@@ -20,7 +20,9 @@ export default {
     // Custom tag renderers
     edited: EditedRenderer,
     pre: PreRenderer,
+    /* eslint-disable @typescript-eslint/naming-convention */
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
     'next-step-email': NextStepEmailRenderer,
+    /* eslint-enable @typescript-eslint/naming-convention */
 };
