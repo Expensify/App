@@ -1,12 +1,15 @@
-import lodashGet from 'lodash/get';
+import type {RouteProp} from '@react-navigation/native';
+import _ from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View, ScrollView} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {View} from 'react-native';
+import type {ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+import type {DraggableListData} from '@components/DraggableList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -17,18 +20,15 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as TransactionUserActions from '@userActions/Transaction';
 import * as TransactionEdit from '@userActions/TransactionEdit';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report, Transaction} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import DistanceRequestFooter from './DistanceRequestFooter';
 import DistanceRequestRenderItem from './DistanceRequestRenderItem';
-import type { Report, Transaction } from '@src/types/onyx';
-import type { RouteProp } from '@react-navigation/native';
-import type { Waypoint, WaypointCollection } from '@src/types/onyx/Transaction';
-import { DraggableListData } from '@components/DraggableList/types';
 
 type DistanceRequestOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -54,10 +54,12 @@ type DistanceRequestProps = DistanceRequestOnyxProps & {
     route: RouteProp<{
         /** Params from the route */
         params: {
-        /** The type of IOU report, i.e. bill, request, send */
-        iouType: string;
-        /** The report ID of the IOU */
-        reportID: string}}>;
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: string;
+            /** The report ID of the IOU */
+            reportID: string;
+        };
+    }>;
 };
 
 function DistanceRequest({transactionID = '', report, transaction, route, isEditingRequest = false, isEditingNewRequest = false, onSubmit}: DistanceRequestProps) {
@@ -67,24 +69,24 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection>();
     const [hasError, setHasError] = useState(false);
-    const reportID = lodashGet(report, 'reportID', '');
-    const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
-    const waypointsList = _.keys(waypoints);
-    const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = report?.reportID ?? '';
+    const waypoints: WaypointCollection = useMemo(() => optimisticWaypoints ?? transaction?.comment?.waypoints ?? {waypoint0: {}, waypoint1: {}}, [optimisticWaypoints, transaction]);
+    const waypointsList = Object.keys(waypoints);
+    const iouType = route?.params?.iouType ?? '';
     const previousWaypoints = usePrevious(waypoints);
-    const numberOfWaypoints = _.size(waypoints);
-    const numberOfPreviousWaypoints = _.size(previousWaypoints);
+    const numberOfWaypoints = Object.keys(waypoints).length;
+    const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
     const scrollViewRef = useRef<ScrollView>(null);
 
-    const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
-    const isLoading = lodashGet(transaction, 'isLoading', false);
-    const hasRouteError = !!lodashGet(transaction, 'errorFields.route');
-    const hasRoute = TransactionUtils.hasRoute(transaction as Transaction);
+    const isLoadingRoute = transaction?.comment?.isLoading ?? false;
+    const isLoading = transaction?.isLoading ?? false;
+    const hasRouteError = !!transaction?.errorFields?.route;
+    const hasRoute = TransactionUtils.hasRoute((transaction ?? {}) as Transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
-    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && _.size(validatedWaypoints) > 1;
+    const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const transactionWasSaved = useRef(false);
 
     useEffect(() => {
@@ -116,8 +118,8 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
     }, []);
 
     useEffect(() => {
-        const transactionWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-        if (!lodashGet(transaction, 'transactionID') || !_.isEmpty(transactionWaypoints)) {
+        const transactionWaypoints = transaction?.comment?.waypoints ?? {};
+        if (!transaction?.transactionID || !_.isEmpty(transactionWaypoints)) {
             return;
         }
 
@@ -130,6 +132,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
     }, [transaction, transactionID]);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isOffline || !shouldFetchRoute) {
             return;
         }
@@ -160,17 +163,19 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
      * Takes the user to the page for editing a specific waypoint
      */
     const navigateToWaypointEditPage = (index: number) => {
-        Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(Number(report.reportID), transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
+        Navigation.navigate(
+            isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(Number(report.reportID), transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index),
+        );
     };
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
-            return ErrorUtils.getLatestErrorField(transaction as Transaction, 'route');
+            return ErrorUtils.getLatestErrorField(transaction, 'route');
         }
 
-        if (_.size(validatedWaypoints) < 2) {
-            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+        if (Object.keys(validatedWaypoints).length < 2) {
+            return {error0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
         return {};
     };
@@ -182,8 +187,8 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             }
 
             const newWaypoints: WaypointCollection = {};
-            _.each(data, (waypoint, index) => {
-                newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
+            data.forEach((waypoint, index) => {
+                newWaypoints[`waypoint${index}`] = waypoints?.[waypoint] ?? {};
             });
 
             setOptimisticWaypoints(newWaypoints);
@@ -197,7 +202,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || (isLoading && !isOffline)) {
+        if (Object.keys(validatedWaypoints).length < 2 || hasRouteError || isLoadingRoute || (isLoading && !isOffline)) {
             setHasError(true);
             return;
         }
@@ -241,7 +246,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
             </View>
             <View style={[styles.w100, styles.pt2]}>
                 {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
-                {((hasError && _.size(validatedWaypoints) < 2) || hasRouteError) && (
+                {((hasError && Object.keys(validatedWaypoints).length < 2) || hasRouteError) && (
                     <DotIndicatorMessage
                         style={[styles.mh4, styles.mv3]}
                         messages={getError()}

@@ -56,6 +56,7 @@ type Transaction = {
     comment: Comment;
     created: string;
     currency: string;
+    isLoading?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields<'route'>;
     // The name of the file used for a receipt (formerly receiptFilename)

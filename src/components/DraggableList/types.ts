@@ -1,7 +1,7 @@
 import type {DraggableChildrenFn} from 'react-beautiful-dnd';
 import type {RenderItemParams} from 'react-native-draggable-flatlist';
 
-export type DraggableListData<T> = {
+type DraggableListData<T> = {
     data: T[];
 };
 
@@ -29,4 +29,4 @@ type DraggableListProps<T> = {
     ListFooterComponent?: React.ReactElement;
 } & DraggableListData<T>;
 
-export type {DraggableListProps, RenderItemParams};
+export type {DraggableListProps, RenderItemParams, DraggableListData};
