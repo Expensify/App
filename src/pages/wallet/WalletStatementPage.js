@@ -11,6 +11,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemePreference from '@hooks/useThemePreference';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import fileDownload from '@libs/fileDownload';
@@ -20,7 +21,6 @@ import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemePreference from "@hooks/useThemePreference";
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
