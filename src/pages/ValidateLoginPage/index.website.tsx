@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
-function ValidateLoginPage({account, credentials, route, session}: ValidateLoginPageProps) {
+function ValidateLoginPage({account, credentials, route, session}: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const login = credentials?.login;
     const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const accountID = Number(route?.params.accountID) ?? -1;
@@ -63,7 +63,7 @@ function ValidateLoginPage({account, credentials, route, session}: ValidateLogin
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default withOnyx<ValidateLoginPageProps, ValidateLoginPageOnyxProps>({
+export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxProps>, ValidateLoginPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     session: {key: ONYXKEYS.SESSION},

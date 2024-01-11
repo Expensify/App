@@ -4,14 +4,14 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
+import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './types';
 
 function ValidateLoginPage({
     route: {
         params: {accountID = '', validateCode = ''},
     },
     session,
-}: ValidateLoginPageProps) {
+}: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
     useEffect(() => {
         if (session?.authToken) {
             // If already signed in, do not show the validate code if not on web,
@@ -28,6 +28,6 @@ function ValidateLoginPage({
 
 ValidateLoginPage.displayName = 'ValidateLoginPage';
 
-export default withOnyx<ValidateLoginPageProps, Pick<ValidateLoginPageOnyxProps, 'session'>>({
+export default withOnyx<ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>, ValidateLoginPageOnyxNativeProps>({
     session: {key: ONYXKEYS.SESSION},
 })(ValidateLoginPage);
