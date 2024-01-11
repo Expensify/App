@@ -2,8 +2,9 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagList, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Phrase, PhraseParameters} from './Localize';
+import * as PolicyUtils from './PolicyUtils';
 
 const ViolationsUtils = {
     /**
@@ -14,7 +15,7 @@ const ViolationsUtils = {
         transaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTags: PolicyTags,
+        policyTagList: PolicyTagList<string>,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): {
@@ -50,7 +51,12 @@ const ViolationsUtils = {
             }
         }
 
+
         if (policyRequiresTags) {
+            // TODO, this fixes it but TS rightly complains about
+            // @ts-ignore
+            const tagListName: string = PolicyUtils.getTagListName(policyTagList);
+            const policyTags = policyTagList[tagListName].tags;
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
             const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
