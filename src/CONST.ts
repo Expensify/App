@@ -1180,6 +1180,10 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
@@ -3063,6 +3067,12 @@ const CONST = {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
+
+    BRICK_ROAD: {
+        GBR: 'GBR',
+        RBR: 'RBR',
+    },
+
     /**
      * Constants for types of violations.
      * Defined here because they need to be referenced by the type system to generate the
