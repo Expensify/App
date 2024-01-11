@@ -2,7 +2,7 @@ diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/n
 index 4b9f9ad..b72984c 100644
 --- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 +++ b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
-@@ -79,6 +79,13 @@ RCT_EXPORT_MODULE()
+@@ -79,6 +79,13 @@ - (void)presentModalHostView:(RCTModalHostView *)modalHostView
      if (self->_presentationBlock) {
        self->_presentationBlock([modalHostView reactViewController], viewController, animated, completionBlock);
      } else {
