@@ -16,7 +16,10 @@ import type {FormValues} from '@src/types/onyx/Form';
 import Enable2FACard from './Enable2FACard';
 
 type BankAccountValidationFormProps = {
+    /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccount;
+
+    /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
 };
 

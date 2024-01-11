@@ -15,8 +15,11 @@ import type {ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
 type FinishChatCardProps = {
-    requiresTwoFactorAuth: boolean;
+    /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccount;
+
+    /** Boolean required to display Enable2FACard component */
+    requiresTwoFactorAuth: boolean;
 };
 
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishChatCardProps) {
