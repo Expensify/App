@@ -241,4 +241,18 @@ type FlattenedSectionsReturn = {
     allSelected: boolean;
 };
 
-export type {BaseSelectionListProps, CommonListItemProps, UserListItemProps, Section, RadioListItemProps, BaseListItemProps, User, RadioItem, FlattenedSectionsReturn, ItemLayout};
+type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
+
+export type {
+    BaseSelectionListProps,
+    CommonListItemProps,
+    UserListItemProps,
+    Section,
+    RadioListItemProps,
+    BaseListItemProps,
+    User,
+    RadioItem,
+    FlattenedSectionsReturn,
+    ItemLayout,
+    ButtonOrCheckBoxRoles,
+};
