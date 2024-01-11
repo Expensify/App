@@ -2207,14 +2207,13 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>) {
     const originalMessage = parentReportAction?.originalMessage as ChangeLog | undefined;
-    // We need to insert in parentReportActionMessage invited members
     let actionMessage: string;
     const verb =
         parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
             ? Localize.translateLocal('workspace.invite.invited')
             : Localize.translateLocal('workspace.invite.removed');
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
-    const participants = Array.from({length: participantAccountIDs.length}, (v, i) => i).map((i) => getDisplayNameForParticipant(participantAccountIDs[i]));
+    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     actionMessage = `${verb} ${users}`;
 
