@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -25,6 +25,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -431,6 +432,19 @@ Onyx.connect({
             return;
         }
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
+    },
+});
+
+const reportActionsByReport: OnyxCollection<ReportActions> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActionsByReport[reportID] = actions;
     },
 });
 
@@ -3428,22 +3442,18 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is a money request that contains a violation
  */
-function doesTransactionThreadHaveViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions>): boolean {
-    const parentReportAction = reportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
-    if (!parentReportAction) {
-        return false;
-    }
+function doesTransactionThreadHaveViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: ReportAction): boolean {
     if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
-    const {IOUTransactionID, IOUReportID} = parentReportAction?.originalMessage;
+    const {IOUTransactionID, IOUReportID} = parentReportAction.originalMessage ?? {};
     if (!IOUTransactionID || !IOUReportID) {
         return false;
     }
     if (!isCurrentUserSubmitter(IOUReportID)) {
         return false;
     }
-    if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
+    if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
         return false;
     }
     return hasViolation(IOUTransactionID, transactionViolations);
@@ -3452,7 +3462,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
 /**
  * Checks to see if a report contains a violation
  */
-function hasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
+function hasViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
     return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations));
 }
@@ -3464,16 +3474,23 @@ function hasViolations(reportID: string, transactionViolations: TransactionViola
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
  * filter out the majority of reports before filtering out very specific minority of reports.
  */
-function shouldReportBeInOptionList(
-    report: OnyxEntry<Report>,
-    currentReportId: string,
-    isInGSDMode: boolean,
-    betas: Beta[],
-    policies: OnyxCollection<Policy>,
-    excludeEmptyChats = false,
-    allReportActions?: OnyxCollection<ReportActions>,
-    transactionViolations?: TransactionViolations,
-) {
+function shouldReportBeInOptionList({
+    report,
+    currentReportId,
+    isInGSDMode,
+    betas,
+    policies,
+    excludeEmptyChats,
+    doesReportHaveViolations,
+}: {
+    report: OnyxEntry<Report>;
+    currentReportId: string;
+    isInGSDMode: boolean;
+    betas: Beta[];
+    policies: OnyxCollection<Policy>;
+    excludeEmptyChats: boolean;
+    doesReportHaveViolations: boolean;
+}) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
@@ -3533,7 +3550,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && doesTransactionThreadHaveViolations(report, transactionViolations ?? {}, allReportActions ?? {})) {
+    if (isExpenseRequest(report) && doesReportHaveViolations) {
         return true;
     }
 

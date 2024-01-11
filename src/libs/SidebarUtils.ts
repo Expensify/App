@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
@@ -119,15 +119,14 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportActions>,
-    transactionViolations: TransactionViolations,
+    allReportActions: OnyxCollection<ReportAction[]>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): string[] {
     const reportIDKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`;
     const reportActionCount = allReportActions?.[reportIDKey]?.length ?? 1;
 
     // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify(
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+    const cachedReportsKey = JSON.stringify([currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
         /**
          *  Exclude some properties not to overwhelm a cached key value with huge data,
          *  which we don't need to store in a cacheKey
@@ -148,9 +147,22 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true, allReportActions, transactionViolations),
-    );
+    const reportsToDisplay = allReportsDictValues.filter((report) => {
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const doesReportHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '',
+            isInGSDMode,
+            betas,
+            policies,
+            excludeEmptyChats: true,
+            doesReportHaveViolations,
+        });
+    });
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -232,16 +244,23 @@ type ActorDetails = {
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
-function getOptionData(
-    report: Report,
-    reportActions: Record<string, ReportAction>,
-    personalDetails: Record<number, PersonalDetails>,
-    preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: Policy,
-    parentReportAction: ReportAction,
-    transactionViolations: TransactionViolations,
-    canUseViolations: boolean,
-): ReportUtils.OptionData | undefined {
+function getOptionData({
+    report,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    policy,
+    parentReportAction,
+    hasViolations,
+}: {
+    report: Report;
+    reportActions: Record<string, ReportAction>;
+    personalDetails: Record<number, PersonalDetails>;
+    preferredLocale: ValueOf<typeof CONST.LOCALES>;
+    policy: Policy;
+    parentReportAction: ReportAction;
+    hasViolations: boolean;
+}): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -283,7 +302,6 @@ function getOptionData(
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, null);
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);

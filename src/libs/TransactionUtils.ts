@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
 import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -524,14 +524,15 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transaction: Transaction | string, transactionViolations: TransactionViolations): boolean {
-    const transactionId = typeof transaction === 'string' ? transaction : transaction.transactionID;
-    return Boolean(transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionId]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+function hasViolation(transaction: Transaction | string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    const transactionID = typeof transaction === 'string' ? transaction : transaction.transactionID;
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
 }
 
-function getTransactionViolations({transactionID}: Transaction, transactionViolations: TransactionViolations): TransactionViolation[] | null {
-    return (transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] as TransactionViolation[]) ?? null;
+function getTransactionViolations({transactionID}: Transaction, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
+
 
 /**
  * this is the formulae to calculate tax

@@ -5,6 +5,7 @@ import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {transactionViolationsPropType} from '@libs/Violations/propTypes';
@@ -43,7 +44,7 @@ const propTypes = {
     /** The transaction from the parent report action */
     transaction: transactionPropTypes,
 
-    /** Any violations associated with the report */
+    /** Any violations associated with the transaction */
     transactionViolations: transactionViolationsPropType,
 
     ...basePropTypes,
@@ -91,9 +92,19 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport.reportID, receiptTransactions, reportActions]);
 
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction);
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transactionViolations, canUseViolations);
+        const item = SidebarUtils.getOptionData({
+            report: fullReport,
+            reportActions,
+            personalDetails,
+            preferredLocale,
+            policy,
+            parentReportAction,
+            hasViolations,
+        });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }

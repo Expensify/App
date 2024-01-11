@@ -204,14 +204,22 @@ const chatReportSelector = (report) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    _.map(reportActions, (reportAction) => ({
-        errors: _.get(reportAction, 'errors', []),
-        message: [
-            {
-                moderationDecision: {decision: _.get(reportAction, 'message[0].moderationDecision.decision')},
-            },
-        ],
-    }));
+    _.map(reportActions, (reportAction) => {
+        const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
+        const decision = _.get(reportAction, 'message[0].moderationDecision.decision');
+
+        return {
+            reportActionID,
+            parentReportActionID,
+            actionName,
+            errors,
+            message: [
+                {
+                    moderationDecision: {decision},
+                },
+            ],
+        };
+    });
 
 /**
  * @param {Object} [policy]
