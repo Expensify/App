@@ -1,31 +1,28 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+// @ts-expect-error TODO: Remove this once Onfido (https://github.com/Expensify/App/issues/25136) is migrated to TypeScript.
 import Onfido from '@components/Onfido';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Growl from '@libs/Growl';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const propTypes = {
+type OnfidoInitializeOnyxProps = {
     /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string,
-
-    ...subStepPropTypes,
+    onfidoToken: OnyxEntry<string>;
 };
 
-const defaultProps = {
-    onfidoToken: null,
-};
+type OnfidoInitializeProps = SubStepProps & OnfidoInitializeOnyxProps;
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function OnfidoInitialize({onfidoToken, onNext}) {
+function OnfidoInitialize({onfidoToken, onNext}: OnfidoInitializeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -55,11 +52,9 @@ function OnfidoInitialize({onfidoToken, onNext}) {
     );
 }
 
-OnfidoInitialize.propTypes = propTypes;
-OnfidoInitialize.defaultProps = defaultProps;
 OnfidoInitialize.displayName = 'OnfidoInitialize';
 
-export default withOnyx({
+export default withOnyx<OnfidoInitializeProps, OnfidoInitializeOnyxProps>({
     onfidoToken: {
         key: ONYXKEYS.ONFIDO_TOKEN,
     },

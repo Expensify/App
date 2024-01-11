@@ -1,51 +1,53 @@
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount} from '@src/types/onyx';
+import type {OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
 import OnfidoInitialize from './substeps/OnfidoInitialize';
 
-const propTypes = {
+type VerifyIdentityOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+};
 
+type VerifyIdentityProps = VerifyIdentityOnyxProps & {
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 
     /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: PropTypes.func.isRequired,
+    onCloseButtonPress: () => void;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-};
+const bodyContent: Array<React.ComponentType<SubStepProps>> = [OnfidoInitialize];
 
-const bodyContent = [OnfidoInitialize];
-
-function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress}) {
+function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const submit = useCallback(
-        (onfidoData) => {
-            BankAccounts.verifyIdentityForBankAccount(getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0), onfidoData);
+        (onfidoData?: OnfidoData) => {
+            if (!onfidoData) {
+                return;
+            }
+
+            BankAccounts.verifyIdentityForBankAccount(reimbursementAccount?.achData?.bankAccountID ?? 0, onfidoData);
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
         [reimbursementAccount],
     );
 
-    const {componentToRender: SubStep, isEditing, nextScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, moveTo, nextScreen} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
     return (
         <ScreenWrapper testID={VerifyIdentity.displayName}>
@@ -71,11 +73,9 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonP
     );
 }
 
-VerifyIdentity.propTypes = propTypes;
-VerifyIdentity.defaultProps = defaultProps;
 VerifyIdentity.displayName = 'VerifyIdentity';
 
-export default withOnyx({
+export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
