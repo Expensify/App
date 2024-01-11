@@ -97,7 +97,7 @@ function PurposeForUsingExpensifyModal() {
         setIsModalOpen(false);
     }, []);
 
-    const completeModalAndClose = (message, choice) => {
+    const completeModalAndClose = (message: string, choice: string) => {
         Report.completeEngagementModal(message, choice);
         setIsModalOpen(false);
         Report.navigateToConciergeChat();
@@ -175,7 +175,7 @@ function PurposeForUsingExpensifyModal() {
                         >
                             {translate('purposeForExpensify.welcomeMessage')}
                         </Text>
-                        <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+                        <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
                     </View>
                     <MenuItemList
                         menuItems={menuItems}
