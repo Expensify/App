@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {memo, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
@@ -122,8 +122,7 @@ type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoadin
 
 const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
 
-const KeyboardShortcutComponent = memo(
-    ({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) => {
+function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
         const isFocused = useIsFocused();
         const activeElementRole = useActiveElementRole();
 
@@ -153,8 +152,7 @@ const KeyboardShortcutComponent = memo(
         useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 
         return null;
-    },
-);
+    };
 
 KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
 
