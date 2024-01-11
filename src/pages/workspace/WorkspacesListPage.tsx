@@ -144,13 +144,23 @@ function WorkspacesListPage({
                 title: policy?.name,
                 icon: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
                 iconType: policy?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy?.id!)),
+                action: () => {
+                    if (!policy) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id!));
+                },
                 iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy?.pendingAction,
                 errors: policy?.errors,
-                dismissError: () => dismissWorkspaceError(policy?.id ?? '', policy?.pendingAction!),
+                dismissError: () => {
+                    if (!policy) {
+                        return;
+                    }
+                    dismissWorkspaceError(policy?.id ?? '', policy.pendingAction!);
+                },
                 disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy((policy) => policy?.title?.toLowerCase())
