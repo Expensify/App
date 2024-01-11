@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';

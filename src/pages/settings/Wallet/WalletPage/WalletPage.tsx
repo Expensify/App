@@ -1,3 +1,9 @@
+import _ from 'lodash';
+import type {Ref} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -18,26 +24,20 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type { AccountData } from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import type { Ref } from 'react';
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { GestureResponderEvent } from 'react-native';
-import { ActivityIndicator, Dimensions, ScrollView, View } from 'react-native';
-import { withOnyx } from 'react-native-onyx';
-import _ from 'lodash';
-import type { WalletPageOnyxProps, WalletPageProps } from './types';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {AccountData} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {WalletPageOnyxProps, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
@@ -88,8 +88,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     const hasAssignedCard = !_.isEmpty(cardList);
     const shouldShowEmptyState = !hasBankAccount && !hasWallet && !hasAssignedCard;
 
-    const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false
-    const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false
+    const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
+    const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change

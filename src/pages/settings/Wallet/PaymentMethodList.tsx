@@ -1,7 +1,17 @@
+import {FlashList} from '@shopify/flash-list';
+import _ from 'lodash';
+import type {ReactElement, Ref} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
 import Button from '@components/Button';
 import FormAlertWrapper from '@components/FormAlertWrapper';
 import getBankIcon from '@components/Icon/BankIcons';
-import type { BankName } from '@components/Icon/BankIconsUtils';
+import type {BankName} from '@components/Icon/BankIconsUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,24 +24,14 @@ import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
-import { FlashList } from '@shopify/flash-list';
+import variables from '@styles/variables';
+import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type { AccountData, BankAccountList, CardList, FundList } from '@src/types/onyx';
+import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type IconAsset from '@src/types/utils/IconAsset';
-import variables from '@styles/variables';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import type { ReactElement, Ref } from 'react';
-import React, { useCallback, useMemo } from 'react';
-import type { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
-import type { TupleToUnion, ValueOf } from 'type-fest';
-import _ from 'lodash';
-import type { RenderSuggestionMenuItemProps } from '@components/AutoCompleteSuggestions/types';
 
 const FILTER_TYPES = [CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, ''] as const;
 
@@ -92,14 +92,7 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     shouldShowEmptyListMessage?: boolean;
 
     /** What to do when a menu item is pressed */
-    onPress: (
-        event?: GestureResponderEvent | KeyboardEvent,
-        accountType?: string,
-        accountData?: AccountData,
-        icon?: IconAsset,
-        isDefault?: boolean,
-        methodID?: number,
-    ) => void;
+    onPress: (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, accountData?: AccountData, icon?: IconAsset, isDefault?: boolean, methodID?: number) => void;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -296,7 +289,7 @@ function PaymentMethodList({
 
     return (
         <>
-            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1: 0)) * variables.optionRowHeight}]}>
+            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
                 <FlashList
                     estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods as PaymentMethodItem[]}
