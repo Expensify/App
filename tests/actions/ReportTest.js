@@ -268,7 +268,7 @@ describe('actions/Report', () => {
                 // When the user visits the report
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({reportID: REPORT_ID});
+                Report.openReport(REPORT_ID);
                 Report.readNewestAction(REPORT_ID);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();

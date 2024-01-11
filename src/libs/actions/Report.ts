@@ -460,16 +460,12 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
-type OpenReportProps = {
-    reportID: string;
-    reportActionID?: string;
-};
-
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
- * @param Object reportID, reportActionID
+ * @param reportID The ID of the report to open
+ * @param reportActionID The ID of the report action to navigate to
  * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
  * @param newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
@@ -477,7 +473,8 @@ type OpenReportProps = {
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(
-    {reportID, reportActionID}: OpenReportProps,
+    reportID: string,
+    reportActionID?: string,
     participantLoginList: string[] = [],
     newReportObject: Partial<Report> = {},
     parentReportActionID = '0',
@@ -697,7 +694,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport({reportID}, userLogins, newChat);
+    openReport(reportID, '', userLogins, newChat);
     if (shouldDismissModal) {
         Navigation.dismissModal(reportID);
     } else {
@@ -719,7 +716,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport({reportID}, [], newChat, '0', false, participantAccountIDs);
+    openReport(reportID, '', [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModal(reportID);
 }
 
@@ -732,7 +729,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  */
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0') {
     if (childReportID !== '0') {
-        openReport({reportID: childReportID});
+        openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
@@ -753,7 +750,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
         );
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat?.participantAccountIDs ?? []);
-        openReport({reportID: newChat.reportID}, participantLogins, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
 }
@@ -1456,7 +1453,7 @@ function updateNotificationPreference(
  */
 function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0', prevNotificationPreference?: NotificationPreference) {
     if (childReportID !== '0') {
-        openReport({reportID: childReportID});
+        openReport(childReportID);
         const parentReportActionID = parentReportAction?.reportActionID ?? '0';
         if (!prevNotificationPreference || prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, parentReportID, parentReportActionID);
@@ -1482,7 +1479,7 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
         );
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport({reportID: newChat.reportID}, participantLogins, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference =
             prevNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, false, parentReportID, parentReportAction?.reportActionID);
@@ -2030,7 +2027,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport({reportID}, [], {}, '0', true);
+        openReport(reportID, '', [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
         if (isNetworkOffline) {

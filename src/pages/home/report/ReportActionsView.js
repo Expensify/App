@@ -235,7 +235,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             return;
         }
 
-        Report.openReport({reportID, reportActionID});
+        Report.openReport(reportID, reportActionID);
     };
 
     useEffect(() => {
@@ -251,7 +251,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             return;
         }
 
-        Report.openReport({reportID, reportActionID});
+        Report.openReport(reportID, reportActionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route]);
 

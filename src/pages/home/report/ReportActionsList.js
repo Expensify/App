@@ -343,7 +343,7 @@ function ReportActionsList({
     const scrollToBottomAndMarkReportAsRead = () => {
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            Report.openReport({reportID: report.reportID});
+            Report.openReport(report.reportID);
             return;
         }
         reportScrollManager.scrollToBottom();

@@ -63,7 +63,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             if (!props.isSmallScreenWidth || (isNotEmptyObject(props.report) && isNotEmptyObject(reportAction))) {
                 return;
             }
-            Report.openReport({reportID: props.route.params.reportID});
+            Report.openReport(props.route.params.reportID);
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [props.isSmallScreenWidth, props.route.params.reportID]);
 

@@ -269,7 +269,7 @@ function ReportScreen({
     }, [route, report]);
 
     const fetchReport = useCallback(() => {
-        Report.openReport({reportID: reportIDFromRoute, reportActionID: reportActionIDFromRoute || ''});
+        Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [reportIDFromRoute, reportActionIDFromRoute]);
     const isFocused = useIsFocused();
 

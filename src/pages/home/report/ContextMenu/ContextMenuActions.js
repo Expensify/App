@@ -376,11 +376,11 @@ export default [
                 if (!childReportID) {
                     const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
                     const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-                    Report.openReport({reportID: thread.reportID}, userLogins, thread, reportAction.reportActionID);
+                    Report.openReport(thread.reportID, '', userLogins, thread, reportAction.reportActionID);
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
                     return;
                 }
-                Report.openReport({reportID: childReportID});
+                Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
