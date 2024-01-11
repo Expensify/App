@@ -30,7 +30,7 @@ type CommonListItemProps<TItem> = {
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
 };
 
 type User = {
@@ -231,7 +231,7 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ReactNode;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
 };
 
 type ItemLayout = {
