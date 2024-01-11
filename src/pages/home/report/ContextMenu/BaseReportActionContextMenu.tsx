@@ -4,6 +4,7 @@ import React, {memo, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -76,7 +77,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     contentRef?: RefObject<View>;
 };
 
-type MenuItemRefs = Record<string, {triggerPressAndUpdateSuccess: () => void}>;
+type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;
 
 function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -154,7 +155,7 @@ function BaseReportActionContextMenu({
                 event.stopPropagation();
             }
 
-            menuItemRefs.current[focusedIndex].triggerPressAndUpdateSuccess();
+            menuItemRefs.current[focusedIndex]?.triggerPressAndUpdateSuccess?.();
             setFocusedIndex(-1);
         },
         {isActive: shouldEnableArrowNavigation},
@@ -187,20 +188,26 @@ function BaseReportActionContextMenu({
                         return contextAction.renderContent(closePopup, payload);
                     }
 
+                    const {textTranslateKey} = contextAction;
+                    const isKeyInActionUpdateKeys =
+                        textTranslateKey === 'reportActionContextMenu.editAction' ||
+                        textTranslateKey === 'reportActionContextMenu.deleteAction' ||
+                        textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                    const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
+
                     return (
                         <ContextMenuItem
                             ref={(ref) => {
                                 menuItemRefs.current[index] = ref;
                             }}
-                            // @ts-expect-error TODO: Remove this once ContextMenuItem (https://github.com/Expensify/App/issues/25056) is migrated to TypeScript.
                             icon={contextAction.icon}
-                            text={contextAction.textTranslateKey ? translate(contextAction.textTranslateKey, {action: reportAction} as never) : undefined}
+                            text={text ?? ''}
                             successIcon={contextAction.successIcon}
                             successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={isMini}
                             key={contextAction.textTranslateKey}
                             onPress={() => interceptAnonymousUser(() => contextAction.onPress?.(closePopup, payload), contextAction.isAnonymousAction)}
-                            description={contextAction.getDescription?.(selection)}
+                            description={contextAction.getDescription?.(selection) ?? ''}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
                         />
