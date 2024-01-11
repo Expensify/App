@@ -46,9 +46,8 @@ import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 type MoneyRequestConfirmationListOnyxProps = {
     iou: OnyxEntry<OnyxTypes.IOU>;
     policyTaxRates: OnyxEntry<OnyxTypes.PolicyTaxRate>;
-    session: OnyxEntry<OnyxTypes.Session>;
     mileageRate: OnyxEntry<MileageRate>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategory>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
@@ -210,7 +209,8 @@ function MoneyRequestConfirmationList({
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories)));
+    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
@@ -286,7 +286,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate);
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, mileageRate?.rate ?? 0);
         IOU.setMoneyRequestAmount(amount);
     }, [shouldCalculateDistanceAmount, distance, mileageRate?.rate, mileageRate?.unit]);
 
@@ -299,7 +299,8 @@ function MoneyRequestConfirmationList({
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 calculatedIouAmount > 0 ? CurrencyUtils.convertToDisplayString(calculatedIouAmount, iouCurrencyCode) : '',
-            );
+                // TODO: Remove assertion after OptionsListUtils will be migrated
+            ) as Participant[];
         },
         [iouAmount, iouCurrencyCode],
     );
@@ -795,29 +796,26 @@ function MoneyRequestConfirmationList({
 
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
-const MoneyRequestConfirmationListWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(MoneyRequestConfirmationList);
-
-export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    policyCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-    },
-    policyTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-    },
-    mileageRate: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        selector: DistanceRequestUtils.getDefaultMileageRate,
-    },
-    policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    policyTaxRates: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-})(MoneyRequestConfirmationListWithCurrentUserPersonalDetails);
+export default withCurrentUserPersonalDetails(
+    withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
+        policyCategories: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+        },
+        policyTags: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+        },
+        mileageRate: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: DistanceRequestUtils.getDefaultMileageRate,
+        },
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        policyTaxRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
+        },
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    })(MoneyRequestConfirmationList),
+);
