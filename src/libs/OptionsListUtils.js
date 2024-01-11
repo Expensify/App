@@ -1501,6 +1501,7 @@ function getOptions(
         }
     }
 
+    const serverSearchResults = [];
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -1516,7 +1517,11 @@ function getOptions(
                 return;
             }
 
-            personalDetailsOptions.push(personalDetailOption);
+            if (personalDetailOption.isServerSearchResult) {
+                serverSearchResults.push(personalDetailOption);
+            } else {
+                personalDetailsOptions.push(personalDetailOption);
+            }
         });
     }
 
@@ -1602,6 +1607,7 @@ function getOptions(
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
+        serverSearchResults,
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
