@@ -127,7 +127,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         onMove(7);
                     }}
                 />
-                {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript */}
+                {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript */}
                 <FormProvider
                     formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     validate={validate}

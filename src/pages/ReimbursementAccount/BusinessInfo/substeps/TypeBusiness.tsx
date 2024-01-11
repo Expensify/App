@@ -1,7 +1,8 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -35,8 +36,8 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
     const defaultIncorporationType = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationTypeKey, '');
 
     return (
-        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
-        <Form
+        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
@@ -45,7 +46,10 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
-            <Picker
+            <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+                InputComponent={Picker}
+                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={companyIncorporationTypeKey}
                 label={translate('businessInfoStep.companyType')}
                 items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({
@@ -53,11 +57,10 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
                     label: translate(`businessInfoStep.incorporationType.${key as IncorporationType}`),
                 }))}
                 placeholder={{value: '', label: '-'}}
-                // @ts-expect-error TODO: Remove this once Picker (https://github.com/Expensify/App/issues/25091) is migrated to TypeScript
                 defaultValue={defaultIncorporationType}
                 shouldSaveDraft
             />
-        </Form>
+        </FormProvider>
     );
 }
 

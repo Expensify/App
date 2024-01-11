@@ -3,7 +3,7 @@ import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,8 +76,8 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     const selectedPlaidAccountID = reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '';
 
     return (
-        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
-        <Form
+        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             validate={validate}
             onSubmit={handleNextPress}
@@ -98,7 +98,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
                 selectedPlaidAccountID={selectedPlaidAccountID}
                 isDisplayedInNewVBBA
             />
-        </Form>
+        </FormProvider>
     );
 }
 
