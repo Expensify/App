@@ -41,6 +41,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import HeaderView from './HeaderView';
+import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
@@ -66,6 +67,9 @@ const propTypes = {
 
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -102,6 +106,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
+    parentReportAction: {},
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -141,6 +146,7 @@ function ReportScreen({
     report,
     reportMetadata,
     allReportActions,
+    parentReportAction,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -198,16 +204,10 @@ function ReportScreen({
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
-
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
-
     const isLoading = !reportIDFromRoute || !isSidebarLoaded || _.isEmpty(personalDetails);
-
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
-
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
-
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
@@ -250,7 +250,6 @@ function ReportScreen({
                 policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
-                parentReportAction={parentReportAction}
             />
         );
     }
@@ -269,9 +268,9 @@ function ReportScreen({
     }, [route, report]);
 
     const isShowReportActionList = useMemo(
-      () => isReportReadyForDisplay && !isLoading && !(_.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions),
-      [isReportReadyForDisplay, isLoading, reportActions, reportMetadata.isLoadingInitialReportActions],
-  );
+        () => isReportReadyForDisplay && !isLoading && !(_.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions),
+        [isReportReadyForDisplay, reportActions, isLoading, reportMetadata.isLoadingInitialReportActions],
+    );
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -648,6 +647,17 @@ export default compose(
             userLeavingStatus: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
+            },
+            parentReportAction: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions, props) => {
+                    const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
+                    if (!parentReportActionID) {
+                        return {};
+                    }
+                    return parentReportActions[parentReportActionID];
+                },
+                canEvict: false,
             },
         },
         true,
