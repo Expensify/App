@@ -383,7 +383,15 @@ const AttachmentModal = forwardRef((props, ref) => {
                 text: props.translate('common.replace'),
                 onSelected: () => {
                     closeModal();
-                    Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            props.transaction.transactionID,
+                            props.report.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 },
             });
         }
