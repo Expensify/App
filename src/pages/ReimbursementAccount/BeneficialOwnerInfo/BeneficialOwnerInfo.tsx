@@ -122,6 +122,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         prevScreen,
         moveTo,
         resetScreenIndex,
+        goToTheLastStep,
     } = useSubStep<{beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>({
         bodyContent: BODY_CONTENT,
         startFrom: 0,
@@ -192,6 +193,11 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     };
 
     const handleBackButtonPress = () => {
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
         // User goes back to previous step
         if (currentUBOSubstep === SUBSTEP.IS_USER_UBO) {
             onBackButtonPress();
