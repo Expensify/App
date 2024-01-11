@@ -64,6 +64,8 @@ function LogOutPreviousUserPage(props) {
             // which is already called when AuthScreens mounts.
             if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
+                    // temporary until finding clean solution
+                    Navigation.goBack();
                     Navigation.navigate(exitTo);
                 });
             }
