@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -21,7 +21,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, User} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
 
 function BaseSelectionList(
     {
@@ -251,7 +251,7 @@ function BaseSelectionList(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    const getItemLayout = (data: Array<SectionListData<User | RadioItem, Section>> | null, flatDataArrayIndex: number) => {
+    const getItemLayout = (data: SectionListDataType[] | null, flatDataArrayIndex: number) => {
         const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
 
         if (!targetItem) {
@@ -269,7 +269,7 @@ function BaseSelectionList(
         };
     };
 
-    const renderSectionHeader = ({section}: {section: SectionListData<User | RadioItem, Section>}) => {
+    const renderSectionHeader = ({section}: {section: SectionListDataType}) => {
         if (!section.title || !section.data) {
             return null;
         }
@@ -395,8 +395,6 @@ function BaseSelectionList(
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
                                     ref={(element) => {
-                                        textInputRef.current = element as RNTextInput;
-
                                         if (!inputRef) {
                                             return;
                                         }

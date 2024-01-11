@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {SubAvatar} from '@components/SubscriptAvatar';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -243,6 +243,8 @@ type FlattenedSectionsReturn = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
+type SectionListDataType = SectionListData<User | RadioItem, Section>;
+
 export type {
     BaseSelectionListProps,
     CommonListItemProps,
@@ -255,4 +257,5 @@ export type {
     FlattenedSectionsReturn,
     ItemLayout,
     ButtonOrCheckBoxRoles,
+    SectionListDataType,
 };
