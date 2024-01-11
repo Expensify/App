@@ -130,8 +130,6 @@ function BaseOptionsList(
      *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
-     *
-     * @returns
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
@@ -139,7 +137,6 @@ function BaseOptionsList(
             flattenedData.current = buildFlatSectionArray();
         }
         const targetItem = flattenedData.current[flatDataArrayIndex];
-
         return {
             length: targetItem.length,
             offset: targetItem.offset,
