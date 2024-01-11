@@ -4,9 +4,10 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
-import ReferralDetailsPageIcon from '@components/ReferralDetailsPageIcon';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -60,7 +61,13 @@ function ReferralDetailsPage({route, account}) {
     return (
         <HeaderPageLayout
             title={translate('common.referral')}
-            headerContent={<ReferralDetailsPageIcon />}
+            headerContent={
+                <Icon
+                    src={PaymentHands}
+                    width={393}
+                    height={232}
+                />
+            }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
