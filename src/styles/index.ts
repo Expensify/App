@@ -3,7 +3,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -1885,6 +1885,14 @@ const styles = (theme: ThemeColors) =>
             height: 40,
             padding: 10,
             margin: 3,
+            ...Platform.select({
+                ios: {
+                    marginVertical: 0,
+                },
+                android: {
+                    marginVertical: 0,
+                },
+            }),
             justifyContent: 'center',
         },
 
@@ -1951,9 +1959,17 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
             borderRadius: variables.buttonBorderRadius,
             height: 40,
-            marginVertical: 3,
             paddingHorizontal: 10,
             justifyContent: 'center',
+            marginVertical: 3,
+            ...Platform.select({
+                ios: {
+                    marginVertical: 0,
+                },
+                android: {
+                    marginVertical: 0,
+                },
+            }),
         },
 
         editChatItemEmojiWrapper: {
