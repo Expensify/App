@@ -2,12 +2,12 @@ import {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportMetadata} from '@src/types/onyx';
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
-import Navigation from '../Navigation';
 
 type ReportScreenIDSetterComponentProps = {
     /** Available reports that would be displayed in this navigator */
