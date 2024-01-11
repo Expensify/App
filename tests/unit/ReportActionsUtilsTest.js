@@ -256,6 +256,149 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(input);
         });
     });
+    describe('getContinuousReportActionChain', () => {
+        it('given an input ID of 1, ..., 7 it will return the report actions with id 1 - 7', () => {
+            const input = [
+                // Given these sortedReportActions
+                {reportActionID: 1, previousReportActionID: null},
+                {reportActionID: 2, previousReportActionID: 1},
+                {reportActionID: 3, previousReportActionID: 2},
+                {reportActionID: 4, previousReportActionID: 3},
+                {reportActionID: 5, previousReportActionID: 4},
+                {reportActionID: 6, previousReportActionID: 5},
+                {reportActionID: 7, previousReportActionID: 6},
+
+                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
+                {reportActionID: 9, previousReportActionID: 8},
+                {reportActionID: 10, previousReportActionID: 9},
+                {reportActionID: 11, previousReportActionID: 10},
+                {reportActionID: 12, previousReportActionID: 11},
+
+                // Note: another gap
+                {reportActionID: 14, previousReportActionID: 13},
+                {reportActionID: 15, previousReportActionID: 14},
+                {reportActionID: 16, previousReportActionID: 15},
+                {reportActionID: 17, previousReportActionID: 16},
+            ];
+
+            const expectedResult = [
+                {reportActionID: 1, previousReportActionID: null},
+                {reportActionID: 2, previousReportActionID: 1},
+                {reportActionID: 3, previousReportActionID: 2},
+                {reportActionID: 4, previousReportActionID: 3},
+                {reportActionID: 5, previousReportActionID: 4},
+                {reportActionID: 6, previousReportActionID: 5},
+                {reportActionID: 7, previousReportActionID: 6},
+            ];
+            // Reversing the input array to simulate descending order sorting as per our data structure
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), 3);
+            input.pop();
+            expect(result).toStrictEqual(expectedResult.reverse());
+        });
+
+        it('given an input ID of 9, ..., 12 it will return the report actions with id 9 - 12', () => {
+            const input = [
+                // Given these sortedReportActions
+                {reportActionID: 1, previousReportActionID: null},
+                {reportActionID: 2, previousReportActionID: 1},
+                {reportActionID: 3, previousReportActionID: 2},
+                {reportActionID: 4, previousReportActionID: 3},
+                {reportActionID: 5, previousReportActionID: 4},
+                {reportActionID: 6, previousReportActionID: 5},
+                {reportActionID: 7, previousReportActionID: 6},
+
+                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
+                {reportActionID: 9, previousReportActionID: 8},
+                {reportActionID: 10, previousReportActionID: 9},
+                {reportActionID: 11, previousReportActionID: 10},
+                {reportActionID: 12, previousReportActionID: 11},
+
+                // Note: another gap
+                {reportActionID: 14, previousReportActionID: 13},
+                {reportActionID: 15, previousReportActionID: 14},
+                {reportActionID: 16, previousReportActionID: 15},
+                {reportActionID: 17, previousReportActionID: 16},
+            ];
+
+            const expectedResult = [
+                {reportActionID: 9, previousReportActionID: 8},
+                {reportActionID: 10, previousReportActionID: 9},
+                {reportActionID: 11, previousReportActionID: 10},
+                {reportActionID: 12, previousReportActionID: 11},
+            ];
+            // Reversing the input array to simulate descending order sorting as per our data structure
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), 8);
+            input.pop();
+            expect(result).toStrictEqual(expectedResult.reverse());
+        });
+
+        it('given an input ID of 14, ..., 17 it will return the report actions with id 14 - 17', () => {
+            const input = [
+                // Given these sortedReportActions
+                {reportActionID: 1, previousReportActionID: null},
+                {reportActionID: 2, previousReportActionID: 1},
+                {reportActionID: 3, previousReportActionID: 2},
+                {reportActionID: 4, previousReportActionID: 3},
+                {reportActionID: 5, previousReportActionID: 4},
+                {reportActionID: 6, previousReportActionID: 5},
+                {reportActionID: 7, previousReportActionID: 6},
+
+                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
+                {reportActionID: 9, previousReportActionID: 8},
+                {reportActionID: 10, previousReportActionID: 9},
+                {reportActionID: 11, previousReportActionID: 10},
+                {reportActionID: 12, previousReportActionID: 11},
+
+                // Note: another gap
+                {reportActionID: 14, previousReportActionID: 13},
+                {reportActionID: 15, previousReportActionID: 14},
+                {reportActionID: 16, previousReportActionID: 15},
+                {reportActionID: 17, previousReportActionID: 16},
+            ];
+
+            const expectedResult = [
+                {reportActionID: 14, previousReportActionID: 13},
+                {reportActionID: 15, previousReportActionID: 14},
+                {reportActionID: 16, previousReportActionID: 15},
+                {reportActionID: 17, previousReportActionID: 16},
+            ];
+            // Reversing the input array to simulate descending order sorting as per our data structure
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), 16);
+            input.pop();
+            expect(result).toStrictEqual(expectedResult.reverse());
+        });
+
+        it('given an input ID of 8 or 13 which are not exist in Onyx it will return an empty array', () => {
+            const input = [
+                // Given these sortedReportActions
+                {reportActionID: 1, previousReportActionID: null},
+                {reportActionID: 2, previousReportActionID: 1},
+                {reportActionID: 3, previousReportActionID: 2},
+                {reportActionID: 4, previousReportActionID: 3},
+                {reportActionID: 5, previousReportActionID: 4},
+                {reportActionID: 6, previousReportActionID: 5},
+                {reportActionID: 7, previousReportActionID: 6},
+
+                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
+                {reportActionID: 9, previousReportActionID: 8},
+                {reportActionID: 10, previousReportActionID: 9},
+                {reportActionID: 11, previousReportActionID: 10},
+                {reportActionID: 12, previousReportActionID: 11},
+
+                // Note: another gap
+                {reportActionID: 14, previousReportActionID: 13},
+                {reportActionID: 15, previousReportActionID: 14},
+                {reportActionID: 16, previousReportActionID: 15},
+                {reportActionID: 17, previousReportActionID: 16},
+            ];
+
+            const expectedResult = [];
+            // Reversing the input array to simulate descending order sorting as per our data structure
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), 8);
+            input.pop();
+            expect(result).toStrictEqual(expectedResult.reverse());
+        });
+    });
 
     describe('getLastVisibleAction', () => {
         it('should return the last visible action for a report', () => {
