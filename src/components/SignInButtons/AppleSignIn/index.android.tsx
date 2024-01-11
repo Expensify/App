@@ -18,9 +18,9 @@ const config = {
 
 /**
  * Apple Sign In method for Android that returns authToken.
- * @returns {Promise<string>}
+ * @returns Promise that returns a string when resolved
  */
-function appleSignInRequest() {
+function appleSignInRequest(): Promise<string | undefined> {
     appleAuthAndroid.configure(config);
     return appleAuthAndroid
         .signIn()
@@ -32,7 +32,6 @@ function appleSignInRequest() {
 
 /**
  * Apple Sign In button for Android.
- * @returns {React.Component}
  */
 function AppleSignIn() {
     const handleSignIn = () => {
