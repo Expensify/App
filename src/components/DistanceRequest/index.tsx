@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import _ from 'lodash';
+import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ScrollView} from 'react-native';
@@ -84,7 +84,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
     const hasRoute = TransactionUtils.hasRoute((transaction ?? {}) as Transaction);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
-    const haveValidatedWaypointsChanged = !_.isEqual(previousValidatedWaypoints, validatedWaypoints);
+    const haveValidatedWaypointsChanged = !lodashIsEqual(previousValidatedWaypoints, validatedWaypoints);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const transactionWasSaved = useRef(false);
@@ -119,7 +119,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
     useEffect(() => {
         const transactionWaypoints = transaction?.comment?.waypoints ?? {};
-        if (!transaction?.transactionID || !_.isEmpty(transactionWaypoints)) {
+        if (!transaction?.transactionID || Object.keys(transactionWaypoints).length) {
             return;
         }
 
@@ -149,7 +149,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
     useEffect(() => {
         // Whenever we change waypoints we need to remove the error or it will keep showing the error.
-        if (_.isEqual(previousWaypoints, waypoints)) {
+        if (lodashIsEqual(previousWaypoints, waypoints)) {
             return;
         }
         setHasError(false);
@@ -182,7 +182,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 
     const updateWaypoints = useCallback(
         ({data}: DraggableListData<string>) => {
-            if (_.isEqual(waypointsList, data)) {
+            if (lodashIsEqual(waypointsList, data)) {
                 return;
             }
 

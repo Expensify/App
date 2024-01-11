@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, {useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
@@ -48,7 +47,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
     const {translate} = useLocalize();
 
     const numberOfWaypoints = Object.keys(waypoints).length;
-    const numberOfFilledWaypoints = Object.values(waypoints).filter((waypoint) => !_.isEmpty(waypoint)).length;
+    const numberOfFilledWaypoints = Object.values(waypoints).filter((waypoint) => Object.keys(waypoint).length).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
