@@ -22,7 +22,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesUtils';
 import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -105,7 +104,6 @@ function WorkspaceSwitcherPage({policies}) {
 
     const selectPolicy = useCallback((option) => {
         const policyID = option.policyID;
-        Policy.selectWorkspace(policyID);
 
         if (policyID) {
             setSelectedOption(option);
