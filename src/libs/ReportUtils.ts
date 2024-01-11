@@ -3643,11 +3643,14 @@ function getRouteFromLink(url: string | null): string {
     // Get the reportID from URL
     let route = url;
     const localWebAndroidRegEx = /^(https:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
+    const adhocRegex = /^(https:\/\/\d+\.pr-testing\.expensify\.com)/;
     linkingConfig.prefixes.forEach((prefix) => {
         if (route.startsWith(prefix)) {
             route = route.replace(prefix, '');
         } else if (localWebAndroidRegEx.test(route)) {
             route = route.replace(localWebAndroidRegEx, '');
+        } else if (adhocRegex.test(route)) {
+            route = route.replace(adhocRegex, '');
         } else {
             return;
         }
