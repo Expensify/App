@@ -148,7 +148,7 @@ function WorkspacesListPage({
                     if (!policy) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id!));
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
                 },
                 iconFill: theme.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
