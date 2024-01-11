@@ -36,7 +36,7 @@ type FullPageNotFoundViewProps = {
     onBackButtonPress: () => void;
 
     /** Function to call when pressing the navigation link */
-    onLinkPress: () => void;
+    onLinkPress?: () => void;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables

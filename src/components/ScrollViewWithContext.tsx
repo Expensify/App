@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
 import {ScrollView} from 'react-native';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
@@ -16,10 +16,10 @@ const ScrollContext = React.createContext<ScrollContextValue>({
 });
 
 type ScrollViewWithContextProps = {
-    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     children?: React.ReactNode;
-    scrollEventThrottle: number;
-} & Partial<ScrollView>;
+    scrollEventThrottle?: number;
+} & Partial<ScrollViewProps>;
 
 /*
  * <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
