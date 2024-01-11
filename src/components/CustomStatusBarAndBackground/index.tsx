@@ -88,7 +88,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
             statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
+            if (currentScreenBackgroundColor === prevStatusBarBackgroundColor.current) {
                 statusBarAnimation.value = 0;
                 statusBarAnimation.value = withDelay(300, withTiming(1));
             }
