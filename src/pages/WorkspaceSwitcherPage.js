@@ -15,6 +15,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -48,18 +49,16 @@ const propTypes = {
             pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         }),
     ),
-    activeWorkspaceID: PropTypes.string,
 };
 
 const defaultProps = {
     policies: {},
-    activeWorkspaceID: undefined,
 };
 
 const MINIMUM_WORKSPACES_TO_SHOW_SEARCH = 8;
 const EXPENSIFY_TITLE = 'Expensify';
 
-function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
+function WorkspaceSwitcherPage({policies}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -67,6 +66,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
@@ -112,6 +112,9 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
         } else {
             setSelectedOption(undefined);
         }
+        // Temporary: This will be handled in custom navigation function that also puts policyID in BottomTabNavigator state
+        setActiveWorkspaceID(policyID);
+        Navigation.goBack();
         Navigation.navigate(ROUTES.HOME);
     }, []);
 
@@ -312,8 +315,5 @@ WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
 export default withOnyx({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    activeWorkspaceID: {
-        key: ONYXKEYS.ACTIVE_WORKSPACE_ID,
     },
 })(WorkspaceSwitcherPage);

@@ -16,6 +16,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
 
 const propTypes = {
@@ -68,12 +69,13 @@ const defaultProps = {
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network}) {
     const styles = useThemeStyles();
+    const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID);
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -85,7 +87,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading, network.isOffline]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID, isLoading, network.isOffline]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -94,10 +96,10 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
+            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID);
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
