@@ -123,36 +123,36 @@ type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoadin
 const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
 
 function KeyboardShortcutComponent({isDisabled = false, isLoading = false, onPress = () => {}, pressOnEnter, allowBubble, enterKeyEventListenerPriority}: KeyboardShortcutComponentProps) {
-        const isFocused = useIsFocused();
-        const activeElementRole = useActiveElementRole();
+    const isFocused = useIsFocused();
+    const activeElementRole = useActiveElementRole();
 
-        const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
+    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ACCESSIBILITY_ROLE.TEXT, [activeElementRole]);
 
-        const keyboardShortcutCallback = useCallback(
-            (event?: GestureResponderEvent | KeyboardEvent) => {
-                if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
-                    return;
-                }
-                onPress();
-            },
-            [isDisabled, isLoading, onPress],
-        );
+    const keyboardShortcutCallback = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+                return;
+            }
+            onPress();
+        },
+        [isDisabled, isLoading, onPress],
+    );
 
-        const config = useMemo(
-            () => ({
-                isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
-                shouldBubble: allowBubble,
-                priority: enterKeyEventListenerPriority,
-                shouldPreventDefault: false,
-            }),
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            [shouldDisableEnterShortcut, isFocused],
-        );
+    const config = useMemo(
+        () => ({
+            isActive: pressOnEnter && !shouldDisableEnterShortcut && isFocused,
+            shouldBubble: allowBubble,
+            priority: enterKeyEventListenerPriority,
+            shouldPreventDefault: false,
+        }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [shouldDisableEnterShortcut, isFocused],
+    );
 
-        useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 
-        return null;
-    };
+    return null;
+}
 
 KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
 
