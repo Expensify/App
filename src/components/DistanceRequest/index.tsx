@@ -229,7 +229,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
                             item={item}
                             onSecondaryInteraction={drag}
                             isActive={isActive}
-                            getIndex={getIndex}
+                            getIndex={getIndex as () => number}
                             onPress={navigateToWaypointEditPage}
                             disabled={isLoadingRoute}
                         />
