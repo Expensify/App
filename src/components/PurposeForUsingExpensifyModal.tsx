@@ -148,7 +148,7 @@ function PurposeForUsingExpensifyModal() {
             isVisible={isModalOpen}
             onClose={closeModal}
             innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop={!isSmallScreenWidth}
+            shouldUseCustomBackdrop
         >
             <View style={{maxHeight: windowHeight}}>
                 <ScrollView>
