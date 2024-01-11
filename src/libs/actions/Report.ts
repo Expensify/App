@@ -306,7 +306,7 @@ function addActions(reportID: string, text = '', file?: File) {
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
-    const currentTime = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTimeWithSkew();
     const lastComment = lastAction?.message?.[0];
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
@@ -2440,7 +2440,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 };
 
 /** Fetches all the private notes for a given report */
-function getReportPrivateNote(reportID: string) {
+function getReportPrivateNote(reportID?: string) {
     if (Session.isAnonymousUser()) {
         return;
     }
