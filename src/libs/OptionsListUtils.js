@@ -1459,6 +1459,10 @@ function getOptions(
                 continue;
             }
 
+            if (reportOption.isServerSearchResult) {
+                continue;
+            }
+
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
@@ -1531,9 +1535,9 @@ function getOptions(
     }
 
     let userToInvite = null;
-    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
+    const noOptions = recentReportOptions.length + personalDetailsOptions.length + serverSearchResults.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(
-        personalDetailsOptions.concat(recentReportOptions),
+        personalDetailsOptions.concat(recentReportOptions, serverSearchResults),
         (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase() || option.login === searchValue.toLowerCase(),
     );
 

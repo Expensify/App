@@ -64,6 +64,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    console.log(filterdServerSearchResults);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length + filterdServerSearchResults.length !== 0,
         Boolean(filteredUserToInvite),
