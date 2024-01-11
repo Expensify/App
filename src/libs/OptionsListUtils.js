@@ -397,10 +397,9 @@ function getAllReportErrors(report, reportActions) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  * @param {Object} report
- * @param {Object[]} personalDetails - list of personal details of the report participants
  * @returns {String}
  */
-function getLastMessageTextForReport(report, personalDetails) {
+function getLastMessageTextForReport(report) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
@@ -439,7 +438,7 @@ function getLastMessageTextForReport(report, personalDetails) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     }
 
-    return lastMessageTextFromReport || PersonalDetailsUtils.replaceLoginsWithDisplayNames(lodashGet(report, 'lastMessageText', ''), personalDetails);
+    return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
 }
 
 /**
@@ -527,7 +526,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, personalDetailList);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         const lastActorDisplayName =
             hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID

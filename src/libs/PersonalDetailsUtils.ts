@@ -7,28 +7,13 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
-let sessionUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, val is undefined
-        if (!value) {
-            return;
-        }
-
-        sessionUserAccountID = value.accountID;
-    },
-});
-
 let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
-        currentUserPersonalDetails = val?.[sessionUserAccountID ?? -1] ?? null;
     },
 });
 
@@ -36,22 +21,6 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
     const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
     return displayName || defaultValue || fallbackValue;
-}
-
-function replaceLoginsWithDisplayNames(text: string, details: PersonalDetails[], includeCurrentAccount = true): string {
-    const result = details.reduce<string>((replacedText, detail) => {
-        if (!detail.login) {
-            return replacedText;
-        }
-
-        return replacedText.replaceAll(detail.login, getDisplayNameOrDefault(detail));
-    }, text);
-
-    if (!includeCurrentAccount || !currentUserPersonalDetails) {
-        return result;
-    }
-
-    return result.replaceAll(currentUserPersonalDetails.login ?? '', getDisplayNameOrDefault(currentUserPersonalDetails));
 }
 
 /**
@@ -239,5 +208,4 @@ export {
     getFormattedStreet,
     getStreetLines,
     getEffectiveDisplayName,
-    replaceLoginsWithDisplayNames,
 };
