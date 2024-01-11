@@ -1,28 +1,21 @@
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type Response from '@src/types/modules/google';
 
-const propTypes = {
-    /** Whether we're rendering in the Desktop Flow, if so show a different button. */
-    isDesktopFlow: PropTypes.bool,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    isDesktopFlow: false,
+type GoogleSignInProps = {
+    isDesktopFlow?: boolean;
 };
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
 const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
 
-const signIn = (response) => {
+const signIn = (response: Response) => {
     Session.beginGoogleSignIn(response.credential);
 };
 
@@ -31,12 +24,15 @@ const signIn = (response) => {
  * We have to load the gis script and then determine if the page is focused before rendering the button.
  * @returns {React.Component}
  */
-function GoogleSignIn({translate, isDesktopFlow}) {
+
+function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const loadScript = useCallback(() => {
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
                 callback: signIn,
             });
@@ -92,7 +88,5 @@ function GoogleSignIn({translate, isDesktopFlow}) {
 }
 
 GoogleSignIn.displayName = 'GoogleSignIn';
-GoogleSignIn.propTypes = propTypes;
-GoogleSignIn.defaultProps = defaultProps;
 
-export default withLocalize(GoogleSignIn);
+export default GoogleSignIn;
