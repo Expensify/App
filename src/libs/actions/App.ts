@@ -159,7 +159,7 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
 function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
-    const defaultData: Required<OnyxData> = {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -167,14 +167,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-        ],
-        failureData: [
+        finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -194,16 +187,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
-        successData: [
-            ...defaultData.successData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
-                value: false,
-            },
-        ],
-        failureData: [
-            ...defaultData.failureData,
+        finallyData: [
+            ...defaultData.finallyData,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_APP,
