@@ -328,7 +328,9 @@ type SignInNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.REFERRAL_DETAILS]: undefined;
+    [SCREENS.REFERRAL_DETAILS]: {
+        contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+    };
 };
 
 type ProcessMoneyRequestHoldNavigatorParamList = {
