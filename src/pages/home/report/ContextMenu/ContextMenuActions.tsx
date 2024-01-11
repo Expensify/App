@@ -75,16 +75,22 @@ type RenderContent = (closePopover: boolean, payload: ContextMenuActionPayload) 
 
 type GetDescription = (selection?: string) => string | void;
 
-type ContextMenuAction = {
+type ContextMenuActionWithContent = {
+    renderContent: RenderContent;
+};
+
+type ContextMenuActionWithIcon = {
+    textTranslateKey: TranslationPaths;
+    icon: IconAsset;
+    successTextTranslateKey?: TranslationPaths;
+    successIcon?: IconAsset;
+    onPress: OnPress;
+    getDescription: GetDescription;
+};
+
+type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
     isAnonymousAction: boolean;
     shouldShow: ShouldShow;
-    textTranslateKey?: TranslationPaths;
-    successTextTranslateKey?: TranslationPaths;
-    icon?: IconAsset;
-    successIcon?: IconAsset;
-    renderContent?: RenderContent;
-    onPress?: OnPress;
-    getDescription?: GetDescription;
 };
 
 // A list of all the context actions in this menu.

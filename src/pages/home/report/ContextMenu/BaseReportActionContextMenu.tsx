@@ -117,7 +117,9 @@ function BaseReportActionContextMenu({
     );
 
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
-    const nonMenuItemActionIndexes = filteredContextMenuActions.map((contextAction, index) => (typeof contextAction.renderContent === 'function' ? index : undefined));
+    const nonMenuItemActionIndexes = filteredContextMenuActions.map((contextAction, index) =>
+        'renderContent' in contextAction && typeof contextAction.renderContent === 'function' ? index : undefined,
+    );
     const disabledIndexes = nonMenuItemActionIndexes.filter((index): index is number => index !== undefined);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
@@ -179,12 +181,7 @@ function BaseReportActionContextMenu({
                         interceptAnonymousUser,
                     };
 
-                    if (contextAction.renderContent) {
-                        // make sure that renderContent isn't mixed with unsupported props
-                        if (__DEV__ && contextAction.icon != null) {
-                            throw new Error('Dev error: renderContent() and text/icon cannot be used together.');
-                        }
-
+                    if ('renderContent' in contextAction) {
                         return contextAction.renderContent(closePopup, payload);
                     }
 
