@@ -95,14 +95,14 @@ let listIDCount = Math.round(Math.random() * 100);
  *
  * @param {string} linkedID - ID of the linked message used for initial focus.
  * @param {array} messageArray - Array of messages.
- * @param {function} fetchFn - Function to fetch more messages.
+ * @param {function} fetchNewerActon - Function to fetch more messages.
  * @param {string} route - Current route, used to reset states on route change.
  * @param {boolean} isLoading - Loading state indicator.
  * @param {object} reportScrollManager - Manages scrolling functionality.
  * @returns {object} An object containing the sliced message array, the pagination function,
  *                   index of the linked message, and a unique list ID.
  */
-const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading, reportScrollManager) => {
+const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading, reportScrollManager) => {
     // we don't set edgeID on initial render as linkedID as it should trigger cattedArray after linked message was positioned
     const [edgeID, setEdgeID] = useState('');
     const isCuttingForFirstRender = useRef(true);
@@ -145,13 +145,14 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading, report
     }, [linkedID, messageArray, index, isLoading, edgeID]);
 
     const hasMoreCashed = cattedArray.length < messageArray.length;
+    const newestReportAction = lodashGet(cattedArray, '[0]');
 
     const paginate = useCallback(
         ({firstReportActionID}) => {
             // This function is a placeholder as the actual pagination is handled by cattedArray
             if (!hasMoreCashed) {
                 isCuttingForFirstRender.current = false;
-                fetchFn();
+                fetchNewerActon(newestReportAction);
             }
             if (isCuttingForFirstRender.current) {
                 // This is a workaround because 'autoscrollToTopThreshold' does not always function correctly.
@@ -161,7 +162,7 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoading, report
             }
             setEdgeID(firstReportActionID);
         },
-        [fetchFn, hasMoreCashed, reportScrollManager],
+        [fetchNewerActon, hasMoreCashed, reportScrollManager, newestReportAction],
     );
 
     return {
@@ -198,17 +199,15 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const throttledLoadNewerChats = useCallback(
-        () => {
+    const fetchNewerAction = useCallback(
+        (newestReportAction) => {
             if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
                 return;
             }
 
-            // eslint-disable-next-line no-use-before-define
             Report.getNewerActions(reportID, newestReportAction.reportActionID);
         },
-        // eslint-disable-next-line no-use-before-define
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, newestReportAction],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID],
     );
 
     const {
@@ -216,12 +215,12 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         fetchFunc,
         linkedIdIndex,
         listID,
-    } = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route, !!reportActionID && props.isLoadingInitialReportActions, reportScrollManager);
+    } = useHandleList(reportActionID, allReportActions, fetchNewerAction, route, !!reportActionID && props.isLoadingInitialReportActions, reportScrollManager);
 
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
     const oldestReportAction = useMemo(() => _.last(reportActions), [reportActions]);
-    const isWeReachedTheOldestAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const hasCreatedAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     /**
      * @returns {Boolean}
@@ -328,12 +327,12 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         }
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (!oldestReportAction || isWeReachedTheOldestAction) {
+        if (!oldestReportAction || hasCreatedAction) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, isWeReachedTheOldestAction, reportID]);
+    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, hasCreatedAction, reportID]);
 
     const firstReportActionID = useMemo(() => lodashGet(newestReportAction, 'reportActionID'), [newestReportAction]);
     const handleLoadNewerChats = useCallback(
@@ -517,7 +516,7 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        sesion: {
+        session: {
             key: ONYXKEYS.SESSION,
         },
     }),

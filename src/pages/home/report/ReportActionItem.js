@@ -675,7 +675,6 @@ function ReportActionItem(props) {
         >
             <Hoverable
                 shouldHandleScroll
-                runHoverAfterInteraction
                 isDisabled={!_.isUndefined(props.draftMessage)}
             >
                 {(hovered) => (

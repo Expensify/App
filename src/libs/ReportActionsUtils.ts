@@ -218,6 +218,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 // Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
 // See unit tests for example of inputs and expected outputs.
+// Note: sortedReportActions sorted in descending order
 function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
     let index;
 
@@ -228,7 +229,6 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     }
 
     if (index === -1) {
-        Log.hmmm('[getContinuousReportActionChain] The linked reportAction is missing and needs to be fetched');
         return [];
     }
 
@@ -526,15 +526,15 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldIncludeInvisibleActions = true): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions;
 
     if (shouldIncludeInvisibleActions) {
+        filteredReportActions = Object.values(reportActions ?? {});
+    } else {
         filteredReportActions = Object.entries(reportActions ?? {})
             .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
             .map((entry) => entry[1]);
-    } else {
-        filteredReportActions = Object.values(reportActions ?? {});
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
