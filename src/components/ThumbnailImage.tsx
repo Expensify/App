@@ -72,7 +72,7 @@ function calculateThumbnailImageSize(width: number, height: number, windowHeight
     return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
 }
 
-function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth, imageHeight, shouldDynamicallyResize = true, objectPositionTop = false}: ThumbnailImageProps) {
+function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true, objectPositionTop = false}: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();

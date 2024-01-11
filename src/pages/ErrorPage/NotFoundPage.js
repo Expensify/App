@@ -19,7 +19,6 @@ function NotFoundPage(props) {
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={props.onBackButtonPress}
-                onLinkPress={props.onLinkPress}
             />
         </ScreenWrapper>
     );
