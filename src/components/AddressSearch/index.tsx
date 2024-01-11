@@ -57,7 +57,7 @@ function AddressSearch(
         value,
         locationBias,
     }: AddressSearchProps,
-    innerRef: ForwardedRef<HTMLElement>,
+    ref: ForwardedRef<HTMLElement>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -335,7 +335,6 @@ function AddressSearch(
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
                         renderRow={(data) => {
-                            // const convertedData = data as unknown as ExtendedPlace;
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
@@ -363,7 +362,7 @@ function AddressSearch(
                         }}
                         textInputProps={{
                             InputComp: TextInput,
-                            ref: innerRef,
+                            ref,
                             label,
                             containerStyles,
                             errorText,
