@@ -1,10 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData, TextInputProps} from 'react-native';
+import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {HandlerStateChangeEvent, TouchData} from 'react-native-gesture-handler';
 import {TapGestureHandler} from 'react-native-gesture-handler';
-import type {AnimatedProps} from 'react-native-reanimated';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -107,7 +106,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
     } = props;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const inputRefs = useRef<HTMLFormElement | React.Component<AnimatedProps<TextInputProps>> | null>();
+    const inputRefs = useRef<RNTextInput | HTMLInputElement | null>();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
     const [editIndex, setEditIndex] = useState(0);
@@ -122,9 +121,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
     }, [input]);
 
     const blurMagicCodeInput = () => {
-        if (inputRefs.current && 'blur' in inputRefs.current) {
-            inputRefs.current?.blur();
-        }
+        inputRefs.current?.blur();
         setFocusedIndex(undefined);
     };
 
@@ -132,9 +129,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
         setFocusedIndex(0);
         lastFocusedIndex.current = 0;
         setEditIndex(0);
-        if (inputRefs.current && 'focus' in inputRefs.current) {
-            inputRefs.current?.focus();
-        }
+        inputRefs.current?.focus();
     };
 
     const setInputAndIndex = (index: number) => {
@@ -148,9 +143,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
             focusMagicCodeInput();
         },
         focusLastSelected() {
-            if (!inputRefs.current || !('focus' in inputRefs.current)) {
-                return;
-            }
             inputRefs.current?.focus();
         },
         resetFocus() {
@@ -160,9 +152,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
         clear() {
             lastFocusedIndex.current = 0;
             setInputAndIndex(0);
-            if (inputRefs.current && 'focus' in inputRefs.current) {
-                inputRefs.current?.focus();
-            }
+            inputRefs.current?.focus();
             onChangeTextProp('');
         },
         blur() {
@@ -222,9 +212,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
         // TapGestureHandler works differently on mobile web and native app
         // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
         if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
-            if (inputRefs.current && 'focus' in inputRefs.current) {
-                inputRefs.current?.focus();
-            }
+            inputRefs.current?.focus();
         }
         setInputAndIndex(index);
         lastFocusedIndex.current = index;
@@ -287,7 +275,8 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
                 const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
 
                 const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
-                inputRefs.current[indexToFocus].focus();
+                const formElement = inputRefs.current as HTMLFormElement | null
+                (formElement?.[indexToFocus] as HTMLInputElement).focus();
                 onChangeTextProp(value.substring(0, indexToFocus));
 
                 return;
@@ -322,22 +311,18 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
             setInputAndIndex(newFocusedIndex);
             onChangeTextProp(composeToString(numbers));
 
-            if (newFocusedIndex !== undefined && inputRefs.current && 'focus' in inputRefs.current) {
+            if (newFocusedIndex !== undefined) {
                 inputRefs.current?.focus();
             }
         }
         if (keyValue === 'ArrowLeft' && focusedIndex !== undefined) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
             setInputAndIndex(newFocusedIndex);
-            if (inputRefs.current && 'focus' in inputRefs.current) {
-                inputRefs.current?.focus();
-            }
+            inputRefs.current?.focus();
         } else if (keyValue === 'ArrowRight' && focusedIndex !== undefined) {
             const newFocusedIndex = Math.min(focusedIndex + 1, maxLength - 1);
             setInputAndIndex(newFocusedIndex);
-            if (inputRefs.current && 'focus' in inputRefs.current) {
-                inputRefs.current?.focus();
-            }
+            inputRefs.current?.focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
             if (isOffline) {
