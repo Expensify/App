@@ -1,9 +1,9 @@
-import React, {ForwardedRef, forwardRef, useEffect} from 'react';
+import React, {type ForwardedRef, useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -23,7 +23,11 @@ type CountrySelectorProps = {
     inputID: string;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange}: CountrySelectorProps, ref: ForwardedRef<View>) {
+type CountrySelectorPropsWithForwardedRef = CountrySelectorProps & {
+    forwardedRef: ForwardedRef<View>;
+};
+
+function CountrySelector({errorText = '', value: countryCode, onInputChange, forwardedRef = () => {}}: CountrySelectorPropsWithForwardedRef) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -41,7 +45,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange}: Co
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={title}
-                ref={ref}
+                ref={forwardedRef}
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
@@ -58,4 +62,12 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange}: Co
 
 CountrySelector.displayName = 'CountrySelector';
 
-export default forwardRef(CountrySelector);
+const CountrySelectorWithRef = React.forwardRef((props: CountrySelectorProps, ref: ForwardedRef<View>) => (
+    <CountrySelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+export default CountrySelectorWithRef;
