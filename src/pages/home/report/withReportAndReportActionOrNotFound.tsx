@@ -117,15 +117,14 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
                 canEvict: false,
             },
             parentReportAction: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                selector: (parentReportActions, props) => {
+                key: (props) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props?.report?.parentReportID ?? 0}`,
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
-                        return {};
+                        return null;
                     }
-                    return parentReportActions[parentReportActionID];
+                    return parentReportActions?.[parentReportActionID] ?? null;
                 },
-                canEvict: false,
             },
         }),
         withWindowDimensions,
