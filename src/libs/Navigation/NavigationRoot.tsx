@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
@@ -10,6 +10,7 @@ import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
+import customGetPathFromState from './customGetPathFromState';
 import getStateFromPath from './getStateFromPath';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -36,7 +37,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = getPathFromState(state, linkingConfig.config);
+    const currentPath = customGetPathFromState(state, linkingConfig.config);
     updateLastVisitedPath(currentPath);
 
     // Don't log the route transitions from OldDot because they contain authTokens
