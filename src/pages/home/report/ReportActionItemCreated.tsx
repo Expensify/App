@@ -6,16 +6,16 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type OnyxProps = {
@@ -45,9 +45,8 @@ type ReportActionItemCreatedProps = OnyxProps & {
         /** The URL for the policy avatar */
         avatar?: string;
     };
-}
+};
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
-
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -105,27 +104,26 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default withOnyx<ReportActionItemCreatedProps, OnyxProps>({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            selector: reportWithoutHasDraftSelector,
-        },
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        selector: reportWithoutHasDraftSelector,
+    },
 
-        policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        },
-        
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        
-    })(
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+})(
     memo(
         ReportActionItemCreated,
         (prevProps, nextProps) =>
             prevProps.policy?.name === nextProps.policy?.name &&
             prevProps.policy?.avatar === nextProps.policy?.avatar &&
-            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
+            prevProps.report?.stateNum === nextProps.report?.stateNum &&
             prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.stateNum === nextProps.report?.stateNum,
+            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime,
     ),
 );
