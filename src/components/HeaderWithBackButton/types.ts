@@ -108,9 +108,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
-
-    /** TEMP: Will be removed in my other PR */
-    shouldUseCentralPaneView: boolean;
 };
 
 export default HeaderWithBackButtonProps;

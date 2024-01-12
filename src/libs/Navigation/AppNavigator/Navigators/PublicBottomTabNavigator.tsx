@@ -24,6 +24,6 @@ function PublicBottomTabNavigator() {
     );
 }
 
-PublicBottomTabNavigator.displayName = 'BottomTabNavigator';
+PublicBottomTabNavigator.displayName = 'PublicBottomTabNavigator';
 
 export default PublicBottomTabNavigator;

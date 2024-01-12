@@ -251,7 +251,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.KEYBOARD_SHORTCUTS]: {
                                 path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
-                            [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_NAME.route,
+                            [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
@@ -470,11 +470,15 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
                         },
                     },
+                    ProcessMoneyRequestHold: {
+                        screens: {
+                            ProcessMoneyRequestHold_Root: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
+                        },
+                    },
                 },
             },
 
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                initialRouteName: SCREENS.SETTINGS.ROOT,
                 screens: {
                     [SCREENS.SETTINGS.ROOT]: {
                         path: ROUTES.SETTINGS,

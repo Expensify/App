@@ -15,7 +15,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -66,15 +65,13 @@ const propTypes = {
 
     /** All reports shared with the user (coming from Onyx) */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     policies: {},
     allPolicyMembers: {},
     reimbursementAccount: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    reports: {},
 };
 
 const workspaceFeatures = [
@@ -111,7 +108,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, currentUserPersonalDetails, reports}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -179,16 +176,15 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                             title={keyTitle}
                             menuItems={threeDotsMenuItems}
                             workspaceIcon={item.icon}
-                            ownerAccountID={currentUserPersonalDetails.accountID}
+                            ownerAccountID={item.ownerAccountID}
                             workspaceType={item.type}
-                            currentUserPersonalDetails={currentUserPersonalDetails}
                             layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                         />
                     </PressableWithoutFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [currentUserPersonalDetails, isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, translate],
+        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, translate],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -285,6 +281,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 reports: policy.reports,
                 adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
                 announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
+                ownerAccountID: policy.ownerAccountID,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
@@ -292,52 +289,56 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
 
     if (_.isEmpty(workspaces)) {
         return (
-            <IllustratedHeaderPageLayout
-                backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-                illustration={LottieAnimations.WorkspacePlanet}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
-                title={translate('common.workspaces')}
-                style={!isSmallScreenWidth && styles.alignItemsCenter}
-                shouldUseCentralPaneView
-                footer={
-                    isSmallScreenWidth && (
+            <ScreenWrapper shouldShowOfflineIndicatorInWideScreen>
+                <IllustratedHeaderPageLayout
+                    backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                    illustration={LottieAnimations.WorkspacePlanet}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
+                    title={translate('common.workspaces')}
+                    style={!isSmallScreenWidth && styles.alignItemsCenter}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    footer={
+                        isSmallScreenWidth && (
+                            <Button
+                                accessibilityLabel={translate('workspace.new.newWorkspace')}
+                                success
+                                text={translate('workspace.new.newWorkspace')}
+                                onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            />
+                        )
+                    }
+                >
+                    <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
+                        <FeatureList
+                            menuItems={workspaceFeatures}
+                            headline="workspace.emptyWorkspace.title"
+                            description="workspace.emptyWorkspace.subtitle"
+                        />
+                    </View>
+
+                    {!isSmallScreenWidth && (
                         <Button
                             accessibilityLabel={translate('workspace.new.newWorkspace')}
+                            style={[styles.newWorkspaceButton, styles.alignSelfCenter]}
                             success
                             text={translate('workspace.new.newWorkspace')}
                             onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                         />
-                    )
-                }
-            >
-                <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
-                    <FeatureList
-                        menuItems={workspaceFeatures}
-                        headline="workspace.emptyWorkspace.title"
-                        description="workspace.emptyWorkspace.subtitle"
-                    />
-                </View>
-
-                {!isSmallScreenWidth && (
-                    <Button
-                        accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        style={[styles.newWorkspaceButton, styles.alignSelfCenter]}
-                        success
-                        text={translate('workspace.new.newWorkspace')}
-                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                    />
-                )}
-            </IllustratedHeaderPageLayout>
+                    )}
+                </IllustratedHeaderPageLayout>
+            </ScreenWrapper>
         );
     }
 
     return (
-        <ScreenWrapper shouldEnablePickerAvoiding={false}>
-            <View style={{flex: 1}}>
+        <ScreenWrapper
+            shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBorderBottom
-                    shouldUseCentralPaneView
+                    shouldShowBackButton={isSmallScreenWidth}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
@@ -383,12 +384,8 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
-    withCurrentUserPersonalDetails,
 )(WorkspacesListPage);

@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -20,9 +19,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -35,9 +32,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     ...policyPropTypes,
-
-    /** All reports shared with the user (coming from Onyx) */
-    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
@@ -60,7 +54,6 @@ function dismissError(policyID) {
 function WorkspaceInitialPage(props) {
     const styles = useThemeStyles();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
     const waitForNavigate = useWaitForNavigation();
@@ -70,42 +63,6 @@ function WorkspaceInitialPage(props) {
     const {translate} = useLocalize();
 
     const policyID = useMemo(() => policy.id, [policy]);
-    const [policyReports] = useMemo(() => {
-        const reports = [];
-        let admins;
-        let announce;
-        _.each(props.reports, (report) => {
-            if (!report || report.policyID !== policyID) {
-                return;
-            }
-
-            reports.push(report);
-
-            if (!report.reportID || ReportUtils.isThread(report)) {
-                return;
-            }
-
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) {
-                admins = report;
-                return;
-            }
-
-            if (report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE) {
-                announce = report;
-            }
-        });
-        return [reports, admins, announce];
-    }, [policyID, props.reports]);
-
-    /**
-     * Call the delete policy and hide the modal
-     */
-    const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports, policy.name);
-        setIsDeleteModalOpen(false);
-        // Pop the deleted workspace page before opening workspace settings.
-        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-    }, [policyID, policy.name, policyReports]);
 
     useEffect(() => {
         const policyDraftId = lodashGet(props.policyDraft, 'id', null);
@@ -206,78 +163,67 @@ function WorkspaceInitialPage(props) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID={WorkspaceInitialPage.displayName}
+            includePaddingTop={false}
+            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={shouldShowNotFoundPage}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                >
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
-                        <OfflineWithFeedback
-                            pendingAction={policy.pendingAction}
-                            onClose={() => dismissError(policy.id)}
-                            errors={policy.errors}
-                            errorRowStyles={[styles.ph5, styles.pv2]}
-                        >
-                            <Breadcrumbs
-                                breadcrumbs={[
-                                    {
-                                        type: CONST.BREADCRUMB_TYPE.STRONG,
-                                        text: policyName,
-                                    },
-                                    {
-                                        text: translate('common.settings'),
-                                    },
-                                ]}
-                                style={[styles.ph5, styles.pb5]}
-                            />
-                            <View style={[styles.pb4, styles.mh3]}>
-                                {/*
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                shouldShow={shouldShowNotFoundPage}
+                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+            >
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
+                            type: CONST.BREADCRUMB_TYPE.STRONG,
+                            text: policyName,
+                        },
+                        {
+                            text: translate('common.settings'),
+                        },
+                    ]}
+                    style={[styles.ph5, styles.pb5]}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
+                    <OfflineWithFeedback
+                        pendingAction={policy.pendingAction}
+                        onClose={() => dismissError(policy.id)}
+                        errors={policy.errors}
+                        errorRowStyles={[styles.ph5, styles.pv2]}
+                    >
+                        <View style={[styles.pb4, styles.mh3]}>
+                            {/*
                                     Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                     In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                                 */}
-                                {_.map(menuItems, (item) => (
-                                    <MenuItem
-                                        key={item.translationKey}
-                                        disabled={hasPolicyCreationError || isExecuting}
-                                        interactive={!hasPolicyCreationError}
-                                        title={translate(item.translationKey)}
-                                        icon={item.icon}
-                                        onPress={item.action}
-                                        brickRoadIndicator={item.brickRoadIndicator}
-                                        wrapperStyle={styles.sectionMenuItem}
-                                        focused={activeRoute && activeRoute.startsWith(item.routeName)}
-                                        isPaneMenu
-                                    />
-                                ))}
-                            </View>
-                        </OfflineWithFeedback>
-                    </ScrollView>
-                    <ConfirmModal
-                        title={translate('workspace.bankAccount.workspaceCurrency')}
-                        isVisible={isCurrencyModalOpen}
-                        onConfirm={confirmCurrencyChangeAndHideModal}
-                        onCancel={() => setIsCurrencyModalOpen(false)}
-                        prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                        confirmText={translate('workspace.bankAccount.updateToUSD')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.common.delete')}
-                        isVisible={isDeleteModalOpen}
-                        onConfirm={confirmDeleteAndHideModal}
-                        onCancel={() => setIsDeleteModalOpen(false)}
-                        prompt={translate('workspace.common.deleteConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                </FullPageNotFoundView>
-            )}
+                            {_.map(menuItems, (item) => (
+                                <MenuItem
+                                    key={item.translationKey}
+                                    disabled={hasPolicyCreationError || isExecuting}
+                                    interactive={!hasPolicyCreationError}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={styles.sectionMenuItem}
+                                    focused={activeRoute && activeRoute.startsWith(item.routeName)}
+                                    isPaneMenu
+                                />
+                            ))}
+                        </View>
+                    </OfflineWithFeedback>
+                </ScrollView>
+                <ConfirmModal
+                    title={translate('workspace.bankAccount.workspaceCurrency')}
+                    isVisible={isCurrencyModalOpen}
+                    onConfirm={confirmCurrencyChangeAndHideModal}
+                    onCancel={() => setIsCurrencyModalOpen(false)}
+                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                    confirmText={translate('workspace.bankAccount.updateToUSD')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

@@ -76,8 +76,7 @@ function BaseSelectionList({
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
-    const [isInitialRender, setIsInitialRender] = useState(true);
-    const wrapperStyles = useMemo(() => ({opacity: isInitialRender ? 0 : 1}), [isInitialRender]);
+    const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -293,7 +292,7 @@ function BaseSelectionList({
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
@@ -331,13 +330,13 @@ function BaseSelectionList({
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!isInitialRender) {
+            if (!isInitialSectionListRender) {
                 return;
             }
             scrollToIndex(focusedIndex, false);
-            setIsInitialRender(false);
+            setIsInitialSectionListRender(false);
         },
-        [focusedIndex, isInitialRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -365,7 +364,7 @@ function BaseSelectionList({
 
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (isInitialRender) {
+        if (isInitialSectionListRender) {
             return;
         }
 
@@ -401,9 +400,9 @@ function BaseSelectionList({
             {/* <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyle]}> */}
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles, StyleUtils.parseStyleAsArray(containerStyle)]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, StyleUtils.parseStyleAsArray(containerStyle)]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pb3]}>
+                            <View style={[styles.ph4, styles.pb3]}>
                                 <TextInput
                                     ref={(el) => {
                                         if (inputRef) {
@@ -428,7 +427,7 @@ function BaseSelectionList({
                             </View>
                         )}
                         {Boolean(headerMessage) && (
-                            <View style={[styles.ph5, styles.pb5]}>
+                            <View style={[styles.ph4, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
@@ -439,7 +438,7 @@ function BaseSelectionList({
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                                     <PressableWithFeedback
-                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
+                                        style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3]}
                                         onPress={selectAllRow}
                                         accessibilityLabel={translate('workspace.people.selectAll')}
                                         role="button"
@@ -479,7 +478,7 @@ function BaseSelectionList({
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={scrollToFocusedIndexOnFirstRender}
-                                    style={!maxToRenderPerBatch && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                 />
                                 {children}
                             </>

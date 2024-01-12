@@ -48,6 +48,7 @@ function WorkspaceBillsFirstSection(props) {
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
             icon={Illustrations.PinkBill}
+            isCentralPane
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),

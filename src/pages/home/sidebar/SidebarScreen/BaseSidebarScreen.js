@@ -31,18 +31,16 @@ function BaseSidebarScreen(props) {
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
             includePaddingTop={false}
+            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
         >
             {({insets}) => (
-                <>
-                    <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                            onLayout={props.onLayout}
-                        />
-                    </View>
-                    {props.children}
-                </>
+                <View style={[styles.flex1]}>
+                    <SidebarLinksData
+                        onLinkClick={startTimer}
+                        insets={insets}
+                        onLayout={props.onLayout}
+                    />
+                </View>
             )}
         </ScreenWrapper>
     );

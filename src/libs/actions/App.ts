@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as Browser from '@libs/Browser';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -447,6 +448,8 @@ function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
             selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
         };
     }
+
+    newTimezoneData = DateUtils.formatToSupportedTimezone(newTimezoneData);
 
     type OpenProfileParams = {
         timezone: string;

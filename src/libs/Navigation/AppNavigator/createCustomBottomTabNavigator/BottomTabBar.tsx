@@ -8,6 +8,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -25,9 +26,7 @@ function BottomTabBar() {
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
-        if (topmostBottomTabRoute) {
-            return topmostBottomTabRoute.name;
-        }
+        return topmostBottomTabRoute?.name;
     });
 
     return (
@@ -53,9 +52,7 @@ function BottomTabBar() {
             <BottomTabBarFloatingActionButton />
             <Tooltip text={translate('common.settings')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.ALL_SETTINGS);
-                    }}
+                    onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.ALL_SETTINGS))}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.settings')}
                     wrapperStyle={styles.flexGrow1}

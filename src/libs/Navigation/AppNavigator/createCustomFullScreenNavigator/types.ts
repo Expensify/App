@@ -1,13 +1,12 @@
 import type {DefaultNavigatorOptions, ParamListBase, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 
-type ResponsiveStackNavigatorConfig = {
+type FullScreenNavigatorConfig = {
     isSmallScreenWidth: boolean;
 };
 
-type ResponsiveStackNavigatorRouterOptions = StackRouterOptions;
+type FullScreenNavigatorRouterOptions = StackRouterOptions;
 
-type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> &
-    ResponsiveStackNavigatorConfig;
+type FullScreenNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & FullScreenNavigatorConfig;
 
-export type {ResponsiveStackNavigatorConfig, ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions};
+export type {FullScreenNavigatorConfig, FullScreenNavigatorProps, FullScreenNavigatorRouterOptions};
