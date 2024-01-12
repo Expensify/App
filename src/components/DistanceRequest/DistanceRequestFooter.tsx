@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import type {WayPoint} from '@components/MapView/MapViewTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import type {MapboxAccessToken} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {WayPoint} from '@components/MapView/MapViewTypes';
 
 const MAX_WAYPOINTS = 25;
 
