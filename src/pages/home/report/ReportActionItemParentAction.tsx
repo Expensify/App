@@ -33,6 +33,9 @@ type ReportActionItemParentActionProps = WithLocalizeProps &
         /** Flag to display the new marker on top of the comment */
         shouldDisplayNewMarker: boolean;
 
+        /** Position index of the report parent action in the overall report FlatList view */
+        index: number;
+
         /** The id of the report */
         // eslint-disable-next-line react/no-unused-prop-types
         reportID: string;
@@ -46,6 +49,7 @@ function ReportActionItemParentAction({
     report = {reportID: ''},
     parentReportActions = {},
     isSmallScreenWidth,
+    index = 0,
     shouldHideThreadDividerLine = false,
     shouldDisplayNewMarker,
 }: ReportActionItemParentActionProps) {
@@ -76,7 +80,7 @@ function ReportActionItemParentAction({
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}
-                        index={0}
+                        index={index}
                     />
                 )}
             </View>
