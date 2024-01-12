@@ -10,7 +10,7 @@ import Reanimated, {
     withSequence,
     withTiming,
 } from 'react-native-reanimated';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import useWindowDimensions from '../../hooks/useWindowDimensions';
@@ -148,7 +148,7 @@ function ActionSheetKeyboardSpace(props) {
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
 
-                    return previousElementOffset;
+                    return withSpring(previousElementOffset, config);
                 }
 
                 return 0;
