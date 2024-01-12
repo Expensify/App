@@ -314,7 +314,7 @@ function ReportActionItem(props) {
                 setIsContextMenuActive(true);
                 const selection = SelectionScraper.getCurrentSelection();
                 ReportActionContextMenu.showContextMenu(
-                    CONST.ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                    CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                     event,
                     selection,
                     popoverAnchorRef,
