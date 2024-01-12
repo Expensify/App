@@ -196,6 +196,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+const extractPolicyIDFromPath = (path: string) => path.match(/\/w\/([a-zA-Z0-9]+)(\/|$)/)?.[1];
+
+const getPathWithoutPolicyID = (path: string) => path.replace(/\/w\/[a-zA-Z0-9]+(\/|$)/, '/');
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -217,4 +221,6 @@ export {
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,
+    extractPolicyIDFromPath,
+    getPathWithoutPolicyID,
 };

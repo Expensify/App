@@ -12,7 +12,6 @@ import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
-import linkToBottomTabWithPolicyID from './linkToBottomTabWithPolicyID';
 import navigationRef from './navigationRef';
 import type {State, StateOrRoute} from './types';
 
@@ -146,18 +145,6 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
         return;
     }
     linkTo(navigationRef.current, route, type, isActiveRoute(route));
-}
-
-function navigateWithPolicyID(policyID: string, route: Route = ROUTES.HOME) {
-    if (!canNavigate('navigate', {route})) {
-        // Store intended route if the navigator is not yet available,
-        // we will try again after the NavigationContainer is ready
-        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
-        pendingRoute = route;
-        return;
-    }
-
-    linkToBottomTabWithPolicyID(navigationRef.current, route, policyID);
 }
 
 /**
@@ -338,7 +325,6 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     closeFullScreen,
-    navigateWithPolicyID,
 };
 
 export {navigationRef};

@@ -2,6 +2,7 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
@@ -185,10 +186,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
     return state;
 }
-
-const extractPolicyIDFromPath = (path: string) => path.match(/\/w\/([a-zA-Z0-9]+)\//)?.[1];
-
-const getPathWithoutPolicyID = (path: string) => path.replace(/\/w\/[a-zA-Z0-9]+\//, '/');
 
 const getAdaptedStateFromPath: typeof getStateFromPath = (path, options) => {
     const url = getPathWithoutPolicyID(path);

@@ -2,6 +2,7 @@ import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -64,7 +65,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
 }
 
 // Because we need to change the type to push, we also need to set target for this action to the bottom tab navigator.
-function getActionForBottomTabNavigator(action: StackNavigationAction, state: NavigationState<RootStackParamList>): Writable<NavigationAction> | undefined {
+function getActionForBottomTabNavigator(action: StackNavigationAction, state: NavigationState<RootStackParamList>, policyID?: string): Writable<NavigationAction> | undefined {
     const bottomTabNavigatorRoute = state.routes.at(0);
 
     if (!bottomTabNavigatorRoute || bottomTabNavigatorRoute.state === undefined || !action || action.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
@@ -72,18 +73,20 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     }
 
     const params = action.payload.params as ActionPayloadParams;
+    let payloadParams = params.params as Record<string, string | undefined>;
     const screen = params.screen;
-    const policyIdFromState = getPolicyIdFromState(state);
 
-    if (!params.params?.policyID) {
-        params.params = {...params.params, policyID: policyIdFromState};
+    if (!payloadParams) {
+        payloadParams = {policyID};
+    } else if (!('policyID' in payloadParams && !!payloadParams?.policyID)) {
+        payloadParams = {...payloadParams, policyID};
     }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
             name: screen,
-            params: params.params,
+            params: payloadParams,
         },
         target: bottomTabNavigatorRoute.state.key,
     };
@@ -107,8 +110,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         root = current;
     }
 
+    const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
-    const stateFromPath = getStateFromPath(path) as PartialState<NavigationState<RootStackParamList>>;
+    const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
@@ -130,6 +134,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath);
+            console.log('matchingBottomTabRoute', matchingBottomTabRoute);
             if (topmostBottomTabRoute && topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
@@ -152,7 +157,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
-            const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState);
+            const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
+            const policyID = extractedPolicyID ?? getPolicyIdFromState(rootState);
+            const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState, policyID);
 
             if (!actionForBottomTabNavigator) {
                 throw new Error('Could not get action for bottom tab navigator');
