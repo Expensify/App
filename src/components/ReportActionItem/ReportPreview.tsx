@@ -29,13 +29,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type PaymentVerbTranslationPath = 'iou.payerSpent' | 'iou.payerOwes' | 'iou.payerPaid';
-
-type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type ReportPreviewOnyxProps = {
     /** The policy tied to the money request report */
