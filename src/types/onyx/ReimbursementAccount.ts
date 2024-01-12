@@ -69,4 +69,4 @@ type ReimbursementAccount = {
 };
 
 export default ReimbursementAccount;
-export type {BankAccountStep, BankAccountSubStep};
+export type {BankAccountStep, BankAccountSubStep, ACHData};
