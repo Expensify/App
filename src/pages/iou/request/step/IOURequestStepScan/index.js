@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, Text, View} from 'react-native';
+import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -14,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -73,6 +75,44 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
+
+    const [videoConstraints, setVideoConstraints] = useState(null);
+    const tabIndex = 1;
+    const isScanTabActive = useTabNavigatorFocus({tabIndex});
+
+    /**
+     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
+     * The last deviceId is of regular len camera.
+     */
+    useEffect(() => {
+        if (!_.isEmpty(videoConstraints) || !isScanTabActive || !Browser.isMobile()) {
+            return;
+        }
+
+        navigator.mediaDevices.getUserMedia({video: true}).then((stream) => {
+            _.forEach(stream.getTracks(), (videoStream) => videoStream.stop());
+
+            if (!navigator.mediaDevices.enumerateDevices) {
+                setVideoConstraints({facingMode: {exact: 'environment'}});
+                return;
+            }
+
+            navigator.mediaDevices.enumerateDevices().then((devices) => {
+                const lastBackDeviceId = _.chain(devices)
+                    .filter((item) => item.kind === 'videoinput')
+                    .last()
+                    .get('deviceId', '')
+                    .value();
+
+                if (!lastBackDeviceId) {
+                    setVideoConstraints({facingMode: {exact: 'environment'}});
+                    return;
+                }
+                setVideoConstraints({deviceId: lastBackDeviceId});
+            });
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isScanTabActive]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -211,18 +251,20 @@ function IOURequestStepScan({
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     </View>
                 )}
-                <NavigationAwareCamera
-                    onUserMedia={() => setCameraPermissionState('granted')}
-                    onUserMediaError={() => setCameraPermissionState('denied')}
-                    style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
-                    ref={cameraRef}
-                    screenshotFormat="image/png"
-                    videoConstraints={{facingMode: {exact: 'environment'}}}
-                    torchOn={isFlashLightOn}
-                    onTorchAvailability={setIsTorchAvailable}
-                    forceScreenshotSourceSize
-                    cameraTabIndex={1}
-                />
+                {!_.isEmpty(videoConstraints) && (
+                    <NavigationAwareCamera
+                        onUserMedia={() => setCameraPermissionState('granted')}
+                        onUserMediaError={() => setCameraPermissionState('denied')}
+                        style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                        ref={cameraRef}
+                        screenshotFormat="image/png"
+                        videoConstraints={videoConstraints}
+                        torchOn={isFlashLightOn}
+                        onTorchAvailability={setIsTorchAvailable}
+                        forceScreenshotSourceSize
+                        cameraTabIndex={tabIndex}
+                    />
+                )}
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
