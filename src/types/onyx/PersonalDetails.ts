@@ -68,6 +68,9 @@ type PersonalDetails = {
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
+    /** Flag for checking if the user is coming from a server search result */
+    isServerSearchResult?: boolean;
+
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
