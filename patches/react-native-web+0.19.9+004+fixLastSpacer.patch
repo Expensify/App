@@ -17,7 +17,7 @@ index faeb323..68d740a 100644
  
  /**
   * Base implementation for the more convenient [`<FlatList>`](https://reactnative.dev/docs/flatlist)
-@@ -1107,7 +1099,8 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1119,7 +1111,8 @@ class VirtualizedList extends StateSafePureComponent {
        _keylessItemComponentName = '';
        var spacerKey = this._getSpacerKey(!horizontal);
        var renderRegions = this.state.renderMask.enumerateRegions();

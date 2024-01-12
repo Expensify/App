@@ -64,8 +64,8 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Array of all report actions for this report */
-    allReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    /** All the report actions for this report */
+    allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
