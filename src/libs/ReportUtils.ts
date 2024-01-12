@@ -2612,6 +2612,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 
+    // The account defined in the policy submitsTo field is the approver/ manager for this report
     if (policy?.submitsTo) {
         expenseReport.managerID = policy.submitsTo;
     }
