@@ -11,7 +11,7 @@ const ViolationsUtils = {
      * violations.
      */
     getViolationsOnyxData(
-        transaction: Transaction,
+        updatedTransaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
         policyTagList: PolicyTagList,
@@ -27,15 +27,15 @@ const ViolationsUtils = {
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
-            const isCategoryInPolicy = Boolean(policyCategories[transaction.category]?.enabled);
+            const isCategoryInPolicy = Boolean(policyCategories[updatedTransaction.category]?.enabled);
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
-            if (!hasCategoryOutOfPolicyViolation && transaction.category && !isCategoryInPolicy) {
+            if (!hasCategoryOutOfPolicyViolation && updatedTransaction.category && !isCategoryInPolicy) {
                 newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
-            if (hasCategoryOutOfPolicyViolation && transaction.category && isCategoryInPolicy) {
+            if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
@@ -45,26 +45,25 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation if category is required and not set
-            if (!hasMissingCategoryViolation && policyRequiresCategories && !transaction.category) {
+            if (!hasMissingCategoryViolation && policyRequiresCategories && !updatedTransaction.category) {
                 newTransactionViolations.push({name: 'missingCategory', type: 'violation', userMessage: ''});
             }
         }
-
 
         if (policyRequiresTags) {
             const policyTagListName = Object.keys(policyTagList)[0];
             const policyTags = policyTagList[policyTagListName].tags;
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+            const isTagInPolicy = Boolean(policyTags[updatedTransaction.tag]?.enabled);
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
-            if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
+            if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
                 newTransactionViolations.push({name: 'tagOutOfPolicy', type: 'violation', userMessage: ''});
             }
 
             // Remove 'tagOutOfPolicy' violation if tag is in policy
-            if (hasTagOutOfPolicyViolation && transaction.tag && isTagInPolicy) {
+            if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'tagOutOfPolicy'});
             }
 
@@ -74,14 +73,14 @@ const ViolationsUtils = {
             }
 
             // Add 'missingTag violation' if tag is required and not set
-            if (!hasMissingTagViolation && !transaction.tag && policyRequiresTags) {
+            if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
                 newTransactionViolations.push({name: 'missingTag', type: 'violation', userMessage: ''});
             }
         }
 
         return {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
             value: newTransactionViolations,
         };
     },

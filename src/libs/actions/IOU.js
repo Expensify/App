@@ -1055,7 +1055,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
 
     // Add optimistic transaction violations
     const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    optimisticData.push(ViolationsUtils.getViolationsOnyxData(transaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories));
+    optimisticData.push(ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories));
 
     // Clear out the error fields and loading states on success
     successData.push({
@@ -2270,7 +2270,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
     const currentTime = DateUtils.getDBTime();
     const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-        transaction,
+        updatedTransaction,
         currentTransactionViolations,
         policy.requiresTag,
         policyTags,
