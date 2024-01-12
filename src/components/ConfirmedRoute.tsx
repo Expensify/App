@@ -2,7 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
-import type {WayPoint} from '@components/MapView/MapViewTypes';
+import type {WayPoint} from './MapView/MapViewTypes';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
