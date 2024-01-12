@@ -44,16 +44,7 @@ type ReportActionItemParentActionProps = WithLocalizeProps &
 function ReportActionItemParentAction({report, parentReportActions, isSmallScreenWidth, shouldHideThreadDividerLine, shouldDisplayNewMarker}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    if (!parentReportActions) {
-        return;
-    }
-    if (!report) {
-        return;
-    }
-    const parentReportAction = parentReportActions[`${report?.parentReportActionID}`];
-    const shouldDisableOpacity = parentReportAction?.pendingAction ?? false;
-    const pendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat;
-    const errors = report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;
+    const parentReportAction = parentReportActions?.[`${report?.parentReportActionID ?? ''}`] ?? null;
 
     // In case of transaction threads, we do not want to render the parent report action.
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
@@ -61,11 +52,11 @@ function ReportActionItemParentAction({report, parentReportActions, isSmallScree
     }
     return (
         <OfflineWithFeedback
-            shouldDisableOpacity={Boolean(shouldDisableOpacity)}
-            pendingAction={pendingAction}
-            errors={errors}
+            shouldDisableOpacity={Boolean(parentReportAction?.pendingAction ?? false)}
+            pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
+            errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => Report.navigateToConciergeChatAndDeleteReport(report.reportID)}
+            onClose={() => Report.navigateToConciergeChatAndDeleteReport(report?.reportID ?? '0')}
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
                 <AnimatedEmptyStateBackground />
