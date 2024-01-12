@@ -19,8 +19,7 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
-            const isVideo = Boolean(Str.isVideo(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || ''));
-            if (isVideo) {
+            if (name === 'video') {
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
                     reportActionID: null,
@@ -33,24 +32,22 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
                 return;
             }
 
-            if (name !== 'img' || !attribs.src) {
-                return;
+            if (name === 'img') {
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+
+                // By iterating actions in chronological order and prepending each attachment
+                // we ensure correct order of attachments even across actions with multiple attachments.
+                attachments.unshift({
+                    reportActionID: attribs['data-id'],
+                    source,
+                    isAuthTokenRequired: Boolean(expensifySource),
+                    file: {name: fileName},
+                    isReceipt: false,
+                    hasBeenFlagged: attribs['data-flagged'] === 'true',
+                });
             }
-
-            const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-            const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
-            const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
-
-            // By iterating actions in chronological order and prepending each attachment
-            // we ensure correct order of attachments even across actions with multiple attachments.
-            attachments.unshift({
-                reportActionID: attribs['data-id'],
-                source,
-                isAuthTokenRequired: Boolean(expensifySource),
-                file: {name: fileName},
-                isReceipt: false,
-                hasBeenFlagged: attribs['data-flagged'] === 'true',
-            });
         },
     });
 
