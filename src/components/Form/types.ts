@@ -1,20 +1,19 @@
-import type {FocusEvent, MutableRefObject, ReactNode} from 'react';
+import type {ComponentProps, ElementType, FocusEvent, MutableRefObject, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/onyx';
 
 type ValueType = 'string' | 'boolean' | 'date';
 
-type ValidInput = typeof TextInput;
+type ValidInput = ElementType;
 
-type InputProps<TInput extends ValidInput> = Parameters<TInput>[0] & {
+type InputProps<TInput extends ValidInput> = ComponentProps<TInput> & {
     shouldSetTouchedOnBlurOnly?: boolean;
     onValueChange?: (value: unknown, key: string) => void;
     onTouched?: (event: unknown) => void;
     valueType?: ValueType;
-    onBlur: (event: FocusEvent | Parameters<NonNullable<Parameters<TInput>[0]['onBlur']>>[0]) => void;
+    onBlur: (event: FocusEvent | Parameters<NonNullable<ComponentProps<TInput>['onBlur']>>[0]) => void;
 };
 
 type InputWrapperProps<TInput extends ValidInput> = InputProps<TInput> & {

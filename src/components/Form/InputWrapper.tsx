@@ -16,7 +16,7 @@ function InputWrapper<TInput extends ValidInput>({InputComponent, inputID, value
 
     // TODO: Sometimes we return too many props with register input, so we need to consider if it's better to make the returned type more general and disregard the issue, or we would like to omit the unused props somehow.
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <InputComponent {...registerInput(inputID, {ref, shouldSetTouchedOnBlurOnly, valueType, ...rest})} />;
+    return <InputComponent {...registerInput(inputID, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly})} />;
 }
 
 InputWrapper.displayName = 'InputWrapper';
