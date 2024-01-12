@@ -127,17 +127,11 @@ function getOrderedReportIDs(
     reportActionCount = Math.max(reportActionCount, 1);
 
     // Generate a unique cache key based on the function arguments
-    const cachedReportsKey = JSON.stringify([currentReportId, allReports, betas, policies, priorityMode, reportActionCount], (key, value: unknown) => {
-        /**
-         *  Exclude some properties not to overwhelm a cached key value with huge data,
-         *  which we don't need to store in a cacheKey
-         */
-        if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
-            return undefined;
-        }
-
-        return value;
-    });
+    const cachedReportsKey = JSON.stringify(
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+        // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
+        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
+    );
 
     // Check if the result is already in the cache
     const cachedIDs = reportIDsCache.get(cachedReportsKey);
