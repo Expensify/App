@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Lightbox from '@components/Lightbox';
-import {zoomRangeDefaultProps, zoomRangePropTypes} from '@components/MultiGestureCanvas/propTypes';
+import {defaultZoomRange} from '@components/MultiGestureCanvas';
 import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
 
 /**
@@ -9,7 +9,12 @@ import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
  */
 const propTypes = {
     ...imageViewPropTypes,
-    ...zoomRangePropTypes,
+
+    /** Range of zoom that can be applied to the content by pinching or double tapping. */
+    zoomRange: PropTypes.shape({
+        min: PropTypes.number,
+        max: PropTypes.number,
+    }),
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -20,7 +25,11 @@ const propTypes = {
 
 const defaultProps = {
     ...imageViewDefaultProps,
-    ...zoomRangeDefaultProps,
+
+    zoomRange: {
+        min: defaultZoomRange.min,
+        max: defaultZoomRange.max,
+    },
 
     onPress: () => {},
     style: {},
