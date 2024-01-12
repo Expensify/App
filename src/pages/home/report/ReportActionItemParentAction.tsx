@@ -34,6 +34,7 @@ type ReportActionItemParentActionProps = WithLocalizeProps &
         shouldDisplayNewMarker: boolean;
 
         /** The id of the report */
+        // eslint-disable-next-line react/no-unused-prop-types
         reportID: string;
 
         /** The id of the parent report */
@@ -41,7 +42,13 @@ type ReportActionItemParentActionProps = WithLocalizeProps &
         parentReportID: string;
     };
 
-function ReportActionItemParentAction({report, parentReportActions, isSmallScreenWidth, shouldHideThreadDividerLine, shouldDisplayNewMarker}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({
+    report = {reportID: ''},
+    parentReportActions = {},
+    isSmallScreenWidth,
+    shouldHideThreadDividerLine = false,
+    shouldDisplayNewMarker,
+}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const parentReportAction = parentReportActions?.[`${report?.parentReportActionID ?? ''}`] ?? null;
