@@ -26,7 +26,7 @@ function PlaybackContextProvider({children}) {
 
     const playVideo = useCallback(() => {
         if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync) {
-            currentVideoPlayerRef.current.setStopVideo({shouldPlay: true});
+            currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
         }
     }, [currentVideoPlayerRef]);
 
