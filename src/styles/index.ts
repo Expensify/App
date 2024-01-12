@@ -1735,7 +1735,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -3322,6 +3322,13 @@ const styles = (theme: ThemeColors) =>
         emojiReactionBubbleText: {
             verticalAlign: 'middle',
         },
+
+        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                position: 'absolute',
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+                ...spacing.mh4,
+            } satisfies ViewStyle),
 
         reactionCounterText: {
             fontSize: 13,

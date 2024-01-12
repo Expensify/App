@@ -156,13 +156,8 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 return;
             }
 
-            // This is possible only in case of IOU requests.
-            if (newTrimmedMerchant === '') {
-                IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
-                return;
-            }
-
-            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newMerchant);
+            // An empty newTrimmedMerchant is only possible for the P2P IOU case
+            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
             Navigation.dismissModal();
         },
         [transactionMerchant, transaction, report],
