@@ -1,56 +1,61 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import participantPropTypes from '@components/participantPropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
+import type {WithLocalizeProps} from '@components/withLocalize';
 import withLocalize from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import withWindowDimensions from '@components/withWindowDimensions';
+import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
-const propTypes = {
-    /** The id of the report */
-    reportID: PropTypes.string.isRequired,
-
+type OnyxProps = {
     /** The report currently being looked at */
-    report: reportPropTypes,
+    report: OnyxEntry<Report>;
+
+    /** The policy being used */
+    policy: OnyxEntry<Policy>;
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+};
+
+type ReportActionItemCreatedProps = {
+    /** The id of the report */
+    reportID: string;
+
+    /** The id of the policy */
+    // eslint-disable-next-line react/no-unused-prop-types
+    policyID: string;
 
     /** The policy object for the current route */
-    policy: PropTypes.shape({
+    policy?: {
         /** The name of the policy */
-        name: PropTypes.string,
+        name?: string;
 
         /** The URL for the policy avatar */
-        avatar: PropTypes.string,
-    }),
+        avatar?: string;
+    };
+} & WindowDimensionsProps &
+    WithLocalizeProps &
+    OnyxProps;
 
-    ...windowDimensionsPropTypes,
-};
-const defaultProps = {
-    report: {},
-    personalDetails: {},
-    policy: {},
-};
-
-function ReportActionItemCreated(props) {
+function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -60,10 +65,10 @@ function ReportActionItemCreated(props) {
 
     return (
         <OfflineWithFeedback
-            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
-            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
+            pendingAction={props.report?.pendingFields?.addWorkspaceRoom ?? props.report?.pendingFields?.createChat ?? undefined}
+            errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat ?? undefined}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
             needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
@@ -99,14 +104,12 @@ function ReportActionItemCreated(props) {
     );
 }
 
-ReportActionItemCreated.defaultProps = defaultProps;
-ReportActionItemCreated.propTypes = propTypes;
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default compose(
-    withWindowDimensions,
+    withWindowDimensions<ReportActionItemCreatedProps, WindowDimensionsProps>,
     withLocalize,
-    withOnyx({
+    withOnyx<ReportActionItemCreatedProps, OnyxProps>({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             selector: reportWithoutHasDraftSelector,
@@ -122,10 +125,10 @@ export default compose(
     memo(
         ReportActionItemCreated,
         (prevProps, nextProps) =>
-            lodashGet(prevProps.props, 'policy.name') === lodashGet(nextProps, 'policy.name') &&
-            lodashGet(prevProps.props, 'policy.avatar') === lodashGet(nextProps, 'policy.avatar') &&
-            lodashGet(prevProps.props, 'report.lastReadTime') === lodashGet(nextProps, 'report.lastReadTime') &&
-            lodashGet(prevProps.props, 'report.statusNum') === lodashGet(nextProps, 'report.statusNum') &&
-            lodashGet(prevProps.props, 'report.stateNum') === lodashGet(nextProps, 'report.stateNum'),
+            prevProps.policy?.name === nextProps.policy?.name &&
+            prevProps.policy?.avatar === nextProps.policy?.avatar &&
+            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
+            prevProps.report?.statusNum === nextProps.report?.statusNum &&
+            prevProps.report?.stateNum === nextProps.report?.stateNum,
     ),
 );
