@@ -1,9 +1,9 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as anchorForAttachmentsOnlyPropTypes from './anchorForAttachmentsOnlyPropTypes';
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
+import type AnchorForAttachmentsOnlyProps from './types';
 
-function AnchorForAttachmentsOnly(props) {
+function AnchorForAttachmentsOnly(props: AnchorForAttachmentsOnlyProps) {
     const styles = useThemeStyles();
     return (
         <BaseAnchorForAttachmentsOnly
@@ -14,8 +14,6 @@ function AnchorForAttachmentsOnly(props) {
     );
 }
 
-AnchorForAttachmentsOnly.propTypes = anchorForAttachmentsOnlyPropTypes.propTypes;
-AnchorForAttachmentsOnly.defaultProps = anchorForAttachmentsOnlyPropTypes.defaultProps;
 AnchorForAttachmentsOnly.displayName = 'AnchorForAttachmentsOnly';
 
 export default AnchorForAttachmentsOnly;
