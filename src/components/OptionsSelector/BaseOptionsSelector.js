@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {InteractionManager, ScrollView, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
@@ -15,7 +15,7 @@ import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withNavigation from '@components/withNavigation';
+import withNavigationFocus from '@components/withNavigationFocus';
 import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
@@ -39,6 +39,9 @@ const propTypes = {
 
     /** List styles for OptionsList */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 
     /** Whether referral CTA should be displayed */
     shouldShowReferralCTA: PropTypes.bool,
@@ -77,19 +80,17 @@ class BaseOptionsSelector extends Component {
         this.incrementPage = this.incrementPage.bind(this);
         this.sliceSections = this.sliceSections.bind(this);
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
-        this.onLayout = this.onLayout.bind(this);
-        this.setListRef = this.setListRef.bind(this);
         this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
 
-        this.focusListener = null;
-        this.blurListener = null;
-        this.isFocused = false;
+        const allOptions = this.flattenSections();
+        const sections = this.sliceSections();
+        const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
 
         this.state = {
-            sections: [],
-            allOptions: [],
-            focusedIndex: 0,
+            sections,
+            allOptions,
+            focusedIndex,
             shouldDisableRowSelection: false,
             shouldShowReferralModal: false,
             errorMessage: '',
@@ -99,49 +100,35 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.focusListener = this.props.navigation.addListener('focus', () => {
-            // Screen coming back into focus, for example
-            // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
-            // Only applies to platforms that support keyboard shortcuts
-            if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
-                this.subscribeToKeyboardShortcut();
-            }
+        this.subscribeToKeyboardShortcut();
 
-            if (this.props.autoFocus && this.textInput) {
-                this.focusTimeout = setTimeout(() => {
-                    this.textInput.focus();
-                }, CONST.ANIMATED_TRANSITION);
-            }
+        if (this.props.isFocused && this.props.autoFocus && this.textInput) {
+            this.focusTimeout = setTimeout(() => {
+                this.textInput.focus();
+            }, CONST.ANIMATED_TRANSITION);
+        }
 
-            this.isFocused = true;
-        });
-
-        this.blurListener = this.props.navigation.addListener('blur', () => {
-            if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
-                this.unSubscribeFromKeyboardShortcut();
-            }
-            this.isFocused = false;
-        });
         this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
-
-        /**
-         * Execute the following code after all interactions have been completed.
-         * Which means once we are sure that all navigation animations are done,
-         * we will execute the callback passed to `runAfterInteractions`.
-         */
-        this.interactionTask = InteractionManager.runAfterInteractions(() => {
-            const allOptions = this.flattenSections();
-            const sections = this.sliceSections();
-            const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
-            this.setState({
-                sections,
-                allOptions,
-                focusedIndex,
-            });
-        });
     }
 
     componentDidUpdate(prevProps, prevState) {
+        if (prevProps.isFocused !== this.props.isFocused) {
+            if (this.props.isFocused) {
+                this.subscribeToKeyboardShortcut();
+            } else {
+                this.unSubscribeFromKeyboardShortcut();
+            }
+        }
+
+        // Screen coming back into focus, for example
+        // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
+        // Only applies to platforms that support keyboard shortcuts
+        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
+            setTimeout(() => {
+                this.textInput.focus();
+            }, CONST.ANIMATED_TRANSITION);
+        }
+
         if (prevState.paginationPage !== this.state.paginationPage) {
             const newSections = this.sliceSections();
 
@@ -191,24 +178,11 @@ class BaseOptionsSelector extends Component {
     }
 
     componentWillUnmount() {
-        if (this.interactionTask) {
-            this.interactionTask.cancel();
-        }
-        this.focusListener();
-        this.blurListener();
         if (this.focusTimeout) {
             clearTimeout(this.focusTimeout);
         }
-    }
 
-    onLayout() {
-        if (this.props.selectedOptions.length === 0) {
-            this.scrollToIndex(this.state.focusedIndex, false);
-        }
-
-        if (this.props.onLayout) {
-            this.props.onLayout();
-        }
+        this.unSubscribeFromKeyboardShortcut();
     }
 
     /**
@@ -235,10 +209,6 @@ class BaseOptionsSelector extends Component {
         }
 
         return defaultIndex;
-    }
-
-    setListRef(ref) {
-        this.list = ref;
     }
 
     /**
@@ -336,7 +306,7 @@ class BaseOptionsSelector extends Component {
         const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
         const focusedOption = focusedItemKey ? _.find(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
-        if (!focusedOption || !this.isFocused) {
+        if (!focusedOption || !this.props.isFocused) {
             return;
         }
 
@@ -527,7 +497,7 @@ class BaseOptionsSelector extends Component {
         );
         const optionsList = (
             <OptionsList
-                ref={this.setListRef}
+                ref={(el) => (this.list = el)}
                 optionHoveredStyle={optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.state.sections}
@@ -544,9 +514,16 @@ class BaseOptionsSelector extends Component {
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
                 highlightSelectedOptions={this.props.highlightSelectedOptions}
-                onLayout={this.onLayout}
-                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                contentContainerStyles={this.props.contentContainerStyles}
+                onLayout={() => {
+                    if (this.props.selectedOptions.length === 0) {
+                        this.scrollToIndex(this.state.focusedIndex, false);
+                    }
+
+                    if (this.props.onLayout) {
+                        this.props.onLayout();
+                    }
+                }}
+                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 sectionHeaderStyle={this.props.sectionHeaderStyle}
                 listContainerStyles={listContainerStyles}
                 listStyles={this.props.listStyles}
@@ -702,4 +679,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(withLocalize, withNavigation, withThemeStyles, withTheme)(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus, withThemeStyles, withTheme)(BaseOptionsSelector);
