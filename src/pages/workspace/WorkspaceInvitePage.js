@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
@@ -11,8 +10,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';

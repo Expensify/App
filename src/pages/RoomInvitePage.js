@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
@@ -10,11 +9,8 @@ import MemberInviteList from '@components/MemberInviteList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
