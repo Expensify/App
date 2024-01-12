@@ -13,6 +13,7 @@ function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<Flat
             ref={ref}
             windowSize={WINDOW_SIZE}
             maintainVisibleContentPosition={{
+                // This needs to be 1 to avoid using loading views as anchors.
                 minIndexForVisible: 1,
             }}
             inverted
