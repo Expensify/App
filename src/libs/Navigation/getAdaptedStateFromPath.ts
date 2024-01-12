@@ -146,7 +146,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
         routes.push(fullScreenNavigator);
 
-        return getRoutesWithIndex(routes);
+        return {routes};
     }
     if (centralPaneNavigator) {
         // Routes
