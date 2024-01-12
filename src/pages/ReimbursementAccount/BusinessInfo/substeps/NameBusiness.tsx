@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -31,9 +30,8 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultCompanyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyNameKey, '');
-
-    const bankAccountID = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0);
+    const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
 
     const shouldDisableCompanyName = Boolean(bankAccountID && defaultCompanyName);
 

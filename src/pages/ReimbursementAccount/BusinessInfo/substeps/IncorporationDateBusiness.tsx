@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
@@ -44,8 +43,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultCompanyIncorporationDate =
-        getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationDateKey, '') || (reimbursementAccountDraft?.[companyIncorporationDateKey] ?? '');
+    const defaultCompanyIncorporationDate = reimbursementAccount?.achData?.incorporationDate ?? reimbursementAccountDraft?.incorporationDate ?? '';
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
