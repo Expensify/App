@@ -84,4 +84,5 @@ function Composer(
 }
 
 Composer.displayName = 'Composer';
+
 export default React.forwardRef(Composer);
