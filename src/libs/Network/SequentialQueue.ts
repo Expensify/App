@@ -176,7 +176,7 @@ function push(request: OnyxRequest) {
     flush();
 }
 
-function getCurrentRequest(): OnyxRequest | Promise<void> {
+function getCurrentRequest(): Promise<void> {
     if (currentRequest === null) {
         return Promise.resolve();
     }

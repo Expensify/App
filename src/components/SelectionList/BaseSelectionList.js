@@ -14,7 +14,7 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
-import useActiveElement from '@hooks/useActiveElement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -41,6 +41,7 @@ function BaseSelectionList({
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
+    textInputHint = '',
     textInputMaxLength,
     inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
@@ -64,6 +65,7 @@ function BaseSelectionList({
     children,
     shouldStopPropagation = false,
     shouldUseDynamicMaxToRenderPerBatch = false,
+    rightHandSideComponent,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -74,7 +76,7 @@ function BaseSelectionList({
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
-    const activeElement = useActiveElement();
+    const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
@@ -156,7 +158,7 @@ function BaseSelectionList({
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElement && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElement.role);
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -317,6 +319,7 @@ function BaseSelectionList({
                 disableIsFocusStyle={disableInitialFocusOptionStyle}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
             />
         );
@@ -462,6 +465,7 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
+                                    hint={textInputHint}
                                     role={CONST.ROLE.PRESENTATION}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
