@@ -15,7 +15,6 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -30,7 +29,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -128,7 +126,6 @@ const defaultProps = {
 function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
     const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
@@ -280,7 +277,7 @@ function ReportPreview(props) {
                         <View style={styles.reportPreviewBoxBody}>
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, getLineHeightStyle(variables.lineHeightXXLarge)]}>{getPreviewMessage()}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                                 </View>
                                 {!iouSettled && hasErrors && (
                                     <Icon
