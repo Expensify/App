@@ -66,7 +66,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         image = ReceiptSVG;
     }
 
-    const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:');
+    const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
     return {thumbnail: image, image: path, isLocalFile};
 }
 

@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
@@ -10,6 +9,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
+import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
 /**
@@ -35,7 +35,7 @@ function validateCardNumber(value: string): boolean {
  * Validating that this is a valid address (PO boxes are not allowed)
  */
 function isValidAddress(value: string): boolean {
-    if (!CONST.REGEX.ANY_VALUE.test(value)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
 
@@ -307,6 +307,13 @@ function isValidRoutingNumber(routingNumber: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain any emojis
+ */
+function isValidCompanyName(name: string) {
+    return !name.match(CONST.REGEX.EMOJIS);
+}
+
+/**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
 function isValidDisplayName(name: string): boolean {
@@ -317,7 +324,8 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+    const hasAccentedChars = Boolean(name.match(CONST.REGEX.ACCENT_LATIN_CHARS));
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
 }
 
 /**
@@ -451,6 +459,7 @@ export {
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
+    isValidCompanyName,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,

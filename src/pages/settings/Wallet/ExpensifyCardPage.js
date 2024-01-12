@@ -265,7 +265,7 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                {!_.isEmpty(physicalCard) && (
+                                {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.OPEN && (
                                     <>
                                         <MenuItemWithTopDescription
                                             description={translate('cardPage.physicalCardNumber')}

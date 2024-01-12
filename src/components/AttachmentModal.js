@@ -129,7 +129,7 @@ function AttachmentModal(props) {
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
-    const [source, setSource] = useState(props.source);
+    const [source, setSource] = useState(() => props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
@@ -362,7 +362,7 @@ function AttachmentModal(props) {
     }, []);
 
     useEffect(() => {
-        setSource(props.source);
+        setSource(() => props.source);
     }, [props.source]);
 
     useEffect(() => {
@@ -383,15 +383,25 @@ function AttachmentModal(props) {
                 text: props.translate('common.replace'),
                 onSelected: () => {
                     closeModal();
-                    Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            props.transaction.transactionID,
+                            props.report.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 },
             });
         }
-        menuItems.push({
-            icon: Expensicons.Download,
-            text: props.translate('common.download'),
-            onSelected: () => downloadAttachment(source),
-        });
+        if (!isOffline) {
+            menuItems.push({
+                icon: Expensicons.Download,
+                text: props.translate('common.download'),
+                onSelected: () => downloadAttachment(source),
+            });
+        }
         if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
@@ -413,7 +423,7 @@ function AttachmentModal(props) {
     if (!_.isEmpty(props.report)) {
         headerTitle = translate(props.isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !props.isReceiptAttachment && !isOffline;
-        shouldShowThreeDotsButton = props.isReceiptAttachment && isModalOpen;
+        shouldShowThreeDotsButton = props.isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
 
     return (
