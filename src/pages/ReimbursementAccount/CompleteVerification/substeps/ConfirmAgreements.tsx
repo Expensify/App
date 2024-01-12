@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -53,17 +52,9 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultValues = {
-        [COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: getDefaultValueForReimbursementAccountField(
-            reimbursementAccount,
-            COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
-            false,
-        ),
-        [COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION]: getDefaultValueForReimbursementAccountField(reimbursementAccount, COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION, false),
-        [COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS]: getDefaultValueForReimbursementAccountField(
-            reimbursementAccount,
-            COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS,
-            false,
-        ),
+        isAuthorizedToUseBankAccount: reimbursementAccount?.achData?.isAuthorizedToUseBankAccount ?? false,
+        certifyTrueInformation: reimbursementAccount?.achData?.certifyTrueInformation ?? false,
+        acceptTermsAndConditions: reimbursementAccount?.achData?.acceptTermsAndConditions ?? false,
     };
 
     return (
@@ -87,7 +78,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
                     style={styles.mt4}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.isAuthorizedToUseBankAccount')}</Text>}
-                    defaultValue={defaultValues[COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]}
+                    defaultValue={defaultValues.isAuthorizedToUseBankAccount}
                     shouldSaveDraft
                 />
                 <InputWrapper
@@ -97,7 +88,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
                     style={styles.mt4}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.certifyTrueAndAccurate')}</Text>}
-                    defaultValue={defaultValues[COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION]}
+                    defaultValue={defaultValues.certifyTrueInformation}
                     shouldSaveDraft
                 />
                 <InputWrapper
@@ -112,7 +103,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                             <TextLink href="https://use.expensify.com/achterms">{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
                         </Text>
                     )}
-                    defaultValue={defaultValues[COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS]}
+                    defaultValue={defaultValues.acceptTermsAndConditions}
                     shouldSaveDraft
                 />
             </FormProvider>
