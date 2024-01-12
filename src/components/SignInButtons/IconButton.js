@@ -4,7 +4,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -33,11 +33,12 @@ const providerData = {
 };
 
 function IconButton({onPress, translate, provider}) {
+    const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
             onPress={onPress}
             style={styles.signInIconButton}
-            accessibilityRole="button"
+            role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon

@@ -8,13 +8,12 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PendingMapView from '@components/MapView/PendingMapView';
+import ImageSVG from '@components/ImageSVG';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
-import theme from '@styles/themes/default';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -43,7 +42,7 @@ const propTypes = {
         expiration: PropTypes.string,
     }),
 
-    /* Onyx Props */
+    /** The transaction being interacted with */
     transaction: transactionPropTypes,
 };
 
@@ -55,10 +54,12 @@ const defaultProps = {
     transaction: {},
 };
 function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}) {
-    const {isOffline} = useNetwork();
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const numberOfWaypoints = _.size(waypoints);
+    const numberOfFilledWaypoints = _.size(_.filter(waypoints, (waypoint) => !_.isEmpty(waypoint)));
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
@@ -83,7 +84,8 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat],
                         markerComponent: () => (
-                            <MarkerComponent
+                            <ImageSVG
+                                src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
                                 height={CONST.MAP_MARKER_SIZE}
                                 fill={theme.icon}
@@ -93,44 +95,38 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                 }),
                 (waypoint) => waypoint,
             ),
-        [waypoints, lastWaypointIndex],
+        [waypoints, lastWaypointIndex, theme.icon],
     );
 
     return (
         <>
-            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
-                <Button
-                    small
-                    icon={Expensicons.Plus}
-                    onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
-                    text={translate('distance.addStop')}
-                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                    innerStyles={[styles.ph10]}
-                />
-            </View>
+            {numberOfFilledWaypoints >= 2 && (
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
+                    <Button
+                        small
+                        icon={Expensicons.Plus}
+                        onPress={() => navigateToWaypointEditPage(_.size(lodashGet(transaction, 'comment.waypoints', {})))}
+                        text={translate('distance.addStop')}
+                        isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
+                        innerStyles={[styles.ph10]}
+                    />
+                </View>
+            )}
             <View style={styles.mapViewContainer}>
-                {!isOffline && Boolean(mapboxAccessToken.token) ? (
-                    <DistanceMapView
-                        accessToken={mapboxAccessToken.token}
-                        mapPadding={CONST.MAPBOX.PADDING}
-                        pitchEnabled={false}
-                        initialState={{
-                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                            location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
-                        }}
-                        directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
-                        style={[styles.mapView, styles.mapEditView]}
-                        waypoints={waypointMarkers}
-                        styleURL={CONST.MAPBOX.STYLE_URL}
-                        overlayStyle={styles.mapEditView}
-                    />
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        style={styles.mapEditView}
-                    />
-                )}
+                <DistanceMapView
+                    accessToken={mapboxAccessToken.token}
+                    mapPadding={CONST.MAPBOX.PADDING}
+                    pitchEnabled={false}
+                    initialState={{
+                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                        location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
+                    }}
+                    directionCoordinates={lodashGet(transaction, 'routes.route0.geometry.coordinates', [])}
+                    style={[styles.mapView, styles.mapEditView]}
+                    waypoints={waypointMarkers}
+                    styleURL={CONST.MAPBOX.STYLE_URL}
+                    overlayStyle={styles.mapEditView}
+                />
             </View>
         </>
     );
@@ -141,9 +137,6 @@ DistanceRequestFooter.propTypes = propTypes;
 DistanceRequestFooter.defaultProps = defaultProps;
 
 export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },

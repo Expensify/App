@@ -10,9 +10,9 @@ import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 function PronounsPage({currentUserPersonalDetails, isLoadingApp}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);

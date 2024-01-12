@@ -13,9 +13,9 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -35,7 +35,8 @@ const propTypes = {
 
 function BaseVideoChatButtonAndMenu(props) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isVideoChatMenuActive, setIsVideoChatMenuActive] = useState(false);
     const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
     const videoChatIconWrapperRef = useRef(null);
@@ -126,11 +127,11 @@ function BaseVideoChatButtonAndMenu(props) {
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                     >
                         <Icon
                             src={Expensicons.Phone}
-                            fill={isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
+                            fill={isVideoChatMenuActive ? theme.heading : theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>

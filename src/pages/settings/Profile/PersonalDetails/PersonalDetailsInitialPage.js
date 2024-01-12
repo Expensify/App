@@ -11,10 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -57,6 +57,7 @@ const defaultProps = {
 };
 
 function PersonalDetailsInitialPage(props) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();

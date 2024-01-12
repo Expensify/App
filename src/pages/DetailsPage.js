@@ -20,10 +20,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,6 +86,7 @@ const getPhoneNumber = (details) => {
 };
 
 function DetailsPage(props) {
+    const styles = useThemeStyles();
     const login = lodashGet(props.route.params, 'login', '');
     let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
@@ -119,6 +121,7 @@ function DetailsPage(props) {
 
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, '', false);
 
     const isCurrentUser = props.session.accountID === details.accountID;
 
@@ -126,15 +129,12 @@ function DetailsPage(props) {
         <ScreenWrapper testID={DetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
-                <View
-                    pointerEvents="box-none"
-                    style={[styles.containerWithSpaceBetween]}
-                >
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
-                                    headerTitle={details.displayName}
+                                    headerTitle={displayName}
                                     source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
                                     isAuthTokenRequired
                                     originalFileName={details.originalFileName}
@@ -158,12 +158,12 @@ function DetailsPage(props) {
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
-                                {Boolean(details.displayName) && (
+                                {Boolean(displayName) && (
                                     <Text
                                         style={[styles.textHeadline, styles.mb6, styles.pre]}
                                         numberOfLines={1}
                                     >
-                                        {details.displayName}
+                                        {displayName}
                                     </Text>
                                 )}
                                 {details.login ? (
@@ -196,7 +196,7 @@ function DetailsPage(props) {
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${props.translate('common.message')}${details.displayName}`}
+                                    title={`${props.translate('common.message')}${displayName}`}
                                     titleStyle={styles.flex1}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}

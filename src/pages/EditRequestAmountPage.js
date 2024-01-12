@@ -43,18 +43,18 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+            shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
             <HeaderWithBackButton title={translate('iou.amount')} />
             <MoneyRequestAmountForm
-                isEditing
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
+                isEditing
             />
         </ScreenWrapper>
     );

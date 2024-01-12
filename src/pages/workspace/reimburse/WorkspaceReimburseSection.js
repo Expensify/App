@@ -2,19 +2,18 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import _ from 'underscore';
 import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import networkPropTypes from '@components/networkPropTypes';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as Link from '@userActions/Link';
-import CONST from '@src/CONST';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -33,19 +32,21 @@ const propTypes = {
 };
 
 function WorkspaceReimburseSection(props) {
-    const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(true);
     const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const reimburseReceiptsUrl = `reports?policyID=${props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
-    const debounceSetShouldShowLoadingSpinner = _.debounce(() => {
-        const isLoading = props.reimbursementAccount.isLoading || false;
-        if (isLoading !== shouldShowLoadingSpinner) {
-            setShouldShowLoadingSpinner(isLoading);
-        }
-    }, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
+    const isLoading = lodashGet(props.reimbursementAccount, 'isLoading', false);
+    const prevIsLoading = usePrevious(isLoading);
+
     useEffect(() => {
-        debounceSetShouldShowLoadingSpinner();
-    }, [debounceSetShouldShowLoadingSpinner]);
+        if (prevIsLoading === isLoading) {
+            return;
+        }
+        setShouldShowLoadingSpinner(isLoading);
+    }, [prevIsLoading, isLoading]);
 
     if (props.network.isOffline) {
         return (
@@ -60,16 +61,11 @@ function WorkspaceReimburseSection(props) {
         );
     }
 
-    // If the reimbursementAccount is loading but not enough time has passed to show a spinner, then render nothing.
-    if (props.reimbursementAccount.isLoading && !shouldShowLoadingSpinner) {
-        return null;
-    }
-
     if (shouldShowLoadingSpinner) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ActivityIndicator
-                    color={themeColors.spinner}
+                    color={theme.spinner}
                     size="large"
                 />
             </View>

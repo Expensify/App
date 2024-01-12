@@ -1,4 +1,9 @@
-import {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
+
+type Data = {
+    phpCommandName: string;
+    authWriteCommands: string[];
+};
 
 type Response = {
     previousUpdateID?: number | string;
@@ -10,6 +15,13 @@ type Response = {
     authToken?: string;
     encryptedAuthToken?: string;
     message?: string;
+    title?: string;
+    data?: Data;
+    type?: string;
+    shortLivedAuthToken?: string;
+    auth?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    shared_secret?: string;
 };
 
 export default Response;

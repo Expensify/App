@@ -1,6 +1,5 @@
-/* eslint-disable react/prop-types */
 import React, {forwardRef, useCallback} from 'react';
-import {StyleSheet, View, LayoutRectangle, ViewProps} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {
     useAnimatedKeyboard,
     useAnimatedStyle,
@@ -8,8 +7,10 @@ import Reanimated, {
     runOnUI,
     useSharedValue,
 } from 'react-native-reanimated';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
-import KeyboardAvoidingViewProps from './types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import type { View, LayoutRectangle, ViewProps} from 'react-native';
+import type KeyboardAvoidingViewProps from './types';
 
 /**
  * View that moves out of the way when the keyboard appears by automatically

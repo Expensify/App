@@ -11,15 +11,16 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,23 +51,17 @@ const propTypes = {
 
     /** The id of the transaction we're editing */
     transactionID: PropTypes.string,
-
-    /** Whether or not the receipt selector is in a tab navigator for tab animations */
-    isInTabNavigator: PropTypes.bool,
-
-    /** Name of the selected receipt tab */
-    selectedTab: PropTypes.string,
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
     transactionID: '',
-    isInTabNavigator: true,
-    selectedTab: '',
 };
 
-function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, selectedTab}) {
+function ReceiptSelector({route, report, iou, transactionID}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -103,6 +98,25 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
         };
     }, []);
 
+    const validateReceipt = (file) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            return false;
+        }
+
+        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+            return false;
+        }
+        return true;
+    };
+
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
@@ -138,11 +152,12 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                 const filePath = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(filePath, photo.path);
 
-                if (transactionID) {
-                    FileUtils.readFileAsync(filePath, photo.path).then((receipt) => {
-                        IOU.replaceReceipt(transactionID, receipt, filePath);
-                    });
+                const onSuccess = (receipt) => {
+                    IOU.replaceReceipt(transactionID, receipt, filePath);
+                };
 
+                if (transactionID) {
+                    FileUtils.readFileAsync(filePath, photo.path, onSuccess);
                     Navigation.dismissModal();
                     return;
                 }
@@ -164,10 +179,12 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
         <View style={styles.flex1}>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <Hand
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Hand}
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={[styles.pb5]}
+                        style={styles.pb5}
                     />
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
@@ -186,32 +203,37 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={themeColors.textSupporting}
+                        color={theme.textSupporting}
                     />
                 </View>
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
-                    ref={camera}
-                    device={device}
-                    style={[styles.cameraView]}
-                    zoom={device.neutralZoom}
-                    photo
-                    cameraTabIndex={pageIndex}
-                    isInTabNavigator={isInTabNavigator}
-                    selectedTab={selectedTab}
-                />
+                <View style={[styles.cameraView]}>
+                    <View style={styles.flex1}>
+                        <NavigationAwareCamera
+                            ref={camera}
+                            device={device}
+                            style={[styles.flex1]}
+                            zoom={device.neutralZoom}
+                            photo
+                            cameraTabIndex={pageIndex}
+                        />
+                    </View>
+                </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker shouldHideCameraOption>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.gallery')}
                             style={[styles.alignItemsStart]}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
+                                        if (!validateReceipt(file)) {
+                                            return;
+                                        }
                                         const filePath = file.uri;
                                         IOU.setMoneyRequestReceipt(filePath, file.name);
 
@@ -230,24 +252,26 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                                 height={32}
                                 width={32}
                                 src={Expensicons.Gallery}
-                                fill={themeColors.textSupporting}
+                                fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
                 >
-                    <Shutter
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Shutter}
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
                     disabled={cameraPermissionStatus !== RESULTS.GRANTED}
@@ -257,7 +281,7 @@ function ReceiptSelector({route, report, iou, transactionID, isInTabNavigator, s
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
+                        fill={flash ? theme.iconHovered : theme.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

@@ -5,15 +5,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
     /** Whether the modal is visible */
     isVisible: PropTypes.bool.isRequired,
-
-    /** Current value selected  */
-    currentValue: PropTypes.string,
 
     /** Items to pick from */
     items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
@@ -32,7 +29,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentValue: '',
     items: [],
     selectedItem: {},
     label: '',
@@ -40,11 +36,12 @@ const defaultProps = {
     onItemSelected: () => {},
 };
 
-function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+    const styles = useThemeStyles();
     const [sectionsData, setSectionsData] = useState([]);
 
     useEffect(() => {
-        const itemsData = _.map(items, (item) => ({value: item.value, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
+        const itemsData = _.map(items, (item) => ({value: item.value, alternateText: item.description, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
         setSectionsData(itemsData);
     }, [items, selectedItem]);
 
@@ -70,7 +67,7 @@ function ValueSelectorModal({currentValue, items, selectedItem, label, isVisible
                 <SelectionList
                     sections={[{data: sectionsData}]}
                     onSelectRow={onItemSelected}
-                    initiallyFocusedOptionKey={currentValue}
+                    initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation
                 />
             </ScreenWrapper>

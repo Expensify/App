@@ -1,11 +1,13 @@
 import React from 'react';
 import {splitBoxModelStyle} from 'react-native-render-html';
 import _ from 'underscore';
+import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function CodeRenderer(props) {
+    const StyleUtils = useStyleUtils();
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
@@ -16,7 +18,13 @@ function CodeRenderer(props) {
         fontWeight: textStyle.fontWeight,
     });
 
+    // Determine the font size for the code based on whether it's inside an H1 element.
+    const isInsideH1 = HTMLEngineUtils.isChildOfH1(props.tnode);
+
+    const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
+
     const textStyleOverride = {
+        fontSize,
         fontFamily: font,
 
         // We need to override this properties bellow that was defined in `textStyle`

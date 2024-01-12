@@ -14,6 +14,8 @@ import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -21,9 +23,8 @@ import getButtonState from '@libs/getButtonState';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -53,6 +54,12 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
+    /** The policy of root parent report */
+    rootParentReportpolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     /** The chat report associated with taskReport */
     chatReportID: PropTypes.string.isRequired,
 
@@ -71,10 +78,13 @@ const propTypes = {
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     taskReport: {},
+    rootParentReportpolicy: {},
     isHovered: false,
 };
 
 function TaskPreview(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -82,7 +92,7 @@ function TaskPreview(props) {
     const isTaskCompleted = !_.isEmpty(props.taskReport)
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
-    const taskTitle = props.taskReport.reportName || props.action.childReportName;
+    const taskTitle = _.escape(TaskUtils.getTaskTitle(props.taskReportID, props.action.childReportName));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(personalDetails, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(personalDetails, [taskAssigneeAccountID, 'displayName'], '');
@@ -105,7 +115,7 @@ function TaskPreview(props) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
@@ -113,7 +123,10 @@ function TaskPreview(props) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID)}
+                        disabled={
+                            _.isEmpty(props.taskReport) ||
+                            !Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportpolicy, 'role', ''))
+                        }
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(props.taskReport);
@@ -145,6 +158,10 @@ export default compose(
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             initialValue: {},
+        },
+        rootParentReportpolicy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID || '0'}`,
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskPreview);

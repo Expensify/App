@@ -8,8 +8,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -27,8 +27,8 @@ const propTypes = {
         /** Additional information about the attachment file */
         file: PropTypes.shape({
             /** File name of the attachment */
-            name: PropTypes.string,
-        }),
+            name: PropTypes.string.isRequired,
+        }).isRequired,
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
@@ -37,8 +37,14 @@ const propTypes = {
         transactionID: PropTypes.string,
     }).isRequired,
 
-    /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: PropTypes.bool.isRequired,
+    /** Whether there is only one element in the attachment carousel */
+    isSingleItem: PropTypes.bool.isRequired,
+
+    /** The index of the carousel item */
+    index: PropTypes.number.isRequired,
+
+    /** The index of the currently active carousel item */
+    activeIndex: PropTypes.number.isRequired,
 
     /** onPress callback */
     onPress: PropTypes.func,
@@ -48,7 +54,8 @@ const defaultProps = {
     onPress: undefined,
 };
 
-function CarouselItem({item, isFocused, onPress}) {
+function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
     // eslint-disable-next-line es/no-nullish-coalescing-operators
@@ -61,8 +68,7 @@ function CarouselItem({item, isFocused, onPress}) {
             onPress={() => setIsHidden(!isHidden)}
         >
             <Text
-                style={styles.buttonSmallText}
-                selectable={false}
+                style={[styles.buttonSmallText, styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
@@ -98,9 +104,11 @@ function CarouselItem({item, isFocused, onPress}) {
                     source={item.source}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
-                    isFocused={isFocused}
-                    onPress={onPress}
                     isUsedInCarousel
+                    isSingleCarouselItem={isSingleItem}
+                    carouselItemIndex={index}
+                    carouselActiveItemIndex={activeIndex}
+                    onPress={onPress}
                     transactionID={item.transactionID}
                 />
             </View>
@@ -116,5 +124,6 @@ function CarouselItem({item, isFocused, onPress}) {
 
 CarouselItem.propTypes = propTypes;
 CarouselItem.defaultProps = defaultProps;
+CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;

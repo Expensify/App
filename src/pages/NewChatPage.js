@@ -9,15 +9,14 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -53,7 +52,7 @@ const defaultProps = {
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
 function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
-    const optionSelectorRef = React.createRef(null);
+    const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
@@ -210,13 +209,11 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
+        Report.searchInServer(text);
         setSearchTerm(text);
     }, []);
 
-    useDelayedInputFocus(optionSelectorRef, 600);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
@@ -233,33 +230,33 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                    keyboardVerticalOffset={
-                        variables.contentHeaderHeight + insets.top + (Permissions.canUsePolicyRooms(betas) ? variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0)
-                    }
+                    keyboardVerticalOffset={variables.contentHeaderHeight + insets.top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
-                            ref={optionSelectorRef}
+                            ref={inputCallbackRef}
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
                             onAddToSelection={(option) => toggleOption(option)}
                             sections={sections}
                             selectedOptions={selectedOptions}
-                            value={searchTerm}
                             onSelectRow={(option) => createChat(option)}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
+                            shouldShowReferralCTA
+                            referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onConfirmSelection={createGroup}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
+                            autoFocus={false}
                         />
                     </View>
                     {isSmallScreenWidth && <OfflineIndicator />}

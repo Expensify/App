@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-web/dist/exports/StyleSheet/compiler/index.js b/node_modules/react-native-web/dist/exports/StyleSheet/compiler/index.js
+index bdcecc2..63f1364 100644
+--- a/node_modules/react-native-web/dist/exports/StyleSheet/compiler/index.js
++++ b/node_modules/react-native-web/dist/exports/StyleSheet/compiler/index.js
+@@ -353,7 +353,7 @@ function createAtomicRules(identifier, property, value) {
+             var _block2 = createDeclarationBlock({
+               pointerEvents: 'none'
+             });
+-            rules.push(selector + ">*" + _block2);
++            rules.push(selector + " *" + _block2);
+           }
+         } else if (value === 'none' || value === 'box-none') {
+           finalValue = 'none!important';
+@@ -361,7 +361,7 @@ function createAtomicRules(identifier, property, value) {
+             var _block3 = createDeclarationBlock({
+               pointerEvents: 'auto'
+             });
+-            rules.push(selector + ">*" + _block3);
++            rules.push(selector + " *" + _block3);
+           }
+         }
+         var _block4 = createDeclarationBlock({

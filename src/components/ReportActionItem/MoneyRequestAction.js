@@ -8,6 +8,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import refPropTypes from '@components/refPropTypes';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,7 +18,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,6 +92,7 @@ function MoneyRequestAction({
     style,
     isWhisper,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -121,7 +122,7 @@ function MoneyRequestAction({
     if (
         !_.isEmpty(iouReport) &&
         !_.isEmpty(reportActions) &&
-        chatReport.hasOutstandingIOU &&
+        chatReport.iouReportID &&
         isMostRecentIOUReportAction &&
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         network.isOffline

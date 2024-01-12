@@ -1,11 +1,12 @@
 import Str from 'expensify-common/lib/str';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails, Policy, PolicyMembers, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
-type PersonalDetailsList = Record<string, PersonalDetails>;
 type UnitRate = {rate: number};
 
 /**
@@ -13,10 +14,7 @@ type UnitRate = {rate: number};
  * These are policies that we can use to create reports with in NewDot.
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
-    return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy =>
-            policy !== null && policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -31,7 +29,7 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  * Check if the policy has any error fields.
  */
 function hasPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
-    return Object.keys(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
+    return Object.values(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
 }
 
 /**
@@ -157,8 +155,8 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 /**
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
-function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags) {
-    if (Object.keys(policyTags ?? {})?.length === 0) {
+function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
+    if (isEmptyObject(policyTags)) {
         return {};
     }
 
@@ -197,6 +195,10 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -217,4 +219,5 @@ export {
     getTagList,
     isPendingDeletePolicy,
     isPolicyMember,
+    isPaidGroupPolicy,
 };

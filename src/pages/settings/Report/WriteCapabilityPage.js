@@ -8,7 +8,6 @@ import SelectionList from '@components/SelectionList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -38,7 +37,7 @@ function WriteCapabilityPage(props) {
         isSelected: value === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
 
-    const isAbleToEdit = !ReportUtils.isAdminRoom(props.report) && PolicyUtils.isPolicyAdmin(props.policy) && !ReportUtils.isArchivedRoom(props.report);
+    const isAbleToEdit = ReportUtils.canEditWriteCapability(props.report, props.policy);
 
     return (
         <ScreenWrapper

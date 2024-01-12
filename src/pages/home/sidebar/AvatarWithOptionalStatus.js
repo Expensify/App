@@ -4,9 +4,10 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import PressableAvatarWithIndicator from './PressableAvatarWithIndicator';
@@ -25,6 +26,7 @@ const defaultProps = {
 };
 
 function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const showStatusPage = useCallback(() => {
@@ -41,18 +43,20 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
         <View style={styles.sidebarStatusAvatarContainer}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 onPress={showStatusPage}
                 style={styles.flex1}
             >
-                <View style={styles.sidebarStatusAvatar}>
-                    <Text
-                        style={styles.emojiStatusLHN}
-                        numberOfLines={1}
-                    >
-                        {emojiStatus}
-                    </Text>
-                </View>
+                <Tooltip text={translate('statusPage.status')}>
+                    <View style={styles.sidebarStatusAvatar}>
+                        <Text
+                            style={styles.emojiStatusLHN}
+                            numberOfLines={1}
+                        >
+                            {emojiStatus}
+                        </Text>
+                    </View>
+                </Tooltip>
             </PressableWithoutFeedback>
             <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
         </View>

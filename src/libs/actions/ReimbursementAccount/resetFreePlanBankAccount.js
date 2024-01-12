@@ -33,6 +33,7 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                         shouldShowResetModal: false,
                         isLoading: true,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        achData: null,
                     },
                 },
             ],

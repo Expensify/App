@@ -10,15 +10,15 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import reportPropTypes from './reportPropTypes';
@@ -42,10 +42,15 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
+
+    /* Onyx Props */
+    /** All the report actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 };
 
 const defaultProps = {
     reportActions: {},
+    parentReportActions: {},
     report: {},
 };
 
@@ -62,6 +67,7 @@ function getReportID(route) {
 }
 
 function FlagCommentPage(props) {
+    const styles = useThemeStyles();
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
@@ -118,18 +124,19 @@ function FlagCommentPage(props) {
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = ReportActionsUtils.getParentReportAction(props.report);
+            reportAction = props.parentReportActions[props.report.parentReportActionID] || {};
         }
 
         return reportAction;
-    }, [props.report, props.reportActions, props.route.params.reportActionID]);
+    }, [props.report, props.reportActions, props.route.params.reportActionID, props.parentReportActions]);
 
     const flagComment = (severity) => {
         let reportID = getReportID(props.route);
         const reportAction = getActionToFlag();
+        const parentReportAction = props.parentReportActions[props.report.parentReportActionID] || {};
 
         // Handle threads if needed
-        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === ReportActionsUtils.getParentReportAction(props.report).reportActionID) {
+        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === parentReportAction.reportActionID) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
 
@@ -160,7 +167,14 @@ function FlagCommentPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
-                    <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
+                    <HeaderWithBackButton
+                        title={props.translate('reportActionContextMenu.flagAsOffensive')}
+                        shouldNavigateToTopMostReport
+                        onBackButtonPress={() => {
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
+                        }}
+                    />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={styles.settingsPageBackground}

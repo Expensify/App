@@ -185,10 +185,71 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'I have changed the task'}],
                 },
             ];
+
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
             input.pop();
             expect(result).toStrictEqual(input);
         });
+
+        describe('getSortedReportActionsForDisplay with marked the first reportAction', () => {
+            it('should filter out non-whitelisted actions', () => {
+                const input = [
+                    {
+                        created: '2022-11-13 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                        message: [{html: 'Hello world'}],
+                    },
+                    {
+                        created: '2022-11-12 22:27:01.825',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        message: [{html: 'Hello world'}],
+                    },
+                    {
+                        created: '2022-11-11 22:27:01.825',
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        message: [{html: 'Hello world'}],
+                    },
+                    {
+                        created: '2022-11-10 22:27:01.825',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                        message: [{html: 'Hello world'}],
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8049485084562457',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.UPDATE_FIELD,
+                        message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"'}],
+                    },
+                    {
+                        created: '2022-11-08 22:27:06.825',
+                        reportActionID: '1661970171066216',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED,
+                        message: [{html: 'Waiting for the bank account'}],
+                    },
+                    {
+                        created: '2022-11-06 22:27:08.825',
+                        reportActionID: '1661970171066220',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+                        message: [{html: 'I have changed the task'}],
+                    },
+                ];
+
+                const resultWithoutNewestFlag = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+                const resultWithNewestFlag = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+                input.pop();
+                // Mark the newest report action as the newest report action
+                resultWithoutNewestFlag[0] = {
+                    ...resultWithoutNewestFlag[0],
+                    isNewestReportAction: true,
+                };
+                expect(resultWithoutNewestFlag).toStrictEqual(resultWithNewestFlag);
+            });
+        });
+
         it('should filter out closed actions', () => {
             const input = [
                 {

@@ -1,5 +1,8 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import withNavigationFallback from '@components/withNavigationFallback';
+
+const HeaderWithBackButtonWithNavigation = withNavigationFallback(HeaderWithBackButton);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -8,12 +11,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
  */
 const story = {
     title: 'Components/HeaderWithBackButton',
-    component: HeaderWithBackButton,
+    component: HeaderWithBackButtonWithNavigation,
 };
 
 function Template(args) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <HeaderWithBackButton {...args} />;
+    return <HeaderWithBackButtonWithNavigation {...args} />;
 }
 
 // Arguments can be passed to the component by binding

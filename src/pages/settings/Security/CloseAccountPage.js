@@ -12,10 +12,10 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -40,6 +40,7 @@ const defaultProps = {
 };
 
 function CloseAccountPage(props) {
+    const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
@@ -106,10 +107,9 @@ function CloseAccountPage(props) {
                         InputComponent={TextInput}
                         inputID="reasonForLeaving"
                         autoGrowHeight
-                        textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
-                        accessibilityLabel={props.translate('closeAccountPage.enterMessageHere')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={props.translate('closeAccountPage.enterMessageHere')}
+                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
@@ -120,11 +120,11 @@ function CloseAccountPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
-                        accessibilityLabel={props.translate('closeAccountPage.enterDefaultContact')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        aria-label={props.translate('closeAccountPage.enterDefaultContact')}
+                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
-                        keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
+                        inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
                     />
                     <ConfirmModal
                         danger

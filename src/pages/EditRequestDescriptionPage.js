@@ -8,9 +8,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -66,7 +67,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         ref={(el) => {
                             if (!el) {
                                 return;
@@ -76,7 +77,6 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
                         submitOnEnter={!Browser.isMobile()}
                     />
                 </View>

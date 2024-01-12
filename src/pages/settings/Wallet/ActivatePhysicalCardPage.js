@@ -7,19 +7,19 @@ import _ from 'underscore';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '@components/LottieAnimations';
+import LottieAnimations from '@components/LottieAnimations';
 import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as CardSettings from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +55,8 @@ function ActivatePhysicalCardPage({
         params: {domain},
     },
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -121,7 +123,7 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
+        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, cardID);
     }, [lastFourDigits, cardID, translate]);
 
     if (_.isEmpty(physicalCard)) {
@@ -132,7 +134,7 @@ function ActivatePhysicalCardPage({
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}

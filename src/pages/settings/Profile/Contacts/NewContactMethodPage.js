@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -12,11 +12,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +58,10 @@ const addNewContactMethod = (values) => {
 };
 
 function NewContactMethodPage(props) {
+    const styles = useThemeStyles();
     const loginInputRef = useRef(null);
+
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
 
     const validate = React.useCallback(
         (values) => {
@@ -88,6 +91,14 @@ function NewContactMethodPage(props) {
         [],
     );
 
+    const onBackButtonPress = useCallback(() => {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+            return;
+        }
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
+    }, [navigateBackTo]);
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
@@ -103,7 +114,7 @@ function NewContactMethodPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onBackButtonPress={onBackButtonPress}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
@@ -118,13 +129,13 @@ function NewContactMethodPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
-                        returnKeyType="go"
+                        enterKeyHint="done"
                         maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>

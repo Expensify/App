@@ -11,12 +11,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOU from '@libs/actions/IOU';
 import * as Browser from '@libs/Browser';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +46,7 @@ const propTypes = {
     }).isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf(['', CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
 };
 
 const defaultProps = {
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -131,7 +132,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             defaultValue={iou.comment}
                             label={translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
                                 if (!el) {
                                     return;
@@ -141,7 +142,6 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            textAlignVertical="top"
                             submitOnEnter={!Browser.isMobile()}
                         />
                     </View>

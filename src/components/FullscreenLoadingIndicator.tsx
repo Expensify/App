@@ -1,17 +1,20 @@
 import React from 'react';
-import {ActivityIndicator, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
 };
 
 function FullScreenLoadingIndicator({style}: FullScreenLoadingIndicatorProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, style]}>
             <ActivityIndicator
-                color={themeColors.spinner}
+                color={theme.spinner}
                 size="large"
             />
         </View>

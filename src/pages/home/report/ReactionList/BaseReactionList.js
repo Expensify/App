@@ -6,9 +6,9 @@ import {FlatList} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import participantPropTypes from '@components/participantPropTypes';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -58,6 +58,7 @@ const getItemLayout = (_, index) => ({
 });
 
 function BaseReactionList(props) {
+    const styles = useThemeStyles();
     if (!props.isVisible) {
         return null;
     }

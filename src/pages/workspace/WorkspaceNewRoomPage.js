@@ -1,35 +1,37 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Form from '@components/Form';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import * as Illustrations from '@components/Icon/Illustrations';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import withNavigationFocus from '@components/withNavigationFocus';
-import useDelayedInputFocus from '@hooks/useDelayedInputFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Permissions from '@libs/Permissions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import policyMemberPropType from '@pages/policyMemberPropType';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
-import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -43,9 +45,6 @@ const propTypes = {
         /** ID of the policy */
         policyID: PropTypes.string,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The list of policies the user has access to. */
     policies: PropTypes.objectOf(
@@ -61,26 +60,45 @@ const propTypes = {
         }),
     ),
 
-    /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
-
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** Form state for NEW_ROOM_FORM */
+    formState: PropTypes.shape({
+        /** Loading state for the form */
+        isLoading: PropTypes.bool,
+
+        /** Field errors in the form */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
+    /** Session details for the user */
+    session: PropTypes.shape({
+        /** accountID of current user */
+        accountID: PropTypes.number,
+    }),
 };
 const defaultProps = {
-    betas: [],
     reports: {},
     policies: {},
-    allPolicyMembers: {},
+    formState: {
+        isLoading: false,
+        errorFields: {},
+    },
+    session: {
+        accountID: 0,
+    },
 };
 
 function WorkspaceNewRoomPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -89,14 +107,44 @@ function WorkspaceNewRoomPage(props) {
 
         return ReportUtils.isPolicyAdmin(policyID, props.policies);
     }, [policyID, props.policies]);
+    const [newRoomReportID, setNewRoomReportID] = useState(undefined);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
-        const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(policyID, values.roomName, visibility, policyMembers, writeCapability, values.welcomeMessage);
+        const participants = [props.session.accountID];
+        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const policyReport = ReportUtils.buildOptimisticChatReport(
+            participants,
+            values.roomName,
+            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            policyID,
+            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            '',
+            visibility,
+            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            '',
+            '',
+            parsedWelcomeMessage,
+        );
+        setNewRoomReportID(policyReport.reportID);
+        Report.addPolicyReport(policyReport);
     };
+
+    useEffect(() => {
+        Report.clearNewRoomFormError();
+    }, []);
+
+    useEffect(() => {
+        if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
+            return;
+        }
+        Navigation.dismissModal(newRoomReportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
+    }, [props.formState]);
 
     useEffect(() => {
         if (isPolicyAdmin) {
@@ -137,7 +185,15 @@ function WorkspaceNewRoomPage(props) {
         [props.reports],
     );
 
-    const workspaceOptions = useMemo(() => _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({label: policy.name, key: policy.id, value: policy.id})), [props.policies]);
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
+                label: policy.name,
+                key: policy.id,
+                value: policy.id,
+            })),
+        [props.policies],
+    );
 
     const writeCapabilityOptions = useMemo(
         () =>
@@ -161,27 +217,41 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
-    const roomNameInputRef = useRef(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    // use a 600ms delay for delayed focus on the room name input field so that it works consistently on native iOS / Android
-    useDelayedInputFocus(roomNameInputRef, 600);
+    const renderEmptyWorkspaceView = () => (
+        <>
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyWorkspaceIconWidth}
+                iconHeight={variables.emptyWorkspaceIconHeight}
+                title={translate('workspace.emptyWorkspace.notFound')}
+                subtitle={translate('workspace.emptyWorkspace.description')}
+                shouldShowLink={false}
+            />
+            <Button
+                success
+                text={translate('footer.learnMore')}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                style={[styles.mh5, styles.mb5]}
+            />
+            {isSmallScreenWidth && <OfflineIndicator />}
+        </>
+    );
 
     return (
-        <FullPageNotFoundView
-            shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
-            shouldShowBackButton={false}
-            linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
+            includePaddingTop={false}
+            shouldEnablePickerAvoiding={false}
+            testID={WorkspaceNewRoomPage.displayName}
         >
-            <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={false}
-                includeSafeAreaPaddingBottom={isOffline}
-                shouldShowOfflineIndicator={false}
-                includePaddingTop={false}
-                shouldEnablePickerAvoiding={false}
-                testID={WorkspaceNewRoomPage.displayName}
-            >
-                {({insets}) => (
+            {({insets}) =>
+                workspaceOptions.length === 0 ? (
+                    renderEmptyWorkspaceView()
+                ) : (
                     <KeyboardAvoidingView
                         style={styles.h100}
                         behavior="padding"
@@ -189,7 +259,7 @@ function WorkspaceNewRoomPage(props) {
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                     >
-                        <Form
+                        <FormProvider
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
                             style={[styles.mh5, styles.flexGrow1]}
@@ -198,8 +268,9 @@ function WorkspaceNewRoomPage(props) {
                             enabledWhenOffline
                         >
                             <View style={styles.mb5}>
-                                <RoomNameInput
-                                    ref={(el) => (roomNameInputRef.current = el)}
+                                <InputWrapper
+                                    InputComponent={RoomNameInput}
+                                    ref={inputCallbackRef}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
@@ -207,20 +278,21 @@ function WorkspaceNewRoomPage(props) {
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <TextInput
+                                <InputWrapper
+                                    InputComponent={TextInput}
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     autoGrowHeight
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"
-                                    textAlignVertical="top"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
-                                <ValuePicker
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
@@ -229,7 +301,8 @@ function WorkspaceNewRoomPage(props) {
                             </View>
                             {isPolicyAdmin && (
                                 <View style={styles.mhn5}>
-                                    <ValuePicker
+                                    <InputWrapper
+                                        InputComponent={ValuePicker}
                                         inputID="writeCapability"
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
@@ -239,21 +312,22 @@ function WorkspaceNewRoomPage(props) {
                                 </View>
                             )}
                             <View style={[styles.mb1, styles.mhn5]}>
-                                <ValuePicker
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
                                     inputID="visibility"
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
                                     onValueChange={setVisibility}
                                     value={visibility}
+                                    furtherDetails={visibilityDescription}
                                 />
                             </View>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                        </Form>
+                        </FormProvider>
                         {isSmallScreenWidth && <OfflineIndicator />}
                     </KeyboardAvoidingView>
-                )}
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                )
+            }
+        </ScreenWrapper>
     );
 }
 
@@ -273,8 +347,11 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        formState: {
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(WorkspaceNewRoomPage);

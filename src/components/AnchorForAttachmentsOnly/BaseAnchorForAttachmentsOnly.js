@@ -62,7 +62,7 @@ function BaseAnchorForAttachmentsOnly(props) {
                         })
                     }
                     accessibilityLabel={fileName}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}

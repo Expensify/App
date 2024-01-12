@@ -196,9 +196,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
 }
 
 /**
- * There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
- * additional reports in Onyx, so it's being left out for now.
- *
  * @param {boolean} isArchived
  * @param {boolean} isUserCreatedPolicyRoom
  * @param {boolean} hasAddWorkspaceError
@@ -255,10 +252,11 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         avatar: '',
         employeeList: [],
         isPolicyExpenseChatEnabled: true,
-        areChatRoomsEnabled: true,
         lastModified: 1697323926777105,
         autoReporting: true,
         autoReportingFrequency: 'immediate',
+        isHarvestingEnabled: true,
+        submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
     };
@@ -306,6 +304,7 @@ function MockedSidebarLinks({currentReportID}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <SidebarLinksData
+                onLinkClick={() => {}}
                 insets={{
                     top: 0,
                     left: 0,
@@ -314,7 +313,6 @@ function MockedSidebarLinks({currentReportID}) {
                 }}
                 isSmallScreenWidth={false}
                 currentReportID={currentReportID}
-                onLinkClick={() => {}}
             />
         </ComposeProviders>
     );

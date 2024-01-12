@@ -49,7 +49,7 @@ Report comments initially trigger a mobile app notification to report participan
 
 Comments can be formatted with bold, italics, or strikethrough using basic Markdown formatting. You can also add receipts and supporting documents to a report by clicking the paperclip icon on the right side of the comment field.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Why don’t some timestamps in Expensify match up with what’s shown in the report audit log?
 
@@ -58,3 +58,5 @@ While the audit log is localized to your own timezone, some other features in Ex
 ## Is commenting on a report a billable action?
 
 Yes. If you comment on a report, you become a billable actor for the current month. 
+
+{% include faq-end.md %}

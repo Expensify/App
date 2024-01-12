@@ -1,7 +1,7 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
-import RecentWaypoint from './RecentWaypoint';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
+import type RecentWaypoint from './RecentWaypoint';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -37,6 +37,7 @@ type Geometry = {
 
 type Receipt = {
     receiptID?: number;
+    path?: string;
     source?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
@@ -56,22 +57,26 @@ type Transaction = {
     created: string;
     currency: string;
     errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields<'route'>;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
+    // Used during the creation flow before the transaction is saved to the server
+    iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
     merchant: string;
     modifiedAmount?: number;
     modifiedCreated?: string;
     modifiedCurrency?: string;
     modifiedMerchant?: string;
     modifiedWaypoints?: WaypointCollection;
+    // Used during the creation flow before the transaction is saved to the server and helps dictate where the user is navigated to when pressing the back button on the confirmation step
+    participantsAutoAssigned?: boolean;
     pendingAction: OnyxCommon.PendingAction;
-    receipt: Receipt;
+    receipt?: Receipt;
     reportID: string;
     routes?: Routes;
     transactionID: string;
     tag: string;
-    pendingFields?: Partial<{[K in keyof Transaction]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    pendingFields?: Partial<{[K in keyof Transaction | keyof Comment]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
 
     /** Card Transactions */
 
