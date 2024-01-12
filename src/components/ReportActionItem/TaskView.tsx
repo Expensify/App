@@ -21,6 +21,7 @@ import type {WindowDimensionsProps} from '@components/withWindowDimensions/types
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
@@ -39,7 +40,7 @@ type TaskViewOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** The policy for the current route */
-    policy: Partial<OnyxEntry<Policy>>;
+    policy: Pick<Policy, 'role'> | null;
 };
 
 type TaskViewProps = TaskViewOnyxProps &
@@ -52,11 +53,11 @@ type TaskViewProps = TaskViewOnyxProps &
         shouldShowHorizontalRule: boolean;
     };
 
-function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: TaskViewProps) {
+function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     useEffect(() => {
-        Task.setTaskReport({report});
+        Task.setTaskReport(report);
     }, [report]);
 
     const taskTitle = convertToLTR(report.reportName ?? '');
@@ -198,19 +199,17 @@ function TaskView({report, policy = {}, shouldShowHorizontalRule, ...props}: Tas
 
 TaskView.displayName = 'TaskView';
 
-export default compose(
-    withOnyx<TaskViewProps, TaskViewOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    policy: {
+        key: ({report}) => {
+            const rootParentReport = ReportUtils.getRootParentReport(report);
+            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
         },
-        policy: {
-            key: ({report}) => {
-                const rootParentReport = ReportUtils.getRootParentReport(report);
-                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-            },
-            selector: (policy: OnyxEntry<Policy>) => _.pick(policy, ['role']),
-        },
-    }),
-    withWindowDimensions,
-    withCurrentUserPersonalDetails,
-)(TaskView);
+        selector: (policy: OnyxEntry<Policy>) => (policy ? {role: policy.role} : null),
+    },
+})(TaskView);
+
+export default withCurrentUserPersonalDetails(TaskViewWithOnyx);
