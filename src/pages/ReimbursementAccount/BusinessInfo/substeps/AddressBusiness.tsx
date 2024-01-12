@@ -8,7 +8,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,10 +52,10 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
     const styles = useThemeStyles();
 
     const defaultValues = {
-        street: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.STREET, ''),
-        city: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.CITY, ''),
-        state: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.STATE, ''),
-        zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.ZIP_CODE, ''),
+        street: reimbursementAccount?.achData?.addressStreet ?? '',
+        city: reimbursementAccount?.achData?.addressCity ?? '',
+        state: reimbursementAccount?.achData?.addressState ?? '',
+        zipCode: reimbursementAccount?.achData?.addressZipCode ?? '',
     };
 
     const handleSubmit = (values: BankAccounts.BusinessAddress) => {
