@@ -14,7 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
+import getInitialNumToRender from '@libs/getInitialNumToRender';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -25,7 +25,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FloatingMessageCounter from './FloatingMessageCounter';
-import getInitialNumToRender from './getInitialNumToRender/index';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -157,8 +156,6 @@ function ReportActionsList({
         }
         return cacheUnreadMarkers.get(report.reportID);
     };
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
@@ -362,12 +359,10 @@ function ReportActionsList({
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
         if (linkedReportActionID) {
-            // For web and desktop environments, it's crucial to set this value equal to or higher than the 'batch per render' setting. If it's set lower, the 'onStartReached' event will be triggered excessively, every time an additional item enters the virtualized list.
-
             return getInitialNumToRender(numToRender);
         }
         return numToRender;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID, isNative]);
+    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
