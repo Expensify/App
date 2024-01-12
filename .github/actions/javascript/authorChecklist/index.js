@@ -49929,8 +49929,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 var _index = __nccwpck_require__(9380);
-var _default = createTypeAnnotationBasedOnTypeof;
-exports["default"] = _default;
+var _default = exports["default"] = createTypeAnnotationBasedOnTypeof;
 function createTypeAnnotationBasedOnTypeof(type) {
   switch (type) {
     case "string":
@@ -51553,12 +51552,11 @@ function tsConstructSignatureDeclaration(typeParameters = null, parameters, type
     typeAnnotation
   });
 }
-function tsPropertySignature(key, typeAnnotation = null, initializer = null) {
+function tsPropertySignature(key, typeAnnotation = null) {
   return (0, _validateNode.default)({
     type: "TSPropertySignature",
     key,
     typeAnnotation,
-    initializer,
     kind: null
   });
 }
@@ -53966,106 +53964,56 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.WHILE_TYPES = exports.USERWHITESPACABLE_TYPES = exports.UNARYLIKE_TYPES = exports.TYPESCRIPT_TYPES = exports.TSTYPE_TYPES = exports.TSTYPEELEMENT_TYPES = exports.TSENTITYNAME_TYPES = exports.TSBASETYPE_TYPES = exports.TERMINATORLESS_TYPES = exports.STATEMENT_TYPES = exports.STANDARDIZED_TYPES = exports.SCOPABLE_TYPES = exports.PUREISH_TYPES = exports.PROPERTY_TYPES = exports.PRIVATE_TYPES = exports.PATTERN_TYPES = exports.PATTERNLIKE_TYPES = exports.OBJECTMEMBER_TYPES = exports.MODULESPECIFIER_TYPES = exports.MODULEDECLARATION_TYPES = exports.MISCELLANEOUS_TYPES = exports.METHOD_TYPES = exports.LVAL_TYPES = exports.LOOP_TYPES = exports.LITERAL_TYPES = exports.JSX_TYPES = exports.IMPORTOREXPORTDECLARATION_TYPES = exports.IMMUTABLE_TYPES = exports.FUNCTION_TYPES = exports.FUNCTIONPARENT_TYPES = exports.FOR_TYPES = exports.FORXSTATEMENT_TYPES = exports.FLOW_TYPES = exports.FLOWTYPE_TYPES = exports.FLOWPREDICATE_TYPES = exports.FLOWDECLARATION_TYPES = exports.FLOWBASEANNOTATION_TYPES = exports.EXPRESSION_TYPES = exports.EXPRESSIONWRAPPER_TYPES = exports.EXPORTDECLARATION_TYPES = exports.ENUMMEMBER_TYPES = exports.ENUMBODY_TYPES = exports.DECLARATION_TYPES = exports.CONDITIONAL_TYPES = exports.COMPLETIONSTATEMENT_TYPES = exports.CLASS_TYPES = exports.BLOCK_TYPES = exports.BLOCKPARENT_TYPES = exports.BINARY_TYPES = exports.ACCESSOR_TYPES = void 0;
 var _index = __nccwpck_require__(5078);
-const STANDARDIZED_TYPES = _index.FLIPPED_ALIAS_KEYS["Standardized"];
-exports.STANDARDIZED_TYPES = STANDARDIZED_TYPES;
-const EXPRESSION_TYPES = _index.FLIPPED_ALIAS_KEYS["Expression"];
-exports.EXPRESSION_TYPES = EXPRESSION_TYPES;
-const BINARY_TYPES = _index.FLIPPED_ALIAS_KEYS["Binary"];
-exports.BINARY_TYPES = BINARY_TYPES;
-const SCOPABLE_TYPES = _index.FLIPPED_ALIAS_KEYS["Scopable"];
-exports.SCOPABLE_TYPES = SCOPABLE_TYPES;
-const BLOCKPARENT_TYPES = _index.FLIPPED_ALIAS_KEYS["BlockParent"];
-exports.BLOCKPARENT_TYPES = BLOCKPARENT_TYPES;
-const BLOCK_TYPES = _index.FLIPPED_ALIAS_KEYS["Block"];
-exports.BLOCK_TYPES = BLOCK_TYPES;
-const STATEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["Statement"];
-exports.STATEMENT_TYPES = STATEMENT_TYPES;
-const TERMINATORLESS_TYPES = _index.FLIPPED_ALIAS_KEYS["Terminatorless"];
-exports.TERMINATORLESS_TYPES = TERMINATORLESS_TYPES;
-const COMPLETIONSTATEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["CompletionStatement"];
-exports.COMPLETIONSTATEMENT_TYPES = COMPLETIONSTATEMENT_TYPES;
-const CONDITIONAL_TYPES = _index.FLIPPED_ALIAS_KEYS["Conditional"];
-exports.CONDITIONAL_TYPES = CONDITIONAL_TYPES;
-const LOOP_TYPES = _index.FLIPPED_ALIAS_KEYS["Loop"];
-exports.LOOP_TYPES = LOOP_TYPES;
-const WHILE_TYPES = _index.FLIPPED_ALIAS_KEYS["While"];
-exports.WHILE_TYPES = WHILE_TYPES;
-const EXPRESSIONWRAPPER_TYPES = _index.FLIPPED_ALIAS_KEYS["ExpressionWrapper"];
-exports.EXPRESSIONWRAPPER_TYPES = EXPRESSIONWRAPPER_TYPES;
-const FOR_TYPES = _index.FLIPPED_ALIAS_KEYS["For"];
-exports.FOR_TYPES = FOR_TYPES;
-const FORXSTATEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["ForXStatement"];
-exports.FORXSTATEMENT_TYPES = FORXSTATEMENT_TYPES;
-const FUNCTION_TYPES = _index.FLIPPED_ALIAS_KEYS["Function"];
-exports.FUNCTION_TYPES = FUNCTION_TYPES;
-const FUNCTIONPARENT_TYPES = _index.FLIPPED_ALIAS_KEYS["FunctionParent"];
-exports.FUNCTIONPARENT_TYPES = FUNCTIONPARENT_TYPES;
-const PUREISH_TYPES = _index.FLIPPED_ALIAS_KEYS["Pureish"];
-exports.PUREISH_TYPES = PUREISH_TYPES;
-const DECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["Declaration"];
-exports.DECLARATION_TYPES = DECLARATION_TYPES;
-const PATTERNLIKE_TYPES = _index.FLIPPED_ALIAS_KEYS["PatternLike"];
-exports.PATTERNLIKE_TYPES = PATTERNLIKE_TYPES;
-const LVAL_TYPES = _index.FLIPPED_ALIAS_KEYS["LVal"];
-exports.LVAL_TYPES = LVAL_TYPES;
-const TSENTITYNAME_TYPES = _index.FLIPPED_ALIAS_KEYS["TSEntityName"];
-exports.TSENTITYNAME_TYPES = TSENTITYNAME_TYPES;
-const LITERAL_TYPES = _index.FLIPPED_ALIAS_KEYS["Literal"];
-exports.LITERAL_TYPES = LITERAL_TYPES;
-const IMMUTABLE_TYPES = _index.FLIPPED_ALIAS_KEYS["Immutable"];
-exports.IMMUTABLE_TYPES = IMMUTABLE_TYPES;
-const USERWHITESPACABLE_TYPES = _index.FLIPPED_ALIAS_KEYS["UserWhitespacable"];
-exports.USERWHITESPACABLE_TYPES = USERWHITESPACABLE_TYPES;
-const METHOD_TYPES = _index.FLIPPED_ALIAS_KEYS["Method"];
-exports.METHOD_TYPES = METHOD_TYPES;
-const OBJECTMEMBER_TYPES = _index.FLIPPED_ALIAS_KEYS["ObjectMember"];
-exports.OBJECTMEMBER_TYPES = OBJECTMEMBER_TYPES;
-const PROPERTY_TYPES = _index.FLIPPED_ALIAS_KEYS["Property"];
-exports.PROPERTY_TYPES = PROPERTY_TYPES;
-const UNARYLIKE_TYPES = _index.FLIPPED_ALIAS_KEYS["UnaryLike"];
-exports.UNARYLIKE_TYPES = UNARYLIKE_TYPES;
-const PATTERN_TYPES = _index.FLIPPED_ALIAS_KEYS["Pattern"];
-exports.PATTERN_TYPES = PATTERN_TYPES;
-const CLASS_TYPES = _index.FLIPPED_ALIAS_KEYS["Class"];
-exports.CLASS_TYPES = CLASS_TYPES;
-const IMPORTOREXPORTDECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["ImportOrExportDeclaration"];
-exports.IMPORTOREXPORTDECLARATION_TYPES = IMPORTOREXPORTDECLARATION_TYPES;
-const EXPORTDECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["ExportDeclaration"];
-exports.EXPORTDECLARATION_TYPES = EXPORTDECLARATION_TYPES;
-const MODULESPECIFIER_TYPES = _index.FLIPPED_ALIAS_KEYS["ModuleSpecifier"];
-exports.MODULESPECIFIER_TYPES = MODULESPECIFIER_TYPES;
-const ACCESSOR_TYPES = _index.FLIPPED_ALIAS_KEYS["Accessor"];
-exports.ACCESSOR_TYPES = ACCESSOR_TYPES;
-const PRIVATE_TYPES = _index.FLIPPED_ALIAS_KEYS["Private"];
-exports.PRIVATE_TYPES = PRIVATE_TYPES;
-const FLOW_TYPES = _index.FLIPPED_ALIAS_KEYS["Flow"];
-exports.FLOW_TYPES = FLOW_TYPES;
-const FLOWTYPE_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowType"];
-exports.FLOWTYPE_TYPES = FLOWTYPE_TYPES;
-const FLOWBASEANNOTATION_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowBaseAnnotation"];
-exports.FLOWBASEANNOTATION_TYPES = FLOWBASEANNOTATION_TYPES;
-const FLOWDECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowDeclaration"];
-exports.FLOWDECLARATION_TYPES = FLOWDECLARATION_TYPES;
-const FLOWPREDICATE_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowPredicate"];
-exports.FLOWPREDICATE_TYPES = FLOWPREDICATE_TYPES;
-const ENUMBODY_TYPES = _index.FLIPPED_ALIAS_KEYS["EnumBody"];
-exports.ENUMBODY_TYPES = ENUMBODY_TYPES;
-const ENUMMEMBER_TYPES = _index.FLIPPED_ALIAS_KEYS["EnumMember"];
-exports.ENUMMEMBER_TYPES = ENUMMEMBER_TYPES;
-const JSX_TYPES = _index.FLIPPED_ALIAS_KEYS["JSX"];
-exports.JSX_TYPES = JSX_TYPES;
-const MISCELLANEOUS_TYPES = _index.FLIPPED_ALIAS_KEYS["Miscellaneous"];
-exports.MISCELLANEOUS_TYPES = MISCELLANEOUS_TYPES;
-const TYPESCRIPT_TYPES = _index.FLIPPED_ALIAS_KEYS["TypeScript"];
-exports.TYPESCRIPT_TYPES = TYPESCRIPT_TYPES;
-const TSTYPEELEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["TSTypeElement"];
-exports.TSTYPEELEMENT_TYPES = TSTYPEELEMENT_TYPES;
-const TSTYPE_TYPES = _index.FLIPPED_ALIAS_KEYS["TSType"];
-exports.TSTYPE_TYPES = TSTYPE_TYPES;
-const TSBASETYPE_TYPES = _index.FLIPPED_ALIAS_KEYS["TSBaseType"];
-exports.TSBASETYPE_TYPES = TSBASETYPE_TYPES;
-const MODULEDECLARATION_TYPES = IMPORTOREXPORTDECLARATION_TYPES;
-exports.MODULEDECLARATION_TYPES = MODULEDECLARATION_TYPES;
+const STANDARDIZED_TYPES = exports.STANDARDIZED_TYPES = _index.FLIPPED_ALIAS_KEYS["Standardized"];
+const EXPRESSION_TYPES = exports.EXPRESSION_TYPES = _index.FLIPPED_ALIAS_KEYS["Expression"];
+const BINARY_TYPES = exports.BINARY_TYPES = _index.FLIPPED_ALIAS_KEYS["Binary"];
+const SCOPABLE_TYPES = exports.SCOPABLE_TYPES = _index.FLIPPED_ALIAS_KEYS["Scopable"];
+const BLOCKPARENT_TYPES = exports.BLOCKPARENT_TYPES = _index.FLIPPED_ALIAS_KEYS["BlockParent"];
+const BLOCK_TYPES = exports.BLOCK_TYPES = _index.FLIPPED_ALIAS_KEYS["Block"];
+const STATEMENT_TYPES = exports.STATEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["Statement"];
+const TERMINATORLESS_TYPES = exports.TERMINATORLESS_TYPES = _index.FLIPPED_ALIAS_KEYS["Terminatorless"];
+const COMPLETIONSTATEMENT_TYPES = exports.COMPLETIONSTATEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["CompletionStatement"];
+const CONDITIONAL_TYPES = exports.CONDITIONAL_TYPES = _index.FLIPPED_ALIAS_KEYS["Conditional"];
+const LOOP_TYPES = exports.LOOP_TYPES = _index.FLIPPED_ALIAS_KEYS["Loop"];
+const WHILE_TYPES = exports.WHILE_TYPES = _index.FLIPPED_ALIAS_KEYS["While"];
+const EXPRESSIONWRAPPER_TYPES = exports.EXPRESSIONWRAPPER_TYPES = _index.FLIPPED_ALIAS_KEYS["ExpressionWrapper"];
+const FOR_TYPES = exports.FOR_TYPES = _index.FLIPPED_ALIAS_KEYS["For"];
+const FORXSTATEMENT_TYPES = exports.FORXSTATEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["ForXStatement"];
+const FUNCTION_TYPES = exports.FUNCTION_TYPES = _index.FLIPPED_ALIAS_KEYS["Function"];
+const FUNCTIONPARENT_TYPES = exports.FUNCTIONPARENT_TYPES = _index.FLIPPED_ALIAS_KEYS["FunctionParent"];
+const PUREISH_TYPES = exports.PUREISH_TYPES = _index.FLIPPED_ALIAS_KEYS["Pureish"];
+const DECLARATION_TYPES = exports.DECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["Declaration"];
+const PATTERNLIKE_TYPES = exports.PATTERNLIKE_TYPES = _index.FLIPPED_ALIAS_KEYS["PatternLike"];
+const LVAL_TYPES = exports.LVAL_TYPES = _index.FLIPPED_ALIAS_KEYS["LVal"];
+const TSENTITYNAME_TYPES = exports.TSENTITYNAME_TYPES = _index.FLIPPED_ALIAS_KEYS["TSEntityName"];
+const LITERAL_TYPES = exports.LITERAL_TYPES = _index.FLIPPED_ALIAS_KEYS["Literal"];
+const IMMUTABLE_TYPES = exports.IMMUTABLE_TYPES = _index.FLIPPED_ALIAS_KEYS["Immutable"];
+const USERWHITESPACABLE_TYPES = exports.USERWHITESPACABLE_TYPES = _index.FLIPPED_ALIAS_KEYS["UserWhitespacable"];
+const METHOD_TYPES = exports.METHOD_TYPES = _index.FLIPPED_ALIAS_KEYS["Method"];
+const OBJECTMEMBER_TYPES = exports.OBJECTMEMBER_TYPES = _index.FLIPPED_ALIAS_KEYS["ObjectMember"];
+const PROPERTY_TYPES = exports.PROPERTY_TYPES = _index.FLIPPED_ALIAS_KEYS["Property"];
+const UNARYLIKE_TYPES = exports.UNARYLIKE_TYPES = _index.FLIPPED_ALIAS_KEYS["UnaryLike"];
+const PATTERN_TYPES = exports.PATTERN_TYPES = _index.FLIPPED_ALIAS_KEYS["Pattern"];
+const CLASS_TYPES = exports.CLASS_TYPES = _index.FLIPPED_ALIAS_KEYS["Class"];
+const IMPORTOREXPORTDECLARATION_TYPES = exports.IMPORTOREXPORTDECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["ImportOrExportDeclaration"];
+const EXPORTDECLARATION_TYPES = exports.EXPORTDECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["ExportDeclaration"];
+const MODULESPECIFIER_TYPES = exports.MODULESPECIFIER_TYPES = _index.FLIPPED_ALIAS_KEYS["ModuleSpecifier"];
+const ACCESSOR_TYPES = exports.ACCESSOR_TYPES = _index.FLIPPED_ALIAS_KEYS["Accessor"];
+const PRIVATE_TYPES = exports.PRIVATE_TYPES = _index.FLIPPED_ALIAS_KEYS["Private"];
+const FLOW_TYPES = exports.FLOW_TYPES = _index.FLIPPED_ALIAS_KEYS["Flow"];
+const FLOWTYPE_TYPES = exports.FLOWTYPE_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowType"];
+const FLOWBASEANNOTATION_TYPES = exports.FLOWBASEANNOTATION_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowBaseAnnotation"];
+const FLOWDECLARATION_TYPES = exports.FLOWDECLARATION_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowDeclaration"];
+const FLOWPREDICATE_TYPES = exports.FLOWPREDICATE_TYPES = _index.FLIPPED_ALIAS_KEYS["FlowPredicate"];
+const ENUMBODY_TYPES = exports.ENUMBODY_TYPES = _index.FLIPPED_ALIAS_KEYS["EnumBody"];
+const ENUMMEMBER_TYPES = exports.ENUMMEMBER_TYPES = _index.FLIPPED_ALIAS_KEYS["EnumMember"];
+const JSX_TYPES = exports.JSX_TYPES = _index.FLIPPED_ALIAS_KEYS["JSX"];
+const MISCELLANEOUS_TYPES = exports.MISCELLANEOUS_TYPES = _index.FLIPPED_ALIAS_KEYS["Miscellaneous"];
+const TYPESCRIPT_TYPES = exports.TYPESCRIPT_TYPES = _index.FLIPPED_ALIAS_KEYS["TypeScript"];
+const TSTYPEELEMENT_TYPES = exports.TSTYPEELEMENT_TYPES = _index.FLIPPED_ALIAS_KEYS["TSTypeElement"];
+const TSTYPE_TYPES = exports.TSTYPE_TYPES = _index.FLIPPED_ALIAS_KEYS["TSType"];
+const TSBASETYPE_TYPES = exports.TSBASETYPE_TYPES = _index.FLIPPED_ALIAS_KEYS["TSBaseType"];
+const MODULEDECLARATION_TYPES = exports.MODULEDECLARATION_TYPES = IMPORTOREXPORTDECLARATION_TYPES;
 
 //# sourceMappingURL=index.js.map
 
@@ -54082,49 +54030,29 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.UPDATE_OPERATORS = exports.UNARY_OPERATORS = exports.STRING_UNARY_OPERATORS = exports.STATEMENT_OR_BLOCK_KEYS = exports.NUMBER_UNARY_OPERATORS = exports.NUMBER_BINARY_OPERATORS = exports.NOT_LOCAL_BINDING = exports.LOGICAL_OPERATORS = exports.INHERIT_KEYS = exports.FOR_INIT_KEYS = exports.FLATTENABLE_KEYS = exports.EQUALITY_BINARY_OPERATORS = exports.COMPARISON_BINARY_OPERATORS = exports.COMMENT_KEYS = exports.BOOLEAN_UNARY_OPERATORS = exports.BOOLEAN_NUMBER_BINARY_OPERATORS = exports.BOOLEAN_BINARY_OPERATORS = exports.BLOCK_SCOPED_SYMBOL = exports.BINARY_OPERATORS = exports.ASSIGNMENT_OPERATORS = void 0;
-const STATEMENT_OR_BLOCK_KEYS = ["consequent", "body", "alternate"];
-exports.STATEMENT_OR_BLOCK_KEYS = STATEMENT_OR_BLOCK_KEYS;
-const FLATTENABLE_KEYS = ["body", "expressions"];
-exports.FLATTENABLE_KEYS = FLATTENABLE_KEYS;
-const FOR_INIT_KEYS = ["left", "init"];
-exports.FOR_INIT_KEYS = FOR_INIT_KEYS;
-const COMMENT_KEYS = ["leadingComments", "trailingComments", "innerComments"];
-exports.COMMENT_KEYS = COMMENT_KEYS;
-const LOGICAL_OPERATORS = ["||", "&&", "??"];
-exports.LOGICAL_OPERATORS = LOGICAL_OPERATORS;
-const UPDATE_OPERATORS = ["++", "--"];
-exports.UPDATE_OPERATORS = UPDATE_OPERATORS;
-const BOOLEAN_NUMBER_BINARY_OPERATORS = [">", "<", ">=", "<="];
-exports.BOOLEAN_NUMBER_BINARY_OPERATORS = BOOLEAN_NUMBER_BINARY_OPERATORS;
-const EQUALITY_BINARY_OPERATORS = ["==", "===", "!=", "!=="];
-exports.EQUALITY_BINARY_OPERATORS = EQUALITY_BINARY_OPERATORS;
-const COMPARISON_BINARY_OPERATORS = [...EQUALITY_BINARY_OPERATORS, "in", "instanceof"];
-exports.COMPARISON_BINARY_OPERATORS = COMPARISON_BINARY_OPERATORS;
-const BOOLEAN_BINARY_OPERATORS = [...COMPARISON_BINARY_OPERATORS, ...BOOLEAN_NUMBER_BINARY_OPERATORS];
-exports.BOOLEAN_BINARY_OPERATORS = BOOLEAN_BINARY_OPERATORS;
-const NUMBER_BINARY_OPERATORS = ["-", "/", "%", "*", "**", "&", "|", ">>", ">>>", "<<", "^"];
-exports.NUMBER_BINARY_OPERATORS = NUMBER_BINARY_OPERATORS;
-const BINARY_OPERATORS = ["+", ...NUMBER_BINARY_OPERATORS, ...BOOLEAN_BINARY_OPERATORS, "|>"];
-exports.BINARY_OPERATORS = BINARY_OPERATORS;
-const ASSIGNMENT_OPERATORS = ["=", "+=", ...NUMBER_BINARY_OPERATORS.map(op => op + "="), ...LOGICAL_OPERATORS.map(op => op + "=")];
-exports.ASSIGNMENT_OPERATORS = ASSIGNMENT_OPERATORS;
-const BOOLEAN_UNARY_OPERATORS = ["delete", "!"];
-exports.BOOLEAN_UNARY_OPERATORS = BOOLEAN_UNARY_OPERATORS;
-const NUMBER_UNARY_OPERATORS = ["+", "-", "~"];
-exports.NUMBER_UNARY_OPERATORS = NUMBER_UNARY_OPERATORS;
-const STRING_UNARY_OPERATORS = ["typeof"];
-exports.STRING_UNARY_OPERATORS = STRING_UNARY_OPERATORS;
-const UNARY_OPERATORS = ["void", "throw", ...BOOLEAN_UNARY_OPERATORS, ...NUMBER_UNARY_OPERATORS, ...STRING_UNARY_OPERATORS];
-exports.UNARY_OPERATORS = UNARY_OPERATORS;
-const INHERIT_KEYS = {
+const STATEMENT_OR_BLOCK_KEYS = exports.STATEMENT_OR_BLOCK_KEYS = ["consequent", "body", "alternate"];
+const FLATTENABLE_KEYS = exports.FLATTENABLE_KEYS = ["body", "expressions"];
+const FOR_INIT_KEYS = exports.FOR_INIT_KEYS = ["left", "init"];
+const COMMENT_KEYS = exports.COMMENT_KEYS = ["leadingComments", "trailingComments", "innerComments"];
+const LOGICAL_OPERATORS = exports.LOGICAL_OPERATORS = ["||", "&&", "??"];
+const UPDATE_OPERATORS = exports.UPDATE_OPERATORS = ["++", "--"];
+const BOOLEAN_NUMBER_BINARY_OPERATORS = exports.BOOLEAN_NUMBER_BINARY_OPERATORS = [">", "<", ">=", "<="];
+const EQUALITY_BINARY_OPERATORS = exports.EQUALITY_BINARY_OPERATORS = ["==", "===", "!=", "!=="];
+const COMPARISON_BINARY_OPERATORS = exports.COMPARISON_BINARY_OPERATORS = [...EQUALITY_BINARY_OPERATORS, "in", "instanceof"];
+const BOOLEAN_BINARY_OPERATORS = exports.BOOLEAN_BINARY_OPERATORS = [...COMPARISON_BINARY_OPERATORS, ...BOOLEAN_NUMBER_BINARY_OPERATORS];
+const NUMBER_BINARY_OPERATORS = exports.NUMBER_BINARY_OPERATORS = ["-", "/", "%", "*", "**", "&", "|", ">>", ">>>", "<<", "^"];
+const BINARY_OPERATORS = exports.BINARY_OPERATORS = ["+", ...NUMBER_BINARY_OPERATORS, ...BOOLEAN_BINARY_OPERATORS, "|>"];
+const ASSIGNMENT_OPERATORS = exports.ASSIGNMENT_OPERATORS = ["=", "+=", ...NUMBER_BINARY_OPERATORS.map(op => op + "="), ...LOGICAL_OPERATORS.map(op => op + "=")];
+const BOOLEAN_UNARY_OPERATORS = exports.BOOLEAN_UNARY_OPERATORS = ["delete", "!"];
+const NUMBER_UNARY_OPERATORS = exports.NUMBER_UNARY_OPERATORS = ["+", "-", "~"];
+const STRING_UNARY_OPERATORS = exports.STRING_UNARY_OPERATORS = ["typeof"];
+const UNARY_OPERATORS = exports.UNARY_OPERATORS = ["void", "throw", ...BOOLEAN_UNARY_OPERATORS, ...NUMBER_UNARY_OPERATORS, ...STRING_UNARY_OPERATORS];
+const INHERIT_KEYS = exports.INHERIT_KEYS = {
   optional: ["typeAnnotation", "typeParameters", "returnType"],
   force: ["start", "loc", "end"]
 };
-exports.INHERIT_KEYS = INHERIT_KEYS;
-const BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
-exports.BLOCK_SCOPED_SYMBOL = BLOCK_SCOPED_SYMBOL;
-const NOT_LOCAL_BINDING = Symbol.for("should not be considered a local binding");
-exports.NOT_LOCAL_BINDING = NOT_LOCAL_BINDING;
+const BLOCK_SCOPED_SYMBOL = exports.BLOCK_SCOPED_SYMBOL = Symbol.for("var used to be block scoped");
+const NOT_LOCAL_BINDING = exports.NOT_LOCAL_BINDING = Symbol.for("should not be considered a local binding");
 
 //# sourceMappingURL=index.js.map
 
@@ -54167,6 +54095,7 @@ var _getBindingIdentifiers = __nccwpck_require__(3331);
 var _index = __nccwpck_require__(2605);
 var _index2 = __nccwpck_require__(9380);
 var _cloneNode = __nccwpck_require__(5823);
+;
 function gatherSequenceExpressions(nodes, scope, declars) {
   const exprs = [];
   let ensureLastUndefined = true;
@@ -54317,8 +54246,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 var _index = __nccwpck_require__(2605);
-var _default = toExpression;
-exports["default"] = _default;
+var _default = exports["default"] = toExpression;
 function toExpression(node) {
   if ((0, _index.isExpressionStatement)(node)) {
     node = node.expression;
@@ -54425,13 +54353,15 @@ toKeyAlias.increment = function () {
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
+var __webpack_unused_export__;
 
 
-Object.defineProperty(exports, "__esModule", ({
+__webpack_unused_export__ = ({
   value: true
-}));
+});
 exports["default"] = toSequenceExpression;
 var _gatherSequenceExpressions = __nccwpck_require__(1022);
+;
 function toSequenceExpression(nodes, scope) {
   if (!(nodes != null && nodes.length)) return;
   const declars = [];
@@ -54460,8 +54390,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = void 0;
 var _index = __nccwpck_require__(2605);
 var _index2 = __nccwpck_require__(9380);
-var _default = toStatement;
-exports["default"] = _default;
+var _default = exports["default"] = toStatement;
 function toStatement(node, ignore) {
   if ((0, _index.isStatement)(node)) {
     return node;
@@ -54508,8 +54437,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = void 0;
 var _isValidIdentifier = __nccwpck_require__(1698);
 var _index = __nccwpck_require__(9380);
-var _default = valueToNode;
-exports["default"] = _default;
+var _default = exports["default"] = valueToNode;
 const objectToString = Function.call.bind(Object.prototype.toString);
 function isRegExp(value) {
   return objectToString(value) === "[object RegExp]";
@@ -55881,7 +55809,7 @@ const classMethodOrPropertyCommon = () => ({
   },
   key: {
     validate: (0, _utils.chain)(function () {
-      const normal = (0, _utils.assertNodeType)("Identifier", "StringLiteral", "NumericLiteral");
+      const normal = (0, _utils.assertNodeType)("Identifier", "StringLiteral", "NumericLiteral", "BigIntLiteral");
       const computed = (0, _utils.assertNodeType)("Expression");
       return function (node, key, val) {
         const validator = node.computed ? computed : normal;
@@ -56291,10 +56219,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.DEPRECATED_ALIASES = void 0;
-const DEPRECATED_ALIASES = {
+const DEPRECATED_ALIASES = exports.DEPRECATED_ALIASES = {
   ModuleDeclaration: "ImportOrExportDeclaration"
 };
-exports.DEPRECATED_ALIASES = DEPRECATED_ALIASES;
 
 //# sourceMappingURL=deprecated-aliases.js.map
 
@@ -57036,8 +56963,7 @@ _toFastProperties(_utils.BUILDER_KEYS);
 _toFastProperties(_utils.DEPRECATED_KEYS);
 _toFastProperties(_placeholders.PLACEHOLDERS_ALIAS);
 _toFastProperties(_placeholders.PLACEHOLDERS_FLIPPED_ALIAS);
-const TYPES = [].concat(Object.keys(_utils.VISITOR_KEYS), Object.keys(_utils.FLIPPED_ALIAS_KEYS), Object.keys(_utils.DEPRECATED_KEYS));
-exports.TYPES = TYPES;
+const TYPES = exports.TYPES = [].concat(Object.keys(_utils.VISITOR_KEYS), Object.keys(_utils.FLIPPED_ALIAS_KEYS), Object.keys(_utils.DEPRECATED_KEYS));
 
 //# sourceMappingURL=index.js.map
 
@@ -57261,19 +57187,16 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.PLACEHOLDERS_FLIPPED_ALIAS = exports.PLACEHOLDERS_ALIAS = exports.PLACEHOLDERS = void 0;
 var _utils = __nccwpck_require__(4106);
-const PLACEHOLDERS = ["Identifier", "StringLiteral", "Expression", "Statement", "Declaration", "BlockStatement", "ClassBody", "Pattern"];
-exports.PLACEHOLDERS = PLACEHOLDERS;
-const PLACEHOLDERS_ALIAS = {
+const PLACEHOLDERS = exports.PLACEHOLDERS = ["Identifier", "StringLiteral", "Expression", "Statement", "Declaration", "BlockStatement", "ClassBody", "Pattern"];
+const PLACEHOLDERS_ALIAS = exports.PLACEHOLDERS_ALIAS = {
   Declaration: ["Statement"],
   Pattern: ["PatternLike", "LVal"]
 };
-exports.PLACEHOLDERS_ALIAS = PLACEHOLDERS_ALIAS;
 for (const type of PLACEHOLDERS) {
   const alias = _utils.ALIAS_KEYS[type];
   if (alias != null && alias.length) PLACEHOLDERS_ALIAS[type] = alias;
 }
-const PLACEHOLDERS_FLIPPED_ALIAS = {};
-exports.PLACEHOLDERS_FLIPPED_ALIAS = PLACEHOLDERS_FLIPPED_ALIAS;
+const PLACEHOLDERS_FLIPPED_ALIAS = exports.PLACEHOLDERS_FLIPPED_ALIAS = {};
 Object.keys(PLACEHOLDERS_ALIAS).forEach(type => {
   PLACEHOLDERS_ALIAS[type].forEach(alias => {
     if (!Object.hasOwnProperty.call(PLACEHOLDERS_FLIPPED_ALIAS, alias)) {
@@ -57372,11 +57295,10 @@ const namedTypeElementCommon = () => ({
 });
 defineType("TSPropertySignature", {
   aliases: ["TSTypeElement"],
-  visitor: ["key", "typeAnnotation", "initializer"],
+  visitor: ["key", "typeAnnotation"],
   fields: Object.assign({}, namedTypeElementCommon(), {
     readonly: (0, _utils.validateOptional)(bool),
     typeAnnotation: (0, _utils.validateOptionalType)("TSTypeAnnotation"),
-    initializer: (0, _utils.validateOptionalType)("Expression"),
     kind: {
       validate: (0, _utils.assertOneOf)("get", "set")
     }
@@ -57816,20 +57738,13 @@ exports.validateOptionalType = validateOptionalType;
 exports.validateType = validateType;
 var _is = __nccwpck_require__(3860);
 var _validate = __nccwpck_require__(8036);
-const VISITOR_KEYS = {};
-exports.VISITOR_KEYS = VISITOR_KEYS;
-const ALIAS_KEYS = {};
-exports.ALIAS_KEYS = ALIAS_KEYS;
-const FLIPPED_ALIAS_KEYS = {};
-exports.FLIPPED_ALIAS_KEYS = FLIPPED_ALIAS_KEYS;
-const NODE_FIELDS = {};
-exports.NODE_FIELDS = NODE_FIELDS;
-const BUILDER_KEYS = {};
-exports.BUILDER_KEYS = BUILDER_KEYS;
-const DEPRECATED_KEYS = {};
-exports.DEPRECATED_KEYS = DEPRECATED_KEYS;
-const NODE_PARENT_VALIDATIONS = {};
-exports.NODE_PARENT_VALIDATIONS = NODE_PARENT_VALIDATIONS;
+const VISITOR_KEYS = exports.VISITOR_KEYS = {};
+const ALIAS_KEYS = exports.ALIAS_KEYS = {};
+const FLIPPED_ALIAS_KEYS = exports.FLIPPED_ALIAS_KEYS = {};
+const NODE_FIELDS = exports.NODE_FIELDS = {};
+const BUILDER_KEYS = exports.BUILDER_KEYS = {};
+const DEPRECATED_KEYS = exports.DEPRECATED_KEYS = {};
+const NODE_PARENT_VALIDATIONS = exports.NODE_PARENT_VALIDATIONS = {};
 function getType(val) {
   if (Array.isArray(val)) {
     return "array";
@@ -58109,7 +58024,6 @@ var _exportNames = {
   toExpression: true,
   toIdentifier: true,
   toKeyAlias: true,
-  toSequenceExpression: true,
   toStatement: true,
   valueToNode: true,
   appendToMemberExpression: true,
@@ -58450,12 +58364,6 @@ Object.defineProperty(exports, "toKeyAlias", ({
     return _toKeyAlias.default;
   }
 }));
-Object.defineProperty(exports, "toSequenceExpression", ({
-  enumerable: true,
-  get: function () {
-    return _toSequenceExpression.default;
-  }
-}));
 Object.defineProperty(exports, "toStatement", ({
   enumerable: true,
   get: function () {
@@ -58584,7 +58492,6 @@ var _toComputedKey = __nccwpck_require__(2544);
 var _toExpression = __nccwpck_require__(5626);
 var _toIdentifier = __nccwpck_require__(5166);
 var _toKeyAlias = __nccwpck_require__(5640);
-var _toSequenceExpression = __nccwpck_require__(8902);
 var _toStatement = __nccwpck_require__(1938);
 var _valueToNode = __nccwpck_require__(2129);
 var _index5 = __nccwpck_require__(5078);
@@ -58652,12 +58559,14 @@ Object.keys(_index6).forEach(function (key) {
   });
 });
 var _deprecationWarning = __nccwpck_require__(496);
-const react = {
+const react = exports.react = {
   isReactComponent: _isReactComponent.default,
   isCompatTag: _isCompatTag.default,
   buildChildren: _buildChildren.default
 };
-exports.react = react;
+{
+  exports.toSequenceExpression = __nccwpck_require__(8902)["default"];
+}
 
 //# sourceMappingURL=index.js.map
 
@@ -58959,12 +58868,15 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = getBindingIdentifiers;
 var _index = __nccwpck_require__(2605);
-function getBindingIdentifiers(node, duplicates, outerOnly) {
+function getBindingIdentifiers(node, duplicates, outerOnly, newBindingsOnly) {
   const search = [].concat(node);
   const ids = Object.create(null);
   while (search.length) {
     const id = search.shift();
     if (!id) continue;
+    if (newBindingsOnly && ((0, _index.isAssignmentExpression)(id) || (0, _index.isUnaryExpression)(id))) {
+      continue;
+    }
     const keys = getBindingIdentifiers.keys[id.type];
     if ((0, _index.isIdentifier)(id)) {
       if (duplicates) {
@@ -59060,8 +58972,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 var _getBindingIdentifiers = __nccwpck_require__(3331);
-var _default = getOuterBindingIdentifiers;
-exports["default"] = _default;
+var _default = exports["default"] = getOuterBindingIdentifiers;
 function getOuterBindingIdentifiers(node, duplicates) {
   return (0, _getBindingIdentifiers.default)(node, duplicates, true);
 }
@@ -62670,8 +62581,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = void 0;
 var _buildMatchMemberExpression = __nccwpck_require__(1941);
 const isReactComponent = (0, _buildMatchMemberExpression.default)("React.Component");
-var _default = isReactComponent;
-exports["default"] = _default;
+var _default = exports["default"] = isReactComponent;
 
 //# sourceMappingURL=isReactComponent.js.map
 
