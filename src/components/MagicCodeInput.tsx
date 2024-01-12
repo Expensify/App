@@ -275,7 +275,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
                 const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
 
                 const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
-                const formElement = inputRefs.current as HTMLFormElement | null
+                const formElement = inputRefs.current as HTMLFormElement | null;
                 (formElement?.[indexToFocus] as HTMLInputElement).focus();
                 onChangeTextProp(value.substring(0, indexToFocus));
 
@@ -394,8 +394,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            // role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            role="none"
+                            role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderNone]}
                             icon={null}
