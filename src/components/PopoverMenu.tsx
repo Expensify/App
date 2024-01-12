@@ -136,6 +136,14 @@ function PopoverMenu({
         {isActive: isVisible},
     );
 
+    const onModalHide = () => {
+        setFocusedIndex(-1);
+        if (selectedItemIndex.current !== null) {
+            menuItems[selectedItemIndex.current].onSelected();
+            selectedItemIndex.current = null;
+        }
+    };
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -145,13 +153,7 @@ function PopoverMenu({
             isVisible={isVisible}
             restoreFocusType={restoreFocusType}
             onModalShow={onModalShow}
-            onModalHide={() => {
-                setFocusedIndex(-1);
-                if (selectedItemIndex.current !== null) {
-                    menuItems[selectedItemIndex.current].onSelected();
-                    selectedItemIndex.current = null;
-                }
-            }}
+            onModalHide={onModalHide}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}
