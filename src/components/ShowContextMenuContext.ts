@@ -1,5 +1,6 @@
 import {createContext} from 'react';
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -8,15 +9,15 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 type ShowContextMenuContextProps = {
     anchor: RNText | null;
-    report: Report | null;
-    action: ReportAction | undefined;
+    report: OnyxEntry<Report>;
+    action: OnyxEntry<ReportAction>;
     checkIfContextMenuActive: () => void;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
     report: null,
-    action: undefined,
+    action: null,
     checkIfContextMenuActive: () => {},
 });
 
@@ -36,7 +37,7 @@ function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
     anchor: RNText | null,
     reportID: string,
-    action: ReportAction,
+    action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
     isArchivedRoom = false,
 ) {
@@ -50,7 +51,7 @@ function showContextMenuForReport(
         '',
         anchor,
         reportID,
-        action.reportActionID,
+        action?.reportActionID,
         ReportUtils.getOriginalReportID(reportID, action),
         undefined,
         checkIfContextMenuActive,

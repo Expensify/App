@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React from 'react';
+import type {Text as RNText} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -63,7 +64,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         chatReportID: string;
 
         /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: Element;
+        contextMenuAnchor: RNText | null;
 
         /** Callback for updating context menu active state, used for showing context menu */
         checkIfContextMenuActive: () => void;
@@ -111,7 +112,7 @@ function TaskPreview({
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action ?? {}, checkIfContextMenuActive)}
+                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
