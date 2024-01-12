@@ -12,15 +12,12 @@ import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteFo
 import getTopmostNestedRHPRoute from './getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from './types';
 
+// The function getPathFromState that we are using in some places isn't working correctly without defined index.
+const getRoutesWithIndex = (routes: NavigationPartialRoute[]) => ({routes, index: routes.length - 1});
+
 function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
-    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [
-        {
-            name: SCREENS.HOME,
-            params: {
-                policyID,
-            },
-        },
-    ];
+    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME, params: {policyID}}];
+
     if (route.name !== SCREENS.HOME) {
         // If the generated state requires tab other than HOME, we need to insert it.
         routesForBottomTabNavigator.push(route);
@@ -28,14 +25,14 @@ function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, 
 
     return {
         name: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
-        state: {routes: routesForBottomTabNavigator},
+        state: getRoutesWithIndex(routesForBottomTabNavigator),
     };
 }
 
 function createCentralPaneNavigator(route: NavigationPartialRoute<CentralPaneName>): NavigationPartialRoute<typeof NAVIGATORS.CENTRAL_PANE_NAVIGATOR> {
     return {
         name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-        state: {routes: [route]},
+        state: getRoutesWithIndex([route]),
     };
 }
 
@@ -45,16 +42,12 @@ function createFullScreenNavigator(route: NavigationPartialRoute<FullScreenName>
     routes.push({name: SCREENS.SETTINGS.ROOT});
     routes.push({
         name: SCREENS.SETTINGS_CENTRAL_PANE,
-        state: {
-            routes: [route],
-        },
+        state: getRoutesWithIndex([route]),
     });
 
     return {
         name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
-        state: {
-            routes,
-        },
+        state: getRoutesWithIndex(routes),
     };
 }
 
@@ -107,7 +100,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
 
         routes.push(rhpNavigator);
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
     if (lhpNavigator) {
         // Routes
@@ -132,7 +125,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
         routes.push(lhpNavigator);
 
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
     if (fullScreenNavigator) {
         // Routes
@@ -152,7 +145,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             routes.push(createCentralPaneNavigator({name: SCREENS.REPORT}));
         }
         routes.push(fullScreenNavigator);
-        return {routes};
+
+        return getRoutesWithIndex(routes);
     }
     if (centralPaneNavigator) {
         // Routes
@@ -163,7 +157,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
         routes.push(centralPaneNavigator);
 
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
     if (bottomTabNavigator) {
         // Routes
@@ -179,9 +173,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             routes.push(createCentralPaneNavigator(matchingCentralPaneRoute));
         }
 
-        return {
-            routes,
-        };
+        return getRoutesWithIndex(routes);
     }
 
     return state;

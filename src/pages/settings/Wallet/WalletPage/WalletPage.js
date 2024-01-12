@@ -335,7 +335,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             ) : (
                 <ScreenWrapper
                     testID={WalletPage.displayName}
-                    shouldShowOfflineIndicator
+                    shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
@@ -356,6 +356,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         icon={Illustrations.MoneyIntoWallet}
                                         subtitle={translate(`walletPage.${hasActivatedWallet ? 'sendAndReceiveMoney' : 'enableWalletToSendAndReceiveMoney'}`)}
                                         title={translate('walletPage.expensifyWallet')}
+                                        isCentralPane
                                     >
                                         <>
                                             {shouldShowLoadingSpinner ? (
@@ -458,6 +459,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                         icon={Illustrations.CreditCardsNew}
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
+                                        isCentralPane
                                     >
                                         <PaymentMethodList
                                             shouldShowAddBankAccount={false}
@@ -479,6 +481,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     icon={Illustrations.BankArrow}
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('walletPage.bankAccounts')}
+                                    isCentralPane
                                 >
                                     <PaymentMethodList
                                         shouldShowAddPaymentMethodButton={false}

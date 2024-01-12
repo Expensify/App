@@ -107,7 +107,7 @@ function WorkspacesListRow({
                 />
                 <Text
                     numberOfLines={1}
-                    style={[styles.flexGrow1, styles.textStrong]}
+                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
                 >
                     {title}
                 </Text>
@@ -150,10 +150,10 @@ function WorkspacesListRow({
                     height={variables.workspaceTypeIconWidth}
                     additionalStyles={styles.workspaceTypeWrapper}
                 />
-                <View style={styles.dFlex}>
+                <View style={styles.flex1}>
                     <Text
                         numberOfLines={1}
-                        style={styles.labelStrong}
+                        style={[styles.labelStrong]}
                     >
                         {userFriendlyWorkspaceType}
                     </Text>
@@ -171,14 +171,14 @@ function WorkspacesListRow({
                         onIconPress={() => {
                             threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
                                 setThreeDotsMenuPosition({
-                                    horizontal: x,
-                                    vertical: y + height + variables.componentBorderRadiusSmall,
+                                    horizontal: x + width,
+                                    vertical: y + height,
                                 });
                             });
                         }}
                         menuItems={menuItems}
                         anchorPosition={threeDotsMenuPosition}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         iconStyles={[styles.mr2]}
                         shouldOverlay
                     />

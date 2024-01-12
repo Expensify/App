@@ -54,7 +54,7 @@ function PreferencesPage(props) {
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
             shouldShowBackButton={isSmallScreenWidth}
-            shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             <View style={styles.mb6}>
                 <Text

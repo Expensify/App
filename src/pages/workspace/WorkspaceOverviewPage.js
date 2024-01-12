@@ -69,7 +69,7 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             shouldShowLoading={false}
             shouldUseScrollView
-            shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA) => (
                 <>
@@ -109,7 +109,6 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
                             title={policy.name}
                             description={translate('workspace.editor.nameInputLabel')}
                             shouldShowRightIcon
-                            disabled={hasVBA}
                             onPress={onPressName}
                         />
 

@@ -32,7 +32,7 @@ function WorkspaceBillsPage(props) {
             headerText={props.translate('workspace.common.bills')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
-            shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID) => (
                 <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>

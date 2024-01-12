@@ -23,7 +23,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             headerText={translate('workspace.common.invoices')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
-            shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA: boolean, policyID: string) => (
                 <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>

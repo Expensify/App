@@ -6,20 +6,19 @@ import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withWindowDimensions from '@components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
-import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -41,7 +40,7 @@ const policySelector = (policy) =>
     };
 
 const propTypes = {
-    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
@@ -79,7 +78,6 @@ function FloatingActionButtonAndPopover(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const isAnonymousUser = Session.isAnonymousUser();
     const fabRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
@@ -129,20 +127,6 @@ function FloatingActionButtonAndPopover(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
     );
-
-    /**
-     * Checks if user is anonymous. If true, shows the sign in modal, else,
-     * executes the callback.
-     *
-     * @param {Function} callback
-     */
-    const interceptAnonymousUser = (callback) => {
-        if (isAnonymousUser) {
-            Session.signOutAndRedirectToSignIn();
-        } else {
-            callback();
-        }
-    };
 
     useEffect(() => {
         const navigationState = props.navigation.getState();

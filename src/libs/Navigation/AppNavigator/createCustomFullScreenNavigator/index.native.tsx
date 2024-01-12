@@ -5,7 +5,7 @@ import {StackView} from '@react-navigation/stack';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
-function FullScreenNavigator(props: FullScreenNavigatorProps) {
+function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
         FullScreenNavigatorRouterOptions,
@@ -31,6 +31,6 @@ function FullScreenNavigator(props: FullScreenNavigatorProps) {
     );
 }
 
-FullScreenNavigator.displayName = 'FullScreenNavigator';
+CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
 
-export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof FullScreenNavigator>(FullScreenNavigator);
+export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof CustomFullScreenNavigator>(CustomFullScreenNavigator);
