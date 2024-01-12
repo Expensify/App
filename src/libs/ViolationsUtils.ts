@@ -2,7 +2,7 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {MaybePolicyTagList, PolicyCategories, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Phrase, PhraseParameters} from './Localize';
 
 const ViolationsUtils = {
@@ -14,7 +14,7 @@ const ViolationsUtils = {
         updatedTransaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTagList: PolicyTagList,
+        policyTagList: MaybePolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): {
@@ -52,10 +52,10 @@ const ViolationsUtils = {
 
         if (policyRequiresTags) {
             const policyTagListName = Object.keys(policyTagList)[0];
-            const policyTags = policyTagList[policyTagListName].tags;
+            const policyTags = policyTagList[policyTagListName]?.tags;
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags[updatedTransaction.tag]?.enabled);
+            const isTagInPolicy = Boolean(policyTags?.[updatedTransaction.tag]?.enabled);
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
