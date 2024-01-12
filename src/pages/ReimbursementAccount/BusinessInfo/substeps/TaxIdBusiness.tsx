@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -38,10 +37,8 @@ const validate = (values: FormValues): OnyxCommon.Errors => {
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const defaultCompanyTaxId = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyTaxIdKey, '');
-
-    const bankAccountID = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0);
+    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
 
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && defaultCompanyTaxId);
 
