@@ -1,6 +1,5 @@
-import React, {useContext, useState, useEffect} from 'react';
+import React, {useContext, useState, useEffect, useCallback} from 'react';
 import Reanimated, {
-    useWorkletCallback,
     KeyboardState,
     useAnimatedKeyboard,
     useAnimatedStyle,
@@ -12,8 +11,10 @@ import Reanimated, {
     withTiming,
 } from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import styles from '../../styles/styles';
+
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
 
 const config = {
@@ -23,6 +24,7 @@ const config = {
 };
 
 function ActionSheetKeyboardSpace(props) {
+    const styles = useThemeStyles();
     const safeArea = useSafeAreaInsets();
     const keyboard = useAnimatedKeyboard();
 
@@ -65,15 +67,18 @@ function ActionSheetKeyboardSpace(props) {
     // return withSequence(withTiming(set, {
     //     duration: 0,
     // }), withSpring(animateTo, config));
-    const setAndTiming = useWorkletCallback((set, animateTo) =>
-        !syncLocalWorkletState.shouldRunAnimation
+    const setAndTiming = useCallback((set, animateTo) => {
+        "worklet";
+
+        return !syncLocalWorkletState.shouldRunAnimation
             ? (() => {
                   syncLocalWorkletState.shouldRunAnimation = true;
                   return set;
               })()
             : withSpring(animateTo, config, () => {
                   syncLocalWorkletState.shouldRunAnimation = false;
-              }),
+              });
+        }
     );
 
     const translateY = useDerivedValue(() => {
