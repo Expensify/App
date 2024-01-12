@@ -288,7 +288,7 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(input);
         });
 
-        it('should filter out deleted and delete-pending comments', () => {
+        it('should filter out deleted, non-pending comments', () => {
             const input = [
                 {
                     created: '2022-11-13 22:27:01.825',
@@ -311,7 +311,6 @@ describe('ReportActionsUtils', () => {
                 },
             ];
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
             input.pop();
             expect(result).toStrictEqual(input);
         });

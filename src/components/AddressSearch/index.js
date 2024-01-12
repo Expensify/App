@@ -349,6 +349,7 @@ function AddressSearch({
                     lat: successData.coords.latitude,
                     lng: successData.coords.longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
+                    name: CONST.YOUR_LOCATION_TEXT,
                 };
                 onPress(location);
             },
@@ -362,7 +363,7 @@ function AddressSearch({
             },
             {
                 maximumAge: 0, // No cache, always get fresh location info
-                timeout: 5000,
+                timeout: 30000,
             },
         );
     };
