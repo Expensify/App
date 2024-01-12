@@ -1,4 +1,5 @@
 import React, {Fragment, useCallback, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
