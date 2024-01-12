@@ -13,7 +13,7 @@ function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<Flat
             ref={ref}
             windowSize={WINDOW_SIZE}
             maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
+                minIndexForVisible: 1,
             }}
             inverted
         />
