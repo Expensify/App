@@ -1,5 +1,6 @@
 import React from 'react';
 import {Text, View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +26,7 @@ type ReportActionItemThreadProps = {
     isHovered: boolean;
 
     /** The function that should be called when the thread is LongPressed or right-clicked */
-    onSecondaryInteraction: () => void;
+    onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
 function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {

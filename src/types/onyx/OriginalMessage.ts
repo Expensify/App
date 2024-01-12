@@ -235,6 +235,11 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageMarkedReimbursed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
+    originalMessage: unknown;
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -251,7 +256,8 @@ type OriginalMessage =
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved;
+    | OriginalMessageMoved
+    | OriginalMessageMarkedReimbursed;
 
 export default OriginalMessage;
 export type {
@@ -266,4 +272,5 @@ export type {
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageAddComment,
+    DecisionName,
 };

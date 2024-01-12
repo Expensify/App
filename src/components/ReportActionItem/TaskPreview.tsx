@@ -63,7 +63,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         chatReportID: string;
 
         /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: Element;
+        contextMenuAnchor: View | null;
 
         /** Callback for updating context menu active state, used for showing context menu */
         checkIfContextMenuActive: () => void;
@@ -111,6 +111,7 @@ function TaskPreview({
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
+                // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action ?? {}, checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 role={CONST.ROLE.BUTTON}

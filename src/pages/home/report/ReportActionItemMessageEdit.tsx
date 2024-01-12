@@ -5,6 +5,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -60,7 +61,7 @@ type ReportActionItemMessageEditProps = {
     shouldDisableEmojiPicker?: boolean;
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone?: number;
+    preferredSkinTone?: OnyxEntry<string | number>;
 };
 
 // native ids
