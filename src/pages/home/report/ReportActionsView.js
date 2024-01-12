@@ -155,14 +155,11 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
                 fetchNewerActon(newestReportAction);
             }
             if (isCuttingForFirstRender.current) {
-                // This is a workaround because 'autoscrollToTopThreshold' does not always function correctly.
-                // We manually trigger a scroll to a slight offset to ensure the expected scroll behavior.
-                reportScrollManager.scrollToOffsetWithoutAnimation(1);
                 isCuttingForFirstRender.current = false;
             }
             setEdgeID(firstReportActionID);
         },
-        [fetchNewerActon, hasMoreCashed, reportScrollManager, newestReportAction],
+        [fetchNewerActon, hasMoreCashed, newestReportAction],
     );
 
     return {

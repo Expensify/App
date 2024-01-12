@@ -138,11 +138,9 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         mutationObserverRef.current = mutationObserver;
     }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
 
-    React.useEffect(() => {
-        requestAnimationFrame(() => {
-            prepareForMaintainVisibleContentPosition();
-            setupMutationObserver();
-        });
+    React.useLayoutEffect(() => {
+        prepareForMaintainVisibleContentPosition();
+        setupMutationObserver();
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
     const setMergedRef = useMergeRefs(scrollRef, forwardedRef);
