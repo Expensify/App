@@ -36,6 +36,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
     const prevStatusBarBackgroundColor = useRef(theme.appBG);
     const statusBarBackgroundColor = useRef(theme.appBG);
+    const isFirstRender = useRef(true);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
@@ -88,16 +89,20 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
             statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-            if (currentScreenBackgroundColor === prevStatusBarBackgroundColor.current) {
+            if (isFirstRender.current) {
+                isFirstRender.current = false;
+                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
+                return;
+            }
+
+            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
                 statusBarAnimation.value = 0;
                 statusBarAnimation.value = withDelay(300, withTiming(1));
             }
-
+            
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            if (newStatusBarStyle === statusBarStyle) {
-                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor});
-            } else {
-                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
+            if (newStatusBarStyle !== statusBarStyle) {
+                updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
             }
         },
