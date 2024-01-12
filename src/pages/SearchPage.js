@@ -45,8 +45,9 @@ const defaultProps = {
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
-        recentReports: {},
-        personalDetails: {},
+        recentReports: [],
+        personalDetails: [],
+        serverSearchResults: [],
         userToInvite: {},
     });
 
@@ -59,11 +60,13 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         const {
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
+            serverSearchResults: localServerSearchResult,
             userToInvite: localUserToInvite,
         } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
 
         setSearchOptions({
             recentReports: localRecentReports,
+            serverSearchResults: localServerSearchResult,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
         });
@@ -98,6 +101,15 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         const sections = [];
         let indexOffset = 0;
 
+        if (searchOptions.serverSearchResults.length > 0) {
+            sections.push({
+                data: searchOptions.serverSearchResults,
+                shouldShow: true,
+                indexOffset,
+            });
+            indexOffset += searchOptions.serverSearchResults.length;
+        }
+
         if (searchOptions.recentReports.length > 0) {
             sections.push({
                 data: searchOptions.recentReports,
@@ -113,7 +125,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += searchOptions.recentReports.length;
+            indexOffset += searchOptions.personalDetails.length;
         }
 
         if (searchOptions.userToInvite) {
@@ -155,7 +167,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
 
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
-        searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
+        searchOptions.recentReports.length + searchOptions.personalDetails.length + searchOptions.serverSearchResults.length !== 0,
         Boolean(searchOptions.userToInvite),
         searchValue,
     );

@@ -1528,7 +1528,7 @@ function getOptions(
         }
     }
 
-    const serverSearchResults = [];
+    const serverSearchOptions = [];
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -1545,7 +1545,7 @@ function getOptions(
             }
 
             if (personalDetailOption.isServerSearchResult) {
-                serverSearchResults.push(personalDetailOption);
+                serverSearchOptions.push(personalDetailOption);
             } else {
                 personalDetailsOptions.push(personalDetailOption);
             }
@@ -1558,9 +1558,9 @@ function getOptions(
     }
 
     let userToInvite = null;
-    const noOptions = recentReportOptions.length + personalDetailsOptions.length + serverSearchResults.length === 0 && !currentUserOption;
+    const noOptions = recentReportOptions.length + personalDetailsOptions.length + serverSearchOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(
-        personalDetailsOptions.concat(recentReportOptions, serverSearchResults),
+        personalDetailsOptions.concat(recentReportOptions, serverSearchOptions),
         (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase() || option.login === searchValue.toLowerCase(),
     );
 
@@ -1633,8 +1633,8 @@ function getOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
+        serverSearchResults: serverSearchOptions,
         userToInvite: canInviteUser ? userToInvite : null,
-        serverSearchResults,
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],

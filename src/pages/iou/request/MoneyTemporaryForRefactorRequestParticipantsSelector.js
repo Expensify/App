@@ -139,21 +139,34 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             return newSections;
         }
 
-        newSections.push({
-            title: translate('common.recents'),
-            data: chatOptions.recentReports,
-            shouldShow: !_.isEmpty(chatOptions.recentReports),
-            indexOffset,
-        });
-        indexOffset += chatOptions.recentReports.length;
+        if (chatOptions.serverSearchResults.length > 0) {
+            newSections.push({
+                data: chatOptions.serverSearchResults,
+                shouldShow: true,
+                indexOffset,
+            });
+            indexOffset += chatOptions.serverSearchResults.length;
+        }
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: !_.isEmpty(chatOptions.personalDetails),
-            indexOffset,
-        });
-        indexOffset += chatOptions.personalDetails.length;
+        if (chatOptions.recentReports.length > 0) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: chatOptions.recentReports,
+                shouldShow: true,
+                indexOffset,
+            });
+            indexOffset += chatOptions.recentReports.length;
+        }
+
+        if (chatOptions.personalDetails.length) {
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: true,
+                indexOffset,
+            });
+            indexOffset += chatOptions.personalDetails.length;
+        }
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
@@ -229,13 +242,21 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                newChatOptions.personalDetails.length + newChatOptions.recentReports.length + newChatOptions.serverSearchResults.length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+        [
+            maxParticipantsReached,
+            newChatOptions.personalDetails.length,
+            newChatOptions.recentReports.length,
+            newChatOptions.serverSearchResults.length,
+            newChatOptions.userToInvite,
+            participants,
+            searchTerm,
+        ],
     );
 
     // When search term updates we will fetch any reports
