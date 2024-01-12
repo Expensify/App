@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,44 +15,52 @@ import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import transactionPropTypes from './transactionPropTypes';
+import type {Transaction} from "@src/types/onyx";
 
-const propTypes = {
+type EReceiptOnyxProps = {
+    transaction: OnyxEntry<Transaction>;
+}
+
+type EReceiptProps = EReceiptOnyxProps & {
     /* TransactionID of the transaction this EReceipt corresponds to */
-    transactionID: PropTypes.string.isRequired,
+    transactionID: string;
+}
 
-    /* Onyx Props */
-    transaction: transactionPropTypes,
-};
-
-const defaultProps = {
-    transaction: {},
-};
-
-function EReceipt({transaction, transactionID}) {
+function EReceipt({transaction, transactionID}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.
-    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
+    const colorStyles =  StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
+    const primaryColor = colorStyles?.backgroundColor;
+    const secondaryColor = colorStyles?.color;
 
-    const {
-        amount: transactionAmount,
-        currency: transactionCurrency,
-        merchant: transactionMerchant,
-        created: transactionDate,
-        cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    // const {
+    //     amount: transactionAmount,
+    //     currency: transactionCurrency,
+    //     merchant: transactionMerchant,
+    //     created: transactionDate,
+    //     cardID: transactionCardID,
+    // } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+
+    const transactionAmount =  transactionDetails?.amount
+    const transactionCurrency = transactionDetails?.currency || ''
+    const transactionMerchant = transactionDetails?.merchant
+    const transactionDate = transactionDetails?.created
+    const transactionCardID = transactionDetails?.cardID
+
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
-    const amount = formattedAmount.replace(currency, '');
-    const cardDescription = CardUtils.getCardDescription(transactionCardID);
+    const amount = currency ? formattedAmount.replace(currency, ''): '';
+    const cardDescription = transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '';
 
-    const secondaryTextColorStyle = StyleUtils.getColorStyle(secondaryColor);
+    const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor): {};
 
     return (
-        <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
+        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor): {}]}>
             <View style={styles.fullScreen}>
                 <EReceiptThumbnail transactionID={transactionID} />
             </View>
@@ -99,11 +107,11 @@ function EReceipt({transaction, transactionID}) {
 }
 
 EReceipt.displayName = 'EReceipt';
-EReceipt.propTypes = propTypes;
-EReceipt.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<EReceiptProps, EReceiptOnyxProps>({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
 })(EReceipt);
+
+export type {EReceiptProps, EReceiptOnyxProps};
