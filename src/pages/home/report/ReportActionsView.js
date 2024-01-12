@@ -98,11 +98,10 @@ let listIDCount = Math.round(Math.random() * 100);
  * @param {function} fetchNewerActon - Function to fetch more messages.
  * @param {string} route - Current route, used to reset states on route change.
  * @param {boolean} isLoading - Loading state indicator.
- * @param {object} reportScrollManager - Manages scrolling functionality.
  * @returns {object} An object containing the sliced message array, the pagination function,
  *                   index of the linked message, and a unique list ID.
  */
-const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading, reportScrollManager) => {
+const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading) => {
     // we don't set edgeID on initial render as linkedID as it should trigger cattedArray after linked message was positioned
     const [edgeID, setEdgeID] = useState('');
     const isCuttingForFirstRender = useRef(true);
@@ -123,7 +122,7 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
             return -1;
         }
 
-        return messageArray.findIndex((obj) => String(obj.reportActionID) === String(isCuttingForFirstRender.current ? linkedID : edgeID));
+        return _.findIndex(messageArray, (obj) => String(obj.reportActionID) === String(isCuttingForFirstRender.current ? linkedID : edgeID));
     }, [messageArray, edgeID, linkedID]);
 
     const cattedArray = useMemo(() => {
@@ -136,10 +135,9 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
 
         if (isCuttingForFirstRender.current) {
             return messageArray.slice(index, messageArray.length);
-        } else {
-            const newStartIndex = index >= PAGINATION_SIZE ? index - PAGINATION_SIZE : 0;
-            return newStartIndex ? messageArray.slice(newStartIndex, messageArray.length) : messageArray;
         }
+        const newStartIndex = index >= PAGINATION_SIZE ? index - PAGINATION_SIZE : 0;
+        return newStartIndex ? messageArray.slice(newStartIndex, messageArray.length) : messageArray;
         // edgeID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [linkedID, messageArray, index, isLoading, edgeID]);
@@ -155,14 +153,11 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
                 fetchNewerActon(newestReportAction);
             }
             if (isCuttingForFirstRender.current) {
-                // This is a workaround because 'autoscrollToTopThreshold' does not always function correctly.
-                // We manually trigger a scroll to a slight offset to ensure the expected scroll behavior.
-                reportScrollManager.scrollToOffsetWithoutAnimation(1);
                 isCuttingForFirstRender.current = false;
             }
             setEdgeID(firstReportActionID);
         },
-        [fetchNewerActon, hasMoreCashed, reportScrollManager, newestReportAction],
+        [fetchNewerActon, hasMoreCashed, newestReportAction],
     );
 
     return {
@@ -215,7 +210,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         fetchFunc,
         linkedIdIndex,
         listID,
-    } = useHandleList(reportActionID, allReportActions, fetchNewerAction, route, !!reportActionID && props.isLoadingInitialReportActions, reportScrollManager);
+    } = useHandleList(reportActionID, allReportActions, fetchNewerAction, route, !!reportActionID && props.isLoadingInitialReportActions);
 
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
