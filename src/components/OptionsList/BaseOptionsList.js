@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import React, {forwardRef, memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import OptionRow from '@components/OptionRow';
@@ -51,7 +51,7 @@ function BaseOptionsList({
     shouldHaveOptionSeparator,
     showTitleTooltip,
     optionHoveredStyle,
-    contentContainerStyles,
+    contentContainerStyles: contentContainerStylesProp,
     sectionHeaderStyle,
     showScrollIndicator,
     listContainerStyles: listContainerStylesProp,
@@ -72,13 +72,15 @@ function BaseOptionsList({
     nestedScrollEnabled,
     bounces,
     renderFooterContent,
+    safeAreaPaddingBottomStyle,
 }) {
     const styles = useThemeStyles();
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
 
-    const listContainerStyles = listContainerStylesProp || [styles.flex1];
+    const listContainerStyles = useMemo(() => listContainerStylesProp || [styles.flex1], [listContainerStylesProp, styles.flex1]);
+    const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, ...contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
