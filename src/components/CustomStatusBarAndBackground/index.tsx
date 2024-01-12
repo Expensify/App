@@ -99,7 +99,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 statusBarAnimation.value = 0;
                 statusBarAnimation.value = withDelay(300, withTiming(1));
             }
-            
+
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
             if (newStatusBarStyle !== statusBarStyle) {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
