@@ -82,7 +82,7 @@ function PurposeForUsingExpensifyModal() {
 
     useEffect(() => {
         const navigationState = navigation.getState();
-        const routes = lodashGet(navigationState, 'routes', []);
+        const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
         if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
