@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -14,7 +14,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -47,7 +47,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     parentReportAction: ReportAction & OriginalMessageIOU;
 
     /** Personal details so we can get the ones for the report participants */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}: MoneyRequestHeaderProps) {
@@ -64,12 +64,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const deleteTransaction = useCallback(() => {
         const {
-            originalMessage: {IOUTransactionID},
+            originalMessage: {IOUTransactionID = ''},
         } = parentReportAction;
-        if (IOUTransactionID) {
-            IOU.deleteMoneyRequest(IOUTransactionID, parentReportAction, true);
-            setIsDeleteModalVisible(false);
-        }
+        IOU.deleteMoneyRequest(IOUTransactionID, parentReportAction, true);
+        setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
