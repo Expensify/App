@@ -1,6 +1,7 @@
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import {type OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -13,6 +14,7 @@ import LoadingPage from '@pages/LoadingPage';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
 import withReportOrNotFound from './withReportOrNotFound';
 
@@ -36,7 +38,7 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
             const prevIsOffline = usePrevious(network.isOffline);
             const isReconnecting = prevIsOffline && !network.isOffline;
             const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
-            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)].note : Object.keys(report?.privateNotes ?? {}).length === 0;
+            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)].note : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
