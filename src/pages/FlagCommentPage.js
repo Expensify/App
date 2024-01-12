@@ -194,7 +194,4 @@ FlagCommentPage.propTypes = propTypes;
 FlagCommentPage.defaultProps = defaultProps;
 FlagCommentPage.displayName = 'FlagCommentPage';
 
-export default compose(
-    withLocalize,
-    withReportAndReportActionOrNotFound,
-)(FlagCommentPage);
+export default compose(withLocalize, withReportAndReportActionOrNotFound)(FlagCommentPage);
