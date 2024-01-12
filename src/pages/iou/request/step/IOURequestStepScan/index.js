@@ -78,14 +78,14 @@ function IOURequestStepScan({
 
     const [videoConstraints, setVideoConstraints] = useState(null);
     const tabIndex = 1;
-    const isScanTabActive = useTabNavigatorFocus({tabIndex});
+    const isTabActive = useTabNavigatorFocus({tabIndex});
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
      * The last deviceId is of regular len camera.
      */
     useEffect(() => {
-        if (!_.isEmpty(videoConstraints) || !isScanTabActive || !Browser.isMobile()) {
+        if (!_.isEmpty(videoConstraints) || !isTabActive || !Browser.isMobile()) {
             return;
         }
 
@@ -112,7 +112,7 @@ function IOURequestStepScan({
             });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isScanTabActive]);
+    }, [isTabActive]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
