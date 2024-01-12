@@ -62,6 +62,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
                         key={name}
                         name={name}
                         getComponent={(screens as Required<Screens>)[name as Screen]}
+                        initialParams={{layout: 'narrow'} as TStackParams[string]}
                     />
                 ))}
             </ModalStackNavigator.Navigator>
@@ -283,6 +284,10 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
 
+const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
+});
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -309,4 +314,5 @@ export {
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
     ReferralModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
 };
