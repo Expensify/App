@@ -1,8 +1,24 @@
 /* eslint-disable no-param-reassign */
 import {useEffect, useState} from 'react';
+import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
+import type {CanvasSize, MultiGestureCanvasVariables, OnScaleChangedCallback, ZoomRange} from './types';
 import * as MultiGestureCanvasUtils from './utils';
+
+type UsePinchGestureProps = {
+    canvasSize: CanvasSize;
+    zoomScale: MultiGestureCanvasVariables['zoomScale'];
+    zoomRange: Required<ZoomRange>;
+    offsetX: MultiGestureCanvasVariables['offsetX'];
+    offsetY: MultiGestureCanvasVariables['offsetY'];
+    pinchTranslateX: MultiGestureCanvasVariables['pinchTranslateX'];
+    pinchTranslateY: MultiGestureCanvasVariables['pinchTranslateY'];
+    pinchScale: MultiGestureCanvasVariables['pinchScale'];
+    isSwipingInPager: MultiGestureCanvasVariables['isSwipingInPager'];
+    stopAnimation: MultiGestureCanvasVariables['stopAnimation'];
+    onScaleChanged: OnScaleChangedCallback;
+};
 
 const usePinchGesture = ({
     canvasSize,
@@ -16,7 +32,7 @@ const usePinchGesture = ({
     isSwipingInPager,
     stopAnimation,
     onScaleChanged,
-}) => {
+}: UsePinchGestureProps): PinchGesture => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
 
@@ -51,7 +67,7 @@ const usePinchGesture = ({
      * based on the canvas size and the current offset
      */
     const getAdjustedFocal = MultiGestureCanvasUtils.useWorkletCallback(
-        (focalX, focalY) => ({
+        (focalX: number, focalY: number) => ({
             x: focalX - (canvasSize.width / 2 + offsetX.value),
             y: focalY - (canvasSize.height / 2 + offsetY.value),
         }),
@@ -70,6 +86,7 @@ const usePinchGesture = ({
 
     const pinchGesture = Gesture.Pinch()
         .enabled(pinchEnabled)
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesDown((_evt, state) => {
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!isSwipingInPager.value) {

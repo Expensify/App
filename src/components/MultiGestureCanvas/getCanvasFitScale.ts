@@ -1,13 +1,6 @@
-type GetCanvasFitScale = (props: {
-    canvasSize: {
-        width: number;
-        height: number;
-    };
-    contentSize: {
-        width: number;
-        height: number;
-    };
-}) => {scaleX: number; scaleY: number; minScale: number; maxScale: number};
+import type {CanvasSize, ContentSize} from './types';
+
+type GetCanvasFitScale = (props: {canvasSize: CanvasSize; contentSize: ContentSize}) => {scaleX: number; scaleY: number; minScale: number; maxScale: number};
 
 const getCanvasFitScale: GetCanvasFitScale = ({canvasSize, contentSize}) => {
     const scaleX = canvasSize.width / contentSize.width;

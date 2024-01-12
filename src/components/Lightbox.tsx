@@ -1,82 +1,87 @@
-/* eslint-disable es/no-optional-chaining */
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {ImageSourcePropType, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
-import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
-import MultiGestureCanvas from './MultiGestureCanvas';
+import MultiGestureCanvas, {defaultZoomRange} from './MultiGestureCanvas';
 import getCanvasFitScale from './MultiGestureCanvas/getCanvasFitScale';
-import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
+import type {ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
 // The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
 // -1 means unlimited
-const NUMBER_OF_CONCURRENT_LIGHTBOXES = 3;
+// We need to define a type for this constant and therefore ignore this ESLint error, although the type is inferable,
+// because otherwise TS will throw an error later in the code since "-1" and this constant have no overlap.
+// We can safely ignore this error, because we might change the value in the future
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
+const NUMBER_OF_CONCURRENT_LIGHTBOXES: number = 3;
+const DEFAULT_IMAGE_SIZE = 200;
 
-const cachedDimensions = new Map();
+type LightboxImageDimensions = {
+    lightboxSize?: ContentSize;
+    fallbackSize?: ContentSize;
+};
+
+const cachedDimensions = new Map<ImageSourcePropType, LightboxImageDimensions>();
+
+type ImageOnLoadEvent = NativeSyntheticEvent<ContentSize>;
+
+type LightboxProps = {
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: boolean;
+
+    /** URI to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: ImageSourcePropType;
+
+    /** Triggers whenever the zoom scale changes */
+    onScaleChanged: OnScaleChangedCallback;
+
+    /** Handles errors while displaying the image */
+    onError: () => void;
+
+    /** Additional styles to add to the component */
+    style: StyleProp<ViewStyle>;
+
+    /** The index of the carousel item */
+    index: number;
+
+    /** The index of the currently active carousel item */
+    activeIndex: number;
+
+    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
+    hasSiblingCarouselItems: boolean;
+
+    /** Range of zoom that can be applied to the content by pinching or double tapping. */
+    zoomRange: ZoomRange;
+};
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-const propTypes = {
-    ...zoomRangePropTypes,
-
-    /** Triggers whenever the zoom scale changes */
-    onScaleChanged: PropTypes.func,
-
-    /** Function for handle on press */
-    onPress: PropTypes.func,
-
-    /** Handles errors while displaying the image */
-    onError: PropTypes.func,
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-    /** Whether source url requires authentication */
-    isAuthTokenRequired: PropTypes.bool,
-
-    /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
-    hasSiblingCarouselItems: PropTypes.bool,
-
-    /** The index of the carousel item */
-    index: PropTypes.number,
-
-    /** The index of the currently active carousel item */
-    activeIndex: PropTypes.number,
-
-    /** Additional styles to add to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-};
-
-const defaultProps = {
-    ...zoomRangeDefaultProps,
-
-    isAuthTokenRequired: false,
-    index: 0,
-    activeIndex: 0,
-    hasSiblingCarouselItems: false,
-    onScaleChanged: () => {},
-    onPress: () => {},
-    onError: () => {},
-    style: {},
-};
-
-const DEFAULT_IMAGE_SIZE = 200;
-
-function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, index, activeIndex, hasSiblingCarouselItems, zoomRange}) {
+function Lightbox({
+    isAuthTokenRequired = false,
+    source,
+    onScaleChanged,
+    onError,
+    style,
+    index = 0,
+    activeIndex = 0,
+    hasSiblingCarouselItems = false,
+    zoomRange = defaultZoomRange,
+}: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
     const isContainerLoaded = containerSize.width !== 0 && containerSize.height !== 0;
 
-    const [imageDimensions, _setImageDimensions] = useState(() => cachedDimensions.get(source));
-    const setImageDimensions = (newDimensions) => {
-        _setImageDimensions(newDimensions);
-        cachedDimensions.set(source, newDimensions);
-    };
-
+    const [imageDimensions, setInternalImageDimensions] = useState(() => cachedDimensions.get(source));
+    const setImageDimensions = useCallback(
+        (newDimensions: LightboxImageDimensions) => {
+            setInternalImageDimensions(newDimensions);
+            cachedDimensions.set(source, newDimensions);
+        },
+        [source],
+    );
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
     const [isImageLoaded, setImageLoaded] = useState(false);
@@ -106,7 +111,11 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     const isLoading = isActive && (!isContainerLoaded || !isImageLoaded);
 
     const updateCanvasSize = useCallback(
-        ({nativeEvent}) => setContainerSize({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)}),
+        ({
+            nativeEvent: {
+                layout: {width, height},
+            },
+        }: LayoutChangeEvent) => setContainerSize({width: PixelRatio.roundToNearestPixel(width), height: PixelRatio.roundToNearestPixel(height)}),
         [],
     );
 
@@ -159,7 +168,10 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             };
         }
 
-        const imageSize = imageDimensions.lightboxSize || imageDimensions.fallbackSize;
+        // If the lightbox size is undefined, th fallback size cannot be undefined,
+        // because we already checked for that before and would have returned early.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const imageSize = imageDimensions.lightboxSize ?? imageDimensions.fallbackSize!;
 
         const {minScale} = getCanvasFitScale({canvasSize: containerSize, contentSize: imageSize});
 
@@ -171,7 +183,6 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     return (
         <View
-            onPress={onPress}
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
@@ -188,11 +199,11 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                             >
                                 <Image
                                     source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
+                                    style={imageDimensions?.lightboxSize ?? {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
-                                    onLoad={(e) => {
+                                    onLoad={(e: ImageOnLoadEvent) => {
                                         const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
                                         const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
                                         setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
@@ -211,7 +222,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                 style={fallbackSize}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoadEnd={() => setFallbackLoaded(true)}
-                                onLoad={(e) => {
+                                onLoad={(e: ImageOnLoadEvent) => {
                                     const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
                                     const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
 
@@ -238,8 +249,6 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     );
 }
 
-Lightbox.propTypes = propTypes;
-Lightbox.defaultProps = defaultProps;
 Lightbox.displayName = 'Lightbox';
 
 export default Lightbox;
