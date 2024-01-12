@@ -5,6 +5,9 @@ import CONST from '@src/CONST';
 export default PropTypes.shape({
     /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
     params: PropTypes.shape({
+        /** What action is being performed, ie. create, edit */
+        action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
+
         /** The type of IOU report, i.e. bill, request, send */
         iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
