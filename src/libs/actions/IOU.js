@@ -264,9 +264,13 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID, partici
  * @param {String} transactionID
  * @param {String} source
  * @param {String} filename
+ * @param {Boolean} isDraft
  */
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
+function setMoneyRequestReceipt(transactionID, source, filename, isDraft) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        receipt: {source},
+        filename,
+    });
 }
 
 /**
@@ -1107,6 +1111,36 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestDate', params, onyxData);
+}
+
+/**
+ * Updates the billable field of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} val
+ */
+function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
+    const transactionChanges = {
+        billable: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestBillable', params, onyxData);
+}
+
+/**
+ * Updates the merchant field of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} val
+ */
+function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, val) {
+    const transactionChanges = {
+        merchant: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestMerchant', params, onyxData);
 }
 
 /**
@@ -2467,38 +2501,37 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
-    let updatedIOUReport = null;
-    let updatedReportPreviewAction = null;
-    if (!shouldDeleteIOUReport) {
-        if (ReportUtils.isExpenseReport(iouReport)) {
-            updatedIOUReport = {...iouReport};
+    let updatedIOUReport = {...iouReport};
+    const updatedReportPreviewAction = {...reportPreviewAction};
+    updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    if (ReportUtils.isExpenseReport(iouReport)) {
+        updatedIOUReport = {...iouReport};
 
-            // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
-        } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-                iouReport,
-                reportAction.actorAccountID,
-                TransactionUtils.getAmount(transaction, false),
-                TransactionUtils.getCurrency(transaction),
-                true,
-            );
-        }
+        // Because of the Expense reports are stored as negative values, we add the total from the amount
+        updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
+    } else {
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID,
+            TransactionUtils.getAmount(transaction, false),
+            TransactionUtils.getCurrency(transaction),
+            true,
+        );
+    }
 
-        updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+    updatedIOUReport.lastMessageText = iouReportLastMessageText;
+    updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
-        updatedReportPreviewAction = {...reportPreviewAction};
-        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
-            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
-        });
-        updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = messageText;
-        if (reportPreviewAction.childMoneyRequestCount > 0) {
-            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
-        }
+    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
+    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
+        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
+        amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
+    });
+    updatedReportPreviewAction.message[0].text = messageText;
+    updatedReportPreviewAction.message[0].html = messageText;
+
+    if (reportPreviewAction.childMoneyRequestCount > 0) {
+        updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }
 
     // STEP 5: Build Onyx data
@@ -2532,12 +2565,12 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
               ]
             : []),
         {
-            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: shouldDeleteIOUReport ? null : updatedReportAction,
+            value: updatedReportAction,
         },
         {
-            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
@@ -2580,9 +2613,34 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [reportAction.reportActionID]: {pendingAction: null},
+                [reportAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                      },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                          errors: null,
+                      },
+            },
+        },
+        ...(shouldDeleteIOUReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: null,
+                  },
+              ]
+            : []),
     ];
 
     const failureData = [
@@ -2628,7 +2686,10 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [reportPreviewAction.reportActionID]: reportPreviewAction,
+                [reportPreviewAction.reportActionID]: {
+                    ...reportPreviewAction,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                },
             },
         },
         ...(shouldDeleteIOUReport
@@ -2987,6 +3048,16 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: iouReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        },
     ];
 
     if (!_.isNull(currentNextStep)) {
@@ -3206,7 +3277,7 @@ function submitReport(expenseReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID]: {
+                [optimisticSubmittedReportAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
@@ -3300,10 +3371,10 @@ function detachReceipt(transactionID) {
 
 /**
  * @param {String} transactionID
- * @param {Object} receipt
- * @param {String} filePath
+ * @param {Object} file
+ * @param {String} source
  */
-function replaceReceipt(transactionID, receipt, filePath) {
+function replaceReceipt(transactionID, file, source) {
     const transaction = lodashGet(allTransactions, 'transactionID', {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
 
@@ -3313,10 +3384,10 @@ function replaceReceipt(transactionID, receipt, filePath) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: {
-                    source: filePath,
+                    source,
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
-                filename: receipt.name,
+                filename: file.name,
             },
         },
     ];
@@ -3332,7 +3403,7 @@ function replaceReceipt(transactionID, receipt, filePath) {
         },
     ];
 
-    API.write('ReplaceReceipt', {transactionID, receipt}, {optimisticData, failureData});
+    API.write('ReplaceReceipt', {transactionID, receipt: file}, {optimisticData, failureData});
 }
 
 /**
@@ -3458,14 +3529,6 @@ function setMoneyRequestParticipants(participants, isSplitRequest) {
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
-/**
- * @param {String} receiptPath
- * @param {String} receiptFilename
- */
-function setMoneyRequestReceipt(receiptPath, receiptFilename) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
-}
-
 function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -3569,7 +3632,7 @@ export {
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
-    setMoneyRequestReceipt_temporaryForRefactor,
+    setMoneyRequestReceipt,
     setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -3580,13 +3643,14 @@ export {
     setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestBillable,
+    updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
