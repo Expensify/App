@@ -353,7 +353,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isKeyboardShown, isSmallScreenWidth, parentReportAction, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
     const onChangeText = useCallback(
