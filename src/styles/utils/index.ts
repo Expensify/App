@@ -1431,7 +1431,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return containerStyles;
     },
 
-    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean) => [
+    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean): ViewStyle[] => [
         {
             alignItems: 'center',
             justifyContent: 'center',
