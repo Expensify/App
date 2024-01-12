@@ -320,6 +320,7 @@ function WorkspaceNewRoomPage(props) {
                                     onValueChange={setVisibility}
                                     value={visibility}
                                     furtherDetails={visibilityDescription}
+                                    shouldShowTooltips={false}
                                 />
                             </View>
                         </FormProvider>

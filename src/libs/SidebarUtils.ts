@@ -122,16 +122,14 @@ function getOrderedReportIDs(
     allReportActions: OnyxCollection<ReportAction[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): string[] {
-    const reportIDKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`;
-    const reportActionCount = allReportActions?.[reportIDKey]?.length ?? 1;
+    const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`];
+    let reportActionCount = currentReportActions?.length ?? 0;
+    reportActionCount = Math.max(reportActionCount, 1);
 
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
-        /**
-         *  Exclude some properties not to overwhelm a cached key value with huge data,
-         *  which we don't need to store in a cacheKey
-         */
+        // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
         (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
     );
 
