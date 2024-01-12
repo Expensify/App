@@ -36,10 +36,10 @@ type DistanceRequestOnyxProps = {
 
 type DistanceRequestProps = DistanceRequestOnyxProps & {
     /** The TransactionID of this request */
-    transactionID: string;
+    transactionID?: string;
 
     /** The report to which the distance request is associated */
-    report: Report;
+    report: OnyxEntry<Report>;
 
     /** Are we editing an existing distance request, or creating a new one? */
     isEditingRequest?: boolean;
@@ -164,7 +164,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
      */
     const navigateToWaypointEditPage = (index: number) => {
         Navigation.navigate(
-            isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(Number(report.reportID), transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index),
+            isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(Number(report?.reportID ?? -1), transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index),
         );
     };
 
@@ -175,7 +175,8 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
         }
 
         if (Object.keys(validatedWaypoints).length < 2) {
-            return {error0: translate('iou.error.atLeastTwoDifferentWaypoints')};
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            return {0: translate('iou.error.atLeastTwoDifferentWaypoints')};
         }
         return {};
     };
@@ -293,6 +294,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
 DistanceRequest.displayName = 'DistanceRequest';
 export default withOnyx<DistanceRequestProps, DistanceRequestOnyxProps>({
     transaction: {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID || 0}`,
     },
 })(DistanceRequest);

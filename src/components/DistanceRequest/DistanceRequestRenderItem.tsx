@@ -8,34 +8,34 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 type DistanceRequestProps = {
     /** The waypoints for the distance request */
-    waypoints: WaypointCollection;
+    waypoints?: WaypointCollection;
 
     /** The index of the item */
-    item: string;
+    item?: string;
 
     /** Function to call when the secondary interaction is triggered */
-    onSecondaryInteraction: () => void;
+    onSecondaryInteraction?: () => void;
 
     /** Function to get the index of the item */
-    getIndex: () => number;
+    getIndex?: () => number;
 
     /** Whether the item is active */
-    isActive: boolean;
+    isActive?: boolean;
 
     /** Function to call when the user clicks the item */
-    onPress: (index: number) => void;
+    onPress?: (index: number) => void;
 
     /** Whether the item is disabled */
-    disabled: boolean;
+    disabled?: boolean;
 };
 
 function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
-    const numberOfWaypoints = Object.keys(waypoints).length;
+    const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
-    const index = getIndex();
+    const index = getIndex ? getIndex() : -1;
     let descriptionKey = 'distance.waypointDescription.';
     let waypointIcon;
     if (index === 0) {

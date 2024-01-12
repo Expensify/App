@@ -17,28 +17,24 @@ import type {MapboxAccessToken} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WayPoint} from '@components/MapView/MapViewTypes';
 
 const MAX_WAYPOINTS = 25;
-
-type WayPoint = {
-    id: string;
-    coordinate: [number, number];
-    markerComponent: () => ReactNode;
-};
 
 type DistanceRequestFooterOnyxProps = {
     /** Data about Mapbox token for calling Mapbox API */
     mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
 };
+
 type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
     /** The waypoints for the distance request */
-    waypoints: WaypointCollection;
+    waypoints?: WaypointCollection;
 
     /** Function to call when the user wants to add a new waypoint */
     navigateToWaypointEditPage: (index: number) => void;
 
     /** The transaction being interacted with */
-    transaction: Transaction;
+    transaction: OnyxEntry<Transaction>;
 };
 
 function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navigateToWaypointEditPage}: DistanceRequestFooterProps) {
@@ -46,13 +42,13 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const numberOfWaypoints = Object.keys(waypoints).length;
-    const numberOfFilledWaypoints = Object.values(waypoints).filter((waypoint) => Object.keys(waypoint).length).length;
+    const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
+    const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => Object.keys(waypoint).length).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
 
     const waypointMarkers = useMemo(
         () =>
-            Object.entries(waypoints)
+            Object.entries(waypoints ?? {})
                 .map(([key, waypoint]) => {
                     if (!waypoint?.lat || !waypoint?.lng) {
                         return;
