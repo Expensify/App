@@ -277,7 +277,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -726,26 +726,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             )}
             {shouldShowAllFields && (
                 <>
-                    {shouldShowDate && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
-                            description={translate('common.date')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                            }}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
-                        />
-                    )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly && isTypeRequest}
@@ -778,6 +758,26 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             interactive={!isReadOnly}
                             brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={merchantError ? translate('common.error.fieldRequired') : ''}
+                        />
+                    )}
+                    {shouldShowDate && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                            description={translate('common.date')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.DATE));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                            }}
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {shouldShowCategories && (

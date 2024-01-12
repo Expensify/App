@@ -11,6 +11,7 @@ type Response = {
     jsonCode?: number | string;
     onyxData?: OnyxUpdate[];
     requestID?: string;
+    reportID?: string;
     shouldPauseQueue?: boolean;
     authToken?: string;
     encryptedAuthToken?: string;
