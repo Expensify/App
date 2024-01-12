@@ -586,7 +586,7 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
                 return (
-                    <>
+                    <OfflineWithFeedback pendingAction={parentReportAction.pendingAction}>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <ReportActionItemSingle
@@ -598,7 +598,7 @@ function ReportActionItem(props) {
                             </ReportActionItemSingle>
                             <View style={styles.reportHorizontalRule} />
                         </View>
-                    </>
+                    </OfflineWithFeedback>
                 );
             }
             return (
