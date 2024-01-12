@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 
-type MenuItemLink = string | (() => Promise<string>);
+type MenuItemLink = string | (() => Promise<string>) | undefined;
 
 type MenuItemWithLink = MenuItemProps & {
     /** The link to open when the menu item is clicked */
