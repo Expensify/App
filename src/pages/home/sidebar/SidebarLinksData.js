@@ -1,4 +1,6 @@
 import {deepEqual} from 'fast-equals';
+import lodashGet from 'lodash/get';
+import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -204,9 +206,9 @@ const chatReportSelector = (report) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    _.map(reportActions, (reportAction) => {
+    lodashMap(reportActions, (reportAction) => {
         const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
-        const decision = _.get(reportAction, 'message[0].moderationDecision.decision');
+        const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
         return {
             reportActionID,
