@@ -15,6 +15,11 @@ const restrictedImportPaths = [
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
     },
     {
+        name: 'awesome-phonenumber',
+        importNames: ['parsePhoneNumber'],
+        message: "Please use '@libs/PhoneNumber' instead.",
+    },
+    {
         name: 'react-native-safe-area-context',
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
@@ -24,12 +29,44 @@ const restrictedImportPaths = [
         importNames: ['CSSProperties'],
         message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
     },
+    {
+        name: '@styles/index',
+        importNames: ['default', 'defaultStyles'],
+        message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.',
+    },
+    {
+        name: '@styles/utils',
+        importNames: ['default', 'DefaultStyleUtils'],
+        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
+    },
+    {
+        name: '@styles/theme',
+        importNames: ['default', 'defaultTheme'],
+
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+    },
+    {
+        name: '@styles/theme/illustrations',
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
+    },
 ];
 
 const restrictedImportPatterns = [
     {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the 'src/components/LottieAnimations' import instead.",
+    },
+    {
+        group: ['@styles/theme/themes/**'],
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+    },
+    {
+        group: ['@styles/utils/**', '!@styles/utils/FontUtils', '!@styles/utils/types'],
+        message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
+    },
+    {
+        group: ['@styles/theme/illustrations/themes/**'],
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
 
@@ -171,6 +208,21 @@ module.exports = {
                 '@typescript-eslint/switch-exhaustiveness-check': 'error',
                 '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
                 '@typescript-eslint/no-floating-promises': 'off',
+                '@typescript-eslint/consistent-type-imports': [
+                    'error',
+                    {
+                        prefer: 'type-imports',
+                        fixStyle: 'separate-type-imports',
+                    },
+                ],
+                '@typescript-eslint/no-import-type-side-effects': 'error',
+                '@typescript-eslint/consistent-type-exports': [
+                    'error',
+                    {
+                        fixMixedExportsWithInlineTypeSpecifier: false,
+                    },
+                ],
+                'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',

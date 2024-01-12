@@ -1,8 +1,9 @@
-import {ParamListBase, RouteProp, useRoute} from '@react-navigation/native';
+import type {ParamListBase, RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import useWindowDimensions from './useWindowDimensions';
 
 type RouteParams = ParamListBase & {
-    params: {isInRHP?: boolean};
+    params: {layout?: string};
 };
 type ResponsiveLayoutResult = {
     shouldUseNarrowLayout: boolean;
@@ -15,10 +16,11 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     try {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const {params} = useRoute<RouteProp<RouteParams, 'params'>>();
-        return {shouldUseNarrowLayout: isSmallScreenWidth || (params?.isInRHP ?? false)};
+        const isNarrowLayout = params?.layout === 'narrow' ?? false;
+        const shouldUseNarrowLayout = isSmallScreenWidth || isNarrowLayout;
+
+        return {shouldUseNarrowLayout};
     } catch (error) {
-        return {
-            shouldUseNarrowLayout: isSmallScreenWidth,
-        };
+        return {shouldUseNarrowLayout: isSmallScreenWidth};
     }
 }

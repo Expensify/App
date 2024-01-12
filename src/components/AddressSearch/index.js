@@ -197,7 +197,7 @@ function AddressSearch({
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 onPress({
-                    address: lodashGet(details, 'description'),
+                    address: autocompleteData.description || lodashGet(details, 'description', ''),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
                     name: lodashGet(details, 'name'),
@@ -266,7 +266,7 @@ function AddressSearch({
 
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
-            address: lodashGet(details, 'formatted_address', ''),
+            address: autocompleteData.description || lodashGet(details, 'formatted_address', ''),
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -349,6 +349,7 @@ function AddressSearch({
                     lat: successData.coords.latitude,
                     lng: successData.coords.longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
+                    name: CONST.YOUR_LOCATION_TEXT,
                 };
                 onPress(location);
             },
@@ -362,7 +363,7 @@ function AddressSearch({
             },
             {
                 maximumAge: 0, // No cache, always get fresh location info
-                timeout: 5000,
+                timeout: 30000,
             },
         );
     };
