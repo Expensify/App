@@ -121,7 +121,7 @@ function FormWrapper(props) {
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
-                        isAlertVisible={(_.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)) && !shouldHideFixErrorsAlert}
+                        isAlertVisible={((_.size(errors) > 0 || !_.isEmpty(formState.errorFields)) && !shouldHideFixErrorsAlert) || Boolean(errorMessage)}
                         isLoading={formState.isLoading}
                         message={_.isEmpty(formState.errorFields) ? errorMessage : null}
                         onSubmit={onSubmit}
