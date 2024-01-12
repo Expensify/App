@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -38,8 +37,7 @@ const validate = (values: FormValues): OnyxCommon.Errors => {
 function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNumberBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const defaultCompanyPhoneNumber = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyPhoneNumberKey, '');
+    const defaultCompanyPhoneNumber = reimbursementAccount?.achData?.companyPhone ?? '';
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
