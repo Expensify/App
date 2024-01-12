@@ -108,7 +108,7 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
 
     useLayoutEffect(() => {
         setEdgeID('');
-    }, [route, linkedID]);
+    }, [route]);
 
     const listID = useMemo(() => {
         isCuttingForFirstRender.current = true;
@@ -118,12 +118,12 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
     }, [route]);
 
     const index = useMemo(() => {
-        if (!linkedID) {
+        if (!linkedID || isLoading) {
             return -1;
         }
 
         return _.findIndex(messageArray, (obj) => String(obj.reportActionID) === String(isCuttingForFirstRender.current ? linkedID : edgeID));
-    }, [messageArray, edgeID, linkedID]);
+    }, [messageArray, edgeID, linkedID, isLoading]);
 
     const cattedArray = useMemo(() => {
         if (!linkedID) {
@@ -142,13 +142,13 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [linkedID, messageArray, index, isLoading, edgeID]);
 
-    const hasMoreCashed = cattedArray.length < messageArray.length;
+    const hasMoreCached = cattedArray.length < messageArray.length;
     const newestReportAction = lodashGet(cattedArray, '[0]');
 
     const paginate = useCallback(
         ({firstReportActionID}) => {
             // This function is a placeholder as the actual pagination is handled by cattedArray
-            if (!hasMoreCashed) {
+            if (!hasMoreCached) {
                 isCuttingForFirstRender.current = false;
                 fetchNewerActon(newestReportAction);
             }
@@ -157,7 +157,7 @@ const useHandleList = (linkedID, messageArray, fetchNewerActon, route, isLoading
             }
             setEdgeID(firstReportActionID);
         },
-        [fetchNewerActon, hasMoreCashed, newestReportAction],
+        [fetchNewerActon, hasMoreCached, newestReportAction],
     );
 
     return {
@@ -181,14 +181,14 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const {windowHeight} = useWindowDimensions();
+    const isFocused = useIsFocused();
 
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
 
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
-
-    const isFocused = useIsFocused();
     const reportID = props.report.reportID;
+    const isLoading = (!!reportActionID && props.isLoadingInitialReportActions)|| !props.isContentReady;
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -210,7 +210,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         fetchFunc,
         linkedIdIndex,
         listID,
-    } = useHandleList(reportActionID, allReportActions, fetchNewerAction, route, !!reportActionID && props.isLoadingInitialReportActions);
+    } = useHandleList(reportActionID, allReportActions, fetchNewerAction, route, isLoading);
 
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
@@ -412,6 +412,9 @@ ReportActionsView.defaultProps = defaultProps;
 ReportActionsView.displayName = 'ReportActionsView';
 
 function arePropsEqual(oldProps, newProps) {
+    if (!_.isEqual(oldProps.isContentReady, newProps.isContentReady)) {
+        return false;
+    }
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {
         return false;
     }

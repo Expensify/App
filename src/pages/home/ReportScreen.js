@@ -173,7 +173,7 @@ function ReportScreen({
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isPrepareLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
-
+    const isFocused = useIsFocused();
     const reportActions = useMemo(() => {
         if (_.isEmpty(allReportActions)) {
             return [];
@@ -183,6 +183,7 @@ function ReportScreen({
         return _.filter(currentRangeOfReportActions, (reportAction) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID));
     }, [reportActionIDFromRoute, allReportActions]);
 
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
@@ -263,15 +264,17 @@ function ReportScreen({
         return reportIDFromRoute !== '' && report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
+    const shouldShowSkeleton =
+        isPrepareLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions);
+
     const shouldShowReportActionList = useMemo(
-        () => isReportReadyForDisplay && !isLoading && !(_.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions),
-        [isReportReadyForDisplay, reportActions, isLoading, reportMetadata.isLoadingInitialReportActions],
+        () => isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading,
+        [isReportReadyForDisplay, isLoading, isLoadingInitialReportActions],
     );
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [reportIDFromRoute, reportActionIDFromRoute]);
-    const isFocused = useIsFocused();
 
     useEffect(() => {
         if (!report.reportID || !isFocused) {
@@ -484,11 +487,6 @@ function ReportScreen({
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
-    const shouldShowSkeleton = useMemo(
-        () => isPrepareLinkingToMessage || !isReportReadyForDisplay || isLoading || reportMetadata.isLoadingInitialReportActions,
-        [isPrepareLinkingToMessage, isReportReadyForDisplay, isLoading, reportMetadata.isLoadingInitialReportActions],
-    );
-
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
         if (reportMetadata.isLoadingInitialReportActions && shouldTriggerLoadingRef.current) {
@@ -560,6 +558,7 @@ function ReportScreen({
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
                                         isComposerFullSize={isComposerFullSize}
                                         policy={policy}
+                                        isContentReady={!shouldShowSkeleton}
                                     />
                                 )}
 
