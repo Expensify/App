@@ -44,13 +44,13 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /* Onyx Props */
-    /** All the report actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    /** The full action from the parent report */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 };
 
 const defaultProps = {
     reportActions: {},
-    parentReportActions: {},
+    parentReportAction: {},
     report: {},
 };
 
@@ -124,19 +124,18 @@ function FlagCommentPage(props) {
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = props.parentReportActions[props.report.parentReportActionID] || {};
+            reportAction = props.parentReportAction;
         }
 
         return reportAction;
-    }, [props.report, props.reportActions, props.route.params.reportActionID, props.parentReportActions]);
+    }, [props.reportActions, props.route.params.reportActionID, props.parentReportAction]);
 
     const flagComment = (severity) => {
         let reportID = getReportID(props.route);
         const reportAction = getActionToFlag();
-        const parentReportAction = props.parentReportActions[props.report.parentReportActionID] || {};
 
         // Handle threads if needed
-        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === parentReportAction.reportActionID) {
+        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === props.parentReportAction.reportActionID) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
 
@@ -200,10 +199,4 @@ FlagCommentPage.displayName = 'FlagCommentPage';
 export default compose(
     withLocalize,
     withReportAndReportActionOrNotFound,
-    withOnyx({
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || report.reportID}`,
-            canEvict: false,
-        },
-    }),
 )(FlagCommentPage);
