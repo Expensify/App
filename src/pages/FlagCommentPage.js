@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +16,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
