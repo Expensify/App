@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function alertUser() {
     // For now, we will pretty much never have to do this on a platform other than production.
@@ -18,5 +18,5 @@ function alertUser() {
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    alertUser
+    alertUser,
 };

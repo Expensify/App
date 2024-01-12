@@ -5,8 +5,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import * as UpdateRequired from './actions/UpdateRequired';
 import * as NetworkActions from './actions/Network';
+import * as UpdateRequired from './actions/UpdateRequired';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 
