@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
+import {Close} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +18,11 @@ function MoneyRequestReferralProgramCTA({referralContentType}: MoneyRequestRefer
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const [isHidden, setIsHidden] = useState(false);
+
+    if (isHidden) {
+        return null;
+    }
 
     return (
         <PressableWithoutFeedback
@@ -37,11 +42,21 @@ function MoneyRequestReferralProgramCTA({referralContentType}: MoneyRequestRefer
                     {translate(`referralProgram.${referralContentType}.buttonText2`)}
                 </Text>
             </Text>
-            <Icon
-                src={Info}
-                height={20}
-                width={20}
-            />
+            <PressableWithoutFeedback
+                onPress={() => setIsHidden(true)}
+                onMouseDown={(e) => {
+                    e.preventDefault();
+                }}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityLabel={translate('common.close')}
+            >
+                <Icon
+                    src={Close}
+                    height={20}
+                    width={20}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
         </PressableWithoutFeedback>
     );
 }
