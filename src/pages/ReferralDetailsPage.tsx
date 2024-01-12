@@ -29,7 +29,7 @@ type ReferralDetailsPageOnyxProps = {
 
 type ReferralDetailsPageProps = ReferralDetailsPageOnyxProps & StackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
-function ReferralDetailsPage({route, account = null}: ReferralDetailsPageProps) {
+function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
