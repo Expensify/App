@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,8 +50,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
         () => (user?.isFromPublicDomain ? 'https://' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`),
         [session?.email, user?.isFromPublicDomain],
     );
-
-    const defaultCompanyWebsite = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyWebsiteKey, defaultWebsiteExample);
+    const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     useEffect(() => {
         BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
