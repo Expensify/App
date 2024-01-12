@@ -7,7 +7,7 @@ const restrictedImportPaths = [
             "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
             "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
             "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
-            "For 'Text', please use '@components/Text' instead."
+            "For 'Text', please use '@components/Text' instead.",
         ].join('\n'),
     },
     {
