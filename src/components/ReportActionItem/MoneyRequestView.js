@@ -222,7 +222,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     let hasErrors = false;
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-        hasErrors = canEditReceipt && TransactionUtils.hasMissingSmartscanFields(transaction);
+        hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
     const pendingAction = lodashGet(transaction, 'pendingAction');
@@ -249,7 +249,17 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 {!hasReceipt && canEditReceipt && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.REQUEST,
+                                    transaction.transactionID,
+                                    report.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
                     />
                 )}
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
