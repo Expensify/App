@@ -12,7 +12,9 @@ type PolicyTag = {
 
 type PolicyTags = Record<string, PolicyTag>;
 
-type PolicyTagList<T extends string> = Record<T, {
+// Using a generic to indicate that the top-level key and name should be the
+// same value. Not meant for direct use, just used by the alias below.
+type PolicyTagListGeneric<T extends string> = Record<T, {
     /** Name of the tag list */
     name: T;
 
@@ -20,6 +22,8 @@ type PolicyTagList<T extends string> = Record<T, {
     required: boolean;
 
     tags: PolicyTags;
-    }>;
+ }>;
+
+ type PolicyTagList = PolicyTagListGeneric<string>;
 
 export type {PolicyTag, PolicyTags, PolicyTagList};

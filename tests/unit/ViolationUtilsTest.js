@@ -128,7 +128,13 @@ describe('getViolationsOnyxData', () => {
     describe('policyRequiresTags', () => {
         beforeEach(() => {
             policyRequiresTags = true;
-            policyTags = {Lunch: {enabled: true}, Dinner: {enabled: true}};
+            policyTags = {
+                Tag: {
+                    name: 'Tag',
+                    required: true,
+                    tags: {Lunch: {enabled: true}, Dinner: {enabled: true}},
+                },
+            };
             transaction.tag = 'Lunch';
         });
 
