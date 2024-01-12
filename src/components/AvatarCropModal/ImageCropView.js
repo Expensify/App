@@ -90,7 +90,7 @@ function ImageCropView(props) {
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
                         src={props.maskImage}
-                        fill={theme.icon}
+                        fill={theme.iconReversed}
                         width={props.containerSize}
                         height={props.containerSize}
                     />
