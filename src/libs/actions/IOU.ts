@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
@@ -150,7 +149,7 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-let allTransactions: Record<string, OnyxEntry<OnyxTypes.Transaction>> = {};
+let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -164,7 +163,7 @@ Onyx.connect({
     },
 });
 
-let allTransactionDrafts: Record<string, OnyxEntry<OnyxTypes.Transaction>> = {};
+let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -173,7 +172,7 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: Record<string, OnyxEntry<OnyxTypes.TransactionViolations>> = {};
+let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -187,7 +186,7 @@ Onyx.connect({
     },
 });
 
-let allDraftSplitTransactions: Record<string, OnyxEntry<OnyxTypes.Transaction>> = {};
+let allDraftSplitTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -196,7 +195,7 @@ Onyx.connect({
     },
 });
 
-let allNextSteps: Record<string, OnyxEntry<OnyxTypes.ReportNextStep>> = {};
+let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
@@ -236,6 +235,7 @@ Onyx.connect({
  * @param reportID to attach the transaction to
  * @param iouRequestType one of manual/scan/distance
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -271,46 +271,57 @@ function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestCreated_temporaryForRefactor(transactionID: string, created: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {created});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestDescription_temporaryForRefactor(transactionID: string, comment: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestMerchant_temporaryForRefactor(transactionID: string, merchant: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {merchant: merchant.trim()});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestCategory_temporaryForRefactor(transactionID: string, category: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function resetMoneyRequestCategory_temporaryForRefactor(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestTag_temporaryForRefactor(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function resetMoneyRequestTag_temporaryForRefactor(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag: null});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestBillable_temporaryForRefactor(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[]) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
@@ -374,7 +385,7 @@ function buildOnyxDataForMoneyRequest(
     policyTags?: OnyxTypes.PolicyTags,
     policyCategories?: OnyxTypes.PolicyCategories,
     hasOutstandingChildRequest = false,
-): OnyxUpdate[][] {
+): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const optimisticData: OnyxUpdate[] = [];
 
@@ -596,7 +607,9 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              errors: getReceiptError(transaction?.receipt, transaction.filename ?? transaction.receipt?.filename, isScanRequest),
+                              // Disabling this line since transaction.filename can be an empty string
+                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                              errors: getReceiptError(transaction?.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
                           },
                           [reportPreviewAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -605,7 +618,9 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
-                              errors: getReceiptError(transaction?.receipt, transaction.filename ?? transaction.receipt?.filename, isScanRequest),
+                              // Disabling this line since transaction.filename can be an empty string
+                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                              errors: getReceiptError(transaction?.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
                           },
                       }),
             },
@@ -617,7 +632,9 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.filename ?? transaction.receipt?.filename, isScanRequest),
+                              // Disabling this line since transaction.filename can be an empty string
+                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
                           },
                           [iouAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -625,7 +642,9 @@ function buildOnyxDataForMoneyRequest(
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.filename ?? transaction.receipt?.filename, isScanRequest),
+                              // Disabling this line since transaction.filename can be an empty string
+                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
                           },
                       }),
             },
