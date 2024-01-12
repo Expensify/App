@@ -135,13 +135,9 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file, source) => {
             IOU.replaceReceipt(transactionID, file, source);
-            if (backTo) {
-                Navigation.goBack(backTo);
-                return;
-            }
             Navigation.dismissModal();
         },
-        [backTo, transactionID],
+        [transactionID],
     );
 
     /**
