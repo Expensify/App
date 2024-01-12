@@ -27,7 +27,7 @@ export default function subscribeToReportCommentPushNotifications() {
         Navigation.isNavigationReady()
             .then(Navigation.waitForProtectedRoutes)
             .then(() => {
-                // Close attachment modal before navigating to notification's report
+                // The attachment modal remains open when navigating to the report so we need to close it
                 Modal.close(() => {
                     try {
                         // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
