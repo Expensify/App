@@ -225,7 +225,7 @@ function Expensify(props) {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {/* If the update is required we won't show this option since a full screen update view will be displayed instead. */}
-                    {(props.updateAvailable && !props.updateRequired) ? <UpdateAppModal /> : null}
+                    {props.updateAvailable && !props.updateRequired ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
                         <ConfirmModal
                             title={props.translate('guides.screenShare')}
