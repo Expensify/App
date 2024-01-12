@@ -4,7 +4,7 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
 
-function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsProps) {
+function QuickEmojiReactions({closeContextMenu, onEmojiSelected, ...rest}: QuickEmojiReactionsProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
 
     const onPressOpenPicker = (openPicker?: OpenPickerCallback) => {
@@ -29,19 +29,19 @@ function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsPro
         });
     };
 
-    const onEmojiSelected = (emoji) => {
+    const onEmojiSelectedCallback = (emoji, emojiReactions) => {
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
         });
 
-        props.onEmojiSelected(emoji);
+        onEmojiSelected(emoji, emojiReactions);
     };
 
     return (
         <BaseQuickEmojiReactions
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            onEmojiSelected={onEmojiSelected}
+            onEmojiSelected={onEmojiSelectedCallback}
             onPressOpenPicker={onPressOpenPicker}
         />
     );
