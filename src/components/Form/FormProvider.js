@@ -74,6 +74,7 @@ const propTypes = {
     /** Should validate function be called when the value of the input is changed */
     shouldValidateOnChange: PropTypes.bool,
 
+    /** Should fix the errors alert be displayed when there is an error in the form */
     shouldHideFixErrorsAlert: PropTypes.bool,
 };
 
