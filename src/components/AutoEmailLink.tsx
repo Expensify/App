@@ -16,11 +16,11 @@ type AutoEmailLinkProps = {
  *     - Else just render it inside `Text` component
  */
 
-function AutoEmailLink(props: AutoEmailLinkProps) {
+function AutoEmailLink({text, style}: AutoEmailLinkProps) {
     const styles = useThemeStyles();
     return (
-        <Text style={props.style}>
-            {props.text.split(CONST.REG_EXP.EXTRACT_EMAIL).map((str, index) => {
+        <Text style={style}>
+            {text.split(CONST.REG_EXP.EXTRACT_EMAIL).map((str, index) => {
                 if (CONST.REG_EXP.EMAIL.test(str)) {
                     return (
                         <TextLink
@@ -36,7 +36,7 @@ function AutoEmailLink(props: AutoEmailLinkProps) {
 
                 return (
                     <Text
-                        style={props.style}
+                        style={style}
                         // eslint-disable-next-line react/no-array-index-key
                         key={`${index}-${str}`}
                     >
