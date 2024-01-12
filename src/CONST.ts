@@ -1260,6 +1260,10 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
@@ -3141,6 +3145,11 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    BRICK_ROAD: {
+        GBR: 'GBR',
+        RBR: 'RBR',
     },
 
     VIOLATIONS: {

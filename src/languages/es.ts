@@ -1882,7 +1882,7 @@ export default {
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
-            canceled: 'tarea eliminado',
+            canceled: 'tarea eliminada',
             reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
@@ -2520,7 +2520,7 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
         reversedTransaction: '[Transacción anulada]',
-        deletedTask: '[Tarea eliminado]',
+        deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
