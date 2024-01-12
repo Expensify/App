@@ -1,24 +1,29 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {WithLocalizeProps} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
-import reportActionPropTypes from './reportActionPropTypes';
 
+type ReportActionItemParentActionOnyxProps = {
+    /** ONYX PROPS */
+
+    /** The report currently being looked at */
+    report: OnyxEntry<OnyxTypes.Report>;
+
+    /** The actions from the parent report */
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+};
 type ReportActionItemParentActionProps = WithLocalizeProps &
     WindowDimensionsProps &
     ReportActionItemParentActionOnyxProps & {
@@ -35,16 +40,6 @@ type ReportActionItemParentActionProps = WithLocalizeProps &
         // eslint-disable-next-line react/no-unused-prop-types
         parentReportID: string;
     };
-type ReportActionItemParentActionOnyxProps = {
-    /** ONYX PROPS */
-
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The actions from the parent report */
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-};
 
 function ReportActionItemParentAction({report, parentReportActions, isSmallScreenWidth, shouldHideThreadDividerLine, shouldDisplayNewMarker}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
@@ -56,6 +51,9 @@ function ReportActionItemParentAction({report, parentReportActions, isSmallScree
         return;
     }
     const parentReportAction = parentReportActions[`${report?.parentReportActionID}`];
+    const shouldDisableOpacity = parentReportAction?.pendingAction ?? false;
+    const pendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat;
+    const errors = report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;
 
     // In case of transaction threads, we do not want to render the parent report action.
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
@@ -63,9 +61,9 @@ function ReportActionItemParentAction({report, parentReportActions, isSmallScree
     }
     return (
         <OfflineWithFeedback
-            shouldDisableOpacity={Boolean(lodashGet(parentReportAction, 'pendingAction'))}
-            pendingAction={lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat')}
-            errors={lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat')}
+            shouldDisableOpacity={Boolean(shouldDisableOpacity)}
+            pendingAction={pendingAction}
+            errors={errors}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(report.reportID)}
         >
@@ -74,6 +72,7 @@ function ReportActionItemParentAction({report, parentReportActions, isSmallScree
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
                 {parentReportAction && (
                     <ReportActionItem
+                        // @ts-expect-error TODO: Remove the comment after ReportActionItem is migrated to TypeScript.
                         report={report}
                         action={parentReportAction}
                         displayAsGroup={false}
@@ -99,3 +98,4 @@ export default withOnyx<ReportActionItemParentActionProps, ReportActionItemParen
         canEvict: false,
     },
 })(ReportActionItemParentAction);
+export type {ReportActionItemParentActionProps, ReportActionItemParentActionOnyxProps};
