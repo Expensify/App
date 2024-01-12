@@ -1,6 +1,9 @@
-import React, {type SyntheticEvent, useCallback, useEffect, useRef, useState} from 'react';
-import {Dimensions, type EmitterSubscription, type NativeTouchEvent} from 'react-native';
-import {type OnyxEntry, withOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {SyntheticEvent} from 'react';
+import {Dimensions} from 'react-native';
+import type {EmitterSubscription, NativeTouchEvent} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import * as BankAccounts from '@libs/actions/BankAccounts';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
@@ -233,7 +236,7 @@ function KYCWall({
             if (shouldListenForResize && dimensionsSubscription) {
                 dimensionsSubscription.remove();
             }
-            
+
             PaymentMethods.kycWallRef.current = null;
         };
     }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);

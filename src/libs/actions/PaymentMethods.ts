@@ -1,4 +1,5 @@
-import {createRef, type MutableRefObject, type SyntheticEvent} from 'react';
+import {createRef} from 'react';
+import type {MutableRefObject, SyntheticEvent} from 'react';
 import type {NativeTouchEvent} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';

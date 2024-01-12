@@ -11,6 +11,9 @@ type WalletTerms = {
 
     /** The source that triggered the KYC wall */
     source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>;
+
+    /** Loading state to provide feedback when we are waiting for a request to finish */
+    isLoading?: boolean;
 };
 
 export default WalletTerms;
