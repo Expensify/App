@@ -88,9 +88,14 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
         if (screenIndex === 0) {
             onBackButtonPress();
         } else {

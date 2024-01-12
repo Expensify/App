@@ -42,5 +42,10 @@ export default function useSubStep<T>({bodyContent, onFinished, startFrom = 0}: 
         setScreenIndex(0);
     }, []);
 
-    return {componentToRender: bodyContent[screenIndex], isEditing: isEditing.current, screenIndex, prevScreen, nextScreen, moveTo, resetScreenIndex};
+    const goToTheLastStep = useCallback(() => {
+        isEditing.current = false;
+        setScreenIndex(bodyContent.length - 1);
+    }, [bodyContent]);
+
+    return {componentToRender: bodyContent[screenIndex], isEditing: isEditing.current, screenIndex, prevScreen, nextScreen, moveTo, resetScreenIndex, goToTheLastStep};
 }

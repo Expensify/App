@@ -58,9 +58,14 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
         });
     }, [reimbursementAccount, reimbursementAccountDraft, values]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
         if (screenIndex === 0) {
             onBackButtonPress();
         } else {
