@@ -28,21 +28,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         flatListRef.current.scrollToOffset({animated: false, offset: 0});
     }, [flatListRef]);
 
-    /**
-     * Scroll to the bottom of the flatlist.
-     */
-    const scrollToOffsetWithoutAnimation = useCallback(
-        (offset: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToOffset({animated: false, offset});
-        },
-        [flatListRef],
-    );
-
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToOffsetWithoutAnimation};
+    return {ref: flatListRef, scrollToIndex, scrollToBottom};
 }
 
 export default useReportScrollManager;
