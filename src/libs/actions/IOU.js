@@ -1053,9 +1053,13 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         }
     }
 
-    // Add optimistic transaction violations
+    // Add optimistic transaction violations if there is a policy
     const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    optimisticData.push(ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories));
+    if (policy && policy.id) {
+        optimisticData.push(
+            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
+        );
+    }
 
     // Clear out the error fields and loading states on success
     successData.push({
@@ -1095,12 +1099,14 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         value: iouReport,
     });
 
-    // Reset transaction violations to their original state
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-        value: currentTransactionViolations,
-    });
+    // If there is a policy, restore transaction violations to their original state
+    if (policy && policy.id) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
 
     return {
         params,
@@ -2268,15 +2274,6 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
     // STEP 4: Compose the optimistic data
     const currentTime = DateUtils.getDBTime();
-    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-        updatedTransaction,
-        currentTransactionViolations,
-        policy.requiresTag,
-        policyTags,
-        policy.requiresCategory,
-        policyCategories,
-    );
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2308,7 +2305,6 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
                 lastVisibleActionCreated: currentTime,
             },
         },
-        updatedViolationsOnyxData,
         ...(!isScanning
             ? [
                   {
@@ -2432,12 +2428,26 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
                 lastVisibleActionCreated: transactionThread.lastVisibleActionCreated,
             },
         },
-        {
+    ];
+
+    // Add transaction violations if there is a policy
+    if (policy && policy.id) {
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+            updatedTransaction,
+            currentTransactionViolations,
+            policy.requiresTag,
+            policyTags,
+            policy.requiresCategory,
+            policyCategories,
+        );
+        optimisticData.push(updatedViolationsOnyxData);
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentTransactionViolations,
-        },
-    ];
+        });
+    }
 
     // STEP 6: Call the API endpoint
     const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails(updatedTransaction);
