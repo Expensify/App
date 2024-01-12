@@ -26,6 +26,7 @@ type EmojiPickerRef = {
         anchorOrigin?: AnchorOrigin,
         onWillShow?: OnWillShowPicker,
         id?: string,
+        activeEmoji?: string,
     ) => void;
     isActive: (id: string) => boolean;
     clearActive: () => void;
@@ -55,12 +56,13 @@ function showEmojiPicker(
     anchorOrigin?: AnchorOrigin,
     onWillShow: OnWillShowPicker = () => {},
     id?: string,
+    activeEmoji?: string,
 ) {
     if (!emojiPickerRef.current) {
         return;
     }
 
-    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow, id);
+    emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow, id, activeEmoji);
 }
 
 /**

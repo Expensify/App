@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -33,7 +34,7 @@ const defaultProps = {
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
-function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
+function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -344,7 +345,8 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
             const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted = index === highlightedIndex && highlightFirstEmoji;
+            const shouldEmojiBeHighlighted =
+                (index === highlightedIndex && highlightFirstEmoji) || (activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
 
             return (
                 <EmojiPickerMenuItem
@@ -364,6 +366,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                         setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
                     }
                     isFocused={isEmojiFocused}
+                    //isHighlighted={true}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />
             );

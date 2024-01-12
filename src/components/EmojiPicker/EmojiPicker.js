@@ -33,6 +33,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const emojiPopoverAnchorRef = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
+    const activeEmoji = useRef();
     const emojiSearchInput = useRef();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
@@ -56,9 +57,10 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
      * @param {String} id - Unique id for EmojiPicker
      */
-    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id, activeEmojiValue) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
+        activeEmoji.current = activeEmojiValue;
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
         if (emojiPopoverAnchor.current && emojiPopoverAnchor.current.blur) {
@@ -184,6 +186,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
+                activeEmoji={activeEmoji.current}
                 ref={(el) => (emojiSearchInput.current = el)}
             />
         </PopoverWithMeasuredContent>
