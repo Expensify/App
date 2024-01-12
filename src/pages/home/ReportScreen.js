@@ -109,6 +109,7 @@ const propTypes = {
 const defaultProps = {
     isSidebarLoaded: false,
     parentReportAction: {},
+    allReportActions: {},
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -551,7 +552,6 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
-                                        fetchReport={fetchReport}
                                         reportActionID={reportActionIDFromRoute}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}

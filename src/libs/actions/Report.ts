@@ -465,7 +465,7 @@ function reportActionsExist(reportID: string): boolean {
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param reportID The ID of the report to open
- * @param reportActionID The ID of the report action to navigate to
+ * @param reportActionID The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat.
  * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
  * @param newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
