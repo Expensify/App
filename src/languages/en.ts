@@ -771,8 +771,8 @@ export default {
     },
     updateRequiredView: {
         updateRequired: 'Update required',
-        pleaseInstall: 'Please install the latest version of New Expensify',
-        toGetLatestChanges: 'To get the latest changes, please download and install the latest version.',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
     },
     initialSettingsPage: {
         about: 'About',
