@@ -148,7 +148,7 @@ function ActionSheetKeyboardSpace(props) {
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
 
-                    return withSpring(previousElementOffset, config);
+                    return withSpring(Math.max(previousElementOffset, 0), config);
                 }
 
                 return 0;
