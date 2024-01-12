@@ -410,14 +410,13 @@ function BaseSelectionList({
         isActive: !disableKeyboardShortcuts && Boolean(onConfirm) && isFocused,
     });
 
-    function sortSectionItems(sectionsList) {
+    const sortedSections = useMemo(() => {
         // If multiple selection is not allowed, return the original list
         if (!canSelectMultiple) {
-            return sectionsList;
+            return sections;
         }
 
-        return _.map(sectionsList, (section) => {
-            // Classify each item in the section
+        return _.map(sections, (section) => {
             const disabledItems = [];
             const selectedItems = [];
             const unselectedItems = [];
@@ -431,17 +430,14 @@ function BaseSelectionList({
                     unselectedItems.push(item);
                 }
             });
-
             // Combine items in the order: disabled, selected, unselected
             const sortedData = [...disabledItems, ...selectedItems, ...unselectedItems];
-
-            // Return the section with updated data
             return {
                 ...section,
                 data: sortedData,
             };
         });
-    }
+    }, [sections, canSelectMultiple]);
 
     return (
         <ArrowKeyFocusManager
@@ -513,7 +509,7 @@ function BaseSelectionList({
                                 )}
                                 <SectionList
                                     ref={listRef}
-                                    sections={sortSectionItems(sections)}
+                                    sections={sortedSections}
                                     stickySectionHeadersEnabled={false}
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
