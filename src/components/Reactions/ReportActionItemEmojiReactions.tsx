@@ -23,7 +23,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
     emojiReactions: OnyxEntry<ReportActionReactions>;
 
     /** The user's preferred locale. */
-    preferredLocale: OnyxEntry<Locale>;
+    preferredLocale?: OnyxEntry<Locale>;
 
     /** The report action that these reactions are for */
     reportAction: ReportAction;
