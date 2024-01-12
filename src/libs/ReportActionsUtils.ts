@@ -216,9 +216,12 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 
     return sortedActions;
 }
-// Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
-// See unit tests for example of inputs and expected outputs.
-// Note: sortedReportActions sorted in descending order
+
+/**
+ * Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
+ * See unit tests for example of inputs and expected outputs.
+ * Note: sortedReportActions sorted in descending order
+ */
 function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
     let index;
 
@@ -539,13 +542,6 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null, s
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
-}
-
-function getReportActionsWithoutRemoved(reportActions: ReportAction[] | null): ReportAction[] {
-    if (!reportActions) {
-        return [];
-    }
-    return reportActions.filter((item) => shouldReportActionBeVisible(item, item.reportActionID));
 }
 
 /**
@@ -873,7 +869,6 @@ export {
     getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
-    getReportActionsWithoutRemoved,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isCreatedTaskReportAction,
