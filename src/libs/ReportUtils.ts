@@ -1345,7 +1345,7 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
  * - Not a money request / IOU report.
  * - Not an archived room.
  * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
- * - More than 1 participants (note that participantAccountIDs excludes the current user).
+ * - More than 1 participant (note that participantAccountIDs excludes the current user).
  *
  */
 function isGroupChat(report: OnyxEntry<Report>): boolean {
@@ -1387,7 +1387,7 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
 }
 
 /**
- * Returns an array of the visible member accountIDs for a report*
+ * Returns an array of the visible member accountIDs for a report
  */
 function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
     if (!report) {
