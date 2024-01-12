@@ -253,7 +253,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
 
-    const isFromPaidPolicy = policy.type === CONST.POLICY.TYPE.TEAM || policy.type === CONST.POLICY.TYPE.CORPORATE;
+    // A flag for checking if the associated policy is of type Team or Corporate ("Control" or "Collect")
+    const isFromPaidPolicy = policy && (policy.type === CONST.POLICY.TYPE.TEAM || policy.type === CONST.POLICY.TYPE.CORPORATE);
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -656,7 +657,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.ACTION.CREATE,
                                     CONST.IOU.TYPE.REQUEST,
                                     transaction.transactionID,
                                     reportID,

@@ -223,7 +223,8 @@ function MoneyRequestConfirmationList(props) {
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
 
-    const isFromPaidPolicy = props.policy.type === CONST.POLICY.TYPE.TEAM || props.policy.type === CONST.POLICY.TYPE.CORPORATE;
+    // A flag for checking if the associated policy is of type Team or Corporate ("Control" or "Collect")
+    const isFromPaidPolicy = props.policy && (props.policy.type === CONST.POLICY.TYPE.TEAM || props.policy.type === CONST.POLICY.TYPE.CORPORATE);
 
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
@@ -622,7 +623,7 @@ function MoneyRequestConfirmationList(props) {
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.ACTION.CREATE,
                                     CONST.IOU.TYPE.REQUEST,
                                     transaction.transactionID,
                                     props.reportID,
