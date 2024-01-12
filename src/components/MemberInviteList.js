@@ -65,13 +65,25 @@ function MemberInviteList(props) {
         const sections = [];
         let indexOffset = 0;
 
+        // Filter all options that is a part of the search term or in the personal details
+        let filterSelectedOptions = selectedOptions;
+        if (searchTerm !== '') {
+            filterSelectedOptions = _.filter(selectedOptions, (option) => {
+                const accountID = lodashGet(option, 'accountID', null);
+                const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
+            });
+        }
+
         sections.push({
             title: undefined,
-            data: selectedOptions,
+            data: filterSelectedOptions,
             shouldShow: true,
             indexOffset,
         });
-        indexOffset += selectedOptions.length;
+        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
@@ -106,7 +118,7 @@ function MemberInviteList(props) {
     }, []);
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, betas, searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, betas, searchTerm, excludedUsers, true);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap = {};
