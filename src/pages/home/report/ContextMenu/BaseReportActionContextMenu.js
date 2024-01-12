@@ -11,12 +11,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import compose from '@libs/compose';
-import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
+import ContextMenuActions from './ContextMenuActions';
 import {defaultProps as GenericReportActionContextMenuDefaultProps, propTypes as genericReportActionContextMenuPropTypes} from './genericReportActionContextMenuPropTypes';
 import {hideContextMenu} from './ReportActionContextMenu';
 
@@ -41,7 +41,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    type: CONTEXT_MENU_TYPES.REPORT_ACTION,
+    type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor: null,
     contentRef: null,
     isChronosReport: false,
@@ -49,9 +49,10 @@ const defaultProps = {
     ...GenericReportActionContextMenuDefaultProps,
 };
 function BaseReportActionContextMenu(props) {
+    const StyleUtils = useStyleUtils();
     const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
+    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
     const {isOffline} = useNetwork();
 
     const reportAction = useMemo(() => {

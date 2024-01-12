@@ -15,29 +15,23 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as optionRowStyles from '@styles/optionRowStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -65,12 +59,12 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
-    betas: [],
 };
 
 function OptionRowLHN(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const popoverAnchor = useRef(null);
     const isFocusedRef = useRef(true);
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -108,7 +102,7 @@ function OptionRowLHN(props) {
         props.style,
     );
     const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
+        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
@@ -121,7 +115,6 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
 
     /**
@@ -135,14 +128,14 @@ function OptionRowLHN(props) {
         }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
+            CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
             '',
             popoverAnchor,
             props.reportID,
             '0',
             props.reportID,
-            '',
+            undefined,
             () => {},
             () => setIsContextMenuActive(false),
             false,
@@ -156,12 +149,14 @@ function OptionRowLHN(props) {
     const statusText = lodashGet(optionItem, 'status.text', '');
     const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
-    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
-    const isStatusVisible = Permissions.canUseCustomStatus(props.betas) && !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
+    const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
 
     const isGroupChat =
         optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
     const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
+
+    const subscriptAvatarBorderColor = props.isFocused ? focusedBackgroundColor : theme.sidebar;
 
     return (
         <OfflineWithFeedback
@@ -206,12 +201,12 @@ function OptionRowLHN(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(theme.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle || styles.sidebarLinkHover : null,
                         ]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                         needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
@@ -220,10 +215,10 @@ function OptionRowLHN(props) {
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={props.isFocused ? theme.activeComponentBG : theme.sidebar}
+                                            backgroundColor={hovered && !props.isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -302,15 +297,23 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
-                                    <Icon src={Expensicons.Pencil} />
+                                    <Icon
+                                        testID="Pencil Icon"
+                                        fill={theme.icon}
+                                        src={Expensicons.Pencil}
+                                    />
                                 </View>
                             )}
-                            {!shouldShowGreenDotIndicator && optionItem.isPinned && (
+                            {!shouldShowGreenDotIndicator && !hasBrickError && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
-                                    <Icon src={Expensicons.Pin} />
+                                    <Icon
+                                        testID="Pin Icon"
+                                        fill={theme.icon}
+                                        src={Expensicons.Pin}
+                                    />
                                 </View>
                             )}
                         </View>

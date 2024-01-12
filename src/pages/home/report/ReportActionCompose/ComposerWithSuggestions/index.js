@@ -31,6 +31,8 @@ const ComposerWithSuggestionsWithFocus = React.forwardRef(({
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
+    const prevIsModalVisible = usePrevious(modal.isVisible);
+    const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
         if (modal.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line no-param-reassign
@@ -39,7 +41,7 @@ const ComposerWithSuggestionsWithFocus = React.forwardRef(({
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
+        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -47,8 +49,8 @@ const ComposerWithSuggestionsWithFocus = React.forwardRef(({
             InputFocus.inputFocusChange(false);
             return;
         }
-        focus();
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
+        focus(true);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ComposerWithSuggestions ref={ref} {...props} textInputRef={textInputRef} />;

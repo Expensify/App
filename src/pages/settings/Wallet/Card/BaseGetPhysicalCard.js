@@ -3,9 +3,10 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
 import * as Wallet from '@libs/actions/Wallet';
 import * as CardUtils from '@libs/CardUtils';
@@ -13,7 +14,6 @@ import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import assignedCardPropTypes from '@pages/settings/Wallet/assignedCardPropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -113,17 +113,16 @@ const defaultProps = {
     session: {},
     loginList: {},
     isConfirmation: false,
-    renderContent: (onSubmit, submitButtonText, children = () => {}, onValidate = () => ({})) => (
-        <Form
+    renderContent: (onSubmit, submitButtonText, styles, children = () => {}, onValidate = () => ({})) => (
+        <FormProvider
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
             onSubmit={onSubmit}
-            style={styles.flex1}
-            submitButtonStyles={[styles.mh5]}
+            style={[styles.flex1, styles.mh5]}
             validate={onValidate}
         >
             {children}
-        </Form>
+        </FormProvider>
     ),
     onValidate: () => ({}),
 };
@@ -144,6 +143,7 @@ function BaseGetPhysicalCard({
     title,
     onValidate,
 }) {
+    const styles = useThemeStyles();
     const isRouteSet = useRef(false);
 
     useEffect(() => {
@@ -207,8 +207,8 @@ function BaseGetPhysicalCard({
                 title={title}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
             />
-            <Text style={[styles.textHeadline, styles.mh5]}>{headline}</Text>
-            {renderContent(onSubmit, submitButtonText, children, onValidate)}
+            <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
+            {renderContent(onSubmit, submitButtonText, styles, children, onValidate)}
         </ScreenWrapper>
     );
 }

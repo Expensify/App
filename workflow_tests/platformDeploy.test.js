@@ -90,7 +90,6 @@ describe('test workflow platformDeploy', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS,
-                    deployChecklist: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
@@ -99,11 +98,18 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
+                const testMockJobs = {
+                    deployChecklist: {
+                        steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
                 const result = await act.runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
@@ -166,7 +172,6 @@ describe('test workflow platformDeploy', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS,
-                    deployChecklist: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
@@ -175,11 +180,18 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
+                const testMockJobs = {
+                    deployChecklist: {
+                        steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
                 const result = await act.runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
                     logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'OSBotify');
@@ -242,7 +254,6 @@ describe('test workflow platformDeploy', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS,
-                    deployChecklist: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                     android: mocks.PLATFORM_DEPLOY__ANDROID__STEP_MOCKS,
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
@@ -251,11 +262,18 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
+                const testMockJobs = {
+                    deployChecklist: {
+                        steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
                 const result = await act.runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');

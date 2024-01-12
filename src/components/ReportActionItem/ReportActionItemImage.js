@@ -1,7 +1,9 @@
+import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -9,12 +11,10 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -31,6 +31,9 @@ const propTypes = {
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile: PropTypes.bool,
+
+    /** whether the receipt can be replaced */
+    canEditReceipt: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -38,6 +41,7 @@ const defaultProps = {
     transaction: {},
     enablePreviewModal: false,
     isLocalFile: false,
+    canEditReceipt: false,
 };
 
 /**
@@ -46,7 +50,7 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, canEditReceipt, isLocalFile}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
@@ -61,7 +65,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
                 <EReceiptThumbnail transactionID={transaction.transactionID} />
             </View>
         );
-    } else if (thumbnail && !isLocalFile) {
+    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource)) {
         receiptImageComponent = (
             <ThumbnailImage
                 previewSourceURL={thumbnailSource}
@@ -83,17 +87,26 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <PressableWithoutFocus
-                        style={[styles.noOutline, styles.w100, styles.h100]}
-                        onPress={() => {
-                            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
-                            Navigation.navigate(route);
-                        }}
-                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                    <AttachmentModal
+                        source={imageSource}
+                        isAuthTokenRequired={!isLocalFile}
+                        report={report}
+                        isReceiptAttachment
+                        canEditReceipt={canEditReceipt}
+                        allowToDownload
+                        originalFileName={transaction.filename}
                     >
-                        {receiptImageComponent}
-                    </PressableWithoutFocus>
+                        {({show}) => (
+                            <PressableWithoutFocus
+                                style={[styles.noOutline, styles.w100, styles.h100]}
+                                onPress={show}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            >
+                                {receiptImageComponent}
+                            </PressableWithoutFocus>
+                        )}
+                    </AttachmentModal>
                 )}
             </ShowContextMenuContext.Consumer>
         );

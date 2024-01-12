@@ -3,8 +3,8 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -36,22 +36,20 @@ function ListBoundaryLoader({type, isLoadingOlderReportActions, isLoadingInitial
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    // we use two different loading components for header and footer to reduce the jumping effect when you scrolling to the newer reports
+    // We use two different loading components for the header and footer
+    // to reduce the jumping effect when the user is scrolling to the newer report actions
     if (type === CONST.LIST_COMPONENTS.FOOTER) {
-        if (isLoadingOlderReportActions) {
-            return <ReportActionsSkeletonView />;
-        }
+        /*
+         Ensure that the report chat is not loaded until the beginning.
+         This is to avoid displaying the skeleton view above the "created" action in a newly generated optimistic chat or one with not that many comments.
+         Additionally, if we are offline and the report is not loaded until the beginning, we assume there are more actions to load;
+         Therefore, show the skeleton view even though the actions are not actually loading.
+        */
+        const isReportLoadedUntilBeginning = lastReportActionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+        const mayLoadMoreActions = !isReportLoadedUntilBeginning && (isLoadingInitialReportActions || isOffline);
 
-        // Make sure the oldest report action loaded is not the first. This is so we do not show the
-        // skeleton view above the created action in a newly generated optimistic chat or one with not
-        // that many comments.
-        if (isLoadingInitialReportActions && lastReportActionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return (
-                <ReportActionsSkeletonView
-                    shouldAnimate={!isOffline}
-                    possibleVisibleContentItems={3}
-                />
-            );
+        if (isLoadingOlderReportActions || mayLoadMoreActions) {
+            return <ReportActionsSkeletonView />;
         }
     }
     if (type === CONST.LIST_COMPONENTS.HEADER && isLoadingNewerReportActions) {

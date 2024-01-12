@@ -1,9 +1,7 @@
 module.exports = {
     project: {
         ios: {sourceDir: 'ios'},
-        android: {
-            manifestPath: 'app/src/main/AndroidManifest.xml',
-        },
+        android: {},
     },
     dependencies: {
         'react-native-flipper': {
