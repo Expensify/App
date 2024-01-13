@@ -3935,13 +3935,12 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
  * Return true if the Money Request report is marked for deletion.
  */
 function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report>): boolean {
-    if (isMoneyRequestReport(report)) {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-        if (parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return true;
-        }
+    if (!isMoneyRequestReport(report)) {
+        return false;
     }
-    return false;
+
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
