@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +8,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
@@ -75,21 +73,11 @@ function PurposeForUsingExpensifyModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
-    const navigation = useNavigation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        debugger;
-        const currentRoute = routes[navigationState.index];
-        const currentRouteName: string = currentRoute.name;
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRouteName && currentRouteName !== SCREENS.HOME) {
-            return;
-        }
-
-        Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
+        Welcome.show({showEngagementModal: () => setIsModalOpen(true)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
