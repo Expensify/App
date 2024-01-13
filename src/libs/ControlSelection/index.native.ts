@@ -1,4 +1,4 @@
-import type {ControlSelectionModule} from './types';
+import type ControlSelectionModule from './types';
 
 function block() {}
 function unblock() {}

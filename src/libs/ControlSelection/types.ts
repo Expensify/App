@@ -5,4 +5,4 @@ type ControlSelectionModule = {
     unblockElement: (element?: HTMLElement | null) => void;
 };
 
-export type {ControlSelectionModule};
+export default ControlSelectionModule;

@@ -1,4 +1,4 @@
-import type {ControlSelectionModule} from './types';
+import type ControlSelectionModule from './types';
 
 /**
  * Block selection on the whole app
