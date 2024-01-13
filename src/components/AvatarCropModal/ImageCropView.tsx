@@ -10,7 +10,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import type {SelectionElement} from '@libs/ControlSelection/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ImageCropViewProps = {
@@ -75,7 +74,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGestureEventHandler
         <PanGestureHandler onGestureEvent={panGestureEventHandler}>
             <Animated.View
                 ref={(el) => {
-                    ControlSelection.blockElement<View>(el as SelectionElement<View>);
+                    ControlSelection.blockElement(el as HTMLElement | null);
                 }}
                 style={[containerStyle, styles.imageCropContainer]}
             >

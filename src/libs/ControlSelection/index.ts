@@ -1,4 +1,4 @@
-import type {ControlSelectionModule, SelectionElement} from './types';
+import type {ControlSelectionModule} from './types';
 
 /**
  * Block selection on the whole app
@@ -19,7 +19,7 @@ function unblock() {
 /**
  * Block selection on particular element
  */
-function blockElement<T>(element?: SelectionElement<T> | null) {
+function blockElement(element?: HTMLElement | null) {
     if (!element) {
         return;
     }
@@ -31,7 +31,7 @@ function blockElement<T>(element?: SelectionElement<T> | null) {
 /**
  * Unblock selection on particular element
  */
-function unblockElement<T>(element?: SelectionElement<T> | null) {
+function unblockElement(element?: HTMLElement | null) {
     if (!element) {
         return;
     }

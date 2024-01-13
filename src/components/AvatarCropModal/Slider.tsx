@@ -7,7 +7,6 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import type {SelectionElement} from '@libs/ControlSelection/types';
 
 type SliderProps = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
@@ -36,7 +35,7 @@ function Slider({onGesture = () => {}, sliderValue = {value: 0}}: SliderProps) {
     return (
         <View
             ref={(el) => {
-                ControlSelection.blockElement<View>(el as SelectionElement<View>);
+                ControlSelection.blockElement(el as HTMLElement | null);
             }}
             style={styles.sliderBar}
         >
