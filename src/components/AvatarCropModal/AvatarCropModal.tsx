@@ -30,7 +30,7 @@ type AvatarCropModalProps = {
     imageUri?: string;
 
     /** Name of the image */
-    imageName: string;
+    imageName?: string;
 
     /** Type of the image file */
     imageType: string;
