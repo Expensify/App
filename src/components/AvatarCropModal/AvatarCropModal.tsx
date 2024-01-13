@@ -39,7 +39,7 @@ type AvatarCropModalProps = {
     onClose?: () => void;
 
     /** Callback to be called when user saves the image */
-    onSave: (image: File | CustomRNImageManipulatorResult) => void;
+    onSave?: (image: File | CustomRNImageManipulatorResult) => void;
 
     /** Modal visibility */
     isVisible: boolean;
