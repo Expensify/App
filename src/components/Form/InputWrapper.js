@@ -16,8 +16,17 @@ const defaultProps = {
     valueType: 'string',
 };
 
+const canUseSubmitEditing = (multiline, autoGrowHeight, submitOnEnter) => {
+    const isMultiline = multiline || autoGrowHeight;
+    if (!isMultiline) {
+        return true;
+    }
+    return Boolean(submitOnEnter);
+};
+
 function InputWrapper(props) {
     const {InputComponent, inputID, forwardedRef, ...rest} = props;
+    const shouldSubmitEdit = canUseSubmitEditing(rest.multiline, rest.autoGrowHeight, rest.submitOnEnter);
     const {registerInput} = useContext(FormContext);
     // There are inputs that dont have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to
     // use different methods like onPress. This introduced a problem that inputs that have the onBlur method were
@@ -25,7 +34,7 @@ function InputWrapper(props) {
     // For now this side effect happened only in `TextInput` components.
     const shouldSetTouchedOnBlurOnly = InputComponent === TextInput;
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <InputComponent {...registerInput(inputID, {ref: forwardedRef, shouldSetTouchedOnBlurOnly, ...rest})} />;
+    return <InputComponent {...registerInput(inputID, shouldSubmitEdit, {ref: forwardedRef, shouldSetTouchedOnBlurOnly, ...rest})} />;
 }
 
 InputWrapper.propTypes = propTypes;
