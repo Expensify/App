@@ -27,7 +27,7 @@ import Slider from './Slider';
 
 type AvatarCropModalProps = {
     /** Link to image for cropping */
-    imageUri: string;
+    imageUri?: string;
 
     /** Name of the image */
     imageName: string;
