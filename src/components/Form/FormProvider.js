@@ -270,6 +270,8 @@ const FormProvider = forwardRef(
                       }
                     : {};
 
+                const isMultiline = propsToParse.multiline || propsToParse.autoGrowHeight;
+
                 const errorFields = lodashGet(formState, 'errorFields', {});
                 const fieldErrorMessage =
                     _.chain(errorFields[inputID])
@@ -283,6 +285,7 @@ const FormProvider = forwardRef(
                 return {
                     ...propsToParse,
                     returnKeyType: shouldSubmitEdit ? 'go' : propsToParse.returnKeyType,
+                    blurOnSubmit: (isMultiline && shouldSubmitEdit) || propsToParse.blurOnSubmit,
                     ...onSubmitEditingObject,
                     ref:
                         typeof propsToParse.ref === 'function'
