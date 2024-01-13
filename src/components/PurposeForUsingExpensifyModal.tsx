@@ -1,5 +1,4 @@
 import {useNavigation} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -83,8 +82,10 @@ function PurposeForUsingExpensifyModal() {
     useEffect(() => {
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
+        debugger;
         const currentRoute = routes[navigationState.index];
-        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+        const currentRouteName: string = currentRoute.name;
+        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRouteName && currentRouteName !== SCREENS.HOME) {
             return;
         }
 

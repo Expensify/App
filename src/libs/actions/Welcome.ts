@@ -10,6 +10,7 @@ import type OnyxPolicy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
+import type {ParamListBase, RouteProp} from '@react-navigation/native';
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isReadyPromise = new Promise<void>((resolve) => {
@@ -22,9 +23,8 @@ let hasSelectedChoice: boolean | undefined;
 let isLoadingReportData = true;
 let currentUserAccountID: number | undefined;
 
-type Route = {
-    name: string;
-    params?: {path: string; exitTo?: string; openOnAdminRoom?: boolean};
+type Route = ParamListBase & {
+    params: {path?: string; exitTo?: string; openOnAdminRoom?: boolean};
 };
 
 type ShowParams = {
@@ -147,7 +147,7 @@ function show({routes, showEngagementModal = () => {}, showPopoverMenu = () => f
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
         const topRoute = routes.length > 0 ? routes[routes.length - 1] : undefined;
-        const isWorkspaceRoute = topRoute !== undefined && topRoute.name === SCREENS.RIGHT_MODAL.SETTINGS && topRoute.params?.path.includes('workspace');
+        const isWorkspaceRoute = topRoute !== undefined && topRoute.name === SCREENS.RIGHT_MODAL.SETTINGS && topRoute.params?.path?.includes('workspace');
         const transitionRoute = routes.find((route) => route.name === SCREENS.TRANSITION_BETWEEN_APPS);
         const exitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
         const openOnAdminRoom = topRoute?.params?.openOnAdminRoom ?? false;
