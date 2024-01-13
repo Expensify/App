@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import type {GestureEvent, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,34 +21,22 @@ type ImageCropViewProps = {
     containerSize?: number;
 
     /** The height of the selected image */
-    originalImageHeight: {
-        value: number;
-    };
+    originalImageHeight: SharedValue<number>;
 
     /** The width of the selected image */
-    originalImageWidth: {
-        value: number;
-    };
+    originalImageWidth: SharedValue<number>;
 
     /** The rotation value of the selected image */
-    rotation: {
-        value: number;
-    };
+    rotation: SharedValue<number>;
 
     /** The relative image shift along X-axis */
-    translateX: {
-        value: number;
-    };
+    translateX: SharedValue<number>;
 
     /** The relative image shift along Y-axis */
-    translateY: {
-        value: number;
-    };
+    translateY: SharedValue<number>;
 
     /** The scale factor of the image */
-    scale: {
-        value: number;
-    };
+    scale: SharedValue<number>;
 
     /** React-native-reanimated lib handler which executes when the user is panning image */
     panGestureEventHandler?: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
