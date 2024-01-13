@@ -393,7 +393,7 @@ function ReportScreen({
                 Navigation.goBack(ROUTES.HOME, false, true);
             }
             if (prevReport.parentReportID) {
-                // If Money Request report is pending for deletion, let us not navigate to Money Request Report
+                // Prevent navigation to the Money Request Report if it is pending deletion.
                 const parentReport = ReportUtils.getReport(prevReport.parentReportID);
                 if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
                     return;
