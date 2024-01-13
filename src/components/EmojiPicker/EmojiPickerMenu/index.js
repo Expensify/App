@@ -366,12 +366,11 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
                         setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
                     }
                     isFocused={isEmojiFocused}
-                    //isHighlighted={true}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />
             );
         },
-        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, singleExecution, translate, onEmojiSelected, isSmallScreenWidth, windowWidth, styles],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, singleExecution, translate, onEmojiSelected, isSmallScreenWidth, windowWidth, styles, activeEmoji],
     );
 
     return (
