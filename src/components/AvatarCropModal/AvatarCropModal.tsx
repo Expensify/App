@@ -143,6 +143,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      * @param {Array} minMax
      * @returns {Number}
      */
+    /**
+     * Validates that value is within the provided mix/max range.
+     */
     const clamp = useWorkletCallback((value: number, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
 
     /**
@@ -170,6 +173,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      *
      * @param {Number} newX
      * @param {Number} newY
+     */
+    /**
+     * Validates the offset to prevent overflow, and updates the image offset.
      */
     const updateImageOffset = useWorkletCallback(
         (offsetX: number, offsetY: number) => {

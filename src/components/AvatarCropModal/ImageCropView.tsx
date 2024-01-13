@@ -14,10 +14,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ImageCropViewProps = {
     /** Link to image for cropping   */
-    imageUri: string;
+    imageUri?: string;
 
     /** Size of the image container that will be rendered */
-    containerSize: number;
+    containerSize?: number;
 
     /** The height of the selected image */
     originalImageHeight: {
@@ -50,7 +50,7 @@ type ImageCropViewProps = {
     };
 
     /** React-native-reanimated lib handler which executes when the user is panning image */
-    panGestureEventHandler: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
+    panGestureEventHandler?: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
