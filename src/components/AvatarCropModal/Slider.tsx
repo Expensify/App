@@ -10,10 +10,10 @@ import ControlSelection from '@libs/ControlSelection';
 
 type SliderProps = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
-    onGesture: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
+    onGesture?: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
 
     /** X position of the slider knob */
-    sliderValue: {
+    sliderValue?: {
         value: number;
     };
 };
