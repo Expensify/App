@@ -138,20 +138,11 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     /**
      * Validates that value is within the provided mix/max range.
-     *
-     * @param {Number} value
-     * @param {Array} minMax
-     * @returns {Number}
-     */
-    /**
-     * Validates that value is within the provided mix/max range.
      */
     const clamp = useWorkletCallback((value: number, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
 
     /**
      * Returns current image size taking into account scale and rotation.
-     *
-     * @returns {Object}
      */
     const getDisplayedImageSize = useWorkletCallback(() => {
         let height = imageContainerSize * scale.value;
@@ -170,12 +161,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     /**
      * Validates the offset to prevent overflow, and updates the image offset.
-     *
-     * @param {Number} newX
-     * @param {Number} newY
-     */
-    /**
-     * Validates the offset to prevent overflow, and updates the image offset.
      */
     const updateImageOffset = useWorkletCallback(
         (offsetX: number, offsetY: number) => {
@@ -190,11 +175,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         [imageContainerSize, scale, clamp],
     );
 
-    /**
-     * @param {Number} newSliderValue
-     * @param {Number} containerSize
-     * @returns {Number}
-     */
     const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
         const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
         return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
