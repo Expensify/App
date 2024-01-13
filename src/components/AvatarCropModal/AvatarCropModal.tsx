@@ -33,7 +33,7 @@ type AvatarCropModalProps = {
     imageName?: string;
 
     /** Type of the image file */
-    imageType: string;
+    imageType?: string;
 
     /** Callback to be called when user closes the modal */
     onClose: () => void;
