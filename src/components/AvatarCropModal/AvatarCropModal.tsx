@@ -36,7 +36,7 @@ type AvatarCropModalProps = {
     imageType?: string;
 
     /** Callback to be called when user closes the modal */
-    onClose: () => void;
+    onClose?: () => void;
 
     /** Callback to be called when user saves the image */
     onSave: (image: File | CustomRNImageManipulatorResult) => void;
