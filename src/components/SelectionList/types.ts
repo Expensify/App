@@ -77,6 +77,9 @@ type User = {
 type UserListItemProps = CommonListItemProps<User> & {
     /** The section list item */
     item: User;
+
+    /** Additional styles to apply to text */
+    style?: StyleProp<TextStyle>;
 };
 
 type RadioItem = {
@@ -199,6 +202,9 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
 
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
+
+    /** Whether tooltips should be shown */
+    shouldShowTooltips?: boolean;
 
     /** Whether to stop automatic form submission on pressing enter key or not */
     shouldStopPropagation?: boolean;
