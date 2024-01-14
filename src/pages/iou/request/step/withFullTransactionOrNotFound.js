@@ -70,7 +70,8 @@ export default function (WrappedComponent) {
         transaction: {
             key: ({route}) => {
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
-                return `${transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
+                return `${userAction === CONST.IOU.ACTION.CREATE ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
     })(WithFullTransactionOrNotFoundWithRef);
