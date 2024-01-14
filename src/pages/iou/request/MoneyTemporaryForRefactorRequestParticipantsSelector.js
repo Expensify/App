@@ -56,6 +56,9 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+
+    /** Whether the parent screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -64,6 +67,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -76,6 +80,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouType,
     iouRequestType,
     isSearchingForReports,
+    didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
