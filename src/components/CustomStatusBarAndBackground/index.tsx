@@ -14,29 +14,28 @@ type CustomStatusBarAndBackgroundProps = {
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState(theme.statusBarStyle);
 
-    const isDisabled = !isNested && isRootStatusBarDisabled;
+    const isDisabled = !isNested && !isRootStatusBarEnabled;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
         if (isNested) {
-            disableRootStatusBar(true);
+            setRootStatusBarEnabled(false);
         }
 
         return () => {
             if (!isNested) {
                 return;
             }
-            disableRootStatusBar(false);
+            setRootStatusBarEnabled(true);
         };
-    }, [disableRootStatusBar, isNested]);
+    }, [isNested, setRootStatusBarEnabled]);
 
-    const prevStatusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarBackgroundColor = useRef(theme.appBG);
-    const isFirstRender = useRef(true);
+    const prevStatusBarBackgroundColor = useRef(theme.splashScreen);
+    const statusBarBackgroundColor = useRef(theme.splashScreen);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
@@ -89,11 +88,11 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
             statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-            if (isFirstRender.current) {
-                isFirstRender.current = false;
-                updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
-                return;
-            }
+            // if (isFirstRender.current) {
+            //     isFirstRender.current = false;
+            //     updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
+            //     return;
+            // }
 
             if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
                 statusBarAnimation.value = 0;

@@ -56,6 +56,7 @@ const lightTheme = {
     offline: colors.productLight700,
     modalBackground: colors.productLight100,
     cardBG: colors.productLight200,
+    splashScreen: colors.productDark100,
     cardBorder: colors.productLight200,
     spinner: colors.productLight800,
     unreadIndicator: colors.green400,
