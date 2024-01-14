@@ -148,10 +148,10 @@ function isMerchantMissing(transaction: Transaction) {
 }
 
 /**
- * Check if the merchant is a partial one `(none)` or `Unknown merchant`
+ * Check if the merchant is partial i.e. `(none)`
  */
 function isPartialMerchant(merchant: string): boolean {
-    return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT;
+    return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
 function isAmountMissing(transaction: Transaction) {

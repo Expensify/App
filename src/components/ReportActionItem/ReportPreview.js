@@ -308,7 +308,7 @@ function ReportPreview(props) {
                                     )}
                                 </View>
                             </View>
-                            {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
+                            {!isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant)) && (
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
