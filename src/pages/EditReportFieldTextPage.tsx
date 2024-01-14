@@ -21,7 +21,7 @@ type EditReportFieldTextPageProps = {
     fieldID: string;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void;
+    onSubmit: (form: Record<string, string>) => void;
 };
 
 function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, fieldID}: EditReportFieldTextPageProps) {

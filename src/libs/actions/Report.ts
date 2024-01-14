@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -1481,6 +1481,64 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
+function updatePolicyReportField(reportID: string, policyField: PolicyReportField, fieldValue: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportFields: {
+                    [policyField.fieldID]: fieldValue,
+                },
+                pendingFields: {
+                    [policyField.fieldID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [policyField.fieldID]: null,
+                },
+                errorFields: {
+                    [policyField.fieldID]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [policyField.fieldID]: null,
+                },
+                errorFields: {
+                    [policyField.fieldID]: null,
+                },
+            },
+        },
+    ];
+
+    type UpdateReportFieldParameters = {
+        reportID: string;
+        reportFields: string;
+    };
+
+    const parameters: UpdateReportFieldParameters = {
+        reportID,
+        reportFields: JSON.stringify({[policyField.fieldID]: {fieldID: policyField.fieldID, value: fieldValue, type: policyField.type, name: policyField.name}}),
+    };
+
+    API.write('Report_SetFields', parameters, {optimisticData, failureData, successData});
+}
+
 function updateWelcomeMessage(reportID: string, previousValue: string, newValue: string) {
     // No change needed, navigate back
     if (previousValue === newValue) {
@@ -2649,4 +2707,5 @@ export {
     getDraftPrivateNote,
     updateLastVisitTime,
     clearNewRoomFormError,
+    updatePolicyReportField,
 };

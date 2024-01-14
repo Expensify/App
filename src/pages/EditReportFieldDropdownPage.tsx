@@ -13,14 +13,17 @@ type EditReportFieldDropdownPageProps = {
     /** Name of the policy report field */
     fieldName: string;
 
+    /** ID of the policy report field */
+    fieldID: string;
+
     /** Options of the policy report field */
     fieldOptions: string[];
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void;
+    onSubmit: (form: Record<string, string>) => void;
 };
 
-function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
     const {getSafeAreaMargins} = useStyleUtils();
@@ -66,7 +69,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                         boldStyle
                         sections={sections}
                         value={searchValue}
-                        onSelectRow={onSubmit}
+                        onSelectRow={(option: Record<string, string>) => onSubmit({[fieldID]: option.text})}
                         onChangeText={setSearchValue}
                         highlightSelectedOptions
                         isRowMultilineSupported

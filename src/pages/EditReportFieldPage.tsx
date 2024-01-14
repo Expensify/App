@@ -3,6 +3,8 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyReportFields, Report} from '@src/types/onyx';
 import EditReportFieldDatePage from './EditReportFieldDatePage';
@@ -41,6 +43,14 @@ function EditReportFieldPage({route, report, policyReportFields}: EditReportFiel
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {}, []);
 
+    const handleReportFieldChange = (form: Record<string, string>) => {
+        if (report && policyReportField) {
+            const value = form[policyReportField.fieldID] || '';
+            ReportActions.updatePolicyReportField(report.reportID, policyReportField, value);
+        }
+        Navigation.dismissModal(report?.reportID);
+    };
+
     if (policyReportField) {
         if (policyReportField.type === 'text' || policyReportField.type === 'formula') {
             return (
@@ -48,7 +58,7 @@ function EditReportFieldPage({route, report, policyReportFields}: EditReportFiel
                     fieldName={policyReportField.name}
                     fieldID={policyReportField.fieldID}
                     fieldValue={reportFieldValue ?? policyReportField.defaultValue}
-                    onSubmit={() => {}}
+                    onSubmit={handleReportFieldChange}
                 />
             );
         }
@@ -59,7 +69,7 @@ function EditReportFieldPage({route, report, policyReportFields}: EditReportFiel
                     fieldName={policyReportField.name}
                     fieldID={policyReportField.fieldID}
                     fieldValue={reportFieldValue ?? policyReportField.defaultValue}
-                    onSubmit={() => {}}
+                    onSubmit={handleReportFieldChange}
                 />
             );
         }
@@ -67,10 +77,11 @@ function EditReportFieldPage({route, report, policyReportFields}: EditReportFiel
         if (policyReportField.type === 'dropdown') {
             return (
                 <EditReportFieldDropdownPage
+                    fieldID={policyReportField.fieldID}
                     fieldName={policyReportField.name}
                     fieldValue={reportFieldValue ?? policyReportField.defaultValue}
                     fieldOptions={policyReportField.values}
-                    onSubmit={() => {}}
+                    onSubmit={handleReportFieldChange}
                 />
             );
         }

@@ -55,8 +55,8 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const sortedPolicyReportFields = useMemo(
-        () => policyReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight),
+    const sortedPolicyReportFields = useMemo<PolicyReportField[]>(
+        (): PolicyReportField[] => policyReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight),
         [policyReportFields],
     );
 
@@ -70,6 +70,8 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                         return (
                             <OfflineWithFeedback
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
+                                errors={report.errorFields?.[reportField.fieldID]}
+                                errorRowStyles={styles.ph5}
                                 key={`menuItem-${reportField.fieldID}`}
                             >
                                 <MenuItemWithTopDescription
