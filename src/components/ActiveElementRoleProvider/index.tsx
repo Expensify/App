@@ -6,7 +6,7 @@ const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextVal
 });
 
 function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
-    const [activeRoleRef, setRole] = useState<string | null>(null);
+    const [activeRoleRef, setRole] = useState<string | null>(document?.activeElement?.role ?? null);
 
     const handleFocusIn = () => {
         setRole(document?.activeElement?.role ?? null);
