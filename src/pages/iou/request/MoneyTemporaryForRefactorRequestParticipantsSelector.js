@@ -99,6 +99,16 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
+        if (!didScreenTransitionEnd) {
+            return [
+                newSections, 
+                {
+                    recentReports: {},
+                    personalDetails: {},
+                    userToInvite: {},
+                }
+            ];
+        }
         let indexOffset = 0;
 
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -173,7 +183,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
 
     /**
      * Adds a single participant to the request
