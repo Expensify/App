@@ -61,7 +61,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                         contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}
                         optionHoveredStyle={styles.hoveredComponentBG}
                         sectionHeaderStyle={styles.mt5}
-                        selectedOptions={[fieldValue]}
+                        selectedOptions={[{text: fieldValue}]}
                         textInputLabel={translate('common.search')}
                         boldStyle
                         sections={sections}
