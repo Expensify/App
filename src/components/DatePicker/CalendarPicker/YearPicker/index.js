@@ -6,7 +6,6 @@ import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import withNavigation from '@components/withNavigation';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -99,4 +98,4 @@ YearPicker.displayName = 'YearPicker';
 YearPicker.propTypes = propTypes;
 YearPicker.defaultProps = defaultProps;
 
-export default withNavigation(YearPicker);
+export default YearPicker;
