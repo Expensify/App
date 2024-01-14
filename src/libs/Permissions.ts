@@ -19,7 +19,7 @@ function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
-    return true; // !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
+    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
 
 function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
