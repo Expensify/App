@@ -71,6 +71,7 @@ function ReportDetailsPage(props) {
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(props.report), [props.report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(props.report, policy), [props.report, policy]);
+    const shouldShowReportDescription = canEditReportDescription || !_.isEmpty(props.report.description);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
@@ -237,14 +238,16 @@ function ReportDetailsPage(props) {
                             )}
                         </View>
                     </View>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon={canEditReportDescription}
-                        interactive={canEditReportDescription}
-                        title={props.report.description}
-                        shouldRenderAsHTML
-                        description={props.translate('reportDescriptionPage.roomDescription')}
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
-                    />
+                    {shouldShowReportDescription && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canEditReportDescription}
+                            interactive={canEditReportDescription}
+                            title={props.report.description}
+                            shouldRenderAsHTML
+                            description={props.translate('reportDescriptionPage.roomDescription')}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
+                        />
+                    )}
                     {_.map(menuItems, (item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
