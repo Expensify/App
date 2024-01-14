@@ -210,7 +210,7 @@ function MoneyRequestPreview(props) {
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
@@ -222,7 +222,7 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : translate('common.tbd');
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency) : translate('common.tbd');
         }
 
         if (isScanning) {

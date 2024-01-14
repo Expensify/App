@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,10 +20,21 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
+    const isExecutingRef = useRef<boolean>(false);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && <Overlay onPress={navigation.goBack} />}
+            {!isSmallScreenWidth && (
+                <Overlay
+                    onPress={() => {
+                        if (isExecutingRef.current) {
+                            return;
+                        }
+                        isExecutingRef.current = true;
+                        navigation.goBack();
+                    }}
+                />
+            )}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
