@@ -30,14 +30,10 @@ const defaultProps = {
     transaction: {},
 };
 
-function IOURequestStepDate({
-    route: {
-        params: {iouType, backTo, transactionID},
-    },
-    transaction,
-}) {
+function IOURequestStepDate({route, transaction}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {iouType, backTo, transactionID, reportID} = route.params;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -74,6 +70,8 @@ function IOURequestStepDate({
                     defaultValue={transaction.created}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                    yearPickerRoute={ROUTES.MONEY_REQUEST_STEP_DATE_YEAR.getRoute(iouType, transactionID, reportID, backTo)}
+                    route={route}
                 />
             </FormProvider>
         </StepScreenWrapper>

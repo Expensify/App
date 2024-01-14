@@ -84,6 +84,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require('../../../pages/iou/request/step/IOURequestStepCategory').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require('../../../pages/iou/request/step/IOURequestStepDate').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DATE_YEAR]: () => require('../../../pages/iou/request/step/IOURequestStepDateYear').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require('../../../pages/iou/request/step/IOURequestStepDescription').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require('../../../pages/iou/request/step/IOURequestStepDistance').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: () => require('../../../pages/iou/request/step/IOURequestStepMerchant').default as React.ComponentType,

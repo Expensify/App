@@ -64,7 +64,24 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function DatePicker({forwardedRef, containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, value, yearPickerRoute, route}) {
+function DatePicker({
+    forwardedRef,
+    containerStyles,
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    isSmallScreenWidth,
+    label,
+    maxDate,
+    minDate,
+    onInputChange,
+    onTouched,
+    placeholder,
+    value,
+    yearPickerRoute,
+    route,
+}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);

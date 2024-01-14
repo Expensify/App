@@ -341,6 +341,11 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_DATE_YEAR: {
+        route: 'create/:iouType/date/:transactionID/:reportID/year',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}/year`, backTo),
+    },
     MONEY_REQUEST_STEP_DESCRIPTION: {
         route: 'create/:iouType/description/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>

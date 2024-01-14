@@ -1,4 +1,4 @@
-import {RouteProp} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import {getYear} from 'date-fns';
 import React from 'react';
 import YearPicker from '@components/DatePicker/CalendarPicker/YearPicker';
