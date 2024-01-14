@@ -9,16 +9,20 @@ import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
 
-const triggerUnreadUpdate = () => {
-    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() : '';
-
-    // We want to keep notification count consistent with what can be accessed from the LHN list
-    const unreadReports = Object.values(allReports ?? {}).filter(
+export default function getUnreadReportsForUnreadIndicator(currentReportID: string) {
+    return Object.values(allReports ?? {}).filter(
         (report) =>
             ReportUtils.isUnread(report) &&
             ReportUtils.shouldReportBeInOptionList(report, currentReportID ?? '', false, [], {}) &&
             report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     );
+}
+
+const triggerUnreadUpdate = () => {
+    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() ?? '' : '';
+
+    // We want to keep notification count consistent with what can be accessed from the LHN list
+    const unreadReports = getUnreadReportsForUnreadIndicator(currentReportID);
     updateUnread(unreadReports.length);
 };
 
