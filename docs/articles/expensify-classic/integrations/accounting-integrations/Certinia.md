@@ -3,7 +3,7 @@ title: Certinia
 description: Guide to connecting Expensify and Certinia FFA and PSA/SRP (formerly known as FinancialForce)
 ---
 # Overview
-[Cetinia](https://use.expensify.com/financialforce) (Formerly known as FinancialForce)is a cloud-based software solution that provides a range of financial management and accounting applications built on the Salesforce platform. There are two versions: PSA/SRP and FFA and we support both. 
+[Cetinia](https://use.expensify.com/financialforce) (formerly known as FinancialForce) is a cloud-based software solution that provides a range of financial management and accounting applications built on the Salesforce platform. There are two versions: PSA/SRP and FFA and we support both. 
 
 # Before connecting to Certinia
 Install the Expensify bundle in Certinia using the relevant installer:
@@ -87,7 +87,7 @@ When exporting to Certinia PSA/SRP you may see up to three different currencies 
 * Amount field on the Expense line: this currency is derived from the Expensify workspace default report currency.
 * Reimbursable Amount on the Expense line: this currency is derived from the currency of the resource with an email matching the report submitter.
 
-# FAQ
+{% include faq-begin.md %}
 ## What happens if the report can’t be exported to Certinia?
 * The preferred exporter will receive an email outlining the issue and any specific error messages
 * Any error messages preventing the export from taking place will be recorded in the report’s history
@@ -148,3 +148,5 @@ Log into Certinia and go to Setup > Manage Users > Users and find the user whose
 * Enable Modify All Data and save
 
 Sync the connection within Expensify by going to **Settings** > **Workspaces** > **Groups** > _[Workspace Name]_ > **Connections** > **Sync Now** and then attempt to export the report again
+
+{% include faq-end.md %}

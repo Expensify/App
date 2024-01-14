@@ -1,5 +1,5 @@
 import colors from '@styles/theme/colors';
-import {type ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -41,7 +41,7 @@ const darkTheme = {
     inverse: colors.productDark900,
     shadow: colors.black,
     componentBG: colors.productDark100,
-    hoverComponentBG: colors.productDark200,
+    hoverComponentBG: colors.productDark300,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
     sidebar: colors.productDark200,
@@ -124,6 +124,10 @@ const darkTheme = {
         },
         [SCREENS.SETTINGS.ROOT]: {
             backgroundColor: colors.productDark200,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.ABOUT]: {
+            backgroundColor: colors.yellow600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.REFERRAL]: {

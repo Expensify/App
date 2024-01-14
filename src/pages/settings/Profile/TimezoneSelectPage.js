@@ -96,6 +96,7 @@ function TimezoneSelectPage(props) {
                 sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
                 initiallyFocusedOptionKey={_.get(_.filter(timezoneOptions, (tz) => tz.text === timezone.selected)[0], 'keyForList')}
                 showScrollIndicator
+                shouldShowTooltips={false}
             />
         </ScreenWrapper>
     );

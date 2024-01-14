@@ -63,7 +63,7 @@ class CalendarPicker extends React.PureComponent {
         if (props.minDate >= props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
-        let currentDateView = new Date(props.value);
+        let currentDateView = typeof props.value === 'string' ? parseISO(props.value) : new Date(props.value);
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
         } else if (props.minDate > currentDateView) {
@@ -142,14 +142,44 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState((prev) => ({currentDateView: subMonths(new Date(prev.currentDateView), 1)}));
+        this.setState((prev) => {
+            const prevMonth = subMonths(new Date(prev.currentDateView), 1);
+            // if year is subtracted, we need to update the years list
+            let newYears = prev.years;
+            if (prevMonth.getFullYear() < prev.currentDateView.getFullYear()) {
+                newYears = _.map(prev.years, (item) => ({
+                    ...item,
+                    isSelected: item.value === prevMonth.getFullYear(),
+                }));
+            }
+
+            return {
+                currentDateView: prevMonth,
+                years: newYears,
+            };
+        });
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState((prev) => ({currentDateView: addMonths(new Date(prev.currentDateView), 1)}));
+        this.setState((prev) => {
+            const nextMonth = addMonths(new Date(prev.currentDateView), 1);
+            // if year is added, we need to update the years list
+            let newYears = prev.years;
+            if (nextMonth.getFullYear() > prev.currentDateView.getFullYear()) {
+                newYears = _.map(prev.years, (item) => ({
+                    ...item,
+                    isSelected: item.value === nextMonth.getFullYear(),
+                }));
+            }
+
+            return {
+                currentDateView: nextMonth,
+                years: newYears,
+            };
+        });
     }
 
     render() {
@@ -268,7 +298,7 @@ class CalendarPicker extends React.PureComponent {
                                         <View
                                             style={[
                                                 this.props.themeStyles.calendarDayContainer,
-                                                isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
+                                                isSelected ? this.props.themeStyles.buttonDefaultBG : {},
                                                 !isDisabled ? this.props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >

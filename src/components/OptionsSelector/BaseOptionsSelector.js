@@ -80,7 +80,12 @@ class BaseOptionsSelector extends Component {
         this.incrementPage = this.incrementPage.bind(this);
         this.sliceSections = this.sliceSections.bind(this);
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
+        this.handleFocusIn = this.handleFocusIn.bind(this);
+        this.handleFocusOut = this.handleFocusOut.bind(this);
+        this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
+        this.accessibilityRoles = _.values(CONST.ROLE);
+        this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
@@ -94,11 +99,15 @@ class BaseOptionsSelector extends Component {
             shouldShowReferralModal: false,
             errorMessage: '',
             paginationPage: 1,
+            disableEnterShortCut: false,
+            value: '',
         };
     }
 
     componentDidMount() {
-        this.subscribeToKeyboardShortcut();
+        this.subscribeToEnterShortcut();
+        this.subscribeToCtrlEnterShortcut();
+        this.subscribeActiveElement();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             this.focusTimeout = setTimeout(() => {
@@ -110,9 +119,18 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
+            if (this.state.disableEnterShortCut) {
+                this.unsubscribeEnter();
+            } else {
+                this.subscribeToEnterShortcut();
+            }
+        }
+
         if (prevProps.isFocused !== this.props.isFocused) {
             if (this.props.isFocused) {
-                this.subscribeToKeyboardShortcut();
+                this.subscribeToEnterShortcut();
+                this.subscribeToCtrlEnterShortcut();
             } else {
                 this.unSubscribeFromKeyboardShortcut();
             }
@@ -121,7 +139,7 @@ class BaseOptionsSelector extends Component {
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
+        if (this.isWebOrDesktop && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -161,7 +179,7 @@ class BaseOptionsSelector extends Component {
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevProps.value && !this.props.value)) {
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevState.value && !this.state.value)) {
                     this.scrollToIndex(0);
                     return;
                 }
@@ -247,6 +265,7 @@ class BaseOptionsSelector extends Component {
         this.setState({
             paginationPage: 1,
             errorMessage: value.length > this.props.maxLength ? this.props.translate('common.error.characterLimitExceedCounter', {length: value.length, limit: this.props.maxLength}) : '',
+            value,
         });
 
         this.props.onChangeText(value);
@@ -256,7 +275,36 @@ class BaseOptionsSelector extends Component {
         this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
-    subscribeToKeyboardShortcut() {
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
+    }
+
+    subscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.addEventListener('focusin', this.handleFocusIn);
+        document.addEventListener('focusout', this.handleFocusOut);
+    }
+
+    unSubscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.removeEventListener('focusin', this.handleFocusIn);
+        document.removeEventListener('focusout', this.handleFocusOut);
+    }
+
+    subscribeToEnterShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -266,7 +314,9 @@ class BaseOptionsSelector extends Component {
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
         );
+    }
 
+    subscribeToCtrlEnterShortcut() {
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -299,8 +349,9 @@ class BaseOptionsSelector extends Component {
         }
     }
 
-    selectFocusedOption() {
-        const focusedOption = this.state.allOptions[this.state.focusedIndex];
+    selectFocusedOption(e) {
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
+        const focusedOption = focusedItemKey ? _.find(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
         if (!focusedOption || !this.props.isFocused) {
             return;
@@ -415,7 +466,7 @@ class BaseOptionsSelector extends Component {
                     this.relatedTarget = null;
                 }
                 if (this.textInput.isFocused()) {
-                    setSelection(this.textInput, 0, this.props.value.length);
+                    setSelection(this.textInput, 0, this.state.value.length);
                 }
             }
             const selectedOption = this.props.onSelectRow(option);
@@ -440,7 +491,7 @@ class BaseOptionsSelector extends Component {
         if (this.props.shouldShowTextInput && this.props.shouldPreventDefaultFocusOnSelectRow) {
             this.textInput.focus();
             if (this.textInput.isFocused()) {
-                setSelection(this.textInput, 0, this.props.value.length);
+                setSelection(this.textInput, 0, this.state.value.length);
             }
         }
         this.props.onAddToSelection(option);
@@ -468,11 +519,10 @@ class BaseOptionsSelector extends Component {
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
-                value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
                 role={CONST.ROLE.PRESENTATION}
-                onChangeText={this.updateSearchValue}
+                onChangeText={this.debouncedUpdateSearchValue}
                 errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
                 placeholder={this.props.placeholderText}
@@ -489,6 +539,7 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                testID="options-selector-input"
             />
         );
         const optionsList = (
@@ -646,6 +697,7 @@ class BaseOptionsSelector extends Component {
                                 src={Info}
                                 height={20}
                                 width={20}
+                                fill={this.props.theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </View>
