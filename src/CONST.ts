@@ -527,6 +527,7 @@ const CONST = {
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -599,6 +600,10 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+        },
+        ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
+            INVITE: 'invited',
+            NOTHING: 'nothing',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -1179,6 +1184,10 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
+        },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
@@ -3063,6 +3072,11 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    BRICK_ROAD: {
+        GBR: 'GBR',
+        RBR: 'RBR',
     },
 
     VIOLATIONS: {
