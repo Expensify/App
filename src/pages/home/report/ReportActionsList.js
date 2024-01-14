@@ -167,6 +167,7 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedVisibleReportActions.length);
 
     const previousLastIndex = useRef(lastActionIndex);
+    const visibilityCallback = useRef(() => {});
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -386,7 +387,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    useEffect(() => {
+    const calculateUnreadMarker = () => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -404,7 +405,32 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
+    };
+
+    useEffect(() => {
+        calculateUnreadMarker();
+
+        /* eslint-disable-next-line react-hooks/exhaustive-deps */
     }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+
+    visibilityCallback.current = () => {
+        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report)) {
+            return;
+        }
+
+        Report.readNewestAction(report.reportID, false);
+        userActiveSince.current = DateUtils.getDBTime();
+        setCurrentUnreadMarker(null);
+        calculateUnreadMarker();
+    };
+
+    useEffect(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => visibilityCallback.current());
+
+        return unsubscribeVisibilityListener;
+
+        /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    }, [report.reportID]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
