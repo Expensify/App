@@ -142,6 +142,7 @@ function ReportActionsList({
     listID,
     onContentSizeChange,
     reportScrollManager,
+    enableAutoscrollToTopThreshold,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -189,12 +190,12 @@ function ReportActionsList({
     }, [opacity]);
 
     useEffect(() => {
-        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length) {
+        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length && hasNewestReportAction) {
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager]);
+    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -277,6 +278,18 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const scrollToBottomForCurrentUserAction = useCallback(
+        (isFromCurrentUser) => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser || !hasNewestReportAction) {
+                return;
+            }
+            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
+        },
+        [hasNewestReportAction, reportScrollManager],
+    );
+
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -292,14 +305,7 @@ function ReportActionsList({
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, (isFromCurrentUser) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser) {
-                return;
-            }
-            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
-        });
+        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
             if (unsubscribe) {
@@ -529,6 +535,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                     key={listID}
+                    enableAutoscrollToTopThreshold={enableAutoscrollToTopThreshold}
                 />
             </Animated.View>
         </>

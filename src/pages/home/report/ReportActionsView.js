@@ -404,6 +404,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
                 reportScrollManager={reportScrollManager}
+                enableAutoscrollToTopThreshold={hasNewestReportAction}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>

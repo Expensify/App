@@ -268,10 +268,7 @@ function ReportScreen({
     const shouldShowSkeleton =
         isPrepareLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions);
 
-    const shouldShowReportActionList = useMemo(
-        () => isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading,
-        [isReportReadyForDisplay, isLoading, isLoadingInitialReportActions],
-    );
+    const shouldShowReportActionList = isReportReadyForDisplay && !isLoading;
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
