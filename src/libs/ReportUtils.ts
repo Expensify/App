@@ -4277,10 +4277,10 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 }
 
 /**
- *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
+ *  We only want policy owners and admins to be able to modify the report description, but not in thread chat.
  */
-function shouldDisableReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
+function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return !isMoneyRequestReport(report) && !isArchivedRoom(report) && isChatRoom(report) && !isChatThread(report) && PolicyUtils.isPolicyAdmin(policy);
 }
 /**
  * Checks if report action has error when smart scanning
@@ -4534,7 +4534,7 @@ export {
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
-    shouldDisableReportDescription,
+    canEditReportDescription,
     navigateToPrivateNotes,
     canEditWriteCapability,
     hasSmartscanError,

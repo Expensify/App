@@ -82,14 +82,14 @@ function ReportDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={ReportDescriptionPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableReportDescription(props.report, props.policy)}>
+            <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(props.report, props.policy)}>
                 <HeaderWithBackButton
                     title={props.translate('reportDescriptionPage.roomDescription')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION}
+                    formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
                     onSubmit={submitForm}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline

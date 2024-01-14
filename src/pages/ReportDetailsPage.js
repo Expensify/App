@@ -70,6 +70,7 @@ function ReportDetailsPage(props) {
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(props.report), [props.report]);
+    const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(props.report, policy), [props.report, policy]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
@@ -237,10 +238,11 @@ function ReportDetailsPage(props) {
                         </View>
                     </View>
                     <MenuItemWithTopDescription
-                        shouldShowRightIcon={isPolicyAdmin}
+                        shouldShowRightIcon={canEditReportDescription}
+                        interactive={canEditReportDescription}
                         title={props.report.description}
                         shouldRenderAsHTML
-                        description={props.translate('common.description')}
+                        description={props.translate('reportDescriptionPage.roomDescription')}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
                     />
                     {_.map(menuItems, (item) => {
