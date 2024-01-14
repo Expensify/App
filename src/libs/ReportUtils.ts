@@ -4333,15 +4333,15 @@ function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyRepor
     const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
 
     if (reportField.type !== 'formula') {
-        return value as string;
+        return value;
     }
 
-    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match: string, property: string) => {
+    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
         if (report && property in report) {
             return report[property as keyof Report]?.toString() ?? match;
         }
         return match;
-    }) as string;
+    });
 }
 
 /**
