@@ -3493,7 +3493,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
     if (!isCurrentUserSubmitter(IOUReportID)) {
         return false;
     }
-    if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
+    if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
     return hasViolation(IOUTransactionID, transactionViolations);
