@@ -123,7 +123,7 @@ const useTapGestures = ({
         .maxDistance(20)
         .onEnd((evt) => {
             // If the content is already zoomed, we want to reset the zoom,
-            // otherwwise we want to zoom in
+            // otherwise we want to zoom in
             if (zoomScale.value > 1) {
                 reset(true);
             } else {
