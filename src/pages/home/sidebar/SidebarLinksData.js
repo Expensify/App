@@ -103,7 +103,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
 
     // If there is an active workspace we need to hide all reports that are not associated with the selected workspace.
-    const optionListSortedByActiveWorkspace = useMemo(
+    const optionListFilteredByActiveWorkspace = useMemo(
         () =>
             _.filter(optionListItemsWithCurrentReport, (reportID) => {
                 if (!activeWorkspaceID) {
@@ -138,7 +138,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
-                optionListItems={optionListSortedByActiveWorkspace}
+                optionListItems={optionListFilteredByActiveWorkspace}
             />
         </View>
     );
