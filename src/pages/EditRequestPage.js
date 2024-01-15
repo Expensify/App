@@ -110,12 +110,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         });
     }, [parentReportAction, fieldToEdit]);
 
-    // Update the transaction object and close the modal
-    function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
-        Navigation.dismissModal(report.reportID);
-    }
-
     const saveAmountAndCurrency = useCallback(
         ({amount, currency: newCurrency}) => {
             const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
