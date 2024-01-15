@@ -155,7 +155,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState);
 
             if (!actionForBottomTabNavigator) {
-                throw new Error('Could not get action for bottom tab navigator');
+                return;
             }
 
             root.dispatch(actionForBottomTabNavigator);
