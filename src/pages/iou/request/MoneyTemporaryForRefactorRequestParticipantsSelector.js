@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
@@ -337,11 +338,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
+    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 onConfirm={handleConfirmSelection}
-                sections={sections}
+                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
@@ -350,8 +353,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
+                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
                 rightHandSideComponent={itemRightSideComponent}
+                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
