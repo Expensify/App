@@ -20,7 +20,6 @@ import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -49,7 +48,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     const modal = useRef({});
     const {translate, updateLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {activeWorkspaceID} = useActiveWorkspace();
 
     useEffect(() => {
         if (!isSmallScreenWidth) {

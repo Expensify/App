@@ -13,6 +13,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {isConciergeChatReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
@@ -75,7 +76,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -87,7 +88,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID, isLoading, network.isOffline]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, isLoading, network.isOffline]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -96,10 +97,28 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID);
+            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID]);
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions]);
+
+    // If there is an active workspace we need to hide all reports that are not associated with the selected workspace.
+    const optionListSortedByActiveWorkspace = useMemo(
+        () =>
+            _.filter(optionListItemsWithCurrentReport, (reportID) => {
+                if (!activeWorkspaceID) {
+                    return true;
+                }
+
+                const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
+                if (isConciergeChatReport(chatReport)) {
+                    return true;
+                }
+
+                return chatReport.policyID === activeWorkspaceID;
+            }),
+        [activeWorkspaceID, chatReports, optionListItemsWithCurrentReport],
+    );
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -119,7 +138,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
                 // Data props:
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
-                optionListItems={optionListItemsWithCurrentReport}
+                optionListItems={optionListSortedByActiveWorkspace}
             />
         </View>
     );
