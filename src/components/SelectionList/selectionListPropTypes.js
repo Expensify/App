@@ -198,6 +198,9 @@ const propTypes = {
 
     /** Right hand side component to display in the list item. Function has list item passed as the param */
     rightHandSideComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Whether to scroll to top when an option is selected */
+    shouldScrollToTopOnSelect: PropTypes.bool,
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};
