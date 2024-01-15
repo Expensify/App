@@ -282,7 +282,7 @@ PODS:
     - Onfido (~> 28.3.0)
     - React
   - OpenSSL-Universal (1.1.1100)
-  - Plaid (4.7.1)
+  - Plaid (4.7.0)
   - PromisesObjC (2.3.1)
   - RCT-Folly (2022.05.16.00):
     - boost
@@ -1877,7 +1877,7 @@ SPEC CHECKSUMS:
   Onfido: 564f60c39819635ec5b549285a1eec278cc9ba67
   onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Plaid: 4f7d68d53f9f8e4c74031ce8ba0f72dd88893d39
+  Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 9b1e7e262745fb671e33c51c1078d093bd30e322
