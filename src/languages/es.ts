@@ -2581,7 +2581,7 @@ export default {
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no es de Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) => `Importe supera el límite de aprobación automática de ${formattedLimit}`,
-        overCategoryLimit: ({categoryLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría de ${categoryLimit}/persona`,
+        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría de ${formattedLimit}/persona`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite de ${formattedLimit}/persona`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite de ${formattedLimit}/persona`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría de ${limit}/persona`,

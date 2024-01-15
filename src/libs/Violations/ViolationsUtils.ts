@@ -136,7 +136,7 @@ const ViolationsUtils = {
             case 'overAutoApprovalLimit':
                 return translate('violations.overAutoApprovalLimit', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', {categoryLimit: violation.data?.categoryLimit ?? ''});
+                return translate('violations.overCategoryLimit', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'overLimit':
                 return translate('violations.overLimit', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'overLimitAttendee':

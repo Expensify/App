@@ -229,7 +229,7 @@ type ViolationsMissingTagParams = {tagName?: string};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
 
-type ViolationsOverCategoryLimitParams = {categoryLimit: string};
+type ViolationsOverCategoryLimitParams = {formattedLimit: string};
 
 type ViolationsOverLimitParams = {formattedLimit: string};
 

@@ -2093,7 +2093,7 @@ export default {
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,
-        overCategoryLimit: ({categoryLimit}: ViolationsOverCategoryLimitParams) => `Amount over ${categoryLimit}/person category limit`,
+        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Amount over ${formattedLimit}/person category limit`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Amount over daily ${limit}/person category limit`,
