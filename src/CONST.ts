@@ -2734,7 +2734,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
 
     // Test tool menu parameters
     TEST_TOOL: {
