@@ -1,12 +1,17 @@
 import React, {useCallback} from 'react';
 import {Image as RNImage} from 'react-native';
-import {defaultProps, imagePropTypes} from './imagePropTypes';
+import type {ImageLoadEventData} from 'react-native';
+import type ImageProps from './types';
 
-function BaseImage({onLoad, ...props}) {
+function BaseImage({onLoad, ...props}: ImageProps) {
     const imageLoadedSuccessfully = useCallback(
-        ({nativeEvent}) => {
+        (event: {nativeEvent: ImageLoadEventData}) => {
+            if (!onLoad) {
+                return;
+            }
+
             // We override `onLoad`, so both web and native have the same signature
-            const {width, height} = nativeEvent.source;
+            const {width, height} = event.nativeEvent.source;
             onLoad({nativeEvent: {width, height}});
         },
         [onLoad],
@@ -22,8 +27,6 @@ function BaseImage({onLoad, ...props}) {
     );
 }
 
-BaseImage.propTypes = imagePropTypes;
-BaseImage.defaultProps = defaultProps;
 BaseImage.displayName = 'BaseImage';
 
 export default BaseImage;

@@ -1,10 +1,15 @@
 import {Image as ExpoImage} from 'expo-image';
-import React, {useCallback} from 'react';
-import {defaultProps, imagePropTypes} from './imagePropTypes';
+import type {ImageLoadEventData} from 'expo-image';
+import {useCallback} from 'react';
+import type ImageProps from './types';
 
-function BaseImage({onLoad, ...props}) {
+function BaseImage({onLoad, ...props}: ImageProps) {
     const imageLoadedSuccessfully = useCallback(
-        (event) => {
+        (event: ImageLoadEventData) => {
+            if (!onLoad) {
+                return;
+            }
+
             // We override `onLoad`, so both web and native have the same signature
             const {width, height} = event.source;
             onLoad({nativeEvent: {width, height}});
@@ -22,8 +27,6 @@ function BaseImage({onLoad, ...props}) {
     );
 }
 
-BaseImage.propTypes = imagePropTypes;
-BaseImage.defaultProps = defaultProps;
 BaseImage.displayName = 'BaseImage';
 
 export default BaseImage;
