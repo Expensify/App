@@ -53,6 +53,9 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** resolution for actionable mention whisper */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };
 
 type ImageMetadata = {
@@ -204,4 +207,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};

@@ -36,6 +36,7 @@ function BaseTextInput(
         errorText = '',
         icon = null,
         textInputContainerStyles,
+        touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
         forceActiveLabel = false,
@@ -272,7 +273,7 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
-                        containerStyles,
+                        touchableInputWrapperStyle,
                     ]}
                 >
                     <View
