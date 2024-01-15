@@ -116,7 +116,7 @@ function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails:
  * @param draftValues
  * @returns
  */
-function getUpdatedPrivatePersonalDetails(draftValues: DraftValues) {
+function getUpdatedPrivatePersonalDetails(draftValues: DraftValues): PrivatePersonalDetails {
     const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
     return {
         legalFirstName,
@@ -127,3 +127,4 @@ function getUpdatedPrivatePersonalDetails(draftValues: DraftValues) {
 }
 
 export {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute, setCurrentRoute};
+export type {PrivatePersonalDetails};
