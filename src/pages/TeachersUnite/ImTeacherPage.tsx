@@ -1,35 +1,26 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as LoginUtils from '@libs/LoginUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Session} from '@src/types/onyx';
 import ImTeacherUpdateEmailPage from './ImTeacherUpdateEmailPage';
 import IntroSchoolPrincipalPage from './IntroSchoolPrincipalPage';
 
-const propTypes = {
-    /** Current user session */
-    session: PropTypes.shape({
-        /** Current user primary login */
-        email: PropTypes.string.isRequired,
-    }),
+type ImTeacherPageOnyxProps = {
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    session: {
-        email: null,
-    },
-};
+type ImTeacherPageProps = ImTeacherPageOnyxProps;
 
-function ImTeacherPage(props) {
-    const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(props.session.email);
+function ImTeacherPage(props: ImTeacherPageProps) {
+    const isLoggedInEmailPublicDomain = LoginUtils.isEmailPublicDomain(props.session?.email ?? '');
     return isLoggedInEmailPublicDomain ? <ImTeacherUpdateEmailPage /> : <IntroSchoolPrincipalPage />;
 }
 
-ImTeacherPage.propTypes = propTypes;
-ImTeacherPage.defaultProps = defaultProps;
 ImTeacherPage.displayName = 'ImTeacherPage';
 
-export default withOnyx({
+export default withOnyx<ImTeacherPageProps, ImTeacherPageOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
