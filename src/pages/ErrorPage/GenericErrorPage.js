@@ -5,13 +5,14 @@ import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ const propTypes = {
 function GenericErrorPage({translate}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {resetBoundary} = useErrorBoundary();
 
     return (
@@ -78,10 +80,12 @@ function GenericErrorPage({translate}) {
                     </View>
                     <View styles={styles.alignSelfEnd}>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                            <LogoWordmark
+                            <ImageSVG
+                                contentFit="contain"
+                                src={LogoWordmark}
                                 height={30}
                                 width={80}
-                                fill={theme.textLight}
+                                fill={theme.text}
                             />
                         </View>
                     </View>

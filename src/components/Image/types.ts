@@ -1,7 +1,9 @@
-import {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
-import {ImageStyle as FastImageStyle, OnLoadEvent, ResizeMode, Source} from 'react-native-fast-image';
-import {OnyxEntry} from 'react-native-onyx';
-import {Session} from '@src/types/onyx';
+import type {ImageSource as ExpoImageSource} from 'expo-image';
+import type {ImageResizeMode, ImageStyle, StyleProp} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Session} from '@src/types/onyx';
+
+type ImageSource = ExpoImageSource | string | number | ExpoImageSource[] | string[] | null;
 
 type ImageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -10,16 +12,16 @@ type ImageOnyxProps = {
 
 type ImageOwnProps = {
     /** Styles for the Image */
-    style?: StyleProp<ImageStyle & FastImageStyle>;
+    style?: StyleProp<ImageStyle>;
 
     /** The static asset or URI source of the image */
-    source: Omit<ImageURISource, 'cache'> | ImageRequireSource | Omit<Source, 'cache'>;
+    source: ImageSource;
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
 
     /** How should the image fit within its container */
-    resizeMode?: ImageResizeMode & ResizeMode;
+    resizeMode?: ImageResizeMode;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;
@@ -31,7 +33,12 @@ type ImageOwnProps = {
     onError?: () => void;
 
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
-    onLoad?: (event: OnLoadEvent) => void;
+    onLoad?: (event: {
+        nativeEvent: {
+            width: number;
+            height: number;
+        };
+    }) => void;
 
     /** Progress events while the image is downloading */
     onProgress?: () => void;
@@ -39,6 +46,4 @@ type ImageOwnProps = {
 
 type ImageProps = ImageOnyxProps & ImageOwnProps;
 
-type FastImageSource = Omit<ImageURISource, 'cache'> | ImageRequireSource | Source;
-
-export type {ImageOwnProps, ImageOnyxProps, ImageProps, FastImageSource};
+export type {ImageOwnProps, ImageOnyxProps, ImageProps, ImageSource};

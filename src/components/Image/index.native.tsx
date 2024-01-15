@@ -1,17 +1,22 @@
+import {Image as ImageComponent} from 'expo-image';
 import React from 'react';
-import RNFastImage from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {FastImageSource, ImageOnyxProps, ImageProps} from './types';
+import type {ImageOnyxProps, ImageProps, ImageSource} from './types';
 
-function Image({source, isAuthTokenRequired, session, ...rest}: ImageProps) {
-    let imageSource: FastImageSource = source;
-    if (typeof source !== 'number' && typeof source.uri === 'number') {
+const dimensionsCache = new Map<string, {width: number; height: number}>();
+
+function Image(props: ImageProps) {
+    // eslint-disable-next-line react/destructuring-assignment
+    const {source, isAuthTokenRequired, session, ...rest} = props;
+
+    let imageSource: ImageSource = source;
+    if (source && typeof source === 'object' && 'uri' in source && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
-    if (typeof imageSource !== 'number' && typeof source !== 'number' && isAuthTokenRequired) {
-        const authToken = session?.encryptedAuthToken ?? null;
+    if (typeof imageSource !== 'number' && isAuthTokenRequired && typeof source === 'object') {
+        const authToken = props.session?.encryptedAuthToken ?? null;
         imageSource = {
             ...source,
             headers: authToken
@@ -23,23 +28,26 @@ function Image({source, isAuthTokenRequired, session, ...rest}: ImageProps) {
     }
 
     return (
-        <RNFastImage
+        <ImageComponent
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             source={imageSource}
             onLoad={(evt) => {
-                rest.onLoad?.(evt);
+                const {width, height, url} = evt.source;
+                dimensionsCache.set(url, {width, height});
+                if (props.onLoad) {
+                    props.onLoad({nativeEvent: {width, height}});
+                }
             }}
         />
     );
 }
 
+Image.displayName = 'Image';
 const ImageWithOnyx = withOnyx<ImageProps, ImageOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
 })(Image);
-
-ImageWithOnyx.displayName = 'Image';
 
 export default ImageWithOnyx;

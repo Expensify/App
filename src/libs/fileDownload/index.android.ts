@@ -1,5 +1,6 @@
 import {PermissionsAndroid, Platform} from 'react-native';
-import RNFetchBlob, {FetchBlobResponse} from 'react-native-blob-util';
+import type {FetchBlobResponse} from 'react-native-blob-util';
+import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from './FileUtils';
 import type {FileDownload} from './types';
 
@@ -38,7 +39,7 @@ function handleDownload(url: string, fileName: string): Promise<void> {
 
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
-        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
 
         const isLocalFile = url.startsWith('file://');
 

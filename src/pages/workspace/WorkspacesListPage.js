@@ -12,6 +12,8 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,8 +21,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -114,7 +114,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-     * @returns {Number} the user wallet balance
+     * @returns {String|undefined} the user's wallet balance
      */
     function getWalletBalance(isPaymentItem) {
         return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
@@ -183,7 +183,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
             illustration={LottieAnimations.WorkspacePlanet}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.workspaces')}

@@ -5,7 +5,7 @@
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import E2EConfig from '../../../tests/e2e/config';
@@ -26,6 +26,7 @@ if (!Metrics.canCapturePerformanceMetrics()) {
 const tests: Tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
     [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
 };
 

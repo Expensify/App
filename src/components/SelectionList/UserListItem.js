@@ -4,11 +4,13 @@ import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
-function UserListItem({item, isFocused = false, showTooltip}) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return (
         <>
             {Boolean(item.icons) && (
@@ -24,7 +26,7 @@ function UserListItem({item, isFocused = false, showTooltip}) {
                     text={item.text}
                 >
                     <Text
-                        style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold]}
+                        style={StyleUtils.combineStyles(textStyles, style)}
                         numberOfLines={1}
                     >
                         {item.text}
@@ -36,7 +38,7 @@ function UserListItem({item, isFocused = false, showTooltip}) {
                         text={item.alternateText}
                     >
                         <Text
-                            style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                            style={StyleUtils.combineStyles(alternateTextStyles, style)}
                             numberOfLines={1}
                         >
                             {item.alternateText}
