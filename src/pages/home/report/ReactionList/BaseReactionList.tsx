@@ -1,36 +1,34 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React from 'react';
-import {FlatList} from 'react-native';
+import {FlatList, type FlatListProps} from 'react-native';
 import OptionRow from '@components/OptionRow';
-import participantPropTypes from '@components/participantPropTypes';
-import withWindowDimensions from '@components/withWindowDimensions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 import HeaderReactionList from './HeaderReactionList';
-import reactionPropTypes from './reactionPropTypes';
+import type {ReactionListProps} from './reactionPropTypes';
 
-const propTypes = {
+type BaseReactionListProps = ReactionListProps & {
     /**
      *  Array of personal detail objects
      */
-    users: PropTypes.arrayOf(participantPropTypes).isRequired,
+    users: PersonalDetails[];
 
     /**
      * Returns true if the current account has reacted to the report action (with the given skin tone).
      */
-    hasUserReacted: PropTypes.bool,
+    hasUserReacted: boolean;
 
-    ...reactionPropTypes,
-};
-
-const defaultProps = {
-    hasUserReacted: false,
+    /**
+     * Returns true if the reaction list is visible
+     */
+    isVisible: boolean;
 };
 
 /**
@@ -39,7 +37,7 @@ const defaultProps = {
  * @param {Number} index
  * @return {String}
  */
-const keyExtractor = (item, index) => `${item.login}+${index}`;
+const keyExtractor: FlatListProps<PersonalDetails>['keyExtractor'] = (item, index) => `${item.login}+${index}`;
 
 /**
  * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
@@ -51,14 +49,15 @@ const keyExtractor = (item, index) => `${item.login}+${index}`;
  * @param {Number} index row index
  * @returns {Object}
  */
-const getItemLayout = (_, index) => ({
+const getItemLayout = (_: any, index: number): {length: number; offset: number; index: number} => ({
     index,
     length: variables.listItemHeightNormal,
     offset: variables.listItemHeightNormal * index,
 });
 
-function BaseReactionList(props) {
-    const styles = useThemeStyles();
+function BaseReactionList(props: BaseReactionListProps) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
     if (!props.isVisible) {
         return null;
     }
@@ -72,25 +71,25 @@ function BaseReactionList(props) {
      * @param {Object} params.item
      * @return {React.Component}
      */
-    const renderItem = ({item}) => (
+    const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => (
         <OptionRow
-            item={item}
             boldStyle
             style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
-            hoverStyle={styles.hoveredComponentBG}
+            hoverStyle={hoveredComponentBG}
             onSelectRow={() => {
-                props.onClose();
+                props.onClose && props.onClose();
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
             }}
             option={{
-                text: Str.removeSMSDomain(item.displayName),
+                reportID: String(item.accountID),
+                text: Str.removeSMSDomain(item.displayName || ''),
                 alternateText: Str.removeSMSDomain(item.login || ''),
                 participantsList: [item],
                 icons: [
                     {
                         id: item.accountID,
                         source: UserUtils.getAvatar(item.avatar, item.accountID),
-                        name: item.login,
+                        name: item.login || '',
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
@@ -113,15 +112,13 @@ function BaseReactionList(props) {
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 getItemLayout={getItemLayout}
-                contentContainerStyle={styles.pv2}
-                style={[styles.reactionListContainer, !props.isSmallScreenWidth && styles.reactionListContainerFixedWidth]}
+                contentContainerStyle={pv2}
+                style={[reactionListContainer, !isSmallScreenWidth && reactionListContainerFixedWidth]}
             />
         </>
     );
 }
 
-BaseReactionList.propTypes = propTypes;
-BaseReactionList.defaultProps = defaultProps;
 BaseReactionList.displayName = 'BaseReactionList';
 
-export default withWindowDimensions(BaseReactionList);
+export default BaseReactionList;
