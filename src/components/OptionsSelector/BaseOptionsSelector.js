@@ -7,13 +7,9 @@ import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
@@ -22,10 +18,8 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
