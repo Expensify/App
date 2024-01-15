@@ -24,7 +24,7 @@ type ReportActionReaction = {
     users: UsersReactions;
 
     /** Is this action pending? */
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type ReportActionReactions = Record<string, ReportActionReaction>;
