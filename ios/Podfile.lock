@@ -282,7 +282,7 @@ PODS:
     - Onfido (~> 28.3.0)
     - React
   - OpenSSL-Universal (1.1.1100)
-  - Plaid (4.7.0)
+  - Plaid (4.7.1)
   - PromisesObjC (2.3.1)
   - RCT-Folly (2022.05.16.00):
     - boost
@@ -1176,7 +1176,7 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
-  - react-native-netinfo (11.1.0):
+  - react-native-netinfo (11.2.1):
     - React-Core
   - react-native-pager-view (6.2.2):
     - React-Core
@@ -1877,7 +1877,7 @@ SPEC CHECKSUMS:
   Onfido: 564f60c39819635ec5b549285a1eec278cc9ba67
   onfido-react-native-sdk: b346a620af5669f9fecb6dc3052314a35a94ad9f
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
+  Plaid: 4f7d68d53f9f8e4c74031ce8ba0f72dd88893d39
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 9b1e7e262745fb671e33c51c1078d093bd30e322
@@ -1909,7 +1909,7 @@ SPEC CHECKSUMS:
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
-  react-native-netinfo: 3aa5637c18834966e0c932de8ae1ae56fea20a97
+  react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
   react-native-pdf: 79aa75e39a80c1d45ffe58aa500f3cf08f267a2e
   react-native-performance: cef2b618d47b277fb5c3280b81a3aad1e72f2886
@@ -1967,7 +1967,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
-  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
+  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2
 
