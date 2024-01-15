@@ -247,13 +247,13 @@ function ReportPreview({
                     role="button"
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.reportPreviewBox, !!isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {hasReceipts && (
                             <ReportActionItemImages
                                 // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                                 images={lastThreeReceipts}
                                 total={transactionsWithReceipts.length}
-                                isHovered={!!isHovered || isScanning}
+                                isHovered={isHovered || isScanning}
                                 size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                             />
                         )}
