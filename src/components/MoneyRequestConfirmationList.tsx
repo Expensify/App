@@ -44,11 +44,22 @@ import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersona
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
 
 type MoneyRequestConfirmationListOnyxProps = {
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: OnyxEntry<OnyxTypes.IOU>;
+
+    /** Collection of tax rates attached to a policy */
     policyTaxRates: OnyxEntry<OnyxTypes.PolicyTaxRate>;
+
+    /** Unit and rate used for if the money request is a distance request */
     mileageRate: OnyxEntry<MileageRate>;
+
+    /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+
+    /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
+
+    /** The policy of root parent report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
@@ -169,7 +180,7 @@ function MoneyRequestConfirmationList({
     receiptPath = '',
     receiptFilename = '',
     transactionID = '',
-    mileageRate = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
+    mileageRate,
     isDistanceRequest = false,
     isScanRequest = false,
     shouldShowSmartScanFields = true,
@@ -399,7 +410,6 @@ function MoneyRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-        // TODO: check if this is needed
         const myIOUAmount = IOUUtils.calculateAmount(selectedParticipantsMemo.length, iouAmount, iouCurrencyCode ?? '', true);
         return [...selectedParticipantsMemo, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetailsMemo, String(myIOUAmount))];
     }, [hasMultipleParticipants, selectedParticipantsMemo, iouAmount, iouCurrencyCode, payeePersonalDetailsMemo]);
@@ -420,9 +430,6 @@ function MoneyRequestConfirmationList({
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID, distanceMerchant);
     }, [hasRoute, distance, mileageRate?.unit, mileageRate?.rate, mileageRate?.currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
 
-    /**
-     * @param {Object} option
-     */
     const selectParticipant = useCallback(
         (option: Participant) => {
             // Return early if selected option is currently logged in user.
