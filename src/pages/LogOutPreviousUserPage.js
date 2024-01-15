@@ -6,11 +6,9 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InitialUrlContext from '@libs/InitialUrlContext';
 import * as SessionUtils from '@libs/SessionUtils';
-import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -35,6 +33,10 @@ const defaultProps = {
     },
 };
 
+// This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
+// out if the transition is for another user.
+//
+// This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage(props) {
     const initUrl = useContext(InitialUrlContext);
     useEffect(() => {
@@ -57,20 +59,11 @@ function LogOutPreviousUserPage(props) {
                 const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
-
-            const exitTo = lodashGet(props, 'route.params.exitTo', '');
-            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-            // which is already called when AuthScreens mounts.
-            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
-                Navigation.isNavigationReady().then(() => {
-                    // temporary until finding clean solution
-                    Navigation.goBack();
-                    Navigation.navigate(exitTo);
-                });
-            }
         });
-    }, [initUrl, props]);
+
+        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initUrl]);
 
     return <FullScreenLoadingIndicator />;
 }

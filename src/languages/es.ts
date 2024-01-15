@@ -1779,7 +1779,7 @@ export default {
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
-            canceled: 'tarea eliminado',
+            canceled: 'tarea eliminada',
             reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
@@ -2417,7 +2417,7 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
         reversedTransaction: '[Transacción anulada]',
-        deletedTask: '[Tarea eliminado]',
+        deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2430,6 +2430,10 @@ export default {
     qrCodes: {
         copy: 'Copiar',
         copied: '¡Copiado!',
+    },
+    actionableMentionWhisperOptions: {
+        invite: 'Invitar',
+        nothing: 'No hacer nada',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
