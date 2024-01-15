@@ -291,7 +291,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             <IllustratedHeaderPageLayout
                 backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                 illustration={LottieAnimations.WorkspacePlanet}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 title={translate('common.workspaces')}
                 style={!isSmallScreenWidth && styles.alignItemsCenter}
                 shouldShowBackButton={isSmallScreenWidth}
