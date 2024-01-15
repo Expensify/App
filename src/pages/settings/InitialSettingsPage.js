@@ -27,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPaneName';
+import getTopmostSettingsCentralPaneName from '@libs/Navigation/getTopmostSettingsCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
@@ -100,7 +100,7 @@ function InitialSettingsPage(props) {
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const activeRoute = useNavigationState(getTopmostCentralPaneName);
+    const activeRoute = useNavigationState(getTopmostSettingsCentralPaneName);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
