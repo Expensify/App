@@ -24,6 +24,7 @@ import variables from '@styles/variables';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
 import * as TransactionEdit from '@userActions/TransactionEdit';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import DistanceRequestFooter from './DistanceRequestFooter';
@@ -170,7 +171,9 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(report.reportID, transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()),
+        );
     };
 
     const getError = () => {
