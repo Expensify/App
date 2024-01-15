@@ -1057,7 +1057,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     if (policy && policy.id) {
         optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
+            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations || [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
         );
     }
 
@@ -2435,7 +2435,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
-            currentTransactionViolations,
+            currentTransactionViolations || [],
             policy.requiresTag,
             policyTags,
             policy.requiresCategory,
