@@ -22,7 +22,7 @@ function OptionRowLHNData({
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
     comment,
-    policy = null,
+    policy,
     receiptTransactions,
     parentReportAction = null,
     transaction = null,
@@ -40,7 +40,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale ?? CONST.LOCALES.DEFAULT, policy, parentReportAction);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale ?? CONST.LOCALES.DEFAULT, policy ?? null, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
