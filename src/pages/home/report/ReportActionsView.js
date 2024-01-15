@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -193,17 +193,17 @@ function ReportActionsView(props) {
         };
     }, [props.report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
-    const oldestReportAction = useMemo(() => _.last(props.reportActions), [props.reportActions]);
-
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadOlderChats = useCallback(() => {
+    const loadOlderChats = () => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (props.network.isOffline || props.isLoadingOlderReportActions) {
             return;
         }
+
+        const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
         if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -211,7 +211,7 @@ function ReportActionsView(props) {
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, reportID]);
+    };
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -248,7 +248,7 @@ function ReportActionsView(props) {
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(() => {
+    const recordTimeToMeasureItemLayout = () => {
         if (didLayout.current) {
             return;
         }
@@ -263,7 +263,7 @@ function ReportActionsView(props) {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
-    }, [hasCachedActions]);
+    };
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by

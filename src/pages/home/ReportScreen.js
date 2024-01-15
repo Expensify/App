@@ -67,8 +67,11 @@ const propTypes = {
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
 
-    /** Array of report actions for this report */
+    /** All the report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -102,7 +105,8 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: [],
+    reportActions: {},
+    parentReportAction: {},
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -141,6 +145,7 @@ function ReportScreen({
     report,
     reportMetadata,
     reportActions,
+    parentReportAction,
     accountManagerReportID,
     markReadyForHydration,
     policies,
@@ -181,12 +186,10 @@ function ReportScreen({
     const isLoadingInitialReportActions = isEmptyChat && reportMetadata.isLoadingInitialReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
-
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
     const isLoading = !reportID || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const lastReportAction = useMemo(
         () =>
             reportActions.length
@@ -195,9 +198,7 @@ function ReportScreen({
         [reportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
-
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
-
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
     const [didScreenTransitionEnd, setEntryTransitionEnd] = useState(false);
@@ -238,7 +239,6 @@ function ReportScreen({
                 report={report}
                 policy={policy}
                 isSingleTransactionView={isSingleTransactionView}
-                parentReportAction={parentReportAction}
             />
         );
     }
@@ -633,6 +633,17 @@ export default compose(
             userLeavingStatus: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
+            },
+            parentReportAction: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions, props) => {
+                    const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
+                    if (!parentReportActionID) {
+                        return {};
+                    }
+                    return parentReportActions[parentReportActionID];
+                },
+                canEvict: false,
             },
         },
         true,

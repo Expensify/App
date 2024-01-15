@@ -4,9 +4,11 @@ import type {FlatListProps} from 'react-native';
 import FlatList from '@components/FlatList';
 
 const WINDOW_SIZE = 15;
+const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
 const maintainVisibleContentPosition = {
     minIndexForVisible: 0,
+    autoscrollToTopThreshold: AUTOSCROLL_TO_TOP_THRESHOLD,
 };
 
 function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
