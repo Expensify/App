@@ -98,10 +98,12 @@ let listIDCount = Math.round(Math.random() * 100);
  * @param {function} fetchNewerReportActions - Function to fetch more messages.
  * @param {string} route - Current route, used to reset states on route change.
  * @param {boolean} isLoading - Loading state indicator.
+ * @param {boolean} triggerListID - Used to trigger a listID change.
  * @returns {object} An object containing the sliced message array, the pagination function,
  *                   index of the linked message, and a unique list ID.
  */
-const usePaginatedReportActionList = (linkedID, allReportActions, fetchNewerReportActions, route, isLoading) => {
+const usePaginatedReportActionList = (linkedID, allReportActions, fetchNewerReportActions, route, isLoading, triggerListID) => {
+    // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest, we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
     const [currentReportActionID, setCurrentReportActionID] = useState('');
     const isFirstLinkedActionRender = useRef(true);
@@ -115,7 +117,7 @@ const usePaginatedReportActionList = (linkedID, allReportActions, fetchNewerRepo
         listIDCount += 1;
         return listIDCount;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
+    }, [route, triggerListID]);
 
     const index = useMemo(() => {
         if (!linkedID || isLoading) {
@@ -178,7 +180,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
-    const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const {windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
@@ -188,7 +189,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
 
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
     const reportID = props.report.reportID;
-    const isLoading = (!!reportActionID && props.isLoadingInitialReportActions) || !props.isContentReady;
+    const isLoading = (!!reportActionID && props.isLoadingInitialReportActions) || !props.isReadyForCommentLinking;
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -210,8 +211,8 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         loadMoreReportActionsHandler,
         linkedIdIndex,
         listID,
-    } = usePaginatedReportActionList(reportActionID, allReportActions, fetchNewerAction, route, isLoading);
-
+    } = usePaginatedReportActionList(reportActionID, allReportActions, fetchNewerAction, route, isLoading, props.isLoadingInitialReportActions);
+    const hasCachedActions = useInitialValue(() => _.size(reportActions) > 0);
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
     const oldestReportAction = useMemo(() => _.last(reportActions), [reportActions]);
@@ -320,7 +321,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
      */
     const loadOlderChats = useCallback(() => {
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-        if (props.network.isOffline || props.isLoadingOlderReportActions) {
+        if (props.network.isOffline || props.isLoadingOlderReportActions || props.isLoadingInitialReportActions) {
             return;
         }
 
@@ -330,7 +331,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [props.network.isOffline, props.isLoadingOlderReportActions, oldestReportAction, hasCreatedAction, reportID]);
+    }, [props.network.isOffline, props.isLoadingOlderReportActions, props.isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID]);
 
     const firstReportActionID = useMemo(() => lodashGet(newestReportAction, 'reportActionID'), [newestReportAction]);
     const loadNewerChats = useCallback(
@@ -423,7 +424,7 @@ ReportActionsView.defaultProps = defaultProps;
 ReportActionsView.displayName = 'ReportActionsView';
 
 function arePropsEqual(oldProps, newProps) {
-    if (!_.isEqual(oldProps.isContentReady, newProps.isContentReady)) {
+    if (!_.isEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
     if (!_.isEqual(oldProps.reportActions, newProps.reportActions)) {

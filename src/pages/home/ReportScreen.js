@@ -557,7 +557,7 @@ function ReportScreen({
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
                                         isComposerFullSize={isComposerFullSize}
                                         policy={policy}
-                                        isContentReady={!shouldShowSkeleton}
+                                        isReadyForCommentLinking={!shouldShowSkeleton}
                                     />
                                 )}
 
