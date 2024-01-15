@@ -59,26 +59,26 @@ describe('SidebarUtils', () => {
 
         await waitForBatchedUpdates();
 
-    await measureFunction(
-        () =>
-            SidebarUtils.getOptionData({
-                report,
-                reportActions,
-                personalDetails,
-                preferredLocale,
-                policy,
-                parentReportAction,
-                hasViolations: false,
-            }),
-        {runs},
-    );
+        await measureFunction(
+            () =>
+                SidebarUtils.getOptionData({
+                    report,
+                    reportActions,
+                    personalDetails,
+                    preferredLocale,
+                    policy,
+                    parentReportAction,
+                    hasViolations: false,
+                }),
+            {runs},
+        );
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
         const currentReportId = '1';
         const allReports = getMockedReports();
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
-    const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
+        const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
         const policies = createCollection<Policy>(
             (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
@@ -104,6 +104,8 @@ describe('SidebarUtils', () => {
         ) as unknown as OnyxCollection<ReportAction[]>;
 
         await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations), {runs});
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations), {
+            runs,
+        });
     });
 });
