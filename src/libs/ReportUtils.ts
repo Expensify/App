@@ -932,12 +932,7 @@ function findLastAccessedReport(
     return adminReport ?? sortedReports.at(-1) ?? null;
 }
 
-/**
- * Whether the provided report is an archived room
- */
-function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return report?.statusNum === CONST.REPORT.STATUS.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
-}
+
 
 /**
  * Checks if the current user is allowed to comment on the given report.
@@ -1620,6 +1615,14 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
     return ReportActionsUtils.getLastVisibleMessage(reportID ?? '', actionsToMerge);
+}
+
+/**
+ * Whether the provided report is an archived room
+ */
+function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
+    if (typeof report === 'object' && Object.keys(report).length === 0) {return false};
+    return !isWorkspaceThread(report) && report?.statusNum === CONST.REPORT.STATUS.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -4520,6 +4523,7 @@ export {
     getIOUReportActionDisplayMessage,
     isWaitingForAssigneeToCompleteTask,
     isGroupChat,
+    isWorkspaceThread,
     isDraftExpenseReport,
     shouldUseFullTitleToDisplay,
     parseReportRouteParams,
