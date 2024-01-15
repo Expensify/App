@@ -494,4 +494,4 @@ type RouteIsPlainString = IsEqual<AllRoutes, string>;
  */
 type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
-export type {Route};
+export type {Route, AllRoutes};

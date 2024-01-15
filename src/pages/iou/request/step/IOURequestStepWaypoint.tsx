@@ -1,10 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TextInput} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,79 +13,76 @@ import InputWrapperWithRef from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AllRoutes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Waypoint} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
-
-    /* Onyx props */
-    /** The optimistic transaction for this request */
-    transaction: transactionPropTypes,
-
-    /* Current location coordinates of the user */
-    userLocation: PropTypes.shape({
-        /** Latitude of the location */
-        latitude: PropTypes.number,
-
-        /** Longitude of the location */
-        longitude: PropTypes.number,
-    }),
-
-    /** Recent waypoints that the user has selected */
-    recentWaypoints: PropTypes.arrayOf(
-        PropTypes.shape({
-            /** The name of the location */
-            name: PropTypes.string,
-
-            /** A description of the location (usually the address) */
-            description: PropTypes.string,
-
-            /** Data required by the google auto complete plugin to know where to put the markers on the map */
-            geometry: PropTypes.shape({
-                /** Data about the location */
-                location: PropTypes.shape({
-                    /** Latitude of the location */
-                    lat: PropTypes.number,
-
-                    /** Longitude of the location */
-                    lng: PropTypes.number,
-                }),
-            }),
-        }),
-    ),
+type Location = {
+    lat?: number;
+    lng?: number;
 };
 
-const defaultProps = {
-    recentWaypoints: [],
-    transaction: {},
-    userLocation: undefined,
+type Geometry = {
+    location: Location;
 };
+
+type WaypointValues = Record<string, string>;
+
+type MappedWaypoint = {
+    /** Waypoint name */
+    name?: string;
+
+    /** Waypoint description */
+    description: string;
+
+    /** Waypoint geometry object cointaing coordinates */
+    geometry: Geometry;
+};
+
+type IOURequestStepWaypointOnyxProps = {
+    /** List of recent waypoints */
+    recentWaypoints: OnyxEntry<MappedWaypoint[]>;
+
+    userLocation: OnyxEntry<OnyxTypes.UserLocation>;
+};
+
+type IOURequestStepWaypointProps = {
+    route: {
+        params: {
+            iouType: ValueOf<typeof CONST.IOU.TYPE>;
+            transactionID: string;
+            reportID: string;
+            backTo: AllRoutes | undefined;
+            action: ValueOf<typeof CONST.IOU.ACTION>;
+            pageIndex: string;
+        };
+    };
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+} & IOURequestStepWaypointOnyxProps;
 
 function IOURequestStepWaypoint({
-    recentWaypoints,
     route: {
         params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
+    recentWaypoints = [],
     userLocation,
-}) {
+}: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -93,12 +90,12 @@ function IOURequestStepWaypoint({
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef(null);
+    const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
-    const waypointCount = _.size(allWaypoints);
-    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+    const allWaypoints = transaction?.comment.waypoints ?? {};
+    const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
+    const waypointCount = Object.keys(allWaypoints).length;
+    const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -112,14 +109,14 @@ function IOURequestStepWaypoint({
     }, [parsedWaypointIndex, waypointCount]);
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
-    const waypointAddress = lodashGet(currentWaypoint, 'address', '');
+    const waypointAddress = currentWaypoint.address ?? '';
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = waypointCount > 2;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    const validate = (values) => {
+    const validate = (values: WaypointValues): ErrorUtils.ErrorsList => {
         const errors = {};
         const waypointValue = values[`waypoint${pageIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
@@ -135,9 +132,9 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+    const saveWaypoint = (waypoint: OnyxTypes.RecentWaypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
-    const submit = (values) => {
+    const submit = (values: WaypointValues) => {
         const waypointValue = values[`waypoint${pageIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
@@ -149,10 +146,8 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                lat: null,
-                lng: null,
                 address: waypointValue,
-                name: values.name || null,
+                name: values.name,
             };
             saveWaypoint(waypoint);
         }
@@ -167,18 +162,12 @@ function IOURequestStepWaypoint({
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
-    /**
-     * @param {Object} values
-     * @param {String} values.lat
-     * @param {String} values.lng
-     * @param {String} values.address
-     */
-    const selectWaypoint = (values) => {
+    const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
-            address: values.address,
-            name: values.name || null,
+            address: values.address ?? '',
+            name: values.name,
         };
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
         if (backTo) {
@@ -191,7 +180,7 @@ function IOURequestStepWaypoint({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
+            onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
         >
@@ -222,6 +211,7 @@ function IOURequestStepWaypoint({
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */}
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
@@ -234,11 +224,14 @@ function IOURequestStepWaypoint({
                 >
                     <View>
                         <InputWrapperWithRef
+                            /* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */
                             InputComponent={AddressSearch}
                             locationBias={locationBias}
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
-                            ref={(e) => (textInput.current = e)}
+                            ref={(e) => {
+                                textInput.current = e;
+                            }}
                             hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
@@ -267,32 +260,32 @@ function IOURequestStepWaypoint({
 }
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
-IOURequestStepWaypoint.propTypes = propTypes;
-IOURequestStepWaypoint.defaultProps = defaultProps;
 
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        userLocation: {
-            key: ONYXKEYS.USER_LOCATION,
-        },
-        recentWaypoints: {
-            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepWaypointWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepWaypoint);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepWaypointWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepWaypointWithWritableReportOrNotFound);
 
-            // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-            // that the google autocomplete component expects for it's "predefined places" feature.
-            selector: (waypoints) =>
-                _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
-                    name: waypoint.name,
-                    description: waypoint.address,
-                    geometry: {
-                        location: {
-                            lat: waypoint.lat,
-                            lng: waypoint.lng,
-                        },
+export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+    recentWaypoints: {
+        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+
+        // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+        // that the google autocomplete component expects for it's "predefined places" feature.
+        selector: (waypoints) =>
+            (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
+                name: waypoint.name,
+                description: waypoint.address,
+                geometry: {
+                    location: {
+                        lat: waypoint.lat,
+                        lng: waypoint.lng,
                     },
-                })),
-        },
-    }),
-)(IOURequestStepWaypoint);
+                },
+            })),
+    },
+    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound and IOURequestStepWaypointWithWritableReportOrNotFound  is migrated to TypeScript.
+})(IOURequestStepWaypointWithFullTransactionOrNotFound);

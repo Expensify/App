@@ -3,6 +3,7 @@ import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import {AllRoutes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -225,6 +226,13 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        backTo: AllRoutes | undefined;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        pageIndex: string;
     };
     [SCREENS.MONEY_REQUEST.MERCHANT]: {
         iouType: string;
