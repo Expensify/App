@@ -10,7 +10,7 @@ import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
-    previewSourceURL: string;
+    previewSourceURL: string | number;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;

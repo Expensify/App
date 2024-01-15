@@ -1,44 +1,38 @@
-import PropTypes from 'prop-types';
+/* eslint-disable react/no-array-index-key */
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
-import _ from 'underscore';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import type {Transaction} from '@src/types/onyx';
 import ReportActionItemImage from './ReportActionItemImage';
 
-const propTypes = {
+type Image = {
+    thumbnail: string | number;
+    image: string | number;
+    transaction: Transaction;
+    isLocalFile: boolean;
+};
+
+type ReportActionItemImagesProps = {
     /** array of image and thumbnail URIs */
-    images: PropTypes.arrayOf(
-        PropTypes.shape({
-            thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-            image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-            transaction: transactionPropTypes,
-        }),
-    ).isRequired,
+    images: Image[];
 
     // We're not providing default values for size and total and disabling the ESLint rule
     // because we want them to default to the length of images, but we can't set default props
     // to be computed from another prop
 
     /** max number of images to show in the row if different than images length */
-    // eslint-disable-next-line react/require-default-props
-    size: PropTypes.number,
+    size: number;
 
     /** total number of images if different than images length */
-    // eslint-disable-next-line react/require-default-props
-    total: PropTypes.number,
+    total: number;
 
     /** if the corresponding report action item is hovered */
-    isHovered: PropTypes.bool,
-};
-
-const defaultProps = {
-    isHovered: false,
+    isHovered: boolean;
 };
 
 /**
@@ -50,7 +44,7 @@ const defaultProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered}) {
+function ReportActionItemImages({images, size, total, isHovered = false}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -77,7 +71,7 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {_.map(shownImages, ({thumbnail, image, transaction, isLocalFile}, index) => {
+            {shownImages.map(({thumbnail, image, transaction, isLocalFile}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -117,8 +111,6 @@ function ReportActionItemImages({images, size, total, isHovered}) {
     );
 }
 
-ReportActionItemImages.propTypes = propTypes;
-ReportActionItemImages.defaultProps = defaultProps;
 ReportActionItemImages.displayName = 'ReportActionItemImages';
 
 export default ReportActionItemImages;
