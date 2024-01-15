@@ -2430,6 +2430,10 @@ export default {
         copy: 'Copiar',
         copied: '¡Copiado!',
     },
+    actionableMentionWhisperOptions: {
+        invite: 'Invitar',
+        nothing: 'No hacer nada',
+    },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
         chooseAReason: 'Elige abajo un motivo para reportarlo:',
