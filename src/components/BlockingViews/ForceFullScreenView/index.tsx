@@ -13,6 +13,6 @@ function ForceFullScreenView({children, forceFullPage = false}: ForceFullScreenV
     return children;
 }
 
-ForceFullScreenView.displayName = 'ForceFullScreenViewProps';
+ForceFullScreenView.displayName = 'ForceFullScreenView';
 
 export default ForceFullScreenView;

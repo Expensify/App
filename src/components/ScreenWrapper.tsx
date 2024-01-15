@@ -51,7 +51,7 @@ type ScreenWrapperProps = {
     includeSafeAreaPaddingBottom?: boolean;
 
     /** This overrides the above prop. It force disable the safe area bottom padding. */
-    shouldDisableSafeAreaPaddingBottom: boolean;
+    shouldDisableSafeAreaPaddingBottom?: boolean;
 
     /** Whether to include padding top */
     includePaddingTop?: boolean;
