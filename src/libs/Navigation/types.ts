@@ -41,13 +41,6 @@ type CentralPaneNavigatorParamList = {
     };
 };
 
-type WaypointParams = {
-    iouType: string;
-    transactionID: string;
-    waypointIndex: string;
-    threadReportID: string;
-};
-
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
@@ -242,8 +235,12 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
-    [SCREENS.MONEY_REQUEST.WAYPOINT]: WaypointParams;
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: WaypointParams;
+    [SCREENS.MONEY_REQUEST.WAYPOINT]: {
+        iouType: string;
+        transactionID: string;
+        waypointIndex: string;
+        threadReportID: number;
+    };
     [SCREENS.MONEY_REQUEST.DISTANCE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
@@ -462,5 +459,4 @@ export type {
     SignInNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
-    WaypointParams,
 };
