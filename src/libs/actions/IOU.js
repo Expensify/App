@@ -3353,9 +3353,8 @@ function cancelPayment(expenseReport, chatReport) {
                 ...expenseReport,
                 lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
-                state: isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN,
-                stateNum: isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE.OPEN,
-                statusNum: isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATE.OPEN,
+                stateNum: isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN,
             },
         },
         ...(chatReport.reportID
@@ -3400,7 +3399,7 @@ function cancelPayment(expenseReport, chatReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             },
         },
         ...(chatReport.reportID
