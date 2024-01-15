@@ -63,7 +63,7 @@ const getMockedPersonalDetailsMap = (length) => {
 
 const mockedReports = getMockedReportsMap(600);
 const mockedBetas = _.values(CONST.BETAS);
-const mockedPersonalDetails = getMockedPersonalDetailsMap(10);
+const mockedPersonalDetails = getMockedPersonalDetailsMap(100);
 
 beforeAll(() =>
     Onyx.init({
@@ -155,12 +155,13 @@ test('[Search Page] should interact when text input changes', async () => {
 
 test('[Search Page] should render options list', async () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    const smallMockedPersonalDetails = getMockedPersonalDetailsMap(5);
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
         await act(triggerTransitionEnd);
-        await screen.findByText(mockedPersonalDetails['1'].login);
-        await screen.findByText(mockedPersonalDetails['2'].login);
+        await screen.findByText(smallMockedPersonalDetails['1'].login);
+        await screen.findByText(smallMockedPersonalDetails['2'].login);
     };
 
     const navigation = {addListener};
@@ -170,7 +171,7 @@ test('[Search Page] should render options list', async () => {
             Onyx.multiSet({
                 ...mockedReports,
                 [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: smallMockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
@@ -185,17 +186,13 @@ test('[Search Page] should search in options list', async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('options-selector-input');
 
-        fireEvent.changeText(input, mockedPersonalDetails['5'].login);
+        fireEvent.changeText(input, mockedPersonalDetails['88'].login);
         await act(triggerTransitionEnd);
-        await screen.findByText(mockedPersonalDetails['5'].login);
+        await screen.findByText(mockedPersonalDetails['88'].login);
 
-        fireEvent.changeText(input, mockedPersonalDetails['8'].login);
+        fireEvent.changeText(input, mockedPersonalDetails['45'].login);
         await act(triggerTransitionEnd);
-        await screen.findByText(mockedPersonalDetails['8'].login);
-
-        fireEvent.changeText(input, mockedPersonalDetails['2'].login);
-        await act(triggerTransitionEnd);
-        await screen.findByText(mockedPersonalDetails['2'].login);
+        await screen.findByText(mockedPersonalDetails['45'].login);
     };
 
     const navigation = {addListener};
