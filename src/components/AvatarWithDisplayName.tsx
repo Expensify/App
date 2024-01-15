@@ -141,6 +141,7 @@ function AvatarWithDisplayName({
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                 parentReportID={report?.parentReportID}
+                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
                             />
                         )}
                         {!!subtitle && (
