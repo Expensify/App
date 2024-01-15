@@ -209,7 +209,7 @@ function goBack(fallbackRoute: Route = '', shouldEnforceFallback = false, should
  */
 function closeFullScreen() {
     const rootState = navigationRef.getRootState();
-    navigationRef.dispatch({...StackActions.pop(), target: rootState.key});
+    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
 }
 
 /**
