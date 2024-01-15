@@ -1,7 +1,7 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
-import type {TranslationPaths, ViolationsOverLimitParams} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
 
@@ -93,7 +93,6 @@ const ViolationsUtils = {
         violation: TransactionViolation,
         translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     ): string {
-        console.log(violation.name, violation.data);
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
