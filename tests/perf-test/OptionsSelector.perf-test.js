@@ -82,7 +82,7 @@ test('[OptionsSelector] should render 1 section', () => {
     measurePerformance(<OptionsSelectorWrapper />, {runs});
 });
 
-test('[OptionsSelector] should render mutliple sections', () => {
+test('[OptionsSelector] should render multiple sections', () => {
     const sections = generateSections(mutlipleSectionsConfig);
     measurePerformance(<OptionsSelectorWrapper sections={sections} />, {runs});
 });

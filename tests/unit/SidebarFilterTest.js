@@ -459,20 +459,20 @@ describe('Sidebar', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const archivedPolicyRoomReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const archivedUserCreatedPolicyRoomReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
@@ -683,8 +683,8 @@ describe('Sidebar', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     lastVisibleActionCreated: '2022-11-22 03:48:27.267',
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
@@ -734,8 +734,8 @@ describe('Sidebar', () => {
                 // Given an archived report that has all comments read
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
@@ -783,8 +783,8 @@ describe('Sidebar', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     isPinned: false,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
@@ -828,8 +828,8 @@ describe('Sidebar', () => {
                 // Given an archived report that is not the active report
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas

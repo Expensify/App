@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -13,6 +13,7 @@ import refPropTypes from '@components/refPropTypes';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -23,7 +24,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -107,6 +107,9 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** All the transactions, used to update ReportPreview label and status */
+    transactions: PropTypes.objectOf(transactionPropTypes),
+
     /** All of the transaction violations */
     transactionViolations: transactionViolationsPropType,
 
@@ -129,6 +132,7 @@ const defaultProps = {
     policy: {
         isHarvestingEnabled: false,
     },
+    transactions: {},
 };
 
 function ReportPreview(props) {
@@ -137,10 +141,17 @@ function ReportPreview(props) {
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
 
-    const [hasMissingSmartscanFields, setHasMissingSmartscanFields] = useState(false);
-    const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
-    const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
-    const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+        () => ({
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
+            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
+        }),
+        // When transactions get updated these status may have changed, so that is a case where we also want to run this.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.transactions, props.iouReportID, props.action],
+    );
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
@@ -171,7 +182,7 @@ function ReportPreview(props) {
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {
-            count: numberOfRequests,
+            count: numberOfRequests - numberOfScanningReceipts,
             scanningReceipts: numberOfScanningReceipts,
         });
 
@@ -226,28 +237,6 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-
-    useEffect(() => {
-        const unsubscribeOnyxTransaction = onyxSubscribe({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (allTransactions) => {
-                if (_.isEmpty(allTransactions)) {
-                    return;
-                }
-
-                setHasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
-                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
-                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
-            },
-        });
-
-        return () => {
-            unsubscribeOnyxTransaction();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
@@ -378,6 +367,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
         },
         transactionViolations: {
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
