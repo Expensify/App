@@ -829,6 +829,11 @@ function updateGeneralSettings(policyID, name, currency) {
             failureData,
         },
     );
+
+    API.write(
+        'UpdateWorkspaceDescription',
+        {policyID, description: name},
+    );
 }
 
 /**
