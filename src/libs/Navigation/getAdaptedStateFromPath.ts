@@ -95,12 +95,12 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             const matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: [matchingRootRoute]});
-            routes.push(createBottomTabNavigator(matchingBottomTabRoute));
+            routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             routes.push(matchingRootRoute);
         }
 
         routes.push(rhpNavigator);
-        return getRoutesWithIndex(routes);
+        return {routes};
     }
     if (lhpNavigator) {
         // Routes
