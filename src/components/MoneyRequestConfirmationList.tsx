@@ -646,7 +646,7 @@ function MoneyRequestConfirmationList({
             />
             {!shouldShowAllFields && (
                 <ShowMoreButton
-                    containerStyle={styles.mt1}
+                    containerStyle={[styles.mt1, styles.mb2]}
                     onPress={toggleShouldExpandFields}
                 />
             )}

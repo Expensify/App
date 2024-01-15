@@ -111,7 +111,7 @@ type CustomBaseTextInputProps = {
     autoCompleteType?: string;
 };
 
-type BaseTextInputRef = ForwardedRef<HTMLElement | Component<AnimatedProps<TextInputProps>>>;
+type BaseTextInputRef = ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>>>;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
