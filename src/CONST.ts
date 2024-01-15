@@ -603,9 +603,11 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
+        },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
-            NOTHING: 'nothing',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
