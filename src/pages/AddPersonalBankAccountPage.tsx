@@ -14,7 +14,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
@@ -36,6 +35,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
+
         if (selectedPlaidBankAccount) {
             BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
         }
@@ -44,7 +44,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
     const exitFlow = useCallback(
         (shouldContinue = false) => {
             const exitReportID = personalBankAccount?.exitReportID;
-            const onSuccessFallbackRoute: Route = (personalBankAccount?.onSuccessFallbackRoute as Route) ?? '';
+            const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
             if (exitReportID) {
                 Navigation.dismissModal(exitReportID);
