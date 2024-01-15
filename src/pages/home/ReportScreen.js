@@ -523,6 +523,7 @@ function ReportScreen({
                                         isLoadingOlderReportActions={reportMetadata.isLoadingOlderReportActions}
                                         isComposerFullSize={isComposerFullSize}
                                         policy={policy}
+                                        listHeight={listHeight}
                                     />
                                 )}
 

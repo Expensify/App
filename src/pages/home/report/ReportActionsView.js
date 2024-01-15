@@ -264,6 +264,7 @@ function ReportActionsView(props) {
                 isLoadingOlderReportActions={props.isLoadingOlderReportActions}
                 isLoadingNewerReportActions={props.isLoadingNewerReportActions}
                 policy={props.policy}
+                listHeight={props.listHeight}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>
