@@ -2491,11 +2491,10 @@ function getReportPrivateNote(reportID: string) {
 }
 
 /**
- * Add up to two report actions to a report. This method can be called for the following situations:
+ * Completes the engagement modal that new NewDot users see when they first sign up/log in by doing the following:
  *
- * - Adding one comment
- * - Adding one attachment
- * - Add both a comment and attachment simultaneously
+ * - Sets the introSelected NVP to the choice the user made
+ * - Creates an optimistic report comment from concierge
  */
 function completeEngagementModal(text: string, choice: string) {
     const commandName = 'CompleteEngagementModal';
