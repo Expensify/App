@@ -1,19 +1,16 @@
 import React from 'react';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import Text from '@components/Text';
-import withLocalize from '@components/withLocalize';
-import type {WithLocalizeProps} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type HtmlRendererProps from './types';
 
-type EditedRendererProps = WithLocalizeProps & HtmlRendererProps;
-
-function EditedRenderer({key, tnode, translate}: EditedRendererProps) {
+function EditedRenderer({tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const defaultRendererProps = {key};
+    const {translate} = useLocalize();
     const isPendingDelete = Boolean(tnode.attributes.deleted !== undefined);
     return (
         <Text>
@@ -38,4 +35,4 @@ function EditedRenderer({key, tnode, translate}: EditedRendererProps) {
 
 EditedRenderer.displayName = 'EditedRenderer';
 
-export default withLocalize(EditedRenderer);
+export default EditedRenderer;

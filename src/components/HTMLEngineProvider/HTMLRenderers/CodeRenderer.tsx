@@ -1,24 +1,21 @@
 import React from 'react';
-import {splitBoxModelStyle, TNodeChildrenRenderer} from 'react-native-render-html';
-import type {NativeTextStyles, TText} from 'react-native-render-html';
+import type {TextStyle} from 'react-native';
+import {splitBoxModelStyle} from 'react-native-render-html';
+import type {CustomRendererProps, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import useStyleUtils from '@hooks/useStyleUtils';
-import type HtmlRendererProps from './types';
 
-type CodeRendererProps = HtmlRendererProps & {
-    /** The position of this React element relative to the parent React element, starting at 0 */
-    renderIndex: number;
-
-    /** The total number of elements children of this React element parent */
-    renderLength: number;
+type CodeRendererProps = CustomRendererProps<TText> & {
+    /** Key of the element */
+    key?: string;
 };
 
-function CodeRenderer({style, TDefaultRenderer, key, tnode, renderIndex, renderLength}: CodeRendererProps) {
+function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: CodeRendererProps) {
     const StyleUtils = useStyleUtils();
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle((style as NativeTextStyles) ?? {});
+    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style ?? {});
 
     /**
      * Get the defalult fontFamily variant
@@ -29,7 +26,7 @@ function CodeRenderer({style, TDefaultRenderer, key, tnode, renderIndex, renderL
     });
 
     // Determine the font size for the code based on whether it's inside an H1 element.
-    const isInsideH1 = HTMLEngineUtils.isChildOfH1(tnode);
+    const isInsideH1 = HTMLEngineUtils.isChildOfH1(defaultRendererProps.tnode);
 
     const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
 
@@ -44,15 +41,9 @@ function CodeRenderer({style, TDefaultRenderer, key, tnode, renderIndex, renderL
         fontStyle: undefined,
     };
 
-    const defaultRendererProps = {TNodeChildrenRenderer, style, textProps: {}, type: 'text' as const, viewProps: {}, tnode: tnode as TText, renderIndex, renderLength};
-
-    if (TDefaultRenderer === undefined) {
-        return null;
-    }
-
     return (
         <InlineCodeBlock
-            defaultRendererProps={defaultRendererProps}
+            defaultRendererProps={{...defaultRendererProps, style: style as TextStyle}}
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}

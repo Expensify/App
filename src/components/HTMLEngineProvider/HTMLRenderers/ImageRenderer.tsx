@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
-import type HtmlRendererProps from './types';
 
 type ImageRendererWithOnyxProps = {
     /**
@@ -25,7 +24,7 @@ type ImageRendererWithOnyxProps = {
     user: OnyxEntry<User>;
 };
 
-type ImageRendererProps = ImageRendererWithOnyxProps & HtmlRendererProps;
+type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBlock>;
 
 function ImageRenderer({tnode}: ImageRendererProps) {
     const styles = useThemeStyles();
@@ -72,7 +71,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={[styles.noOutline as StyleProp<ViewStyle>]}
+                    style={[styles.noOutline]}
                     onPress={() => {
                         // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
                         const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID, source);

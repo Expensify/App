@@ -1,6 +1,6 @@
-import type {Node} from 'domhandler';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
@@ -10,19 +10,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type HtmlRendererProps from './types';
 
-type NodeWithData = Node & {
-    data: string;
+type AnchorRendererProps = CustomRendererProps<TBlock> & {
+    /** Key of the element */
+    key?: string;
 };
 
-function AnchorRenderer({tnode, style, key}: HtmlRendererProps) {
+function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-    const displayName = (tnode?.domNode?.children?.[0] as NodeWithData).data ?? '';
+    const tNodeChild = tnode?.domNode?.children?.[0];
+    const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
@@ -62,7 +63,7 @@ function AnchorRenderer({tnode, style, key}: HtmlRendererProps) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={[{...parentStyle, ...styles.textUnderlinePositionUnder, ...styles.textDecorationSkipInkNone}, style]}
+            style={[parentStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone, style]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={internalNewExpensifyPath || internalExpensifyPath ? () => Link.openLink(attrHref, environmentURL, isAttachment) : undefined}

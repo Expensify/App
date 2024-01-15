@@ -1,3 +1,4 @@
+import type {CustomTagRendererRecord, CustomTextualRenderer} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
@@ -10,10 +11,10 @@ import PreRenderer from './PreRenderer';
 /**
  * This collection defines our custom renderers. It is a mapping from HTML tag type to the corresponding component.
  */
-export default {
+const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     // Standard HTML tag renderers
     a: AnchorRenderer,
-    code: CodeRenderer,
+    code: CodeRenderer as CustomTextualRenderer,
     img: ImageRenderer,
     video: AnchorRenderer, // temporary until we have a video player component
 
@@ -21,8 +22,10 @@ export default {
     edited: EditedRenderer,
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
-    'mention-user': MentionUserRenderer,
-    'mention-here': MentionHereRenderer,
-    'next-step-email': NextStepEmailRenderer,
+    'mention-user': MentionUserRenderer as CustomTextualRenderer,
+    'mention-here': MentionHereRenderer as CustomTextualRenderer,
+    'next-step-email': NextStepEmailRenderer as CustomTextualRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
+
+export default HTMLEngineProviderComponentList;

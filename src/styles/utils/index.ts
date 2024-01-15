@@ -1341,7 +1341,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns style object for the user mention component based on whether the mention is ours or not.
      */
-    getMentionStyle: (isOurMention: boolean): ViewStyle => {
+    getMentionStyle: (isOurMention: boolean): ViewStyle | StyleProp<TextStyle> => {
         const backgroundColor = isOurMention ? theme.ourMentionBG : theme.mentionBG;
         return {
             backgroundColor,

@@ -1,6 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -18,16 +20,14 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type HtmlRendererProps from './types';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & HtmlRendererProps;
+type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRendererProps<TText>;
 
-function MentionUserRenderer(props: MentionUserRendererProps) {
-    const {TDefaultRenderer, style, tnode, currentUserPersonalDetails} = props;
+function MentionUserRenderer({style, tnode, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const defaultRendererProps = {TDefaultRenderer, style, ...props};
     const htmlAttribAccountID = tnode.attributes.accountid;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
@@ -40,11 +40,11 @@ function MentionUserRenderer(props: MentionUserRendererProps) {
         accountID = parseInt(htmlAttribAccountID, 10);
         displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') ?? user?.displayName ?? '' ?? translate('common.hidden');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
-    } else if (!isEmpty(tnode.data)) {
+    } else if (!isEmptyObject(tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         displayNameOrLogin = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]).slice(0)?.[0];
+        accountID = PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin])?.[0];
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
     } else {
         // If neither an account ID or email is provided, don't render anything
@@ -53,13 +53,8 @@ function MentionUserRenderer(props: MentionUserRendererProps) {
 
     const isOurMention = accountID === currentUserPersonalDetails.accountID;
 
-    const styleWithoutColor: StyleProp<TextStyle> =
-        typeof style === 'object'
-            ? {
-                  ...style,
-                  color: undefined,
-              }
-            : {};
+    const flattenStyle = StyleSheet.flatten(style as TextStyle);
+    const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -88,7 +83,7 @@ function MentionUserRenderer(props: MentionUserRendererProps) {
                             testID="span"
                             href={`/${navigationRoute}`}
                         >
-                            {htmlAttribAccountID !== null ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={props.tnode} />}
+                            {htmlAttribAccountID ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>
