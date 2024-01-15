@@ -11,6 +11,7 @@ import OptionRow from '@components/OptionRow';
 import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -21,7 +22,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesUtils';
 import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,18 +48,16 @@ const propTypes = {
             pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         }),
     ),
-    activeWorkspaceID: PropTypes.string,
 };
 
 const defaultProps = {
     policies: {},
-    activeWorkspaceID: undefined,
 };
 
 const MINIMUM_WORKSPACES_TO_SHOW_SEARCH = 8;
 const EXPENSIFY_TITLE = 'Expensify';
 
-function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
+function WorkspaceSwitcherPage({policies}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -67,6 +65,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
@@ -106,12 +105,15 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const selectPolicy = useCallback((option) => {
         const policyID = option.policyID;
         const pathPrefix = policyID ? `w/${policyID}/` : '';
-        Policy.selectWorkspace(policyID);
+
         if (policyID) {
             setSelectedOption(option);
         } else {
             setSelectedOption(undefined);
         }
+        // Temporary: This will be handled in custom navigation function that also puts policyID in BottomTabNavigator state
+        setActiveWorkspaceID(policyID);
+        Navigation.goBack();
         Navigation.navigate(`${pathPrefix}${ROUTES.HOME}`);
     }, []);
 
@@ -312,8 +314,5 @@ WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
 export default withOnyx({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    activeWorkspaceID: {
-        key: ONYXKEYS.ACTIVE_WORKSPACE_ID,
     },
 })(WorkspaceSwitcherPage);
