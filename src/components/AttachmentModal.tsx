@@ -396,15 +396,25 @@ function AttachmentModal({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal();
-                    Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report?.reportID ?? '', CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            transaction?.transactionID ?? '',
+                            report?.reportID ?? '',
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    );
                 },
             });
         }
-        menuItems.push({
-            icon: Expensicons.Download,
-            text: translate('common.download'),
-            onSelected: () => downloadAttachment(),
-        });
+        if (!isOffline) {
+            menuItems.push({
+                icon: Expensicons.Download,
+                text: translate('common.download'),
+                onSelected: () => downloadAttachment(),
+            });
+        }
         if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
@@ -420,11 +430,13 @@ function AttachmentModal({
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
+    let headerTitleNew = headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
+        headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
-        shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen;
+        shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
 
     return (
@@ -447,7 +459,7 @@ function AttachmentModal({
                 <GestureHandlerRootView style={styles.flex1}>
                     {isSmallScreenWidth && <HeaderGap />}
                     <HeaderWithBackButton
-                        title={headerTitle}
+                        title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}
                         onDownloadButtonPress={() => downloadAttachment()}
