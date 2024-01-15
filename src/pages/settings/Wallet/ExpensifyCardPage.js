@@ -208,7 +208,7 @@ function ExpensifyCardPage({
                                     medium
                                     style={[styles.mh5, styles.mb5]}
                                     text={translate('cardPage.reviewTransaction')}
-                                    onPress={() => Link.openOldDotLink('inbox')}
+                                    onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
                                 />
                             </>
                         ) : null}
@@ -265,7 +265,7 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                {!_.isEmpty(physicalCard) && (
+                                {physicalCard.state === CONST.EXPENSIFY_CARD.STATE.OPEN && (
                                     <>
                                         <MenuItemWithTopDescription
                                             description={translate('cardPage.physicalCardNumber')}

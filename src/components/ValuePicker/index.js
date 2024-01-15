@@ -29,8 +29,14 @@ const propTypes = {
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
 
+    /** Text to display under the main menu item */
+    furtherDetails: PropTypes.string,
+
     /** A ref to forward to MenuItemWithTopDescription */
     forwardedRef: refPropTypes,
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,10 +46,12 @@ const defaultProps = {
     items: {},
     forwardedRef: undefined,
     errorText: '',
+    furtherDetails: undefined,
     onInputChange: () => {},
+    shouldShowTooltips: true,
 };
 
-function ValuePicker({value, label, items, placeholder, errorText, onInputChange, forwardedRef}) {
+function ValuePicker({value, label, items, placeholder, errorText, onInputChange, furtherDetails, shouldShowTooltips, forwardedRef}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -63,7 +71,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
         hidePickerModal();
     };
 
-    const descStyle = value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = _.find(items, {value});
     const selectedLabel = selectedItem ? selectedItem.label : '';
 
@@ -76,6 +84,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
                 descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
+                furtherDetails={furtherDetails}
             />
             <View style={styles.ml5}>
                 <FormHelpMessage message={errorText} />
@@ -87,6 +96,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
                 items={items}
                 onClose={hidePickerModal}
                 onItemSelected={updateInput}
+                shouldShowTooltips={shouldShowTooltips}
             />
         </View>
     );

@@ -48,7 +48,7 @@ After purchasing the subscription from the App Store, remember to sync your app 
 The subscription renewal date is the same as the purchase date. For instance, if you sign up for the subscription on September 7th, it will renew automatically on October 7th. You can cancel your subscription anytime during the month if you no longer need unlimited SmartScans. If you do cancel, keep in mind that your subscription (and your ability to SmartScan) will continue until the last day of the billing cycle.
 
 
-# FAQ
+{% include faq-begin.md %}
 ## Can I use an Individual Subscription while on a Collect or Control Plan? 
 You can! If you want to track expenses separately from your organization’s Workspace, you can sign up for an Individual Subscription. However, only Submit and Track Workspace plans are available when on an Individual Subscription. Collect and Control Workspace plans require an annual or pay-per-use subscription. For more information, visit expensify.com/pricing.
 
@@ -65,3 +65,5 @@ Your subscription is a pre-purchase for 30 days of unlimited SmartScanning. This
 
 ## How can I cancel my subscription from the iOS app? 
 If you signed up for the Monthly Subscription via iOS and your iTunes account, you will need to log into iTunes and locate the subscription there in order to cancel it. The ability to cancel an Expensify subscription started via iOS is strictly limited to your iTunes account.
+
+{% include faq-end.md %}

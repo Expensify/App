@@ -53,6 +53,15 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** Reason of payment cancellation */
+    cancellationReason?: string;
+
+    /** ID of an expense report */
+    expenseReportID?: string;
+
+    /** resolution for actionable mention whisper */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };
 
 type ImageMetadata = {
@@ -194,6 +203,9 @@ type ReportActionBase = {
 
     /** We manually add this field while sorting to detect the end of the list */
     isNewestReportAction?: boolean;
+
+    /** Flag for checking if data is from optimistic data */
+    isOptimisticAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
@@ -201,4 +213,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};
