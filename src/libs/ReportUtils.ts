@@ -452,7 +452,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
 }
 
-function getPolicy(policyID: string): Policy | EmptyObject {
+function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
     }

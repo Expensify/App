@@ -104,6 +104,9 @@ type Report = {
     /** The report visibility */
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
+    /** Whether the report has outstanding IOU */
+    hasOutstandingIOU?: boolean;
+
     /** Report cached total */
     cachedTotal?: string;
 
