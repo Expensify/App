@@ -110,8 +110,10 @@ const ONYXKEYS = {
     /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
+    /** This NVP will be `true` if the user has dismissed the engagement modal */
     NVP_HAS_DISMISSED_IDLE_PANEL: 'hasDismissedIdlePanel',
 
+    /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'introSelected',
 
     /** Does this user have push notifications enabled for this device? */
