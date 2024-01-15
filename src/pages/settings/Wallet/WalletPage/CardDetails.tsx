@@ -87,7 +87,8 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.address')}
-                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? defaultPrivatePersonalDetails)}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                 interactive={false}
             />
             <TextLink

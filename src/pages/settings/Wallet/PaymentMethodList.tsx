@@ -133,7 +133,8 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
     }
 
     const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
-        (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ?? method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
     return defaultablePaymentMethodCount > 1;
 }
@@ -197,7 +198,8 @@ function PaymentMethodList({
                     interactive: isExpensifyCard,
                     canDismissError: isExpensifyCard,
                     errors: card.errors,
-                    brickRoadIndicator: card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN ?? card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ? 'error' : null,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    brickRoadIndicator: card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ? 'error' : null,
                     ...icon,
                 };
             });
@@ -215,7 +217,8 @@ function PaymentMethodList({
 
         if (!isOffline) {
             combinedPaymentMethods = combinedPaymentMethods.filter(
-                (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ?? !_.isEmpty(paymentMethod.errors),
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
             );
         }
 
@@ -270,8 +273,10 @@ function PaymentMethodList({
                     icon={item.icon}
                     disabled={item.disabled}
                     displayInDefaultIconColor
-                    iconHeight={item.iconHeight ?? item.iconSize}
-                    iconWidth={item.iconWidth ?? item.iconSize}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    iconHeight={item.iconHeight || item.iconSize}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
                     badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : undefined}
                     wrapperStyle={styles.paymentMethod}
@@ -309,7 +314,8 @@ function PaymentMethodList({
                             text={translate('paymentMethodList.addPaymentMethod')}
                             icon={Expensicons.CreditCard}
                             onPress={onPress}
-                            isDisabled={isLoadingPaymentMethods ?? isFormOffline}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            isDisabled={isLoadingPaymentMethods || isFormOffline}
                             style={[styles.mh4, styles.buttonCTA]}
                             iconStyles={[styles.buttonCTAIcon]}
                             key="addPaymentMethodButton"

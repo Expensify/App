@@ -82,7 +82,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     });
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
-    const hasBankAccount = !_.isEmpty(bankAccountList) ?? !_.isEmpty(fundList);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = !_.isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasAssignedCard = !_.isEmpty(cardList);
@@ -95,7 +96,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         // In order to prevent a loop, only update state of the spinner if there is a change
         const showLoadingSpinner = isLoadingPaymentMethods ?? false;
         if (showLoadingSpinner !== shouldShowLoadingSpinner) {
-            setShouldShowLoadingSpinner(!!isLoadingPaymentMethods && !network.isOffline);
+            setShouldShowLoadingSpinner(showLoadingSpinner && !network.isOffline);
         }
     }, [isLoadingPaymentMethods, network.isOffline, shouldShowLoadingSpinner]);
 
@@ -216,8 +217,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
-
-        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ?? paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             BankAccounts.openPersonalBankAccountSetupView();
             return;
         }
@@ -340,7 +341,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 ?? isSmallScreenWidth;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
@@ -392,7 +394,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                                 onSuccessfulKYC={(_iouPaymentType: string, source: string) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod: string) => {
-                                                    if (hasActivatedWallet ?? selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                                    if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                                                         return;
                                                     }
                                                     // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
@@ -483,7 +486,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                             activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                             buttonRef={addPaymentMethodAnchorRef}
-                                            onListContentSizeChange={shouldShowAddPaymentMenu ?? shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                            onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         />
                                     </WalletSection>
                                 ) : null}
@@ -499,7 +503,8 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                         actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                         activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                         buttonRef={addPaymentMethodAnchorRef}
-                                        onListContentSizeChange={shouldShowAddPaymentMenu ?? shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                        onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                         shouldEnableScroll={false}
                                         style={styles.mt5}
                                     />
@@ -520,7 +525,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                             <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : {}]}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
-                                        title={paymentMethod.formattedSelectedPaymentMethod.title ?? ''}
+                                        title={paymentMethod.formattedSelectedPaymentMethod.title}
                                         icon={paymentMethod.formattedSelectedPaymentMethod.icon}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
                                         wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}

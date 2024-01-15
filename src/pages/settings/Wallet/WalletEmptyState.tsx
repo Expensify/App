@@ -11,6 +11,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type WalletEmptyStateProps = {
+    /** The function that is called when a menu item is pressed */
     onAddPaymentMethod: () => void;
 };
 
@@ -55,5 +56,7 @@ function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
         </IllustratedHeaderPageLayout>
     );
 }
+
+WalletEmptyState.displayName = 'WalletEmptyState';
 
 export default WalletEmptyState;
