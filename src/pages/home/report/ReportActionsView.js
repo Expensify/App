@@ -339,8 +339,14 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions || props.network.isOffline) {
                 return;
             }
-            const isContentSmallerThanList = checkIfContentSmallerThanList();
-            if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isContentSmallerThanList) || (!reportActionID && !hasNewestReportAction && !isContentSmallerThanList)) {
+            // Determines if loading older reports is necessary when the content is smaller than the list
+            // and there are fewer than 23 items, indicating we've reached the oldest message.
+            const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
+
+            if (
+                (reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
+                (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
+            ) {
                 loadMoreReportActionsHandler({firstReportActionID});
             }
         },
@@ -354,6 +360,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             loadMoreReportActionsHandler,
             firstReportActionID,
             props.network.isOffline,
+            reportActions.length,
         ],
     );
 
