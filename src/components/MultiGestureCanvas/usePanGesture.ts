@@ -2,6 +2,7 @@
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {SPRING_CONFIG} from './constants';
 import type {CanvasSize, ContentSize, MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
@@ -95,7 +96,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             }
         } else {
             // Animated back to the boundary
-            offsetX.value = withSpring(clampedOffset.x, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetX.value = withSpring(clampedOffset.x, SPRING_CONFIG);
         }
 
         if (isInVerticalBoundary) {
@@ -110,7 +111,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             }
         } else {
             // Animated back to the boundary
-            offsetY.value = withSpring(clampedOffset.y, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetY.value = withSpring(clampedOffset.y, SPRING_CONFIG);
         }
 
         // Reset velocity variables after we finished the pan gesture

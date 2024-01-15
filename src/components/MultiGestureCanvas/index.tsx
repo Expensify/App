@@ -7,7 +7,7 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {defaultZoomRange} from './constants';
+import {defaultZoomRange, SPRING_CONFIG} from './constants';
 import getCanvasFitScale from './getCanvasFitScale';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
@@ -22,9 +22,6 @@ type MultiGestureCanvasProps = ChildrenProps & {
      */
     isActive: boolean;
 
-    /** Handles scale changed event */
-    onScaleChanged: OnScaleChangedCallback;
-
     /** The width and height of the canvas.
      *  This is needed in order to properly scale the content in the canvas
      */
@@ -37,6 +34,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: ZoomRange;
+
+    /** Handles scale changed event */
+    onScaleChanged?: OnScaleChangedCallback;
 };
 
 function MultiGestureCanvas({
@@ -78,7 +78,7 @@ function MultiGestureCanvas({
      */
     const onScaleChanged = useCallback(
         (newScale: number) => {
-            onScaleChangedProp(newScale);
+            onScaleChangedProp?.(newScale);
             onScaleChangedContext(newScale);
         },
         [onScaleChangedContext, onScaleChangedProp],
@@ -135,13 +135,13 @@ function MultiGestureCanvas({
         pinchScale.value = 1;
 
         if (animated) {
-            offsetX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            offsetY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            panTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            panTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            pinchTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            pinchTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            zoomScale.value = withSpring(1, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetX.value = withSpring(0, SPRING_CONFIG);
+            offsetY.value = withSpring(0, SPRING_CONFIG);
+            panTranslateX.value = withSpring(0, SPRING_CONFIG);
+            panTranslateY.value = withSpring(0, SPRING_CONFIG);
+            pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
+            pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
+            zoomScale.value = withSpring(1, SPRING_CONFIG);
             return;
         }
 
@@ -270,5 +270,5 @@ MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
 export {defaultZoomRange};
-export {zoomScaleBounceFactors} from './utils';
+export {zoomScaleBounceFactors} from './constants';
 export type {MultiGestureCanvasProps};

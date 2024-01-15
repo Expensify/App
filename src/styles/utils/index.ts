@@ -1008,6 +1008,10 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
+function getOpacityStyle(isHidden: boolean) {
+    return {opacity: isHidden ? 0 : 1};
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1071,6 +1075,7 @@ const staticStyleUtils = {
     getEReceiptColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
+    getOpacityStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1432,8 +1437,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
-
-    getLightboxVisibilityStyle: (isHidden: boolean) => ({opacity: isHidden ? 0 : 1}),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

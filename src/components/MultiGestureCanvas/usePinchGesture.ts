@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
+import {SPRING_CONFIG, zoomScaleBounceFactors} from './constants';
 import type {CanvasSize, MultiGestureCanvasVariables, OnScaleChangedCallback, ZoomRange} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
@@ -114,14 +115,11 @@ const usePinchGesture = ({
             const newZoomScale = pinchScale.value * evt.scale;
 
             // Limit the zoom scale to zoom range including bounce range
-            if (
-                zoomScale.value >= zoomRange.min * MultiGestureCanvasUtils.zoomScaleBounceFactors.min &&
-                zoomScale.value <= zoomRange.max * MultiGestureCanvasUtils.zoomScaleBounceFactors.max
-            ) {
+            if (zoomScale.value >= zoomRange.min * zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * zoomScaleBounceFactors.max) {
                 zoomScale.value = newZoomScale;
                 currentPinchScale.value = evt.scale;
 
-                if (onScaleChanged != null) {
+                if (onScaleChanged !== undefined) {
                     runOnJS(onScaleChanged)(zoomScale.value);
                 }
             }
@@ -153,12 +151,12 @@ const usePinchGesture = ({
 
             // If the content was "overzoomed" or "underzoomed", we need to bounce back with an animation
             if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {
-                pinchBounceTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-                pinchBounceTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+                pinchBounceTranslateX.value = withSpring(0, SPRING_CONFIG);
+                pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
             }
 
             const triggerScaleChangeCallback = () => {
-                if (onScaleChanged == null) {
+                if (onScaleChanged === undefined) {
                     return;
                 }
 
@@ -168,11 +166,11 @@ const usePinchGesture = ({
             if (zoomScale.value < zoomRange.min) {
                 // If the zoom scale is less than the minimum zoom scale, we need to set the zoom scale to the minimum
                 pinchScale.value = zoomRange.min;
-                zoomScale.value = withSpring(zoomRange.min, MultiGestureCanvasUtils.SPRING_CONFIG, triggerScaleChangeCallback);
+                zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG, triggerScaleChangeCallback);
             } else if (zoomScale.value > zoomRange.max) {
                 // If the zoom scale is higher than the maximum zoom scale, we need to set the zoom scale to the maximum
                 pinchScale.value = zoomRange.max;
-                zoomScale.value = withSpring(zoomRange.max, MultiGestureCanvasUtils.SPRING_CONFIG, triggerScaleChangeCallback);
+                zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG, triggerScaleChangeCallback);
             } else {
                 // Otherwise, we just update the pinch scale offset
                 pinchScale.value = zoomScale.value;

@@ -3,6 +3,7 @@ import {useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, withSpring} from 'react-native-reanimated';
+import {SPRING_CONFIG} from './constants';
 import type {CanvasSize, ContentSize, MultiGestureCanvasVariables, OnScaleChangedCallback} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
@@ -109,9 +110,9 @@ const useTapGestures = ({
                 offsetAfterZooming.y = 0;
             }
 
-            offsetX.value = withSpring(offsetAfterZooming.x, MultiGestureCanvasUtils.SPRING_CONFIG);
-            offsetY.value = withSpring(offsetAfterZooming.y, MultiGestureCanvasUtils.SPRING_CONFIG);
-            zoomScale.value = withSpring(doubleTapScale, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetX.value = withSpring(offsetAfterZooming.x, SPRING_CONFIG);
+            offsetY.value = withSpring(offsetAfterZooming.y, SPRING_CONFIG);
+            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScale.value = doubleTapScale;
         },
         [scaledContentWidth, scaledContentHeight, canvasSize, doubleTapScale],
@@ -130,7 +131,7 @@ const useTapGestures = ({
                 zoomToCoordinates(evt.x, evt.y);
             }
 
-            if (onScaleChanged != null) {
+            if (onScaleChanged !== undefined) {
                 runOnJS(onScaleChanged)(zoomScale.value);
             }
         });
@@ -143,7 +144,7 @@ const useTapGestures = ({
         })
         // eslint-disable-next-line @typescript-eslint/naming-convention
         .onFinalize((_evt, success) => {
-            if (!success || !onTap) {
+            if (!success || onTap === undefined) {
                 return;
             }
 

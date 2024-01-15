@@ -3,7 +3,7 @@ import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
 
 type AttachmentCarouselPagerContextType = {
-    onTap: () => void;
+    onTap?: () => void;
     onScaleChanged: (scale: number) => void;
     pagerRef: React.Ref<PagerView>;
     shouldPagerScroll: SharedValue<boolean>;
