@@ -2,7 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
+import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
 function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...forwardedProps}: ImageProps) {
     /**
@@ -15,7 +15,7 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
         // On native the authToken IS passed in the image request headers
         const authToken = session?.encryptedAuthToken ?? null;
 
-        if (isAuthTokenRequired && authToken && typeof propsSource !== 'number' && propsSource.uri) {
+        if (isAuthTokenRequired && authToken && typeof propsSource === 'object' && propsSource && 'uri' in propsSource) {
             return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
@@ -30,9 +30,10 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
     useEffect(() => {
         // If an onLoad callback was specified then manually call it and pass
         // the natural image dimensions to match the native API
-        if (typeof onLoad !== 'function' || typeof source === 'number' || !source.uri) {
+        if (typeof onLoad !== 'function' || !source || typeof source !== 'object' || !('uri' in source) || !source?.uri) {
             return;
         }
+
         RNImage.getSize(source.uri, (width, height) => {
             onLoad({nativeEvent: {width, height}});
         });

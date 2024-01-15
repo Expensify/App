@@ -1,9 +1,9 @@
-import type {ImageSource as ExpoImageSource} from 'expo-image';
-import type {ImageResizeMode, ImageStyle, StyleProp} from 'react-native';
+import type {ImageSource} from 'expo-image';
+import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Session} from '@src/types/onyx';
 
-type ImageSource = ExpoImageSource | string | number | ExpoImageSource[] | string[] | null;
+type ExpoImageSource = ImageSource | string | number | ImageSource[] | string[] | null;
 
 type ImageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -15,7 +15,7 @@ type ImageOwnProps = {
     style?: StyleProp<ImageStyle>;
 
     /** The static asset or URI source of the image */
-    source: ImageSource;
+    source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource;
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
@@ -46,4 +46,4 @@ type ImageOwnProps = {
 
 type ImageProps = ImageOnyxProps & ImageOwnProps;
 
-export type {ImageOwnProps, ImageOnyxProps, ImageProps, ImageSource};
+export type {ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource};

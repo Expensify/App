@@ -3,7 +3,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImageOnyxProps, ImageProps, ImageSource} from './types';
+import type {ExpoImageSource, ImageOnyxProps, ImageProps} from './types';
 
 const dimensionsCache = new Map<string, {width: number; height: number}>();
 
@@ -11,7 +11,7 @@ function Image(props: ImageProps) {
     // eslint-disable-next-line react/destructuring-assignment
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
-    let imageSource: ImageSource = source;
+    let imageSource: ExpoImageSource = source;
     if (source && typeof source === 'object' && 'uri' in source && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
