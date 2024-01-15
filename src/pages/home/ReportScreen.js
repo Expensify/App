@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -44,6 +44,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import * as SessionUtils from '@libs/SessionUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -194,6 +195,7 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const isOldDotConciergeRef = useRef(false);
 
     useEffect(() => {
         if (!report || !report.reportID || shouldHideReport) {
@@ -350,6 +352,9 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
+        Linking.getInitialURL().then((url) => {
+            isOldDotConciergeRef.current = SessionUtils.didSessionStartAsOldDotConcierge(url);
+        });
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {

@@ -53,4 +53,9 @@ function didUserLogInDuringSession() {
     return Boolean(loggedInDuringSession);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession};
+function didSessionStartAsOldDotConcierge(initialURL: string) {
+    console.debug("CRISTIII - " + initialURL);
+    return Boolean(true);
+}
+
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, didSessionStartAsOldDotConcierge};
