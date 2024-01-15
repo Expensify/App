@@ -88,8 +88,8 @@ const composeToString = (value: string[]): string => value.map((v) => (v === und
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
-function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeInputHandle>) {
-    const {
+function MagicCodeInput(
+    {
         value = '',
         name = '',
         autoFocus = true,
@@ -103,7 +103,9 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
         lastPressedDigit = '',
         autoComplete,
         hasError = false,
-    } = props;
+    }: MagicCodeInputProps,
+    ref: ForwardedRef<MagicCodeInputHandle>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const inputRefs = useRef<RNTextInput | HTMLInputElement | null>();
@@ -189,9 +191,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
 
     /**
      * Focuses on the input when it is pressed.
-     *
-     * @param event
-     * @param index
      */
     const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (shouldFocusLast.current) {
@@ -204,8 +203,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
     /**
      * Callback for the onPress event, updates the indexes
      * of the currently focused input.
-     *
-     * @param index
      */
     const onPress = (index: number) => {
         shouldFocusLast.current = false;
@@ -224,8 +221,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
      * the focused input on the next empty one, if exists.
      * It handles both fast typing and only one digit at a time
      * in a specific position.
-     *
-     * @param textValue
      */
     const onChangeText = (textValue?: string) => {
         if (!textValue?.length || !ValidationUtils.isNumeric(textValue)) {
@@ -261,8 +256,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
      *
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
-     *
-     * @param event
      */
     const onKeyPress = (event: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
         const keyValue = event?.nativeEvent?.key;
@@ -284,7 +277,7 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
 
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
-            if (focusedIndex && numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
+            if (focusedIndex !== undefined && numbers?.[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
                 setInput(TEXT_INPUT_EMPTY_STATE);
                 numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, maxLength)];
                 setEditIndex(focusedIndex);
@@ -358,8 +351,8 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
         <>
             <View style={[styles.magicCodeInputContainer]}>
                 <TapGestureHandler
-                    onBegan={(e: HandlerStateChangeEvent<Partial<TouchData>>) => {
-                        onPress(Math.floor((e.nativeEvent?.x ?? 0) / (inputWidth.current / maxLength)));
+                    onBegan={(event: HandlerStateChangeEvent<Partial<TouchData>>) => {
+                        onPress(Math.floor((event.nativeEvent?.x ?? 0) / (inputWidth.current / maxLength)));
                     }}
                 >
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
@@ -397,7 +390,6 @@ function MagicCodeInput(props: MagicCodeInputProps, ref: ForwardedRef<MagicCodeI
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderNone]}
-                            icon={null}
                         />
                     </View>
                 </TapGestureHandler>
