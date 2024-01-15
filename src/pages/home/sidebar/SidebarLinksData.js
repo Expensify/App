@@ -9,6 +9,7 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
 import withNavigationFocus from '@components/withNavigationFocus';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -16,7 +17,6 @@ import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
 
 const propTypes = {

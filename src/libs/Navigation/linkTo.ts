@@ -134,7 +134,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath);
-            console.log('matchingBottomTabRoute', matchingBottomTabRoute);
             if (topmostBottomTabRoute && topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
@@ -158,7 +157,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
             const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
-            const policyID = extractedPolicyID ?? getPolicyIdFromState(rootState);
+            const policyID = extractedPolicyID === 'global' ? undefined : extractedPolicyID ?? getPolicyIdFromState(rootState);
             const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState, policyID);
 
             if (!actionForBottomTabNavigator) {

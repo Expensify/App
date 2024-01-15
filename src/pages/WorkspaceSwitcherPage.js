@@ -65,7 +65,7 @@ function WorkspaceSwitcherPage({policies}) {
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
@@ -104,7 +104,7 @@ function WorkspaceSwitcherPage({policies}) {
 
     const selectPolicy = useCallback((option) => {
         const policyID = option.policyID;
-        const pathPrefix = policyID ? `w/${policyID}/` : '';
+        const pathPrefix = `w/${policyID || 'global'}/`;
 
         if (policyID) {
             setSelectedOption(option);
@@ -112,7 +112,6 @@ function WorkspaceSwitcherPage({policies}) {
             setSelectedOption(undefined);
         }
         // Temporary: This will be handled in custom navigation function that also puts policyID in BottomTabNavigator state
-        setActiveWorkspaceID(policyID);
         Navigation.goBack();
         Navigation.navigate(`${pathPrefix}${ROUTES.HOME}`);
     }, []);

@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useTheme from '@hooks/useTheme';
@@ -11,6 +12,7 @@ import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import customGetPathFromState from './customGetPathFromState';
+import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -57,6 +59,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {setActiveWorkspaceID} = useActiveWorkspace();
 
     const initialState = useMemo(
         () => {
@@ -107,10 +110,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
-
+        const activeWorkspaceID = getPolicyIdFromState(state);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             currentReportIDValue?.updateCurrentReportID(state);
+            setActiveWorkspaceID(activeWorkspaceID);
         }, 0);
         parseAndLogRoute(state);
     };
