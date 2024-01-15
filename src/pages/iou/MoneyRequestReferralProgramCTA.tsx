@@ -41,6 +41,7 @@ function MoneyRequestReferralProgramCTA({referralContentType}: MoneyRequestRefer
                 src={Info}
                 height={20}
                 width={20}
+                fill={theme.icon}
             />
         </PressableWithoutFeedback>
     );
