@@ -717,7 +717,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetails.createDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
             },
         },
