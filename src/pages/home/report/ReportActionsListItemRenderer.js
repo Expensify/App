@@ -48,6 +48,7 @@ function ReportActionsListItemRenderer({reportAction, index, report, displayAsGr
             reportID={report.reportID}
             parentReportID={`${report.parentReportID}`}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
+            index={index}
         />
     ) : (
         <ReportActionItem

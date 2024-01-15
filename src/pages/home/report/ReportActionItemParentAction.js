@@ -24,6 +24,9 @@ const propTypes = {
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
 
+    /** Position index of the report parent action in the overall report FlatList view */
+    index: PropTypes.number.isRequired,
+
     /** The id of the parent report */
     // eslint-disable-next-line react/no-unused-prop-types
     parentReportID: PropTypes.string.isRequired,
@@ -71,7 +74,7 @@ function ReportActionItemParentAction(props) {
                         action={parentReportAction}
                         displayAsGroup={false}
                         shouldDisplayNewMarker={props.shouldDisplayNewMarker}
-                        index={0}
+                        index={props.index}
                     />
                 )}
             </View>
