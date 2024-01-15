@@ -1563,6 +1563,7 @@ export default {
         switcher: {
             headerTitle: 'Choose a workspace',
             everythingSection: 'Everything',
+            placeholder: 'Find a workspace',
         },
         new: {
             newWorkspace: 'New workspace',

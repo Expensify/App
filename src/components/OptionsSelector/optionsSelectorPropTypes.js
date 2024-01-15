@@ -137,6 +137,9 @@ const propTypes = {
 
     /** Whether nested scroll of options is enabled, true by default */
     nestedScrollEnabled: PropTypes.bool,
+
+    /** Left icon to display in TextInput */
+    textIconLeft: PropTypes.elementType, 
 };
 
 const defaultProps = {
@@ -178,6 +181,7 @@ const defaultProps = {
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,
+    textIconLeft: undefined,
 };
 
 export {propTypes, defaultProps};

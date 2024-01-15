@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
@@ -237,6 +238,7 @@ function WorkspaceSwitcherPage({policies}) {
 
                 {usersWorkspaces.length > 0 ? (
                     <OptionsSelector
+                        placeholderText={translate('workspace.switcher.placeholder')}
                         ref={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
                         value={searchTerm}
@@ -253,6 +255,7 @@ function WorkspaceSwitcherPage({policies}) {
                         shouldShowSubscript={false}
                         showTitleTooltip={false}
                         contentContainerStyles={[styles.pt0, styles.mt0]}
+                        textIconLeft={MagnifyingGlass}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />

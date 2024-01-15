@@ -1586,6 +1586,7 @@ export default {
         switcher: {
             headerTitle: 'Elige un espacio de trabajo',
             everythingSection: 'Todo',
+            placeholder: 'Encuentra un espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
