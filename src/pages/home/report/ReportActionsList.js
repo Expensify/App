@@ -414,13 +414,14 @@ function ReportActionsList({
     }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     visibilityCallback.current = () => {
-        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report)) {
+        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report) || messageManuallyMarkedUnread) {
             return;
         }
 
         Report.readNewestAction(report.reportID, false);
         userActiveSince.current = DateUtils.getDBTime();
         setCurrentUnreadMarker(null);
+        cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
     };
 
