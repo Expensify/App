@@ -21,6 +21,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -38,6 +39,7 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
+    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
@@ -45,8 +47,13 @@ type IOUMessage = {
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     paymentType?: PaymentMethodType;
+    cancellationReason?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
 };
 
 type OriginalMessageIOU = {
@@ -108,6 +115,18 @@ type OriginalMessageAddComment = {
         moderationDecisions?: Decision[];
         whisperedTo: number[];
         reactions?: Reaction[];
+    };
+};
+
+type OriginalMessageActionableMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    originalMessage: {
+        inviteeAccountIDs: number[];
+        inviteeEmails: string;
+        lastModified: string;
+        reportID: number;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
     };
 };
 
@@ -241,6 +260,7 @@ type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageActionableMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
@@ -262,6 +282,7 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
+    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
