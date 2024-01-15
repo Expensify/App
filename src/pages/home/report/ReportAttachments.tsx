@@ -1,43 +1,47 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen */
-        params: PropTypes.shape({
-            /** The report ID which the attachment is associated with */
-            reportID: PropTypes.string.isRequired,
-            /** The uri encoded source of the attachment */
-            source: PropTypes.string.isRequired,
-        }).isRequired,
-    }).isRequired,
+type File = {
+    name: string;
 };
 
-function ReportAttachments(props) {
-    const reportID = _.get(props, ['route', 'params', 'reportID']);
+type Attachment = {
+    file: File;
+    hasBeenFlagged: boolean;
+    isAuthTokenRequired: boolean;
+    isReceipt: boolean;
+    reportActionID: string;
+    source: string;
+};
+
+type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
+
+function ReportAttachments({route}: ReportAttachmentsProps) {
+    const reportID = route.params.reportID;
     const report = ReportUtils.getReport(reportID);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-    const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const decodedSource = decodeURI(route.params.source);
     const source = Number(decodedSource) || decodedSource;
 
     const onCarouselAttachmentChange = useCallback(
-        (attachment) => {
-            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
-            Navigation.navigate(route);
+        (attachment: Attachment) => {
+            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
+            Navigation.navigate(routeToNavigate);
         },
         [reportID],
     );
 
     return (
         <AttachmentModal
+            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             allowDownload
             defaultOpen
             report={report}
@@ -52,7 +56,6 @@ function ReportAttachments(props) {
     );
 }
 
-ReportAttachments.propTypes = propTypes;
 ReportAttachments.displayName = 'ReportAttachments';
 
 export default ReportAttachments;
