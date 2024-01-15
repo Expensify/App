@@ -502,7 +502,7 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
-                isLoadingInitialReportActions: true,
+                isLoadingInitialReportActions: false,
                 isLoadingOlderReportActions: false,
                 isLoadingNewerReportActions: false,
                 lastVisitTime: DateUtils.getDBTime(),
@@ -2151,6 +2151,14 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     API.write('LeaveRoom', parameters, {optimisticData, successData, failureData});
 
+    if (ReportUtils.isWorkspaceThread(report)) {
+        if (report.parentReportID) {
+            // We should call Navigation.goBack to pop the current route first before navigating to the parent report.
+            
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID));
+        }else {Navigation.goBack();}
+       
+    }
     if (isWorkspaceMemberLeavingWorkspaceRoom) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
