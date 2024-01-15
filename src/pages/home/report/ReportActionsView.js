@@ -11,7 +11,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -174,7 +173,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute();
-    const reportScrollManager = useReportScrollManager();
     const reportActionID = lodashGet(route, 'params.reportActionID', null);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
@@ -411,7 +409,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
                 policy={props.policy}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
-                reportScrollManager={reportScrollManager}
                 enableAutoscrollToTopThreshold={hasNewestReportAction && !reportActionID}
             />
             <PopoverReactionList ref={reactionListRef} />
