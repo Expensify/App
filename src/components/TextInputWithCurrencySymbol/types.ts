@@ -18,7 +18,7 @@ type TextInputWithCurrencySymbolProps = {
     selectedCurrencyCode: string;
 
     /** Selection Object */
-    selection: TextSelection;
+    selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
     onSelectionChange?: (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;

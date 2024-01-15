@@ -43,7 +43,6 @@ function BaseTextInputWithCurrencySymbol(
 
     const amountTextInput = (
         <AmountTextInput
-            /* @ts-expect-error TODO: Remove this once AmountTextInput (https://github.com/Expensify/App/issues/24999) is migrated to TypeScript. */
             formattedAmount={formattedAmount}
             onChangeAmount={setFormattedAmount}
             placeholder={placeholder}
