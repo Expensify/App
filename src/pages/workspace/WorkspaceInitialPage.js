@@ -38,7 +38,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reports: {},
     ...policyDefaultProps,
     reimbursementAccount: {},
 };
@@ -165,7 +164,8 @@ function WorkspaceInitialPage(props) {
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includePaddingTop={false}
-            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
+            includeSafeAreaPaddingBottom={false}
+            shouldDisableSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -235,9 +235,6 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 export default compose(
     withPolicyAndFullscreenLoading,
     withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },

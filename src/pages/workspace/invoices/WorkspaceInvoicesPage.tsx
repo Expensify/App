@@ -26,7 +26,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA: boolean, policyID: string) => (
-                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceInvoicesVBAView policyID={policyID} />}
                 </View>

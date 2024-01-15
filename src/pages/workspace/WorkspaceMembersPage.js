@@ -435,7 +435,6 @@ function WorkspaceMembersPage(props) {
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                    shouldShowBorderBottom
                 />
                 <ConfirmModal
                     danger
@@ -455,7 +454,7 @@ function WorkspaceMembersPage(props) {
                         })
                     }
                 />
-                <View style={[styles.w100, styles.flex1, styles.mt6]}>
+                <View style={[styles.w100, styles.flex1, styles.mt3]}>
                     <View style={[styles.w100, styles.flexRow, styles.ph5]}>
                         <Button
                             medium

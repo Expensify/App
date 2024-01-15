@@ -22,7 +22,7 @@ function TopBar() {
             <Search
                 placeholder={translate('sidebarScreen.buttonSearch')}
                 onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
-                containerStyle={styles.flexGrow1}
+                containerStyle={styles.flexShrink1}
             />
             <SignInOrAvatarWithOptionalStatus />
         </View>

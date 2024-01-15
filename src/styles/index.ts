@@ -920,13 +920,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -25,
         },
 
-        offlineIndicatorBottomTabBar: {
-            paddingLeft: 20,
-            paddingTop: 5,
-            paddingBottom: 5,
-            marginBottom: -25,
-        },
-
         offlineIndicatorRow: {
             height: 25,
         },
@@ -2301,6 +2294,15 @@ const styles = (theme: ThemeColors) =>
 
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+        },
+
+        forcedBlockingViewContainer: {
+            ...positioning.pFixed,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: theme.appBG,
         },
 
         defaultModalContainer: {

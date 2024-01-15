@@ -73,6 +73,12 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     const params = action.payload.params as ActionPayloadParams;
     const screen = params.screen;
 
+    // Check if the current bottom tab is the same as the one we want to navigate to. If it is, we don't need to do anything.
+    const bottomTabCurrentTab = getTopmostBottomTabRoute(state);
+    if (bottomTabCurrentTab?.name === screen) {
+        return;
+    }
+
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
@@ -149,7 +155,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState);
 
             if (!actionForBottomTabNavigator) {
-                throw new Error('Could not get action for bottom tab navigator');
+                return;
             }
 
             root.dispatch(actionForBottomTabNavigator);

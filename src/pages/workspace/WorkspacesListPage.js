@@ -278,7 +278,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 policyID: policy.id,
-                reports: policy.reports,
                 adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
                 announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
                 ownerAccountID: policy.ownerAccountID,
@@ -289,44 +288,43 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
     if (_.isEmpty(workspaces)) {
         return (
-            <ScreenWrapper shouldShowOfflineIndicatorInWideScreen>
-                <IllustratedHeaderPageLayout
-                    backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-                    illustration={LottieAnimations.WorkspacePlanet}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
-                    title={translate('common.workspaces')}
-                    style={!isSmallScreenWidth && styles.alignItemsCenter}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    footer={
-                        isSmallScreenWidth && (
-                            <Button
-                                accessibilityLabel={translate('workspace.new.newWorkspace')}
-                                success
-                                text={translate('workspace.new.newWorkspace')}
-                                onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                            />
-                        )
-                    }
-                >
-                    <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
-                        <FeatureList
-                            menuItems={workspaceFeatures}
-                            headline="workspace.emptyWorkspace.title"
-                            description="workspace.emptyWorkspace.subtitle"
-                        />
-                    </View>
-
-                    {!isSmallScreenWidth && (
+            <IllustratedHeaderPageLayout
+                backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                illustration={LottieAnimations.WorkspacePlanet}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
+                title={translate('common.workspaces')}
+                style={!isSmallScreenWidth && styles.alignItemsCenter}
+                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowOfflineIndicatorInWideScreen
+                footer={
+                    isSmallScreenWidth && (
                         <Button
                             accessibilityLabel={translate('workspace.new.newWorkspace')}
-                            style={[styles.newWorkspaceButton, styles.alignSelfCenter]}
                             success
                             text={translate('workspace.new.newWorkspace')}
                             onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                         />
-                    )}
-                </IllustratedHeaderPageLayout>
-            </ScreenWrapper>
+                    )
+                }
+            >
+                <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
+                    <FeatureList
+                        menuItems={workspaceFeatures}
+                        headline="workspace.emptyWorkspace.title"
+                        description="workspace.emptyWorkspace.subtitle"
+                    />
+                </View>
+
+                {!isSmallScreenWidth && (
+                    <Button
+                        accessibilityLabel={translate('workspace.new.newWorkspace')}
+                        style={[styles.newWorkspaceButton, styles.alignSelfCenter]}
+                        success
+                        text={translate('workspace.new.newWorkspace')}
+                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                    />
+                )}
+            </IllustratedHeaderPageLayout>
         );
     }
 

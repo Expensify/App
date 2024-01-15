@@ -35,7 +35,7 @@ function WorkspaceTravelPage(props) {
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA, policyID) => (
-                <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
                 </View>

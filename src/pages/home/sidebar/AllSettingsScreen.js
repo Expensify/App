@@ -75,7 +75,8 @@ function AllSettingsScreen() {
         <ScreenWrapper
             testID={AllSettingsScreen.displayName}
             includePaddingTop={false}
-            offlineIndicatorStyle={styles.offlineIndicatorBottomTabBar}
+            includeSafeAreaPaddingBottom={false}
+            shouldDisableSafeAreaPaddingBottom
         >
             <Breadcrumbs
                 breadcrumbs={[
