@@ -15,6 +15,7 @@ type Participant = {
     lastName: string;
     phoneNumber: string;
     text: string;
+    isSelected?: boolean;
 };
 
 type IOU = {

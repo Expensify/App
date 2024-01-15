@@ -1,6 +1,6 @@
 /* eslint-disable no-continue */
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
+import lodashExtend from 'lodash/extend';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -17,7 +17,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
@@ -28,6 +28,7 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PhoneNumber from './PhoneNumber';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -242,7 +243,7 @@ Onyx.connect({
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  */
 function addSMSDomainIfPhoneNumber(login: string): string {
-    const parsedPhoneNumber = parsePhoneNumber(login);
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
         return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
     }
@@ -274,7 +275,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
 
 /**
  * Returns the personal details for an array of accountIDs
- * @returns  keys of the object are emails, values are PersonalDetails objects.
+ * @returns keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
     const personalDetailsForAccountIDs: PersonalDetailsList = {};
@@ -335,8 +336,9 @@ function getParticipantsOption(participant: ReportUtils.OptionData, personalDeta
             },
         ],
         phoneNumber: detail?.phoneNumber ?? '',
-        selected: !!participant.selected,
-        searchText: participant.searchText ?? '',
+        selected: participant.selected,
+        isSelected: participant.selected,
+        searchText: participant.searchText ?? undefined,
     };
 }
 
@@ -448,7 +450,7 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors | OnyxCommon.ErrorFields {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.Errors = Object.values(reportActions ?? {}).reduce(
@@ -462,16 +464,15 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
-            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage') as string;
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
         if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
-            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage') as string;
+            reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
-        reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage') as string;
+        reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
     }
-
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
         reportErrors,
@@ -479,8 +480,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isNotEmptyObject(errors) ? prevReportErrors : Object.assign(prevReportErrors, errors)), {});
-
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : lodashExtend(prevReportErrors, errors)), {});
     return allReportErrors;
 }
 
@@ -504,7 +504,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(
-            isNotEmptyObject(iouReport) ? iouReport : null,
+            !isEmptyObject(iouReport) ? iouReport : null,
             lastIOUMoneyReportAction,
             true,
             ReportUtils.isChatReport(report),
@@ -602,7 +602,7 @@ function createOption(
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
-        result.brickRoadIndicator = isNotEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
@@ -708,6 +708,7 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
     option.selected = report.selected;
+    option.isSelected = report.selected;
     return option;
 }
 
@@ -774,8 +775,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
     const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
-    const hierarchy: Hierarchy = {};
-
+    const hierarchy = {};
     /**
      * Iterates over all categories to set each category in a proper place in hierarchy
      * It gets a path based on a category name e.g. "Parent: Child: Subcategory" -> "Parent.Child.Subcategory".
@@ -817,7 +817,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
                 acc.push(categoryObject);
             }
 
-            if (isNotEmptyObject(subcategories)) {
+            if (!isEmptyObject(subcategories)) {
                 const nestedCategories = flatHierarchy(subcategories);
 
                 acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
@@ -1088,7 +1088,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
             const tagObject = tags.find((tag) => tag.name === option.name);
             return {
                 name: option.name,
-                enabled: Boolean(tagObject && tagObject.enabled),
+                enabled: !!tagObject?.enabled,
             };
         });
 
@@ -1238,7 +1238,7 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
 
             return {
                 modifiedName: option.name,
-                isDisabled: Boolean(taxRateObject?.isDisabled),
+                isDisabled: !!taxRateObject?.isDisabled,
             };
         });
 
@@ -1262,6 +1262,22 @@ function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined
     });
 
     return policyRatesSections;
+}
+
+/**
+ * Checks if a report option is selected based on matching accountID or reportID.
+ *
+ * @param reportOption - The report option to be checked.
+ * @param selectedOptions - Array of selected options to compare with.
+ * @returns true if the report option matches any of the selected options by accountID or reportID, false otherwise.
+ */
+function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions: Array<Partial<ReportUtils.OptionData>>) {
+    if (!selectedOptions || selectedOptions.length === 0) {
+        return false;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
 /**
@@ -1360,7 +1376,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
-    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
@@ -1442,7 +1458,7 @@ function getOptions(
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
     const havingLoginPersonalDetails = !includeP2P
         ? {}
-        : Object.fromEntries(Object.entries(personalDetails ?? {}).filter(([, detail]) => Boolean(detail?.login) && !detail?.isOptimisticPersonalDetail));
+        : Object.fromEntries(Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail));
     let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
         createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
             showChatPreviewLine,
@@ -1509,6 +1525,8 @@ function getOptions(
                     continue;
                 }
             }
+
+            reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
             recentReportOptions.push(reportOption);
 
@@ -1811,7 +1829,7 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+    const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 

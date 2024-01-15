@@ -1,10 +1,10 @@
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
@@ -146,13 +146,11 @@ function getForReportAction(reportAction: OnyxEntry<ReportAction>): string {
         );
     }
 
-    const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
-    if (hasModifiedCreated) {
-        // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
-        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.created ?? '',
+            reportActionOriginalMessage.created,
             formattedOldCreated,
             Localize.translateLocal('common.date'),
             false,
