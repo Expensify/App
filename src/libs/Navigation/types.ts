@@ -13,6 +13,7 @@ import type {
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import type {Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -413,10 +414,11 @@ type BottomTabNavigatorParamList = {
 type PublicScreensParamList = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
+        email?: string;
+        error?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
+        exitTo?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
