@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect,useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -8,21 +8,18 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 const propTypes = {
     /** Beta features list */
@@ -62,9 +59,6 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
-
-    /** Whether the parent screen transition has ended */
-    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -74,7 +68,6 @@ const defaultProps = {
     betas: [],
     isDistanceRequest: false,
     isSearchingForReports: false,
-    didScreenTransitionEnd: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -88,24 +81,16 @@ function MoneyRequestParticipantsSelector({
     iouType,
     isDistanceRequest,
     isSearchingForReports,
-    didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const newChatOptions = useMemo(() => {
-        if (!didScreenTransitionEnd) {
-            return {
-                recentReports: {},
-                personalDetails: {},
-                userToInvite: {},
-            };
-        }
         const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
@@ -136,7 +121,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [betas, didScreenTransitionEnd, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
+    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -181,7 +166,7 @@ function MoneyRequestParticipantsSelector({
         });
         indexOffset += newChatOptions.personalDetails.length;
 
-        if (isNotEmptyObject(newChatOptions.userToInvite) && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
+        if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
                 data: _.map([newChatOptions.userToInvite], (participant) => {
@@ -273,12 +258,11 @@ function MoneyRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
     );
 
-    useEffect(() => {
-        if (!debouncedSearchTerm.length) {
-            return;
-        }
-        Report.searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        Report.searchInServer(text);
+        setSearchTerm(text);
+    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -301,7 +285,7 @@ function MoneyRequestParticipantsSelector({
         () => (
             <View>
                 <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                    <MoneyRequestReferralProgramCTA referralContentType={referralContentType} />
+                    <ReferralProgramCTA referralContentType={referralContentType} />
                 </View>
 
                 {shouldShowSplitBillErrorMessage && (
@@ -357,24 +341,21 @@ function MoneyRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
-    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 onConfirm={handleConfirmSelection}
-                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                sections={sections}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
+                onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
+                showLoadingPlaceholder={isSearchingForReports}
                 rightHandSideComponent={itemRightSideComponent}
-                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
