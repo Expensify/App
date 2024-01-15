@@ -44,7 +44,6 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import * as SessionUtils from '@libs/SessionUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -353,7 +352,7 @@ function ReportScreen({
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
         Linking.getInitialURL().then((url) => {
-            isOldDotConciergeRef.current = SessionUtils.didSessionStartAsOldDotConcierge(url);
+            isOldDotConciergeRef.current = ReportUtils.isOldDotConciergeChat(url, report);
         });
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);

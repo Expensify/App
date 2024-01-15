@@ -832,6 +832,14 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Only returns true if this is a DM report with Concierge, opened from OldDot
+ */
+function isOldDotConciergeChat(initialURL: string, report: OnyxEntry<Report>): boolean {
+
+    return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE;
+}
+
+/**
  * Returns true if report is still being processed
  */
 function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
@@ -4432,6 +4440,7 @@ export {
     isPublicRoom,
     isPublicAnnounceRoom,
     isConciergeChatReport,
+    isOldDotConciergeChat,
     isProcessingReport,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
