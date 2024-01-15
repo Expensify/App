@@ -36,7 +36,7 @@ type Policy = {
     owner: string;
 
     /** The accountID of the policy owner */
-    ownerAccountID: number;
+    ownerAccountID?: number;
 
     /** The output currency for the policy */
     outputCurrency: string;
@@ -51,7 +51,7 @@ type Policy = {
     pendingAction?: OnyxCommon.PendingAction;
 
     /** A list of errors keyed by microtime */
-    errors: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors;
 
     /** Whether this policy was loaded from a policy summary, or loaded completely with all of its values */
     isFromFullPolicy?: boolean;
@@ -69,13 +69,13 @@ type Policy = {
     isPolicyExpenseChatEnabled: boolean;
 
     /** Whether the auto reporting is enabled */
-    autoReporting: boolean;
+    autoReporting?: boolean;
 
     /** The scheduled submit frequency set up on the this policy */
-    autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+    autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
     /** Whether the scheduled submit is enabled */
-    isHarvestingEnabled: boolean;
+    isHarvestingEnabled?: boolean;
 
     /** The accountID of manager who the employee submits their expenses to on paid policies */
     submitsTo?: number;
