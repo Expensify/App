@@ -138,9 +138,10 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     };
 
     const trackPointerPosition = useCallback(
-        (e: MouseEvent) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (e: any) => {
             // Whether the pointer is released inside the ImageView
-            const isInsideImageView = scrollableRef.current?.contains(e.target as Node);
+            const isInsideImageView = scrollableRef.current?.contains(e.nativeEvent.target);
 
             if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
                 setIsDragging(false);
