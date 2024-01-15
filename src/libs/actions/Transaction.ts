@@ -102,6 +102,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 }
 
 function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean) {
+    if (!transaction) {
+        return;
+    }
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -130,7 +133,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        ...(transaction as Transaction),
+        ...transaction,
         comment: {
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,

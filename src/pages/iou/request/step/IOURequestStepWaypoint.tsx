@@ -289,3 +289,5 @@ export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxP
     },
     // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound and IOURequestStepWaypointWithWritableReportOrNotFound  is migrated to TypeScript.
 })(IOURequestStepWaypointWithFullTransactionOrNotFound);
+
+export type {Location};

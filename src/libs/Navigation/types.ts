@@ -3,7 +3,7 @@ import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
-import {AllRoutes} from '@src/ROUTES';
+import type {AllRoutes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;

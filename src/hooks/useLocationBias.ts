@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Location} from '@pages/iou/WaypointEditor';
+import type {Location} from '@pages/iou/request/step/IOURequestStepWaypoint';
 import type {UserLocation} from '@src/types/onyx';
 
 /**
