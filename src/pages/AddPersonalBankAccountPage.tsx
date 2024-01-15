@@ -18,7 +18,7 @@ import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
     /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
+    plaidData: OnyxEntry<PlaidData>; 
 
     /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: OnyxEntry<PersonalBankAccount>;
