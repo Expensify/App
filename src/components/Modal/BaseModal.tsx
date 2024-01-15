@@ -2,7 +2,6 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import {ActiveModalContext} from '@components/Modal/ActiveModalProvider';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,6 +13,7 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
+import {ActiveModalContext} from './ActiveModalProvider';
 import ModalContent from './ModalContent';
 import type BaseModalProps from './types';
 import type {ModalRef} from './types';
