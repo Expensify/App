@@ -17,7 +17,7 @@ function initCurrencyList() {
 }
 
 describe('IOUUtils', () => {
-    describe('isIOUReportPendingCurrencyConversion', () => {
+    describe('isTransactionPendingCurrencyConversion', () => {
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -34,7 +34,7 @@ describe('IOUUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`]: aedPendingTransaction,
             }).then(() => {
                 // We requested money offline in a different currency, we don't know the total of the iouReport until we're back online
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
+                expect(IOUUtils.isTransactionPendingCurrencyConversion(iouReport, aedPendingTransaction.transactionID)).toBe(true);
             });
         });
 
@@ -54,7 +54,7 @@ describe('IOUUtils', () => {
                 },
             }).then(() => {
                 // We requested money online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
+                expect(IOUUtils.isTransactionPendingCurrencyConversion(iouReport, aedPendingTransaction.transactionID)).toBe(false);
             });
         });
     });

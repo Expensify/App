@@ -116,7 +116,7 @@ function MoneyRequestAction({
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
     if (!_.isEmpty(iouReport) && !_.isEmpty(reportActions) && chatReport.iouReportID && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && network.isOffline) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
+        shouldShowPendingConversionMessage = IOUUtils.isTransactionPendingCurrencyConversion(iouReport, (action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0);
     }
 
     return isDeletedParentAction || isReversedTransaction ? (
