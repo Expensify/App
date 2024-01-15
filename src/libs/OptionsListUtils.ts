@@ -1,6 +1,5 @@
 /* eslint-disable no-continue */
 import Str from 'expensify-common/lib/str';
-import lodashExtend from 'lodash/extend';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -450,10 +449,10 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors | OnyxCommon.ErrorFields {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors: OnyxCommon.Errors = Object.values(reportActions ?? {}).reduce(
+    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
         (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
         {},
     );
@@ -477,10 +476,11 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     const errorSources = {
         reportErrors,
         ...reportErrorFields,
-        reportActionErrors,
+        ...reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : lodashExtend(prevReportErrors, errors)), {});
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : {...prevReportErrors, ...errors}), {});
+
     return allReportErrors;
 }
 
