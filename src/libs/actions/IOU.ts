@@ -3158,7 +3158,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
                 lastMessageText: optimisticIOUReportAction.message?.[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
                 hasOutstandingChildRequest: false,
-                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             },
         },
         {
@@ -3298,8 +3298,8 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
             ...expenseReport,
             lastMessageText: optimisticApprovedReportAction.message?.[0].text,
             lastMessageHtml: optimisticApprovedReportAction.message?.[0].html,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS.APPROVED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         },
     };
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData];
@@ -3379,9 +3379,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 ...expenseReport,
                 lastMessageText: optimisticSubmittedReportAction.message?.[0].text ?? '',
                 lastMessageHtml: optimisticSubmittedReportAction.message?.[0].html ?? '',
-                state: CONST.REPORT.STATE.SUBMITTED,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             },
         },
     ];
@@ -3425,7 +3424,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
@@ -3496,9 +3495,8 @@ function cancelPayment(expenseReport, chatReport) {
                 ...expenseReport,
                 lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
-                state: isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN,
-                stateNum: isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE.OPEN,
-                statusNum: isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATE.OPEN,
+                stateNum: isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN,
             },
         },
         ...(chatReport.reportID
@@ -3543,7 +3541,7 @@ function cancelPayment(expenseReport, chatReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             },
         },
         ...(chatReport.reportID
