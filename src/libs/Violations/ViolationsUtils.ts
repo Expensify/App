@@ -104,7 +104,7 @@ const ViolationsUtils = {
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', {amount: violation.data?.amount ?? ''});
+                return translate('violations.cashExpenseWithNoReceipt', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
@@ -134,22 +134,19 @@ const ViolationsUtils = {
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', {formattedLimitAmount: violation.data?.formattedLimitAmount ?? ''});
+                return translate('violations.overAutoApprovalLimit', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'overCategoryLimit':
                 return translate('violations.overCategoryLimit', {categoryLimit: violation.data?.categoryLimit ?? ''});
             case 'overLimit':
-                return translate('violations.overLimit', {amount: violation.data?.amount ?? ''});
+                return translate('violations.overLimit', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'overLimitAttendee':
-                return translate('violations.overLimitAttendee', {amount: violation.data?.amount ?? ''});
+                return translate('violations.overLimitAttendee', {formattedLimit: violation.data?.formattedLimit ?? ''});
             case 'perDayLimit':
                 return translate('violations.perDayLimit', {limit: violation.data?.limit ?? ''});
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {
-                    amount: violation.data?.amount ?? '0',
-                    category: violation.data?.category ?? '',
-                });
+                return translate('violations.receiptRequired', violation.data ?? undefined);
             case 'rter':
                 return translate('violations.rter', {
                     brokenBankConnection: violation.data?.brokenBankConnection ?? false,

@@ -83,7 +83,6 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
-    ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -2078,7 +2077,7 @@ export default {
         allTagLevelsRequired: 'All tags required',
         autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
         billableExpense: 'Billable no longer valid',
-        cashExpenseWithNoReceipt: ({amount}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required over ${amount}`,
+        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required over ${formattedLimit}`,
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Unit no longer valid',
@@ -2093,13 +2092,14 @@ export default {
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
-        overAutoApprovalLimit: ({formattedLimitAmount}: ViolationsOverAutoApprovalLimitParams) => `Expense exceeds auto approval limit of ${formattedLimitAmount}`,
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto approval limit of ${formattedLimit}`,
         overCategoryLimit: ({categoryLimit}: ViolationsOverCategoryLimitParams) => `Amount over ${categoryLimit}/person category limit`,
-        overLimit: ({amount}: ViolationsOverLimitParams) => `Amount over ${amount}/person limit`,
-        overLimitAttendee: ({amount}: ViolationsOverLimitParams) => `Amount over ${amount}/person limit`,
+        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
+        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Amount over daily ${limit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Receipt required over ${amount} ${category ? ' category limit' : ''}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
+            `Receipt required${formattedLimit ? ` over ${formattedLimit}${category ? ' category limit' : ''}` : ''}`,
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin

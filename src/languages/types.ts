@@ -217,7 +217,7 @@ type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
-type ViolationsCashExpenseWithNoReceiptParams = {amount: string};
+type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit: string};
 
 type ViolationsConversionSurchargeParams = {surcharge?: number};
 
@@ -227,15 +227,15 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
-type ViolationsOverAutoApprovalLimitParams = {formattedLimitAmount: string};
+type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
 
 type ViolationsOverCategoryLimitParams = {categoryLimit: string};
 
-type ViolationsOverLimitParams = {amount: string};
+type ViolationsOverLimitParams = {formattedLimit: string};
 
-type ViolationsPerDayLimitParams = {limit: string};
+type ViolationsPerDayLimitParams = {limit?: string};
 
-type ViolationsReceiptRequiredParams = {amount: string; category?: string};
+type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;

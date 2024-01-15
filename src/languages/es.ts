@@ -2565,7 +2565,7 @@ export default {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
         billableExpense: 'La opción facturable ya no es válida',
-        cashExpenseWithNoReceipt: ({amount}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para montos mayores a ${amount}`,
+        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para montos mayores a ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% de recargo aplicado`,
         customUnitOutOfPolicy: 'Unidad ya no es válida',
@@ -2580,13 +2580,14 @@ export default {
         modifiedAmount: 'Importe superior al del recibo escaneado',
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no es de Expensiworks',
-        overAutoApprovalLimit: ({formattedLimitAmount}: ViolationsOverAutoApprovalLimitParams) => `Importe supera el límite de aprobación automática de ${formattedLimitAmount}`,
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) => `Importe supera el límite de aprobación automática de ${formattedLimit}`,
         overCategoryLimit: ({categoryLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría de ${categoryLimit}/persona`,
-        overLimit: ({amount}: ViolationsOverLimitParams) => `Importe supera el límite de ${amount}/persona`,
-        overLimitAttendee: ({amount}: ViolationsOverLimitParams) => `Importe supera el límite de ${amount}/persona`,
+        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite de ${formattedLimit}/persona`,
+        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite de ${formattedLimit}/persona`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría de ${limit}/persona`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
-        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Recibo obligatorio para importes sobre ${category ? 'el limite de la categoría de ' : ''}${amount}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams = {}) =>
+            `Recibo obligatorio${formattedLimit ? ` para importes sobre ${category ? 'el limite de la categoría de ' : ''}${formattedLimit}` : ``}`,
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
