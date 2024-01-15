@@ -80,8 +80,12 @@ class BaseOptionsSelector extends Component {
         this.incrementPage = this.incrementPage.bind(this);
         this.sliceSections = this.sliceSections.bind(this);
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
+        this.handleFocusIn = this.handleFocusIn.bind(this);
+        this.handleFocusOut = this.handleFocusOut.bind(this);
         this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
+        this.accessibilityRoles = _.values(CONST.ROLE);
+        this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
@@ -95,12 +99,15 @@ class BaseOptionsSelector extends Component {
             shouldShowReferralModal: false,
             errorMessage: '',
             paginationPage: 1,
+            disableEnterShortCut: false,
             value: '',
         };
     }
 
     componentDidMount() {
-        this.subscribeToKeyboardShortcut();
+        this.subscribeToEnterShortcut();
+        this.subscribeToCtrlEnterShortcut();
+        this.subscribeActiveElement();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             this.focusTimeout = setTimeout(() => {
@@ -112,9 +119,18 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
+            if (this.state.disableEnterShortCut) {
+                this.unsubscribeEnter();
+            } else {
+                this.subscribeToEnterShortcut();
+            }
+        }
+
         if (prevProps.isFocused !== this.props.isFocused) {
             if (this.props.isFocused) {
-                this.subscribeToKeyboardShortcut();
+                this.subscribeToEnterShortcut();
+                this.subscribeToCtrlEnterShortcut();
             } else {
                 this.unSubscribeFromKeyboardShortcut();
             }
@@ -123,7 +139,7 @@ class BaseOptionsSelector extends Component {
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
+        if (this.isWebOrDesktop && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -259,7 +275,36 @@ class BaseOptionsSelector extends Component {
         this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
-    subscribeToKeyboardShortcut() {
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
+    }
+
+    subscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.addEventListener('focusin', this.handleFocusIn);
+        document.addEventListener('focusout', this.handleFocusOut);
+    }
+
+    unSubscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.removeEventListener('focusin', this.handleFocusIn);
+        document.removeEventListener('focusout', this.handleFocusOut);
+    }
+
+    subscribeToEnterShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -269,7 +314,9 @@ class BaseOptionsSelector extends Component {
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
         );
+    }
 
+    subscribeToCtrlEnterShortcut() {
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
