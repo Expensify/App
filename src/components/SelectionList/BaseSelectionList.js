@@ -45,6 +45,7 @@ function BaseSelectionList({
     inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
     initiallyFocusedOptionKey = '',
+    isLoadingNewOptions = false,
     onScroll,
     onScrollBeginDrag,
     headerMessage = '',
@@ -428,6 +429,7 @@ function BaseSelectionList({
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}

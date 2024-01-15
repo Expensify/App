@@ -151,6 +151,9 @@ const propTypes = {
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey: PropTypes.string,
 
+    /** Whether we are loading new options */
+    isLoadingNewOptions: PropTypes.bool,
+
     /** Callback to fire when the list is scrolled */
     onScroll: PropTypes.func,
 
