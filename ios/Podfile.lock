@@ -2502,7 +2502,7 @@ SPEC CHECKSUMS:
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 7c17be47bf7f525b485687c7116320f0944b0585
   react-native-geolocation: af9841c1b9c614526137a43a0679317890d68ae6
-  react-native-image-manipulator: b1ea2a30f15973629741b1f8dd0193d4b9d623a4
+  react-native-image-manipulator: 89c8d5086294a6b5fdf9eb57f889d50440d0ebb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: b12d848a75768191fa0b06580591ee0c28fef321
   react-native-netinfo: 3005daaab9d1d79e4f83c691f86a9c9bd837dfa6
