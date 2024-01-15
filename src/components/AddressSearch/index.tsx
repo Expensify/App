@@ -6,7 +6,6 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
-import type {LocationErrorCodeType} from '@components/LocationErrorMessage/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -15,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -69,7 +69,7 @@ function AddressSearch(
     const [isFocused, setIsFocused] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
-    const [locationErrorCode, setLocationErrorCode] = useState<LocationErrorCodeType>(null);
+    const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType | null>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef<View>(null);
@@ -260,7 +260,7 @@ function AddressSearch(
                 }
 
                 setIsFetchingCurrentLocation(false);
-                setLocationErrorCode(errorData.code as LocationErrorCodeType);
+                setLocationErrorCode(errorData.code);
             },
             {
                 maximumAge: 0, // No cache, always get fresh location info
