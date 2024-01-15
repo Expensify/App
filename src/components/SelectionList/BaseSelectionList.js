@@ -374,7 +374,7 @@ function BaseSelectionList({
         }
 
         // scroll is unnecessary if multiple options cannot be selected
-        if(!canSelectMultiple) {
+        if (!canSelectMultiple) {
             return;
         }
 
