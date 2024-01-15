@@ -19,6 +19,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -106,6 +107,18 @@ type OriginalMessageAddComment = {
         moderationDecisions?: Decision[];
         whisperedTo: number[];
         reactions?: Reaction[];
+    };
+};
+
+type OriginalMessageActionableMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    originalMessage: {
+        inviteeAccountIDs: number[];
+        inviteeEmails: string;
+        lastModified: string;
+        reportID: number;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
     };
 };
 
@@ -239,6 +252,7 @@ type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageActionableMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
