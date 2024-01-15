@@ -1,7 +1,7 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths, ViolationsOverLimitParams} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
 
@@ -93,6 +93,7 @@ const ViolationsUtils = {
         violation: TransactionViolation,
         translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     ): string {
+        console.log(violation.name, violation.data);
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
@@ -104,7 +105,7 @@ const ViolationsUtils = {
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', {formattedLimit: violation.data?.formattedLimit ?? ''});
+                return translate('violations.cashExpenseWithNoReceipt', violation.data ?? undefined);
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
@@ -126,7 +127,7 @@ const ViolationsUtils = {
             case 'missingComment':
                 return translate('violations.missingComment');
             case 'missingTag':
-                return translate('violations.missingTag', {tagName: violation.data?.tagName});
+                return translate('violations.missingTag', violation.data ?? undefined);
             case 'modifiedAmount':
                 return translate('violations.modifiedAmount');
             case 'modifiedDate':

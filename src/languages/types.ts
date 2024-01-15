@@ -217,7 +217,7 @@ type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
-type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit: string};
+type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string};
 
 type ViolationsConversionSurchargeParams = {surcharge?: number};
 

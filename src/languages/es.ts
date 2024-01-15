@@ -2565,7 +2565,7 @@ export default {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
         billableExpense: 'La opción facturable ya no es válida',
-        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para montos mayores a ${formattedLimit}`,
+        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Recibo obligatorio para montos mayores a ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% de recargo aplicado`,
         customUnitOutOfPolicy: 'Unidad ya no es válida',
