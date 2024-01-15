@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +21,6 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { OnyxFormValuesFields } from '@components/Form/types';
 
 const updateDisplayName = (values: any) => {
     PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
@@ -38,7 +38,6 @@ function DisplayNamePage(props: any) {
      * @returns - An object containing the errors for each inputID
      */
     const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        console.log(`values = `, values);
         const errors = {};
 
         // First we validate the first name field

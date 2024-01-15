@@ -2,7 +2,6 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as OnyxTypes from './types/onyx';
-import {ReimbursementAccountForm, ReimbursementAccountFormDraft} from './types/onyx';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
 /**
