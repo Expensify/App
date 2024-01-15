@@ -142,7 +142,8 @@ function ReportPreview(props) {
             hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to run when transactions get updated
+        // When transactions get updated these status may have changed, so that is a case where we also want to run this.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.transactions, props.iouReportID, props.action],
     );
 
