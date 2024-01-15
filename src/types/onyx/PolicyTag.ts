@@ -12,6 +12,8 @@ type PolicyTag = {
 
 type PolicyTags = Record<string, PolicyTag>;
 
+// When queried from Onyx, if there is no matching policy tag list, the data
+// returned will be an empty object, represented by Record<string, undefined>.
 type PolicyTagList<T extends string = string> = Record<
     T,
     {
@@ -23,10 +25,6 @@ type PolicyTagList<T extends string = string> = Record<
 
         tags: PolicyTags;
     }
->;
+> | Record<string, undefined>;
 
-// When queried from Onyx, if there is no matching policy tag list, the data
-// returned will be an empty object.
-type MaybePolicyTagList = PolicyTagList | Record<string, undefined>;
-
-export type {PolicyTag, PolicyTags, PolicyTagList, MaybePolicyTagList};
+export type {PolicyTag, PolicyTags, PolicyTagList};

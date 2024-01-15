@@ -2,7 +2,7 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MaybePolicyTagList, PolicyCategories, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyTagList, PolicyCategories, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Phrase, PhraseParameters} from './Localize';
 
 const ViolationsUtils = {
@@ -14,7 +14,7 @@ const ViolationsUtils = {
         updatedTransaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTagList: MaybePolicyTagList,
+        policyTagList: PolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): {
