@@ -176,6 +176,10 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
+    const isLastPendingActionIsAdd = lodashGet(sortedVisibleReportActions, [0, 'pendingAction']) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    // This is utilized for automatically scrolling to the bottom when sending a new message, in cases where comment linking is used and the user is already at the end of the list.
+    const isNewestActionAvailableAndPendingAdd = linkedReportActionID && isLastPendingActionIsAdd && hasNewestReportAction;
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -190,12 +194,15 @@ function ReportActionsList({
     }, [opacity]);
 
     useEffect(() => {
-        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length && hasNewestReportAction) {
+        if (
+            (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length && hasNewestReportAction) ||
+            isNewestActionAvailableAndPendingAdd
+        ) {
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction]);
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, isLastPendingActionIsAdd, linkedReportActionID, isNewestActionAvailableAndPendingAdd]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
