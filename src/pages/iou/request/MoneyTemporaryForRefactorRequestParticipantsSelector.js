@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect,useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -10,6 +10,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -85,7 +86,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
@@ -254,13 +255,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
     );
 
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
+    useEffect(() => {
+        if (!debouncedSearchTerm.length) {
+            return;
         }
-        setSearchTerm(text);
-    }, []);
+        Report.searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -348,7 +348,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
+                onChangeText={setSearchTerm}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
