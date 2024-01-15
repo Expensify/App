@@ -82,14 +82,13 @@ function PurposeForUsingExpensifyModal() {
     useEffect(() => {
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
-        debugger;
         const currentRoute = routes[navigationState.index];
         const currentRouteName: string = currentRoute.name;
         if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRouteName && currentRouteName !== SCREENS.HOME) {
             return;
         }
 
-        Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
+        Welcome.show(routes, () => setIsModalOpen(true));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
