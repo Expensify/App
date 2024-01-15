@@ -12,8 +12,8 @@ import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -51,9 +51,19 @@ const getMockedReportsMap = (length = 100) => {
     return _.assign({}, ...mockReports);
 };
 
+const getMockedPersonalDetailsMap = (length) => {
+    const mockPersonalDetails = Array.from({length}, (__, i) => {
+        const personalDetailsKey = i + 1;
+        const personalDetails = createPersonalDetails(personalDetailsKey);
+        return {[personalDetailsKey]: personalDetails};
+    });
+
+    return _.assign({}, ...mockPersonalDetails);
+};
+
 const mockedReports = getMockedReportsMap(600);
 const mockedBetas = _.values(CONST.BETAS);
-const mockedPersonalDetails = LHNTestUtils.fakePersonalDetails;
+const mockedPersonalDetails = getMockedPersonalDetailsMap(10);
 
 beforeAll(() =>
     Onyx.init({
@@ -149,8 +159,8 @@ test('[Search Page] should render options list', async () => {
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
         await act(triggerTransitionEnd);
-        await screen.findByText('email2@test.com');
-        await screen.findByText('email3@test.com');
+        await screen.findByText(mockedPersonalDetails['1'].login);
+        await screen.findByText(mockedPersonalDetails['2'].login);
     };
 
     const navigation = {addListener};
@@ -175,17 +185,17 @@ test('[Search Page] should search in options list', async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('options-selector-input');
 
-        fireEvent.changeText(input, 'email5@test.com');
+        fireEvent.changeText(input, mockedPersonalDetails['5'].login);
         await act(triggerTransitionEnd);
-        await screen.findByText('email5@test.com');
+        await screen.findByText(mockedPersonalDetails['5'].login);
 
-        fireEvent.changeText(input, 'email8@test.com');
+        fireEvent.changeText(input, mockedPersonalDetails['8'].login);
         await act(triggerTransitionEnd);
-        await screen.findByText('email8@test.com');
+        await screen.findByText(mockedPersonalDetails['8'].login);
 
-        fireEvent.changeText(input, 'email2@test.com');
+        fireEvent.changeText(input, mockedPersonalDetails['2'].login);
         await act(triggerTransitionEnd);
-        await screen.findByText('email2@test.com');
+        await screen.findByText(mockedPersonalDetails['2'].login);
     };
 
     const navigation = {addListener};
@@ -210,9 +220,9 @@ test('[Search Page] should click on list item', async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('options-selector-input');
 
-        fireEvent.changeText(input, 'email6@test.com');
+        fireEvent.changeText(input, mockedPersonalDetails['6'].login);
         await act(triggerTransitionEnd);
-        const optionButton = await screen.findByText('email6@test.com');
+        const optionButton = await screen.findByText(mockedPersonalDetails['6'].login);
 
         fireEvent.press(optionButton);
     };
