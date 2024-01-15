@@ -5,6 +5,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {KeyboardProvider} from 'react-native-keyboard-controller';
 import '../wdyr';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
@@ -71,6 +72,7 @@ function App() {
                     EnvironmentProvider,
                     CustomStatusBarAndBackgroundContextProvider,
                     ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
+                    KeyboardProvider,
                 ]}
             >
                 <CustomStatusBarAndBackground />
