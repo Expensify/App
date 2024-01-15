@@ -206,10 +206,8 @@ function ScreenWrapper(
                 }
 
                 // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
-                    if (!shouldDisableSafeAreaPaddingBottom) {
-                        paddingStyle.paddingBottom = paddingBottom;
-                    }
+                if (!shouldDisableSafeAreaPaddingBottom && (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator))) {
+                    paddingStyle.paddingBottom = paddingBottom;
                 }
 
                 return (

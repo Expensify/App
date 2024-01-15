@@ -74,7 +74,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     const screen = params.screen;
 
     // Check if the current bottom tab is the same as the one we want to navigate to. If it is, we don't need to do anything.
-    const bottomTabCurrentTab = bottomTabNavigatorRoute.state.routes.at(bottomTabNavigatorRoute.state.index ?? 0);
+    const bottomTabCurrentTab = getTopmostBottomTabRoute(state);
     if (bottomTabCurrentTab?.name === screen) {
         return;
     }
