@@ -38,6 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -410,7 +411,7 @@ function ReportActionItemMessageEdit(
                         </Tooltip>
                     </View>
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
-                        <Composer
+                        <ComposerWithSuggestionsEdit
                             multiline
                             ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
