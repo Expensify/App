@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'participantAccountIDs' | 'notificationPreference' | 'pendingFields' | 'visibleChatMemberAccountIDs'>;
@@ -85,7 +85,7 @@ function createTaskAndNavigate(
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
-    const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : '';
+    const assigneeChatReportID = assigneeChatReport?.reportID ?? '';
     const taskReportID = optimisticTaskReport.reportID;
     let assigneeChatReportOnyxData;
 
@@ -202,7 +202,7 @@ function createTaskAndNavigate(
 
     // If needed, update optimistic data for parent report action of the parent report.
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (isNotEmptyObject(optimisticParentReportData)) {
+    if (!isEmptyObject(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
     }
 
@@ -819,7 +819,7 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        if (isNotEmptyObject(optimisticParentReportData)) {
+        if (!isEmptyObject(optimisticParentReportData)) {
             optimisticData.push(optimisticParentReportData);
         }
     }
@@ -934,14 +934,14 @@ function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, p
 
     const parentReport = ReportUtils.getParentReport(taskReport);
 
-    if (policyRole && isNotEmptyObject(parentReport) && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
+    if (policyRole && !isEmptyObject(parentReport) && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
     // - If the parent report is an #admins only room
     // - If you are a policy admin
-    return isNotEmptyObject(parentReport) && ReportUtils.isAllowedToComment(parentReport);
+    return !isEmptyObject(parentReport) && ReportUtils.isAllowedToComment(parentReport);
 }
 
 function clearTaskErrors(reportID: string) {
