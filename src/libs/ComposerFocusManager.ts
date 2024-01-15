@@ -14,7 +14,7 @@ function setReadyToFocus() {
     resolveIsReadyToFocus();
 }
 
-function isReadyToFocus() {
+function isReadyToFocus(): Promise<void> {
     return isReadyToFocusPromise;
 }
 
