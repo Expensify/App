@@ -78,7 +78,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     break;
                 case DRAG_ENTER_EVENT:
                     handleDragEvent(event);
-                    enterTarget.current=event.target
+                    enterTarget.current = event.target;
                     if (isDraggingOver) {
                         return;
                     }
@@ -89,7 +89,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                         return;
                     }
                     // This is necessary because dragging over children will cause dragleave to execute on the parent.
-                    if (enterTarget.current !== event.target){
+                    if (enterTarget.current !== event.target) {
                         return;
                     }
 
