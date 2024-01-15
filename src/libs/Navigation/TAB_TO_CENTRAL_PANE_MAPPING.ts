@@ -23,7 +23,7 @@ const generateCentralPaneToTabMapping = (): Record<CentralPaneName, BottomTabNam
         }
     }
     return mapping;
-}
+};
 
 const CENTRAL_PANE_TO_TAB_MAPPING: Record<CentralPaneName, BottomTabName> = generateCentralPaneToTabMapping();
 

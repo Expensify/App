@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ForceFullScreenViewProps from './types';
 
-function ForceFullScreenView({children, forceFullPage = false}: ForceFullScreenViewProps) {
+function ForceFullScreenView({children, forceFullScreen = false}: ForceFullScreenViewProps) {
     const styles = useThemeStyles();
 
-    if (forceFullPage) {
-        return <View style={forceFullPage && styles.forcedBlockingViewContainer}>{children}</View>;
+    if (forceFullScreen) {
+        return <View style={forceFullScreen && styles.forcedBlockingViewContainer}>{children}</View>;
     }
 
     return children;

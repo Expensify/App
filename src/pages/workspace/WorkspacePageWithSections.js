@@ -143,7 +143,7 @@ function WorkspacePageWithSections({
                 onLinkPress={goBack}
                 shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                forceFullPage
+                forceFullScreen
             >
                 <HeaderWithBackButton
                     title={headerText}
