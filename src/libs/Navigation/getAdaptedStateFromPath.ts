@@ -15,12 +15,28 @@ import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRo
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]) => ({routes, index: routes.length - 1});
 
+const addPolicyIdToRoute = (route: NavigationPartialRoute, policyID?: string) => {
+    const routeWithPolicyID = {...route};
+    if (!routeWithPolicyID.params) {
+        routeWithPolicyID.params = {policyID};
+        return routeWithPolicyID;
+    }
+
+    if ('policyID' in routeWithPolicyID.params && !!routeWithPolicyID.params.policyID) {
+        return routeWithPolicyID;
+    }
+
+    routeWithPolicyID.params.policyID = policyID;
+
+    return routeWithPolicyID;
+};
+
 function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>, policyID?: string): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
     const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME, params: {policyID}}];
 
     if (route.name !== SCREENS.HOME) {
         // If the generated state requires tab other than HOME, we need to insert it.
-        routesForBottomTabNavigator.push(route);
+        routesForBottomTabNavigator.push(addPolicyIdToRoute(route, policyID) as NavigationPartialRoute<BottomTabName>);
     }
 
     return {
@@ -80,7 +96,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const fullScreenNavigator = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
     const rhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
-
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab
@@ -157,7 +172,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
         routes.push(centralPaneNavigator);
 
-        return getRoutesWithIndex(routes);
+        // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
+        return {routes};
     }
     if (bottomTabNavigator) {
         // Routes
@@ -173,7 +189,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             routes.push(createCentralPaneNavigator(matchingCentralPaneRoute));
         }
 
-        return getRoutesWithIndex(routes);
+        // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
+        return {routes};
     }
 
     return state;
