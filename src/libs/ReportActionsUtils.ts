@@ -257,7 +257,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
         startIndex--;
     }
 
-    return sortedReportActions.slice(startIndex, endIndex + 1);
+    return sortedReportActions.slice(startIndex, id ? endIndex + 1 : sortedReportActions.length);
 }
 
 /**
