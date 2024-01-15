@@ -128,7 +128,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
 
 function AttachmentModal({
     source = '',
-    onConfirm = null,
+    onConfirm,
     defaultOpen = false,
     originalFileName = '',
     isAuthTokenRequired = false,
@@ -489,7 +489,7 @@ function AttachmentModal({
                         )}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {Boolean(onConfirm) && (
+                    {!!onConfirm && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
