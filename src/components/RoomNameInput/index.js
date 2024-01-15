@@ -27,18 +27,15 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
 
         // Prevent cursor jump behaviour:
         // Check if newRoomNameWithHash is the same as modifiedRoomName
-        // If it is then the room name is valid (does not contain unallowed characters); no action required
-        // If not then the room name contains unvalid characters and we must adjust the cursor position manually
+        // If it is, then the room name is valid (does not contain forbidden characters) – no action required
+        // If not, then the room name contains invalid characters, and we must adjust the cursor position manually
         // Read more: https://github.com/Expensify/App/issues/12741
         const oldRoomNameWithHash = value || '';
         const newRoomNameWithHash = `${CONST.POLICY.ROOM_PREFIX}${roomName}`;
         if (modifiedRoomName !== newRoomNameWithHash) {
             const offset = modifiedRoomName.length - oldRoomNameWithHash.length;
-            const newSelection = {
-                start: selection.start + offset,
-                end: selection.end + offset,
-            };
-            setSelection(newSelection);
+            const newCursorPosition = selection.end + offset;
+            setSelection({start: newCursorPosition, end: newCursorPosition});
         }
     };
 
