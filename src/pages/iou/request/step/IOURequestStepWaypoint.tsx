@@ -24,7 +24,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AllRoutes} from '@src/ROUTES';
+import type {Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
@@ -67,7 +67,7 @@ type IOURequestStepWaypointProps = {
             iouType: ValueOf<typeof CONST.IOU.TYPE>;
             transactionID: string;
             reportID: string;
-            backTo: AllRoutes | undefined;
+            backTo: Routes | undefined;
             action: ValueOf<typeof CONST.IOU.ACTION>;
             pageIndex: string;
         };
