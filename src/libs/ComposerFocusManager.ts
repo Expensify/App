@@ -1,5 +1,5 @@
 let isReadyToFocusPromise = Promise.resolve();
-let resolveIsReadyToFocus;
+let resolveIsReadyToFocus: (value: void | PromiseLike<void>) => void;
 
 function resetReadyToFocus() {
     isReadyToFocusPromise = new Promise((resolve) => {
