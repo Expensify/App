@@ -3048,6 +3048,16 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: iouReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        },
     ];
 
     if (!_.isNull(currentNextStep)) {
@@ -3312,6 +3322,109 @@ function submitReport(expenseReport) {
             reportID: expenseReport.reportID,
             managerAccountID: expenseReport.managerID,
             reportActionID: optimisticSubmittedReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * @param {Object} expenseReport
+ * @param {Object} chatReport
+ */
+function cancelPayment(expenseReport, chatReport) {
+    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID);
+    const policy = ReportUtils.getPolicy(chatReport.policyID);
+    const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    ...optimisticReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                ...expenseReport,
+                lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
+                lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
+                state: isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN,
+                stateNum: isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE.OPEN,
+                statusNum: isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATE.OPEN,
+            },
+        },
+        ...(chatReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          ...chatReport,
+                          hasOutstandingIOU: true,
+                          hasOutstandingChildRequest: true,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
+            : []),
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [expenseReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+            },
+        },
+        ...(chatReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
+                          iouReportID: 0,
+                      },
+                  },
+              ]
+            : []),
+    ];
+
+    API.write(
+        'CancelPayment',
+        {
+            iouReportID: expenseReport.reportID,
+            chatReportID: chatReport.reportID,
+            managerAccountID: expenseReport.managerID,
+            reportActionID: optimisticReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
@@ -3646,4 +3759,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    cancelPayment,
 };
