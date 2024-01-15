@@ -2,6 +2,8 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {OpenPublicProfilePageParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -365,11 +367,7 @@ function openPersonalDetailsPage() {
         },
     ];
 
-    type OpenPersonalDetailsPageParams = Record<string, never>;
-
-    const parameters: OpenPersonalDetailsPageParams = {};
-
-    API.read('OpenPersonalDetailsPage', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -414,13 +412,9 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    type OpenPublicProfilePageParams = {
-        accountID: number;
-    };
-
     const parameters: OpenPublicProfilePageParams = {accountID};
 
-    API.read('OpenPublicProfilePage', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
 /**

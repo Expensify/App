@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -60,7 +61,7 @@ function openWalletPage() {
     ];
 
     return API.read(
-        'OpenPaymentsPage',
+        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
         {},
         {
             optimisticData,

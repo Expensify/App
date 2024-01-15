@@ -4,6 +4,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {GetStatementPDFParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -673,11 +675,9 @@ function generateStatementPDF(period: string) {
         },
     ];
 
-    type GetStatementPDFParams = {period: string};
-
     const parameters: GetStatementPDFParams = {period};
 
-    API.read('GetStatementPDF', parameters, {
+    API.read(READ_COMMANDS.GET_STATEMENT_PDF, parameters, {
         optimisticData,
         successData,
         failureData,

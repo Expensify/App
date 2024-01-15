@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {OpenReimbursementAccountPageParams} from '@libs/API/parameters';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
@@ -331,19 +333,13 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         ],
     };
 
-    type OpenReimbursementAccountPageParams = {
-        stepToOpen: ReimbursementAccountStep;
-        subStep: ReimbursementAccountSubStep;
-        localCurrentStep: ReimbursementAccountStep;
-    };
-
     const parameters: OpenReimbursementAccountPageParams = {
         stepToOpen,
         subStep,
         localCurrentStep,
     };
 
-    return API.read('OpenReimbursementAccountPage', parameters, onyxData);
+    return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
 }
 
 /**
@@ -405,7 +401,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
 
 function openWorkspaceView() {
     API.read(
-        'OpenWorkspaceView',
+        READ_COMMANDS.OPEN_WORKSPACE_VIEW,
         {},
         {
             optimisticData: [

@@ -10,8 +10,16 @@ import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import type {OpenReportParams} from '@libs/API/parameters';
+import type {
+    ExpandURLPreviewParams,
+    GetNewerActionsParams,
+    GetOlderActionsParams,
+    GetReportPrivateNoteParams,
+    OpenReportParams,
+    OpenRoomMembersPageParams,
+    SearchForReportsParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -828,17 +836,12 @@ function getOlderActions(reportID: string, reportActionID: string) {
         },
     ];
 
-    type GetOlderActionsParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: GetOlderActionsParameters = {
+    const parameters: GetOlderActionsParams = {
         reportID,
         reportActionID,
     };
 
-    API.read('GetOlderActions', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_OLDER_ACTIONS, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -876,34 +879,24 @@ function getNewerActions(reportID: string, reportActionID: string) {
         },
     ];
 
-    type GetNewerActionsParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: GetNewerActionsParameters = {
+    const parameters: GetNewerActionsParams = {
         reportID,
         reportActionID,
     };
 
-    API.read('GetNewerActions', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_NEWER_ACTIONS, parameters, {optimisticData, successData, failureData});
 }
 
 /**
  * Gets metadata info about links in the provided report action
  */
 function expandURLPreview(reportID: string, reportActionID: string) {
-    type ExpandURLPreviewParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: ExpandURLPreviewParameters = {
+    const parameters: ExpandURLPreviewParams = {
         reportID,
         reportActionID,
     };
 
-    API.read('ExpandURLPreview', parameters);
+    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
 /** Marks the new report actions as read */
@@ -2470,24 +2463,16 @@ function getReportPrivateNote(reportID: string) {
         },
     ];
 
-    type GetReportPrivateNoteParameters = {
-        reportID: string;
-    };
+    const parameters: GetReportPrivateNoteParams = {reportID};
 
-    const parameters: GetReportPrivateNoteParameters = {reportID};
-
-    API.read('GetReportPrivateNote', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */
 function openRoomMembersPage(reportID: string) {
-    type OpenRoomMembersPageParameters = {
-        reportID: string;
-    };
+    const parameters: OpenRoomMembersPageParams = {reportID};
 
-    const parameters: OpenRoomMembersPageParameters = {reportID};
-
-    API.read('OpenRoomMembersPage', parameters);
+    API.read(READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE, parameters);
 }
 
 /**
@@ -2540,13 +2525,9 @@ function searchForReports(searchInput: string) {
         },
     ];
 
-    type SearchForReportsParameters = {
-        searchInput: string;
-    };
+    const parameters: SearchForReportsParams = {searchInput};
 
-    const parameters: SearchForReportsParameters = {searchInput};
-
-    API.read('SearchForReports', parameters, {successData, failureData});
+    API.read(READ_COMMANDS.SEARCH_FOR_REPORTS, parameters, {successData, failureData});
 }
 
 function searchInServer(searchInput: string) {

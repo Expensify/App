@@ -4,6 +4,7 @@ import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Network} from '@src/types/onyx';
@@ -38,7 +39,7 @@ const setExpirationTimer = () => {
             return;
         }
         console.debug(`[MapboxToken] Fetching a new token after waiting ${REFRESH_INTERVAL / 1000 / 60} minutes`);
-        API.read('GetMapboxAccessToken', {}, {});
+        API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, {}, {});
     }, REFRESH_INTERVAL);
 };
 
@@ -51,7 +52,7 @@ const clearToken = () => {
 };
 
 const fetchToken = () => {
-    API.read('GetMapboxAccessToken', {}, {});
+    API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, {}, {});
     isCurrentlyFetchingToken = true;
 };
 

@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,14 +63,7 @@ function openOnfidoFlow() {
         },
     ];
 
-    API.read(
-        'OpenOnfidoFlow',
-        {},
-        {
-            optimisticData,
-            finallyData,
-        },
-    );
+    API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, {}, {optimisticData, finallyData});
 }
 
 function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[], idNumber: string) {
@@ -232,14 +226,14 @@ function acceptWalletTerms(parameters: WalletTerms) {
  * Fetches data when the user opens the InitialSettingsPage
  */
 function openInitialSettingsPage() {
-    API.read('OpenInitialSettingsPage', {});
+    API.read(READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE, {});
 }
 
 /**
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read('OpenEnablePaymentsPage', {});
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, {});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {

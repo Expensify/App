@@ -6,9 +6,15 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {GetMissingOnyxMessagesParams, OpenOldDotLinkParams} from '@libs/API/parameters';
-import type {HandleRestrictedEventParams, OpenProfileParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters/HandleRestrictedEventParams';
-import type {OpenAppParams} from '@libs/API/parameters/OpenAppParams';
+import type {
+    GetMissingOnyxMessagesParams,
+    HandleRestrictedEventParams,
+    OpenAppParams,
+    OpenOldDotLinkParams,
+    OpenProfileParams,
+    ReconnectAppParams,
+    UpdatePreferredLocaleParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
