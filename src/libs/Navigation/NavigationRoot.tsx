@@ -12,8 +12,8 @@ import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import customGetPathFromState from './customGetPathFromState';
+import getAdaptedStateFromPath from './getAdaptedStateFromPath';
 import getPolicyIdFromState from './getPolicyIdFromState';
-import getStateFromPath from './getStateFromPath';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -74,7 +74,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 return;
             }
 
-            return getStateFromPath(lastVisitedPath);
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
