@@ -7,6 +7,8 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
+import type {AuthenticatePusherParams} from '@libs/API/parameters/sideEffectRequest';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import HttpUtils from '@libs/HttpUtils';
@@ -665,15 +667,6 @@ const reauthenticatePusher = throttle(
 function authenticatePusher(socketID: string, channelName: string, callback: ChannelAuthorizationCallback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
-    type AuthenticatePusherParams = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        socket_id: string;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        channel_name: string;
-        shouldRetry: boolean;
-        forceNetworkRequest: boolean;
-    };
-
     const params: AuthenticatePusherParams = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         socket_id: socketID,
@@ -685,7 +678,7 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
 
     // We use makeRequestWithSideEffects here because we need to authorize to Pusher (an external service) each time a user connects to any channel.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('AuthenticatePusher', params)
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
         .then((response) => {
             if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');

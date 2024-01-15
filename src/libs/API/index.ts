@@ -1,15 +1,23 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import Log from '@libs/Log';
+import * as Middleware from '@libs/Middleware';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as Pusher from '@libs/Pusher/pusher';
+import * as Request from '@libs/Request';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import pkg from '../../package.json';
-import Log from './Log';
-import * as Middleware from './Middleware';
-import * as SequentialQueue from './Network/SequentialQueue';
-import * as Pusher from './Pusher/pusher';
-import * as Request from './Request';
+import pkg from '../../../package.json';
+import type {
+    ApiRequestWithSideEffects,
+    ReadCommand,
+    ReadCommandParameters,
+    SideEffectRequestCommand,
+    SideEffectRequestCommandParameters,
+    WriteCommand,
+    WriteCommandParameters,
+} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -38,8 +46,6 @@ type OnyxData = {
     finallyData?: OnyxUpdate[];
 };
 
-type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
-
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
@@ -54,7 +60,7 @@ type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function write(command: string, apiCommandParameters: Record<string, unknown> = {}, onyxData: OnyxData = {}) {
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: WriteCommandParameters[TCommand], onyxData: OnyxData = {}) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
@@ -112,11 +118,11 @@ function write(command: string, apiCommandParameters: Record<string, unknown> = 
  *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
  * @returns
  */
-function makeRequestWithSideEffects(
-    command: string,
-    apiCommandParameters = {},
+function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
+    command: TCommand,
+    apiCommandParameters: SideEffectRequestCommandParameters[TCommand],
     onyxData: OnyxData = {},
-    apiRequestType: ApiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
+    apiRequestType: ApiRequestWithSideEffects = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
 ): Promise<void | Response> {
     Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
@@ -157,7 +163,7 @@ function makeRequestWithSideEffects(
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function read(command: string, apiCommandParameters: Record<string, unknown>, onyxData: OnyxData = {}) {
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ReadCommandParameters[TCommand], onyxData: OnyxData = {}) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.

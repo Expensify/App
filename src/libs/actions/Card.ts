@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {RevealExpensifyCardDetailsParams} from '@libs/API/parameters';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -173,12 +175,10 @@ function clearCardListErrors(cardID: number) {
  */
 function revealVirtualCardDetails(cardID: number): Promise<Response> {
     return new Promise((resolve, reject) => {
-        type RevealExpensifyCardDetailsParams = {cardID: number};
-
         const parameters: RevealExpensifyCardDetailsParams = {cardID};
 
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('RevealExpensifyCardDetails', parameters)
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS, parameters)
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
