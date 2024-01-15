@@ -201,7 +201,7 @@ function AttachmentPickerWithMenuItems({
                     onTriggerAttachmentPicker();
                     openPicker({
                         onPicked: displayFileInModal,
-                        onCanceled: () => ComposerFocusManager.tryRestoreFocusByExternal(),
+                        onCanceled: () => ComposerFocusManager.tryRestoreFocusByExternal(CONST.MODAL.BUSINESS_TYPE.ATTACHMENT),
                     });
                 };
                 const menuItems = [
@@ -291,6 +291,7 @@ function AttachmentPickerWithMenuItems({
                             </Tooltip>
                         </View>
                         <PopoverMenu
+                            shouldClearFocusWithType
                             restoreFocusType={restoreFocusType}
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
                             isVisible={isMenuVisible && isFocused}
@@ -301,14 +302,7 @@ function AttachmentPickerWithMenuItems({
                                     setMenuVisibility(false);
                                     return;
                                 }
-                                // TODO:refine
-                                let type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT;
-                                if (Browser.isFileCancelSupported()) {
-                                    type = CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE;
-                                } else if (Browser.isMobile()) {
-                                    type = CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE;
-                                }
-                                setRestoreFocusType(type);
+                                setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
                                 setMenuVisibility(false);
 
                                 // In order for the file picker to open dynamically, the click

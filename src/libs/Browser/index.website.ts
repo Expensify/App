@@ -1,7 +1,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {GetBrowser, IsFileCancelSupported, IsMobile, IsMobileChrome, IsMobileSafari, IsSafari, OpenRouteInDesktopApp} from './types';
+import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileSafari, IsSafari, OpenRouteInDesktopApp} from './types';
 
 /**
  * Fetch browser name from UA string
@@ -101,7 +101,4 @@ const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', 
     }
 };
 
-// Chrome: 113 / Firefox: 91 / Safari 16.4
-const isFileCancelSupported: IsFileCancelSupported = () => false;
-
-export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp, isFileCancelSupported};
+export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};

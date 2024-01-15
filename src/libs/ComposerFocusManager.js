@@ -1,4 +1,4 @@
-import {last} from 'lodash';
+import {filter, last} from 'lodash';
 import {TextInput} from 'react-native';
 import CONST from '@src/CONST';
 
@@ -45,7 +45,7 @@ function releaseInput(input) {
         focusedInput = null;
     }
     [...focusMap].forEach(([key, value]) => {
-        if (value !== input) {
+        if (value.input !== input) {
             return;
         }
         focusMap.delete(key);
@@ -60,9 +60,11 @@ function getId() {
  * Save the focus state when opening the modal.
  *
  * @param {Number} id
+ * @param {String} businessType
+ * @param {Boolean} shouldClearFocusWithType
  * @param {any} container
  */
-function saveFocusState(id, container = undefined) {
+function saveFocusState(id, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, shouldClearFocusWithType = false, container = undefined) {
     const activeInput = getActiveInput();
 
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
@@ -71,13 +73,23 @@ function saveFocusState(id, container = undefined) {
     if (activeModals.indexOf(id) < 0) {
         activeModals.push(id);
     }
+
+    if (shouldClearFocusWithType) {
+        [...focusMap].forEach(([key, value]) => {
+            if (value.businessType !== businessType) {
+                return;
+            }
+            focusMap.delete(key);
+        });
+    }
+
     if (!input) {
         return;
     }
     if (container && container.contains(input)) {
         return;
     }
-    focusMap.set(id, input);
+    focusMap.set(id, {input, businessType});
     input.blur();
 }
 
@@ -104,10 +116,11 @@ function focus(input, shouldIgnoreFocused = false) {
  * Restore the focus state after the modal is dismissed.
  *
  * @param {Number} id
- * @param {String} type
  * @param {Boolean} shouldIgnoreFocused
+ * @param {String} businessType
+ * @param {String} ReFocusType
  */
-function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, shouldIgnoreFocused = false) {
+function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, ReFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT) {
     if (!id) {
         return;
     }
@@ -123,10 +136,10 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, sh
         return;
     }
     activeModals.splice(index, 1);
-    if (type === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
+    if (ReFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
         return;
     }
-    if (type === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
+    if (ReFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
         focusMap.delete(id);
         return;
     }
@@ -135,18 +148,19 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, sh
     if (activeModals.length > index) {
         return;
     }
-    const input = focusMap.get(id);
-    if (input) {
-        focus(input, shouldIgnoreFocused);
+    const value = focusMap.get(id);
+    if (value) {
+        focus(value.input, shouldIgnoreFocused);
         focusMap.delete(id);
         return;
     }
 
     // Try to find the topmost one and restore it
-    if (focusMap.size < 1) {
+    const stack = filter([...focusMap], ([, v]) => v.businessType === businessType);
+    if (stack.length < 1) {
         return;
     }
-    const [lastId, lastInput] = last([...focusMap]);
+    const [lastId, {input: lastInput}] = last(stack);
 
     // The previous modal is still active
     if (activeModals.indexOf(lastId) >= 0) {
@@ -198,15 +212,19 @@ function isReadyToFocus(id) {
     return promise.ready;
 }
 
-function tryRestoreFocusAfterClosedCompletely(id, restoreType) {
-    isReadyToFocus(id).then(() => restoreFocusState(id, restoreType));
+function tryRestoreFocusAfterClosedCompletely(id, businessType, restoreType) {
+    isReadyToFocus(id).then(() => restoreFocusState(id, false, businessType, restoreType));
 }
 
-function tryRestoreFocusByExternal() {
+/**
+ * So far, this will only be called in file canceled event handler.
+ * @param {String} businessType
+ */
+function tryRestoreFocusByExternal(businessType) {
     if (focusMap.size < 1) {
         return;
     }
-    const [key, input] = last([...focusMap]);
+    const [key, {input}] = last(filter([...focusMap], ([, value]) => value.businessType === businessType));
     input.focus();
     focusMap.delete(key);
 }

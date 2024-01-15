@@ -1,7 +1,8 @@
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import {ActiveModalContext} from '@components/Modal/ActiveModalProvider';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -39,6 +40,7 @@ function BaseModal(
         statusBarTranslucent = true,
         onLayout,
         restoreFocusType,
+        shouldClearFocusWithType = false,
         avoidKeyboard = false,
         children,
     }: BaseModalProps,
@@ -55,9 +57,9 @@ function BaseModal(
     const wasVisible = usePrevious(isVisible);
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-
+    const {businessType} = useContext(ActiveModalContext);
     const saveFocusState = () => {
-        ComposerFocusManager.saveFocusState(modalId);
+        ComposerFocusManager.saveFocusState(modalId, businessType, shouldClearFocusWithType);
         ComposerFocusManager.resetReadyToFocus(modalId);
     };
 
@@ -75,9 +77,9 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, restoreFocusType);
+            ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, businessType, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
+        [shouldSetModalVisibility, onModalHide, businessType, restoreFocusType, modalId],
     );
 
     useEffect(() => {

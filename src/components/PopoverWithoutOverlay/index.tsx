@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import ModalContent from '@components/Modal/ModalContent';
@@ -58,7 +58,7 @@ function PopoverWithoutOverlay(
                 anchorRef,
             });
             removeOnClose = Modal.setCloseModal(() => onClose(anchorRef));
-            ComposerFocusManager.saveFocusState(modalId, withoutOverlayRef.current);
+            ComposerFocusManager.saveFocusState(modalId, undefined, undefined, withoutOverlayRef.current);
             ComposerFocusManager.resetReadyToFocus(modalId);
         } else {
             onModalHide();
@@ -118,10 +118,8 @@ function PopoverWithoutOverlay(
             shouldAddTopSafeAreaPadding,
         ],
     );
-    const restoreFocusTypeRef = useRef<string>();
-    restoreFocusTypeRef.current = restoreFocusType;
     const handleDismissContent = () => {
-        ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, restoreFocusTypeRef.current);
+        ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, undefined, restoreFocusType);
 
         // On the web platform, because there is no overlay, modal can be closed and opened instantly and randomly,
         // this will cause the input box to gain and lose focus instantly while the subsequent modal is opened.

@@ -62,7 +62,10 @@ type BaseModalProps = WindowDimensionsProps &
          * */
         hideModalContentWhileAnimating?: boolean;
 
-        /** how to re-focus after the modal is dismissed */
+        /** Whether the modal should clear the focus record for the current business type. */
+        shouldClearFocusWithType?: boolean;
+
+        /** How to re-focus after the modal is dismissed */
         restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
     };
 

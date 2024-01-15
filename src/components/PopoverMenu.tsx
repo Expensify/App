@@ -54,7 +54,10 @@ type PopoverMenuProps = PopoverModalProps & {
     /** Callback method fired when the modal is shown */
     onModalShow: () => void;
 
-    /** how to re-focus after the modal is dismissed */
+    /** Whether the modal should clear the focus record for the current business type. */
+    shouldClearFocusWithType?: boolean;
+
+    /** How to re-focus after the modal is dismissed */
     restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
 
     /** State that determines whether to display the modal or not */
@@ -98,6 +101,7 @@ function PopoverMenu({
     anchorPosition,
     anchorRef,
     onClose,
+    shouldClearFocusWithType,
     restoreFocusType,
     onModalShow,
     headerText,
@@ -151,6 +155,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={onClose}
             isVisible={isVisible}
+            shouldClearFocusWithType={shouldClearFocusWithType}
             restoreFocusType={restoreFocusType}
             onModalShow={onModalShow}
             onModalHide={onModalHide}
