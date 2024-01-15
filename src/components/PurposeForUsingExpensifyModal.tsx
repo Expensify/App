@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +8,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
@@ -75,7 +73,6 @@ function PurposeForUsingExpensifyModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
-    const navigation = useNavigation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const theme = useTheme();
 
