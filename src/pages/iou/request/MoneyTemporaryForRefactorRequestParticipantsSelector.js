@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect,useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -11,12 +11,14 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +58,9 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+
+    /** Whether the parent screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -64,6 +69,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -76,10 +82,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouType,
     iouRequestType,
     isSearchingForReports,
+    didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
@@ -94,6 +101,16 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
+        if (!didScreenTransitionEnd) {
+            return [
+                newSections, 
+                {
+                    recentReports: {},
+                    personalDetails: {},
+                    userToInvite: {},
+                }
+            ];
+        }
         let indexOffset = 0;
 
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -168,7 +185,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
 
     /**
      * Adds a single participant to the request
@@ -238,13 +255,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
     );
 
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
+    useEffect(() => {
+        if (!debouncedSearchTerm.length) {
+            return;
         }
-        setSearchTerm(text);
-    }, []);
+        Report.searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -322,21 +338,24 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
+    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 onConfirm={handleConfirmSelection}
-                sections={sections}
+                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
+                onChangeText={setSearchTerm}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
+                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
                 rightHandSideComponent={itemRightSideComponent}
+                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
