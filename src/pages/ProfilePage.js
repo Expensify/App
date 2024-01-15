@@ -160,6 +160,7 @@ function ProfilePage(props) {
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
                                 fallbackSource={fallbackIcon}
+                                maybeIcon
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus

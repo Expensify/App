@@ -92,6 +92,9 @@ const propTypes = {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon: PropTypes.bool,
+
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment: PropTypes.bool,
 
@@ -114,6 +117,7 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
+    maybeIcon: false,
     isReceiptAttachment: false,
     canEditReceipt: false,
 };
@@ -480,6 +484,7 @@ function AttachmentModal(props) {
                                     file={file}
                                     onToggleKeyboard={updateConfirmButtonVisibility}
                                     isWorkspaceAvatar={props.isWorkspaceAvatar}
+                                    maybeIcon={props.maybeIcon}
                                     fallbackSource={props.fallbackSource}
                                     isUsedInAttachmentModal
                                     transactionID={props.transaction.transactionID}

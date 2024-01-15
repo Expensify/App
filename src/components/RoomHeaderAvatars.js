@@ -35,6 +35,7 @@ function RoomHeaderAvatars(props) {
                 isAuthTokenRequired
                 isWorkspaceAvatar={props.icons[0].type === CONST.ICON_TYPE_WORKSPACE}
                 originalFileName={props.icons[0].name}
+                maybeIcon
             >
                 {({show}) => (
                     <PressableWithoutFocus
@@ -79,6 +80,7 @@ function RoomHeaderAvatars(props) {
                             isAuthTokenRequired
                             originalFileName={icon.name}
                             isWorkspaceAvatar={icon.type === CONST.ICON_TYPE_WORKSPACE}
+                            maybeIcon
                         >
                             {({show}) => (
                                 <PressableWithoutFocus
