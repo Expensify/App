@@ -68,21 +68,21 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
 
             if (!ValidationUtils.isValidLegalName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (values.firstName) {
+            } else if (!values.firstName) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
             if (!ValidationUtils.isValidLegalName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (values.lastName) {
+            } else if (!values.lastName) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
-            if (values.partnerUserID) {
+            if (!values.partnerUserID) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterPhoneEmail');
             }
-            if (!values.partnerUserID && props.loginList?.[validateIfnumber || values.partnerUserID.toLowerCase()]) {
+            if (values.partnerUserID && props.loginList?.[validateIfnumber || values.partnerUserID.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
             }
-            if (!values.partnerUserID && !(validateIfnumber || Str.isValidEmail(values.partnerUserID))) {
+            if (values.partnerUserID && !(validateIfnumber || Str.isValidEmail(values.partnerUserID))) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 

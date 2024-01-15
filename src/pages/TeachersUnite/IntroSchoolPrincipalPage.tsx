@@ -55,24 +55,24 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
 
             if (!ValidationUtils.isValidLegalName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (values.firstName) {
+            } else if (!values.firstName) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
             if (!ValidationUtils.isValidLegalName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (values.lastName) {
+            } else if (!values.lastName) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
-            if (values.partnerUserID) {
+            if (!values.partnerUserID) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterEmail');
             }
-            if (!values.partnerUserID && props.loginList?.[values.partnerUserID.toLowerCase()]) {
+            if (values.partnerUserID && props.loginList?.[values.partnerUserID.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
             }
-            if (!values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
+            if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterValidEmail');
             }
-            if (!values.partnerUserID && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
+            if (values.partnerUserID && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
             }
 
