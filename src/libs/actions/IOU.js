@@ -3355,8 +3355,8 @@ function cancelPayment(expenseReport, chatReport) {
                 lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
                 state: isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN,
-                stateNum: isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE.OPEN,
-                statusNum: isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATE.OPEN,
+                stateNum: isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATUS.OPEN,
             },
         },
         ...(chatReport.reportID
