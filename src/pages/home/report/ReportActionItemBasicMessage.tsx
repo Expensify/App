@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
@@ -12,7 +13,7 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     const styles = useThemeStyles();
     return (
         <View>
-            <Text style={[styles.chatItemMessage, styles.colorMuted]}>{message}</Text>
+            <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Str.htmlDecode(message)}</Text>
             {children}
         </View>
     );
