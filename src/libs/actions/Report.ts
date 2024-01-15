@@ -960,7 +960,7 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
     }, null);
 
     // If no action created date is provided, use the last action's from other user
-    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? DateUtils.getDBTime(0));
+    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? allReports?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
