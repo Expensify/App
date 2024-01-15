@@ -1,4 +1,5 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {RefObject} from 'react';
+import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type Locale from '@src/types/onyx/Locale';
 
@@ -90,4 +91,6 @@ type AddressSearchProps = {
     preferredLocale?: Locale;
 };
 
-export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps};
+type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;
+
+export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps, IsCurrentTargetInsideContainerType};

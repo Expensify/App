@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
@@ -7,6 +6,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
+import type {LocationErrorCodeType} from '@components/LocationErrorMessage/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -67,8 +67,9 @@ function AddressSearch(
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-    const [searchValue, setSearchValue] = useState(value ?? defaultValue ?? '');
-    const [locationErrorCode, setLocationErrorCode] = useState<number | null>(null);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [searchValue, setSearchValue] = useState(value || defaultValue || '');
+    const [locationErrorCode, setLocationErrorCode] = useState<LocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef<View>(null);
@@ -90,9 +91,9 @@ function AddressSearch(
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (details) {
                 onPress?.({
-                    address: autocompleteData.description,
-                    lat: details.geometry.location.lat,
-                    lng: details.geometry.location.lng,
+                    address: autocompleteData.description ?? '',
+                    lat: details.geometry.location.lat ?? 0,
+                    lng: details.geometry.location.lng ?? 0,
                     name: details.name,
                 });
             }
@@ -112,14 +113,19 @@ function AddressSearch(
             administrative_area_level_2: stateFallback,
             country: countryPrimary,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             street_number: 'long_name',
             route: 'long_name',
             subpremise: 'long_name',
             locality: 'long_name',
             sublocality: 'long_name',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             postal_town: 'long_name',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             postal_code: 'long_name',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_1: 'short_name',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_2: 'long_name',
             country: 'short_name',
         });
@@ -127,6 +133,7 @@ function AddressSearch(
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
         const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_1: 'long_name',
         });
 
@@ -140,7 +147,8 @@ function AddressSearch(
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
-        const country = countryPrimary ?? countryFallback ?? '';
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const country = countryPrimary || countryFallback || '';
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
@@ -159,7 +167,7 @@ function AddressSearch(
 
             lat: details.geometry.location.lat ?? 0,
             lng: details.geometry.location.lng ?? 0,
-            address: autocompleteData.description ?? details.formatted_address ?? '',
+            address: autocompleteData.description || details.formatted_address || '',
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -183,8 +191,8 @@ function AddressSearch(
         // We are setting up a fallback to ensure "values.street" is populated with a relevant value
         if (!values.street && details.adr_address) {
             const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
-            const adr_address = details.adr_address.match(streetAddressRegex);
-            const streetAddressFallback = adr_address ? adr_address?.[1] : null;
+            const adrAddress = details.adr_address.match(streetAddressRegex);
+            const streetAddressFallback = adrAddress ? adrAddress?.[1] : null;
             if (streetAddressFallback) {
                 values.street = streetAddressFallback;
             }
@@ -252,7 +260,7 @@ function AddressSearch(
                 }
 
                 setIsFetchingCurrentLocation(false);
-                setLocationErrorCode(errorData.code);
+                setLocationErrorCode(errorData.code as LocationErrorCodeType);
             },
             {
                 maximumAge: 0, // No cache, always get fresh location info
@@ -288,7 +296,7 @@ function AddressSearch(
 
     const listEmptyComponent = useCallback(
         () =>
-            !!isOffline && !!isTyping ? <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text> : null,
+            !!isOffline || !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>,
         [isOffline, isTyping, styles, translate],
     );
 

@@ -1,3 +1,5 @@
+type LocationErrorCodeType = -1 | 1 | 2 | 3 | null;
+
 type LocationErrorMessageProps = {
     /** A callback that runs when close icon is pressed */
     onClose: () => void;
@@ -9,7 +11,7 @@ type LocationErrorMessageProps = {
      * - code 2 = location is unavailable or there is some connection issue
      * - code 3 = location fetch timeout
      */
-    locationErrorCode?: number | null;
+    locationErrorCode?: LocationErrorCodeType;
 };
 
-export default LocationErrorMessageProps;
+export type {LocationErrorMessageProps, LocationErrorCodeType};
