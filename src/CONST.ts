@@ -479,7 +479,9 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
+    OLDDOT_URLS: {
+        INBOX: 'inbox',
+    },
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -601,9 +603,11 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
+        },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
-            NOTHING: 'nothing',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -2730,7 +2734,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
 
     // Test tool menu parameters
     TEST_TOOL: {
