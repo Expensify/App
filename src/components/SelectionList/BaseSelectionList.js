@@ -63,6 +63,7 @@ function BaseSelectionList({
     disableKeyboardShortcuts = false,
     children,
     shouldStopPropagation = false,
+    shouldShowTooltips = true,
     shouldUseDynamicMaxToRenderPerBatch = false,
     rightHandSideComponent,
 }) {
@@ -304,7 +305,7 @@ function BaseSelectionList({
         const isDisabled = section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const showTooltip = normalizedIndex < 10;
+        const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
             <BaseListItem
