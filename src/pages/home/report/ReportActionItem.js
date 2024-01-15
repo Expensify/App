@@ -17,6 +17,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
+import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
@@ -305,6 +306,25 @@ function ReportActionItem(props) {
         [props.report, props.action, toggleContextMenuFromActiveReportAction],
     );
 
+    const actionableItemButtons = useMemo(() => {
+        if (!(props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && !lodashGet(props.action, 'originalMessage.resolution', null))) {
+            return [];
+        }
+        return [
+            {
+                text: 'actionableMentionWhisperOptions.invite',
+                key: `${props.action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
+                onPress: () => Report.resolveActionableMentionWhisper(props.report.reportID, props.action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
+                isPrimary: true,
+            },
+            {
+                text: 'actionableMentionWhisperOptions.nothing',
+                key: `${props.action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
+                onPress: () => Report.resolveActionableMentionWhisper(props.report.reportID, props.action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
+            },
+        ];
+    }, [props.action, props.report]);
+
     /**
      * Get the content of ReportActionItem
      * @param {Boolean} hovered whether the ReportActionItem is hovered
@@ -466,6 +486,17 @@ function ReportActionItem(props) {
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                                     </Text>
                                 </Button>
+                            )}
+                            {/**
+                                These are the actionable buttons that appear at the bottom of a Concierge message
+                                for example: Invite a user mentioned but not a member of the room
+                                https://github.com/Expensify/App/issues/32741
+                            */}
+                            {actionableItemButtons.length > 0 && (
+                                <ActionableItemButtons
+                                    action={props.action}
+                                    items={actionableItemButtons}
+                                />
                             )}
                         </View>
                     ) : (
