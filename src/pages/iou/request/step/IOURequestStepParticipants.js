@@ -36,7 +36,6 @@ function IOURequestStepParticipants({
     transaction: {participants = []},
 }) {
     const {translate} = useLocalize();
-    const optionsSelectorRef = useRef();
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -86,11 +85,9 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestParticipantsSelector
-                ref={(el) => (optionsSelectorRef.current = el)}
                 participants={participants}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
