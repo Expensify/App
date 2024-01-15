@@ -395,11 +395,13 @@ const AttachmentModal = forwardRef((props, ref) => {
                 },
             });
         }
-        menuItems.push({
-            icon: Expensicons.Download,
-            text: props.translate('common.download'),
-            onSelected: () => downloadAttachment(source),
-        });
+        if (!isOffline) {
+            menuItems.push({
+                icon: Expensicons.Download,
+                text: props.translate('common.download'),
+                onSelected: () => downloadAttachment(source),
+            });
+        }
         if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
@@ -429,7 +431,7 @@ const AttachmentModal = forwardRef((props, ref) => {
     if (!_.isEmpty(props.report)) {
         headerTitle = translate(props.isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !props.isReceiptAttachment && !isOffline;
-        shouldShowThreeDotsButton = props.isReceiptAttachment && isModalOpen;
+        shouldShowThreeDotsButton = props.isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
 
     return (
