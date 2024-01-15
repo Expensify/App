@@ -3,4 +3,5 @@ type ZoomRange = {
     max: number;
 };
 
-export default ZoomRange;
+// eslint-disable-next-line import/prefer-default-export
+export type {ZoomRange};

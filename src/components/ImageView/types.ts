@@ -1,12 +1,11 @@
 import type {StyleProp, ViewStyle} from 'react-native';
-import type ZoomRange from '@components/MultiGestureCanvas/types';
+import type {ZoomRange} from '@components/MultiGestureCanvas/types';
 
 type ImageViewProps = {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
     /** Handles scale changed event in image zoom component. Used on native only */
-    // eslint-disable-next-line react/no-unused-prop-types
     onScaleChanged: (scale: number) => void;
 
     /** URL to full-sized image */
@@ -17,9 +16,6 @@ type ImageViewProps = {
 
     /** Handles errors while displaying the image */
     onError?: () => void;
-
-    /** Whether this view is the active screen  */
-    isFocused?: boolean;
 
     /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
     isUsedInCarousel?: boolean;
@@ -47,4 +43,5 @@ type ImageLoadNativeEventData = {
     width: number;
     height: number;
 };
+
 export type {ImageViewProps, ImageLoadNativeEventData};

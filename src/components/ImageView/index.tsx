@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
@@ -10,9 +10,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
-import type * as ImageViewTypes from './types';
+import type {ImageLoadNativeEventData, ImageViewProps} from './types';
 
-function ImageView({isAuthTokenRequired = false, url, fileName, onError = () => {}}: ImageViewTypes.ImageViewProps) {
+type ZoomDelta = {offsetX: number; offsetY: number};
+
+function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +30,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError = () => 
     const [imgWidth, setImgWidth] = useState(0);
     const [imgHeight, setImgHeight] = useState(0);
     const [zoomScale, setZoomScale] = useState(0);
-    const [zoomDelta, setZoomDelta] = useState({offsetX: 0, offsetY: 0});
+    const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
 
     const scrollableRef = useRef<HTMLDivElement>(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -49,6 +51,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError = () => 
         setContainerWidth(width);
     };
 
+    /**
+     * When open image, set image width, height.
+     */
     const setImageRegion = (imageWidth: number, imageHeight: number) => {
         if (imageHeight <= 0) {
             return;
@@ -67,7 +72,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError = () => 
         setIsZoomed(false);
     };
 
-    const imageLoad = ({nativeEvent}: {nativeEvent: ImageViewTypes.ImageLoadNativeEventData}) => {
+    const imageLoad = ({nativeEvent}: NativeSyntheticEvent<ImageLoadNativeEventData>) => {
         setImageRegion(nativeEvent.width, nativeEvent.height);
         setIsLoading(false);
     };
@@ -81,6 +86,12 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError = () => 
         setInitialScrollTop(scrollableRef.current?.scrollTop ?? 0);
     };
 
+    /**
+     * Convert touch point to zoomed point
+     * @param x point when click zoom
+     * @param y point when click zoom
+     * @returns converted touch point
+     */
     const getScrollOffset = (x: number, y: number) => {
         let offsetX = 0;
         let offsetY = 0;
