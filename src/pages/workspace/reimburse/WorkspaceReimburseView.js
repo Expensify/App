@@ -105,7 +105,7 @@ function WorkspaceReimburseView(props) {
     }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <View style={[styles.mt6, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}

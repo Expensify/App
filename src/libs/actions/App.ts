@@ -159,7 +159,7 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
 function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
-    const defaultData: Required<OnyxData> = {
+    const defaultData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -167,14 +167,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-        ],
-        failureData: [
+        finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -194,16 +187,8 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
-        successData: [
-            ...defaultData.successData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
-                value: false,
-            },
-        ],
-        failureData: [
-            ...defaultData.failureData,
+        finallyData: [
+            ...defaultData.finallyData,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_APP,
@@ -297,12 +282,12 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo = 0): Promise<void | OnyxTypes.Response> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
     type GetMissingOnyxMessagesParams = {
         updateIDFrom: number;
-        updateIDTo: number;
+        updateIDTo: number | string;
     };
 
     const parameters: GetMissingOnyxMessagesParams = {
@@ -413,7 +398,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady()
+        Navigation.waitForProtectedRoutes()
             .then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack(ROUTES.HOME);

@@ -34,6 +34,9 @@ const propTypes = {
 
     /** A ref to forward to MenuItemWithTopDescription */
     forwardedRef: refPropTypes,
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -45,9 +48,10 @@ const defaultProps = {
     errorText: '',
     furtherDetails: undefined,
     onInputChange: () => {},
+    shouldShowTooltips: true,
 };
 
-function ValuePicker({value, label, items, placeholder, errorText, onInputChange, furtherDetails, forwardedRef}) {
+function ValuePicker({value, label, items, placeholder, errorText, onInputChange, furtherDetails, shouldShowTooltips, forwardedRef}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -67,7 +71,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
         hidePickerModal();
     };
 
-    const descStyle = value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = _.find(items, {value});
     const selectedLabel = selectedItem ? selectedItem.label : '';
 
@@ -92,6 +96,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
                 items={items}
                 onClose={hidePickerModal}
                 onItemSelected={updateInput}
+                shouldShowTooltips={shouldShowTooltips}
             />
         </View>
     );

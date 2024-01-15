@@ -479,9 +479,11 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
-    ADMIN_POLICIES_URL: 'admin_policies',
-    ADMIN_DOMAINS_URL: 'admin_domains',
+    OLDDOT_URLS: {
+        ADMIN_POLICIES_URL: 'admin_policies',
+        ADMIN_DOMAINS_URL: 'admin_domains',
+        INBOX: 'inbox',
+    },
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -529,6 +531,7 @@ const CONST = {
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -602,6 +605,12 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
+        },
+        ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
+            INVITE: 'invited',
+        },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
             ACCOUNT_CLOSED: 'accountClosed',
@@ -632,18 +641,13 @@ const CONST = {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
-        STATE: {
-            OPEN: 'OPEN',
-            SUBMITTED: 'SUBMITTED',
-            PROCESSING: 'PROCESSING',
-        },
         STATE_NUM: {
             OPEN: 0,
-            PROCESSING: 1,
-            SUBMITTED: 2,
+            SUBMITTED: 1,
+            APPROVED: 2,
             BILLING: 3,
         },
-        STATUS: {
+        STATUS_NUM: {
             OPEN: 0,
             SUBMITTED: 1,
             CLOSED: 2,
@@ -1183,6 +1187,10 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
+        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
@@ -1448,7 +1456,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_OVERVIEW: 'WorkspaceGeneralSettings',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_CARD: 'WorkspaceCorporateCards',
         WORKSPACE_REIMBURSE: 'WorkspaceReimburseReceipts',
         WORKSPACE_BILLS: 'WorkspacePayBills',
@@ -2724,7 +2732,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -3068,7 +3076,6 @@ const CONST = {
     BRICK_ROAD: {
         GBR: 'info',
         RBR: 'error',
-
     },
     VIOLATIONS: {
         ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',

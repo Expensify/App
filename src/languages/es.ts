@@ -1,6 +1,8 @@
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -101,6 +103,7 @@ import type {
 export default {
     common: {
         cancel: 'Cancelar',
+        dismiss: 'Descartar',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -571,6 +574,8 @@ export default {
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
+        cancelPayment: 'Cancelar el pago',
+        cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
         canceled: 'Canceló',
@@ -582,7 +587,8 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
+        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
@@ -607,6 +613,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `El pago de ${amount} ha sido cancelado por el administrador.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1566,7 +1573,7 @@ export default {
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
-            subtitle: 'Administra gastos de empresa, emite tarjetas, envía facturas y mucho más.',
+            subtitle: 'En los espacios de trabajo podrás chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas, y mucho más - todo en un mismo lugar.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
@@ -1794,7 +1801,7 @@ export default {
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
-            canceled: 'tarea eliminado',
+            canceled: 'tarea eliminada',
             reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
@@ -2432,7 +2439,7 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
         reversedTransaction: '[Transacción anulada]',
-        deletedTask: '[Tarea eliminado]',
+        deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2445,6 +2452,10 @@ export default {
     qrCodes: {
         copy: 'Copiar',
         copied: '¡Copiado!',
+    },
+    actionableMentionWhisperOptions: {
+        invite: 'Invitar',
+        nothing: 'No hacer nada',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',

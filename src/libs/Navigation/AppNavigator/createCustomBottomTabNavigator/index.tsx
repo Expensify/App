@@ -2,7 +2,6 @@ import type {DefaultNavigatorOptions, ParamListBase, StackActionHelpers, StackNa
 import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,23 +13,6 @@ import TopBar from './TopBar';
 
 type CustomNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & {
     initialRouteName: string;
-};
-
-const propTypes = {
-    /* Children for the useNavigationBuilder hook */
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
-
-    /* initialRouteName for this navigator */
-    initialRouteName: PropTypes.oneOf([PropTypes.string, undefined]),
-
-    /* Screen options defined for this navigator */
-    // eslint-disable-next-line react/forbid-prop-types
-    screenOptions: PropTypes.object,
-};
-
-const defaultProps = {
-    initialRouteName: undefined,
-    screenOptions: undefined,
 };
 
 function getStateToRender(state: StackNavigationState<ParamListBase>): StackNavigationState<ParamListBase> {
@@ -84,8 +66,6 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
     );
 }
 
-CustomBottomTabNavigator.defaultProps = defaultProps;
-CustomBottomTabNavigator.propTypes = propTypes;
 CustomBottomTabNavigator.displayName = 'CustomBottomTabNavigator';
 
 export default createNavigatorFactory(CustomBottomTabNavigator);

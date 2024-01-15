@@ -8,6 +8,7 @@ import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRo
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
@@ -82,6 +83,12 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 
         // If there is central pane route in state and template state has one, we need to check if they are the same.
         if (topmostCentralPaneRouteExtracted && templateCentralPaneRouteExtracted && topmostCentralPaneRouteExtracted.name !== templateCentralPaneRouteExtracted.name) {
+            // Not every RHP screen has matching central pane defined. In that case we use the REPORT screen as default for initial screen.
+            // But we don't want to ovverride the central pane for those screens as they may be opened with different central panes under the overlay.
+            // e.g. i-know-a-teacher may be opened with different central panes under the overlay
+            if (templateCentralPaneRouteExtracted.name === SCREENS.REPORT) {
+                return;
+            }
             insertRootRoute(state, templateCentralPaneRoute);
         }
     }

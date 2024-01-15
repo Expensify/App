@@ -443,6 +443,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
+        textIvoryLight: {
+            color: theme.iconColorfulBackground,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
@@ -917,13 +921,6 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             paddingTop: 5,
             paddingBottom: 30,
-            marginBottom: -25,
-        },
-
-        offlineIndicatorBottomTabBar: {
-            paddingLeft: 20,
-            paddingTop: 5,
-            paddingBottom: 5,
             marginBottom: -25,
         },
 
@@ -1763,7 +1760,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -2306,6 +2303,15 @@ const styles = (theme: ThemeColors) =>
 
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+        },
+
+        forcedBlockingViewContainer: {
+            ...positioning.pFixed,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: theme.appBG,
         },
 
         defaultModalContainer: {
@@ -3410,6 +3416,13 @@ const styles = (theme: ThemeColors) =>
         emojiReactionBubbleText: {
             verticalAlign: 'middle',
         },
+
+        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                position: 'absolute',
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+                ...spacing.mh4,
+            } satisfies ViewStyle),
 
         reactionCounterText: {
             fontSize: 13,
