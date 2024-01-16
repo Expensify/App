@@ -1008,8 +1008,8 @@ function getTransparentColor(color: string) {
     return `${color}00`;
 }
 
-function getOpacityStyle(isHidden: boolean) {
-    return {opacity: isHidden ? 0 : 1};
+function getOpacityStyle(opacity: number) {
+    return {opacity};
 }
 
 const staticStyleUtils = {
