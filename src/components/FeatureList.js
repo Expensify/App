@@ -49,7 +49,6 @@ const defaultProps = {
 function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustration, illustrationBackgroundColor}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isLargeScreenWidth} = useWindowDimensions();
 
     return (
         <Section
@@ -62,7 +61,7 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
             illustrationStyle={{
                 // Pixel perfect vertical alignment for this particular
                 // animation. Other lottie files might not need it.
-                marginTop: 10,
+                marginTop: 12,
                 marginBottom: -20,
             }}
         >
@@ -70,7 +69,7 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
                 {_.map(menuItems, ({translationKey, icon}) => (
                     <View
                         key={translationKey}
-                        style={isLargeScreenWidth ? styles.mnw50 : styles.w100}
+                        style={styles.w100}
                     >
                         <MenuItem
                             title={translate(translationKey)}

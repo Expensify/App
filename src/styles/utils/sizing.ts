@@ -34,10 +34,6 @@ export default {
         minWidth: '25%',
     },
 
-    mnw50: {
-        minWidth: '50%',
-    },
-
     mnw120: {
         minWidth: 120,
     },
