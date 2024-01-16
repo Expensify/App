@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import transactionPropTypes from '@components/transactionPropTypes';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 
@@ -67,7 +68,11 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         transaction: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', 0)}`,
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
+                return `${userAction === CONST.IOU.ACTION.CREATE ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            },
         },
     })(WithFullTransactionOrNotFoundWithRef);
 }
