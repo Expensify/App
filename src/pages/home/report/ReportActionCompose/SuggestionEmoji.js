@@ -67,7 +67,7 @@ function SuggestionEmoji({
 
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, isAutoSuggestionPickerLarge),
+        maxIndex: suggestionValues.suggestedEmojis.length - 1,
         shouldExcludeTextAreaNodes: false,
     });
 

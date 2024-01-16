@@ -60,7 +60,7 @@ function SuggestionMention({
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedMentions.length, isAutoSuggestionPickerLarge),
+        maxIndex: suggestionValues.suggestedMentions.length - 1,
         shouldExcludeTextAreaNodes: false,
     });
 
