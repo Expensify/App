@@ -3,7 +3,8 @@ import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, St
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Session} from '@src/types/onyx';
 
-type ExpoImageSource = ImageSource | string | number | ImageSource[] | string[] | null;
+// type ExpoImageSource = ImageSource | string | number | ImageSource[] | string[] | null;
+type ExpoImageSource = ImageSource | number | ImageSource[];
 
 type ImageOnyxProps = {
     /** Session info for the currently logged in user. */
