@@ -82,8 +82,7 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
             onSubmit={onSubmit}
-            style={styles.flex1}
-            submitButtonStyles={styles.mh5}
+            style={[styles.flex1, styles.mh5]}
             validate={onValidate}
         >
             {children}

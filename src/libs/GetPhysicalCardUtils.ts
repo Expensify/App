@@ -87,3 +87,4 @@ function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCard
 }
 
 export {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute, setCurrentRoute};
+export type {PrivatePersonalDetails};

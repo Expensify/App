@@ -75,7 +75,6 @@ function GetPhysicalCardName({
                 role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="words"
                 defaultValue={legalFirstName}
-                containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
              <InputWrapper
@@ -88,7 +87,7 @@ function GetPhysicalCardName({
                 role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="words"
                 defaultValue={legalLastName}
-                containerStyles={[styles.mt5, styles.mh5]}
+                containerStyles={styles.mt5}
                 shouldSaveDraft
             />
         </BaseGetPhysicalCard>

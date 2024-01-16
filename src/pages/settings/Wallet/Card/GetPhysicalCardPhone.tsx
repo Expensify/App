@@ -6,7 +6,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -33,7 +32,6 @@ function GetPhysicalCardPhone({
     },
     draftValues,
 }: GetPhysicalCardPhoneProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {phoneNumber = ''} = draftValues ?? {};
@@ -70,7 +68,6 @@ function GetPhysicalCardPhone({
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={phoneNumber}
-                containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
         </BaseGetPhysicalCard>
