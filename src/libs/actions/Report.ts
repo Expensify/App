@@ -306,7 +306,7 @@ function addActions(reportID: string, text = '', file?: File) {
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
-    const currentTime = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTimeWithSkew();
     const lastComment = lastAction?.message?.[0];
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
@@ -341,6 +341,7 @@ function addActions(reportID: string, text = '', file?: File) {
         reportComment?: string;
         file?: File;
         timezone?: string;
+        shouldAllowActionableMentionWhispers?: boolean;
         clientCreatedTime?: string;
     };
 
@@ -350,6 +351,7 @@ function addActions(reportID: string, text = '', file?: File) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
+        shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
@@ -369,7 +371,7 @@ function addActions(reportID: string, text = '', file?: File) {
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey]) => {
-        successReportActions[actionKey] = {pendingAction: null};
+        successReportActions[actionKey] = {pendingAction: null, isOptimisticAction: null};
     });
 
     const successData: OnyxUpdate[] = [
@@ -739,7 +741,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
             '',
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            ReportUtils.getChildReportNotificationPreference(parentReportAction),
             parentReportAction.reportActionID,
             parentReportID,
         );
@@ -940,6 +942,7 @@ function readNewestAction(reportID: string) {
     };
 
     API.write('ReadNewestAction', parameters, {optimisticData});
+    DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
 /**
@@ -2092,8 +2095,8 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                   }
                 : {
                       reportID: null,
-                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                      statusNum: CONST.REPORT.STATUS.CLOSED,
+                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                   },
         },
@@ -2120,6 +2123,24 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         },
     ];
 
+    if (report.parentReportID && report.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: report.notificationPreference}},
+        });
+    }
+
     type LeaveRoomParameters = {
         reportID: string;
     };
@@ -2134,6 +2155,8 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
+            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }
@@ -2152,6 +2175,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
         (accountID): accountID is number => typeof accountID === 'number',
     );
+    const visibleMemberAccountIDsAfterInvitation = [...new Set([...(report?.visibleChatMemberAccountIDs ?? []), ...inviteeAccountIDs])].filter(
+        (accountID): accountID is number => typeof accountID === 'number',
+    );
 
     type PersonalDetailsOnyxData = {
         optimisticData: OnyxUpdate[];
@@ -2168,6 +2194,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
+                visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
@@ -2181,6 +2208,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: report.participantAccountIDs,
+                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
             },
         },
         ...newPersonalDetailsOnyxData.failureData,
@@ -2204,6 +2232,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = allReports?.[reportID];
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2211,6 +2240,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
             },
         },
     ];
@@ -2221,6 +2251,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
+                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
             },
         },
     ];
@@ -2233,6 +2264,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
             },
         },
     ];
@@ -2411,6 +2443,10 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 
 /** Fetches all the private notes for a given report */
 function getReportPrivateNote(reportID: string) {
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
     if (!reportID) {
         return;
     }
@@ -2551,6 +2587,60 @@ function clearNewRoomFormError() {
     });
 }
 
+function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
+    const message = reportAction?.message?.[0];
+    if (!message) {
+        return;
+    }
+
+    const updatedMessage: Message = {
+        ...message,
+        resolution,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    message: [updatedMessage],
+                    originalMessage: {
+                        resolution,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    message: [message],
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    type ResolveActionableMentionWhisperParams = {
+        reportActionID: string;
+        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
+    };
+
+    const parameters: ResolveActionableMentionWhisperParams = {
+        reportActionID: reportAction.reportActionID,
+        resolution,
+    };
+
+    API.write('ResolveActionableMentionWhisper', parameters, {optimisticData, failureData});
+}
+
 export {
     searchInServer,
     addComment,
@@ -2615,4 +2705,5 @@ export {
     getDraftPrivateNote,
     updateLastVisitTime,
     clearNewRoomFormError,
+    resolveActionableMentionWhisper,
 };

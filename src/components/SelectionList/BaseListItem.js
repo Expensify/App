@@ -24,6 +24,7 @@ function BaseListItem({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
+    rightHandSideComponent,
     keyForList,
 }) {
     const theme = useTheme();
@@ -32,6 +33,18 @@ function BaseListItem({
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
+
+    const rightHandSideComponentRender = () => {
+        if (canSelectMultiple || !rightHandSideComponent) {
+            return null;
+        }
+
+        if (typeof rightHandSideComponent === 'function') {
+            return rightHandSideComponent(item);
+        }
+
+        return rightHandSideComponent;
+    };
 
     return (
         <OfflineWithFeedback
@@ -62,7 +75,10 @@ function BaseListItem({
                     ]}
                 >
                     {canSelectMultiple && (
-                        <View style={StyleUtils.getCheckboxPressableStyle()}>
+                        <View
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            style={StyleUtils.getCheckboxPressableStyle()}
+                        >
                             <View
                                 style={[
                                     StyleUtils.getCheckboxContainerStyle(20),
@@ -89,15 +105,16 @@ function BaseListItem({
                         textStyles={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
+                            isUserItem || item.isSelected || item.alternateText ? styles.sidebarLinkTextBold : null,
                             styles.pre,
+                            item.alternateText ? styles.mb1 : null,
                         ]}
                         alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
                     />
-                    {!canSelectMultiple && item.isSelected && (
+                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -110,6 +127,7 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
+                    {rightHandSideComponentRender()}
                 </View>
                 {Boolean(item.invitedSecondaryLogin) && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>

@@ -1,5 +1,7 @@
 import React from 'react';
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -17,7 +19,7 @@ type ShowContextMenu = (
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: RNText | null,
+    contextMenuAnchor: View | RNText | null,
     reportID?: string,
     reportActionID?: string,
     originalReportID?: string,
@@ -39,6 +41,7 @@ type ReportActionContextMenu = {
     instanceID: string;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
+    contentRef: RefObject<View>;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
@@ -94,7 +97,7 @@ function showContextMenu(
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: RNText | null,
+    contextMenuAnchor: View | RNText | null,
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',

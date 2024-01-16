@@ -1,11 +1,12 @@
 import React, {useMemo} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import CONST from '@src/CONST';
 import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import RenderHTML from './RenderHTML';
+import Text from './Text';
 
 type MoneyReportHeaderStatusBarProps = {
     /** The next step for the report */
