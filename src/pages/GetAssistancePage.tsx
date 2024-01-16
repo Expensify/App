@@ -1,3 +1,4 @@
+import {RouteProp} from '@react-navigation/native';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,10 +16,9 @@ import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Account } from '@src/types/onyx';
-import { RouteProp } from '@react-navigation/native';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {Account} from '@src/types/onyx';
 
 type GetAssistanceOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -26,13 +26,14 @@ type GetAssistanceOnyxProps = {
 };
 
 type GetAssistancePageProps = GetAssistanceOnyxProps & {
+    /** Route object from navigation */
     route: RouteProp<{params: {backTo: Route}}>;
 };
 
 function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigateBackTo: Route = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS
+    const navigateBackTo: Route = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS;
     const menuItems = [
         {
             title: translate('getAssistancePage.chatWithConcierge'),
@@ -52,8 +53,8 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
         },
     ];
 
-    const guideCalendarLink = account?.guideCalendarLink
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
+    const guideCalendarLink = account?.guideCalendarLink;
     if (guideCalendarLink) {
         menuItems.splice(1, 0, {
             title: translate('getAssistancePage.scheduleSetupCall'),
@@ -62,7 +63,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
-            link: guideCalendarLink
+            link: guideCalendarLink,
         });
     }
 
@@ -94,4 +95,4 @@ export default withOnyx<GetAssistancePageProps, GetAssistanceOnyxProps>({
         key: ONYXKEYS.ACCOUNT,
         selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
     },
-})(GetAssistancePage)
+})(GetAssistancePage);
