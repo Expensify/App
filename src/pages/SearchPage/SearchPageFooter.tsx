@@ -9,12 +9,16 @@ function SearchPageFooter() {
     const themeStyles = useThemeStyles();
 
     return (
-        <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
-            <ReferralProgramCTA
-                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
-                onCloseButtonPress={() => setShouldShowReferralCTA(false)}
-            />
-        </View>
+        <>
+            {shouldShowReferralCTA && (
+                <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
+                    <ReferralProgramCTA
+                        referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
+                        onCloseButtonPress={() => setShouldShowReferralCTA(false)}
+                    />
+                </View>
+            )}
+        </>
     );
 }
 
