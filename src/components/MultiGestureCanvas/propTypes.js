@@ -61,11 +61,8 @@ const multiGestureCanvasPropTypes = {
      */
     shouldDisableTransformationGestures: PropTypes.shape({value: PropTypes.bool}),
 
-    /**
-     *  A ref to an external gesture handler, like a PagerView from `react-native-pager-view`
-     *  Used to disable the pan, pinch and double tap gesture when the user is swiping between pages
-     */
-    externalGestureRef: refPropTypes,
+    /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
+    pagerRef: refPropTypes, // TODO: For TS migration: Exclude<GestureRef, number>
 
     /** Content that should be transformed inside the canvas (images, pdf, ...) */
     children: PropTypes.node.isRequired,
