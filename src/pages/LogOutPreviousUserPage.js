@@ -9,6 +9,8 @@ import * as SessionUtils from '@libs/SessionUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import Navigation from '@libs/Navigation/Navigation';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -59,11 +61,19 @@ function LogOutPreviousUserPage(props) {
                 const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
-        });
 
-        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initUrl]);
+            const exitTo = lodashGet(props, 'route.params.exitTo', '');
+            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+            // which is already called when AuthScreens mounts.
+            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.goBack();
+                    Navigation.navigate(exitTo);
+                });
+            }
+        });
+    }, [initUrl, props]);
 
     return <FullScreenLoadingIndicator />;
 }

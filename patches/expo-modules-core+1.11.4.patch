@@ -1,9 +1,9 @@
 diff --git a/node_modules/expo-modules-core/android/build.gradle b/node_modules/expo-modules-core/android/build.gradle
-index 8f9e0dc..af5b5d6 100644
+index 3603ffd..1599a69 100644
 --- a/node_modules/expo-modules-core/android/build.gradle
 +++ b/node_modules/expo-modules-core/android/build.gradle
-@@ -54,9 +54,10 @@ def downloadsDir = customDownloadsDir ? new File(customDownloadsDir) : new File(
- def thirdPartyNdkDir = new File("$buildDir/third-party-ndk")
+@@ -53,9 +53,10 @@ def isExpoModulesCoreTests = {
+ }.call()
  
  def REACT_NATIVE_BUILD_FROM_SOURCE = findProject(":packages:react-native:ReactAndroid") != null
 +def FALLBACK_REACT_NATIVE_DIR = hasProperty("reactNativeProject") ? file('../../react-native') : new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).parent
@@ -11,6 +11,6 @@ index 8f9e0dc..af5b5d6 100644
    ? findProject(":packages:react-native:ReactAndroid").getProjectDir().parent
 -  : new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).parent
 +  : FALLBACK_REACT_NATIVE_DIR
- def REACT_NATIVE_SO_DIR = REACT_NATIVE_BUILD_FROM_SOURCE
-   ? Paths.get(findProject(":packages:react-native:ReactAndroid").getProjectDir().toString(), "build", "intermediates", "library_*", "*", "jni")
-   : "${buildDir}/react/jni"
+ 
+ def reactProperties = new Properties()
+ file("$REACT_NATIVE_DIR/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
