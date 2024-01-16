@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Linking, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -194,7 +194,6 @@ function ReportScreen({
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const isOldDotConciergeRef = useRef(false);
 
     useEffect(() => {
         if (!report || !report.reportID || shouldHideReport) {
@@ -351,9 +350,6 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
-        Linking.getInitialURL().then((url) => {
-            isOldDotConciergeRef.current = ReportUtils.isOldDotConciergeChat(url, report);
-        });
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
