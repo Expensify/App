@@ -3405,7 +3405,6 @@ function cancelPayment(expenseReport, chatReport) {
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
                           ...chatReport,
-                          hasOutstandingIOU: true,
                           hasOutstandingChildRequest: true,
                           iouReportID: expenseReport.reportID,
                       },
@@ -3449,7 +3448,6 @@ function cancelPayment(expenseReport, chatReport) {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
-                          hasOutstandingIOU: false,
                           hasOutstandingChildRequest: false,
                           iouReportID: 0,
                       },
