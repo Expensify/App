@@ -1,8 +1,14 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
+import {Button, Text, View} from 'react-native';
 import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 
-function MockSubStepComponent() {}
-function MockSubStepComponent2() {}
+function MockSubStepComponent({screenIndex}: SubStepProps) {
+    return <Text>{screenIndex}</Text>;
+}
+function MockSubStepComponent2({screenIndex}: SubStepProps) {
+    return <Text>{screenIndex}</Text>;
+}
 
 const mockOnFinished = jest.fn();
 
@@ -25,7 +31,9 @@ describe('useSubStep hook', () => {
 
         const {nextScreen} = result.current;
 
-        nextScreen();
+        act(() => {
+            nextScreen();
+        });
 
         expect(mockOnFinished).toHaveBeenCalledTimes(1);
     });
@@ -35,9 +43,11 @@ describe('useSubStep hook', () => {
 
         const {moveTo} = result.current;
 
-        moveTo(0);
+        act(() => {
+            moveTo(0);
+        });
 
-        rerender();
+        rerender({});
 
         const {componentToRender} = result.current;
 
@@ -50,9 +60,12 @@ describe('useSubStep hook', () => {
         const {prevScreen, screenIndex} = result.current;
 
         expect(screenIndex).toBe(1);
-        prevScreen();
 
-        rerender();
+        act(() => {
+            prevScreen();
+        });
+
+        rerender({});
 
         const {componentToRender, screenIndex: newScreenIndex} = result.current;
         expect(newScreenIndex).toBe(0);
@@ -68,9 +81,11 @@ describe('useSubStep hook', () => {
         expect(screenIndex).toBe(0);
         expect(componentToRender).toBe(MockSubStepComponent2);
 
-        prevScreen();
+        act(() => {
+            prevScreen();
+        });
 
-        rerender();
+        rerender({});
 
         const {componentToRender: newComponentToRender, screenIndex: newScreenIndex} = result.current;
 
