@@ -1,3 +1,4 @@
+import {get} from 'lodash';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
@@ -13,7 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '@components/OnyxProvider';
+import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
@@ -77,6 +78,14 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
+const getDraftMessage = (drafts: OnyxTypes.ReportActionsDrafts, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
+    console.log('getDraftMessage', drafts);
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
+    const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
+    return drafts?.[draftKey]?.[props.action.reportActionID]?.message;
+    // return drafts[draftKey].
+};
+
 type ReportActionItemOnyxProps = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: OnyxEntry<string | number>;
@@ -115,7 +124,7 @@ type ReportActionItemProps = {
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
-    /** Draft message - if this is set the comment is in 'edit' mode */
+    // /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage?: string;
 
     /** Flag to show, hide the thread divider line */
@@ -123,7 +132,7 @@ type ReportActionItemProps = {
 
     linkedReportActionID?: string;
 
-    blockedFromConcierge: OnyxTypes.BlockedFromConcierge;
+    blockedFromConcierge?: boolean;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is ReportActionBase & OriginalMessageIOU => actionObj?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -148,6 +157,10 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const blockedFromConciergeTest = useBlockedFromConcierge();
+    const reportActionDrafts = useReportActionsDrafts();
+    const draftMessageTest = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
+    console.log({blockedFromConciergeTest, draftMessageTest, blockedFromConcierge, draftMessage});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -783,13 +796,13 @@ function ReportActionItem({
 }
 
 export default compose(
-    withNetwork(),
     withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
             const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
+            console.log({drafts});
             return drafts?.[draftKey]?.[props.action.reportActionID]?.message;
         },
     }),
