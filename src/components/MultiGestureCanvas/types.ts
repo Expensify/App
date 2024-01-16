@@ -19,7 +19,7 @@ type ZoomRange = {
 };
 
 /** Triggered whenever the scale of the MultiGestureCanvas changes */
-type OnScaleChangedCallback = ((zoomScale: number) => void) | undefined;
+type OnScaleChangedCallback = (zoomScale: number) => void;
 
 /** Triggered when the canvas is tapped (single tap) */
 type OnTapCallback = (() => void) | undefined;
