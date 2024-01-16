@@ -276,13 +276,15 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
-                    onBlur={() => {
-                        if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                            return;
-                        }
-                        firstBlurred.current = true;
-                        validate(login);
-                    }}
+                    onBlur={() =>
+                        setTimeout(() => {
+                            if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                return;
+                            }
+                            firstBlurred.current = true;
+                            validate(login);
+                        }, 500)
+                    }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
@@ -332,10 +334,10 @@ function LoginForm(props) {
                                     </Text>
 
                                     <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <AppleSignIn />
                                         </View>
-                                        <View onMouseDown={(e) => e.preventDefault()}>
+                                        <View>
                                             <GoogleSignIn />
                                         </View>
                                     </View>
