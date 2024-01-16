@@ -45,7 +45,6 @@ function WorkspaceInvoicesFirstSection({policyID}: WorkspaceInvoicesFirstSection
                     link: () => Link.buildOldDotURL(viewAllInvoicesUrl),
                 },
             ]}
-            containerStyles={[styles.cardSection]}
         >
             <View style={[styles.mv3]}>
                 <Text>{translate('workspace.invoices.invoiceFirstSectionCopy')}</Text>

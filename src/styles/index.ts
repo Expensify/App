@@ -2957,14 +2957,6 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
-        workspaceFeatureList: {
-            width: 525,
-        },
-
-        newWorkspaceButton: {
-            width: 472,
-        },
-
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },

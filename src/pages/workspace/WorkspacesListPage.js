@@ -296,34 +296,16 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 style={!isSmallScreenWidth && styles.alignItemsCenter}
                 shouldShowBackButton={isSmallScreenWidth}
                 shouldShowOfflineIndicatorInWideScreen
-                footer={
-                    isSmallScreenWidth && (
-                        <Button
-                            accessibilityLabel={translate('workspace.new.newWorkspace')}
-                            success
-                            text={translate('workspace.new.newWorkspace')}
-                            onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                        />
-                    )
-                }
             >
-                <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
+                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <FeatureList
                         menuItems={workspaceFeatures}
-                        headline="workspace.emptyWorkspace.title"
-                        description="workspace.emptyWorkspace.subtitle"
+                        title={translate('workspace.emptyWorkspace.title')}
+                        subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                        ctaText={translate('workspace.new.newWorkspace')}
+                        onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                     />
                 </View>
-
-                {!isSmallScreenWidth && (
-                    <Button
-                        accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        style={[styles.newWorkspaceButton, styles.alignSelfCenter]}
-                        success
-                        text={translate('workspace.new.newWorkspace')}
-                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                    />
-                )}
             </IllustratedHeaderPageLayout>
         );
     }
