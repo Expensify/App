@@ -1,4 +1,4 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
