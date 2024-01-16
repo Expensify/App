@@ -1423,6 +1423,18 @@ function openWorkspaceReimburseView(policyID) {
     API.read('OpenWorkspaceReimburseView', {policyID}, onyxData);
 }
 
+function openWorkspace(policyID, clientMemberAccountIDs) {
+    if (!policyID || !clientMemberAccountIDs) {
+        Log.warn('openWorkspace invalid params', {policyID, clientMemberAccountIDs});
+        return;
+    }
+
+    API.read('OpenWorkspace', {
+        policyID,
+        clientMemberAccountIDs: JSON.stringify(clientMemberAccountIDs),
+    });
+}
+
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -1945,6 +1957,7 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
+    openWorkspace,
     removeWorkspace,
     createWorkspaceFromIOUPayment,
     setWorkspaceInviteMembersDraft,

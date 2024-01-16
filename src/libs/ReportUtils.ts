@@ -621,10 +621,15 @@ function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean 
 }
 
 /**
- * Given a collection of reports returns them sorted by last read
+ * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID, if provided.
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
-    return Object.values(reports ?? {})
+function sortReportsByLastRead(reports: OnyxCollection<Report>, reportMetadata: OnyxCollection<ReportMetadata>, policyID?: string): Array<OnyxEntry<Report>> {
+    let reportsValues = Object.values(reports ?? {});
+    if (policyID) {
+        reportsValues = reportsValues.filter((report) => report?.policyID === policyID);
+    }
+
+    return reportsValues
         .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {
             const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
@@ -901,13 +906,14 @@ function findLastAccessedReport(
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
     reportMetadata: OnyxCollection<ReportMetadata> = {},
+    policyID?: string,
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports, reportMetadata);
+    let sortedReports = sortReportsByLastRead(reports, reportMetadata, policyID);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {

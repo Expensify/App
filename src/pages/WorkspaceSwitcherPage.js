@@ -7,6 +7,7 @@ import _ from 'underscore';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
 import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -26,7 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
@@ -66,7 +66,7 @@ function WorkspaceSwitcherPage({policies}) {
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
@@ -112,9 +112,10 @@ function WorkspaceSwitcherPage({policies}) {
         } else {
             setSelectedOption(undefined);
         }
-        // Temporary: This will be handled in custom navigation function that also puts policyID in BottomTabNavigator state
+        setActiveWorkspaceID(policyID);
         Navigation.goBack();
         Navigation.navigate(`${pathPrefix}${ROUTES.HOME}`);
+        Navigation.navigate(ROUTES.REPORT);
     }, []);
 
     const onChangeText = useCallback((newSearchTerm) => {
