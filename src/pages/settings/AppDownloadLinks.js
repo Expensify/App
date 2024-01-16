@@ -58,7 +58,7 @@ function AppDownloadLinksPage(props) {
         <ScreenWrapper testID={AppDownloadLinksPage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.mt3]}>
                 {_.map(menuItems, (item) => (
