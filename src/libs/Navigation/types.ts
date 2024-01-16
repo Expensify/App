@@ -3,6 +3,7 @@ import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import type {Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -241,12 +242,6 @@ type MoneyRequestNavigatorParamList = {
         waypointIndex: string;
         threadReportID: number;
     };
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: number;
-    };
     [SCREENS.MONEY_REQUEST.DISTANCE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
@@ -384,10 +379,11 @@ type RightModalNavigatorParamList = {
 type PublicScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
+        email?: string;
+        error?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
+        exitTo?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

@@ -1,7 +1,9 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -73,6 +75,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
@@ -110,6 +113,7 @@ type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 export default {
     common: {
         cancel: 'Cancel',
+        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -481,7 +485,12 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: '\n\nYou can also use the + button to send money, request money, or assign a task!',
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
+        iouTypes: {
+            send: 'send money',
+            split: 'split a bill',
+            request: 'request money',
+        },
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -567,6 +576,8 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
+        cancelPayment: 'Cancel payment',
+        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
@@ -578,7 +589,8 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} requests${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
+        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}`,
         deleteRequest: 'Delete request',
         deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
@@ -603,6 +615,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `The ${amount} payment has been cancelled by the admin.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -635,6 +648,7 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
             genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
+            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
@@ -1557,7 +1571,7 @@ export default {
             noVBACopy: 'Connect a bank account to issue Expensify Cards to your workspace members, and access these incredible benefits and more:',
             VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
             VBAWithECardCopy: 'Access these incredible benefits and more:',
-            benefit1: 'Up to 4% cash back',
+            benefit1: 'Up to 2% cash back',
             benefit2: 'Digital and physical cards',
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
@@ -1959,6 +1973,10 @@ export default {
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
+    actionableMentionWhisperOptions: {
+        invite: 'Invite them',
+        nothing: 'Do nothing',
+    },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
         joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
@@ -2029,30 +2047,30 @@ export default {
             buttonText1: 'Start a chat, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
+            body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Request money, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `It pays to get paid! Request money from a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
+            body: `It pays to get paid! Request money from a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Send money, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Send money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `You gotta send money to make money! Send money to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
+            body: `You gotta send money to make money! Send money to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Invite a friend, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Start a chat, send or request money, split a bill, or share your invite link below with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer. Learn more ways to earn below.`,
+            body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Start a chat, send or request money, split a bill, or share your invite link below with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer. Learn more ways to earn below.`,
+            body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
         },
         copyReferralLink: 'Copy invite link',
     },
