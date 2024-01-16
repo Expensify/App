@@ -17,9 +17,7 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style ?? {});
 
-    /**
-     * Get the defalult fontFamily variant
-     * */
+    /** Get the default fontFamily variant */
     const font = StyleUtils.getFontFamilyMonospace({
         fontStyle: undefined,
         fontWeight: undefined,
