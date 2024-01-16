@@ -130,7 +130,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RECONNECT_APP]: ReconnectAppParams;
     [WRITE_COMMANDS.OPEN_PROFILE]: OpenProfileParams;
     [WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT]: HandleRestrictedEventParams;
-    [WRITE_COMMANDS.OPEN_REPORT]: HandleRestrictedEventParams;
+    [WRITE_COMMANDS.OPEN_REPORT]: OpenReportParams;
 };
 
 const READ_COMMANDS = {

@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -142,7 +142,7 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
         fundID,
     };
 
-    API.write('MakeDefaultPaymentMethod', parameters, {
+    API.write(WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD, parameters, {
         optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true),
         failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
     });
@@ -204,7 +204,7 @@ function addPaymentCard(params: PaymentCardParams) {
         },
     ];
 
-    API.write('AddPaymentCard', parameters, {
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -270,7 +270,7 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         },
     ];
 
-    API.write('TransferWalletBalance', parameters, {
+    API.write(WRITE_COMMANDS.TRANSFER_WALLET_BALANCE, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -372,7 +372,7 @@ function deletePaymentCard(fundID: number) {
         },
     ];
 
-    API.write('DeletePaymentCard', parameters, {
+    API.write(WRITE_COMMANDS.DELETE_PAYMENT_CARD, parameters, {
         optimisticData,
     });
 }

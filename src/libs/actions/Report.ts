@@ -19,7 +19,7 @@ import type {
     OpenRoomMembersPageParams,
     SearchForReportsParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -298,7 +298,7 @@ function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
     let reportCommentAction: Partial<ReportAction> | undefined;
     let attachmentAction: Partial<ReportAction> | undefined;
-    let commandName = 'AddComment';
+    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text) {
         const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
@@ -309,7 +309,7 @@ function addActions(reportID: string, text = '', file?: File) {
     if (file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
-        commandName = 'AddAttachment';
+        commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         const attachment = ReportUtils.buildOptimisticAddCommentReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
@@ -666,7 +666,7 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
     }
 }
 
@@ -798,7 +798,7 @@ function reconnect(reportID: string) {
         reportID,
     };
 
-    API.write('ReconnectToReport', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RECONNECT_TO_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -923,7 +923,7 @@ function readNewestAction(reportID: string) {
         lastReadTime,
     };
 
-    API.write('ReadNewestAction', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
     DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
@@ -969,7 +969,7 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
         lastReadTime,
     };
 
-    API.write('MarkAsUnread', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
@@ -996,7 +996,7 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
         pinnedValue,
     };
 
-    API.write('TogglePinnedChat', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.TOGGLE_PINNED_CHAT, parameters, {optimisticData});
 }
 
 /**
@@ -1189,7 +1189,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         reportActionID,
     };
 
-    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1344,7 +1344,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
         reportActionID,
     };
 
-    API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /** Deletes the draft for a comment report action. */
@@ -1416,7 +1416,7 @@ function updateNotificationPreference(
 
     const parameters: UpdateReportNotificationPreferenceParameters = {reportID, notificationPreference: newValue};
 
-    API.write('UpdateReportNotificationPreference', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE, parameters, {optimisticData, failureData});
     if (navigate && isNotEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
@@ -1496,7 +1496,7 @@ function updateWelcomeMessage(reportID: string, previousValue: string, newValue:
 
     const parameters: UpdateWelcomeMessageParameters = {reportID, welcomeMessage: parsedWelcomeMessage};
 
-    API.write('UpdateWelcomeMessage', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE, parameters, {optimisticData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
@@ -1528,7 +1528,7 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 
     const parameters: UpdateReportWriteCapabilityParameters = {reportID: report.reportID, writeCapability: newValue};
 
-    API.write('UpdateReportWriteCapability', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY, parameters, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
@@ -1646,7 +1646,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
         welcomeMessage: policyReport.welcomeMessage,
     };
 
-    API.write('AddWorkspaceRoom', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
     Navigation.dismissModal(policyReport.reportID);
 }
 
@@ -1743,7 +1743,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
 
     const parameters: UpdatePolicyRoomNameParameters = {reportID, policyRoomName};
 
-    API.write('UpdatePolicyRoomName', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
@@ -1922,7 +1922,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         useEmojiReactions: true,
     };
 
-    API.write('AddEmojiReaction', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1959,7 +1959,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         useEmojiReactions: true,
     };
 
-    API.write('RemoveEmojiReaction', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
 }
 
 /**
@@ -2131,7 +2131,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         reportID,
     };
 
-    API.write('LeaveRoom', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
 
     if (isWorkspaceMemberLeavingWorkspaceRoom) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
@@ -2206,7 +2206,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         inviteeEmails,
     };
 
-    API.write('InviteToRoom', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
 /** Removes people from a room */
@@ -2261,7 +2261,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
         targetAccountIDs,
     };
 
-    API.write('RemoveFromRoom', parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
 function setLastOpenedPublicRoom(reportID: string) {
@@ -2363,7 +2363,7 @@ function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, se
         isDevRequest: Environment.isDevelopment(),
     };
 
-    API.write('FlagComment', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.FLAG_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /** Updates a given user's private notes on a report */
@@ -2420,7 +2420,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
 
     const parameters: UpdateReportPrivateNoteParameters = {reportID, privateNotes: note};
 
-    API.write('UpdateReportPrivateNote', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 };
 
 /** Fetches all the private notes for a given report */
@@ -2608,7 +2608,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         resolution,
     };
 
-    API.write('ResolveActionableMentionWhisper', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
 export {

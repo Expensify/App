@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {AuthenticatePusherParams, BeginSignInParams, SignInWithShortLivedAuthTokenParams} from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import HttpUtils from '@libs/HttpUtils';
@@ -89,7 +89,7 @@ function signOut() {
         shouldRetry: false,
     };
 
-    API.write('LogOut', params);
+    API.write(WRITE_COMMANDS.LOG_OUT, params);
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
@@ -185,7 +185,7 @@ function resendValidationLink(login = credentials.login) {
 
     const params: ResendValidationLinkParams = {email: login};
 
-    API.write('RequestAccountValidationLink', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -218,7 +218,7 @@ function resendValidateCode(login = credentials.login) {
 
     const params: RequestNewValidateCodeParams = {email: login};
 
-    API.write('RequestNewValidateCode', params, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
 }
 
 type OnyxData = {
@@ -300,7 +300,7 @@ function beginAppleSignIn(idToken: string | undefined | null) {
 
     const params: BeginAppleSignInParams = {idToken, preferredLocale};
 
-    API.write('SignInWithApple', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -317,7 +317,7 @@ function beginGoogleSignIn(token: string | null) {
 
     const params: BeginGoogleSignInParams = {token, preferredLocale};
 
-    API.write('SignInWithGoogle', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -446,7 +446,7 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
             params.validateCode = validateCode || credentials.validateCode;
         }
 
-        API.write('SigninUser', params, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
@@ -528,7 +528,7 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
             deviceInfo,
         };
 
-        API.write('SigninUserWithLink', params, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK, params, {optimisticData, successData, failureData});
     });
 }
 
@@ -738,7 +738,7 @@ function requestUnlinkValidationLink() {
 
     const params: RequestUnlinkValidationLinkParams = {email: credentials.login};
 
-    API.write('RequestUnlinkValidationLink', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
 
 function unlinkLogin(accountID: number, validateCode: string) {
@@ -789,7 +789,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
         validateCode,
     };
 
-    API.write('UnlinkLogin', params, {
+    API.write(WRITE_COMMANDS.UNLINK_LOGIN, params, {
         optimisticData,
         successData,
         failureData,

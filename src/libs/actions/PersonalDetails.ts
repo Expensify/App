@@ -3,7 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {OpenPublicProfilePageParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -115,7 +115,7 @@ function updatePronouns(pronouns: string) {
 
         const parameters: UpdatePronounsParams = {pronouns};
 
-        API.write('UpdatePronouns', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -142,7 +142,7 @@ function updateDisplayName(firstName: string, lastName: string) {
 
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
-        API.write('UpdateDisplayName', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -173,7 +173,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
 
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
 
-    API.write('UpdateLegalName', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -199,7 +199,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
 
     const parameters: UpdateDateOfBirthParams = {dob};
 
-    API.write('UpdateDateOfBirth', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -240,7 +240,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         parameters.addressStateLong = state;
     }
 
-    API.write('UpdateHomeAddress', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -282,7 +282,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
         timezone: JSON.stringify(formatedTimezone),
     };
 
-    API.write('UpdateAutomaticTimezone', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -315,7 +315,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
     };
 
     if (currentUserAccountID) {
-        API.write('UpdateSelectedTimezone', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -481,7 +481,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
 
     const parameters: UpdateUserAvatarParams = {file};
 
-    API.write('UpdateUserAvatar', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -524,7 +524,7 @@ function deleteAvatar() {
 
     const parameters: DeleteUserAvatarParams = {};
 
-    API.write('DeleteUserAvatar', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, parameters, {optimisticData, failureData});
 }
 
 /**

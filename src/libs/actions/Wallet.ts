@@ -2,7 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,7 +112,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         },
     ];
 
-    API.write('UpdatePersonalDetailsForWallet', personalDetails, {
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET, personalDetails, {
         optimisticData,
         finallyData,
     });
@@ -165,7 +165,7 @@ function verifyIdentity(parameters: IdentityVerification) {
             },
         },
     ];
-    API.write('VerifyIdentity', parameters, {
+    API.write(WRITE_COMMANDS.VERIFY_IDENTITY, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -219,7 +219,7 @@ function acceptWalletTerms(parameters: WalletTerms) {
 
     const requestParams: WalletTerms = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.reportID};
 
-    API.write('AcceptWalletTerms', requestParams, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ACCEPT_WALLET_TERMS, requestParams, {optimisticData, successData, failureData});
 }
 
 /**
@@ -273,7 +273,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
         idNumber,
     };
 
-    API.write('AnswerQuestionsForWallet', requestParams, {
+    API.write(WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET, requestParams, {
         optimisticData,
         finallyData,
     });
@@ -328,7 +328,7 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
         },
     ];
 
-    API.write('RequestPhysicalExpensifyCard', requestParams, {optimisticData});
+    API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
 }
 
 export {

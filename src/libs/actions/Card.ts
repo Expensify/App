@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {RevealExpensifyCardDetailsParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +49,7 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
         cardID,
     };
 
-    API.write('ReportVirtualExpensifyCardFraud', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -99,7 +99,7 @@ function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReas
         reason,
     };
 
-    API.write('RequestReplacementExpensifyCard', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -153,7 +153,7 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    API.write('ActivatePhysicalExpensifyCard', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
 }
 
 /**

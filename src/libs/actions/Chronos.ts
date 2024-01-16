@@ -1,6 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ChronosOOOEvent} from '@src/types/onyx/OriginalMessage';
@@ -47,7 +48,7 @@ const removeEvent = (reportID: string, reportActionID: string, eventID: string, 
     ];
 
     API.write(
-        'Chronos_RemoveOOOEvent',
+        WRITE_COMMANDS.CHRONOS_REMOVE_OOO_EVENT,
         {
             googleEventID: eventID,
             reportActionID,
