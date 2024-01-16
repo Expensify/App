@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import EmailUtils from './EmailUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportUtils from './ReportUtils';
 
 let currentUserAccountID: number | undefined;
@@ -44,108 +45,229 @@ function parseMessage(messages: Message[] | undefined) {
     return `<next-step>${formattedHtml}</next-step>`;
 }
 
+type BuildNextStepParameters = {
+    isPaidWithWallet?: boolean;
+};
+
 /**
+ * Generates an optimistic nextStep based on a current report status and other properties.
  *
  * @param report
- * @param isPaidWithWallet - Whether a report has been paid with wallet or outside of Expensify
- * @returns next step
+ * @param parameters
+ * @param parameters.isPaidWithWallet - Whether a report has been paid with wallet or outside of Expensify
+ * @returns nextStep
  */
-function buildNextStep(report: Report, isPaidWithWallet = false): ReportNextStep | null {
+function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
     const {
         statusNum = CONST.REPORT.STATUS.OPEN,
         // TODO: Clarify default value
         isPreventSelfApprovalEnabled = false,
+        ownerAccountID = -1,
     } = report;
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
-    const isSelfApproval = policy.submitsTo === currentUserAccountID;
+    const isOwner = currentUserAccountID === ownerAccountID;
+    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
+    const isSelfApproval = currentUserAccountID === policy.submitsTo;
     const submitterDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(policy.submitsTo, true) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
     switch (statusNum) {
-        case CONST.REPORT.STATUS.OPEN: {
-            const message = [
-                {
-                    text: 'Waiting for',
-                },
-                {
-                    text: submitterDisplayName,
-                    type: 'strong',
-                },
-                {
-                    text: 'to',
-                },
-                {
-                    text: 'submit',
-                    type: 'strong',
-                },
-                {
-                    text: 'these expenses.',
-                },
-            ];
-            const preventedSelfApprovalMessage = [
-                {
-                    text: "Oops! Looks like you're submitting to ",
-                },
-                {
-                    text: 'yourself',
-                    type: 'strong',
-                },
-                {
-                    text: '. Approving your own reports is ',
-                },
-                {
-                    text: 'forbidden',
-                    type: 'strong',
-                },
-                {
-                    text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
-                },
-            ];
-
+        // Generates an optimistic nextStep once a report has been opened
+        case CONST.REPORT.STATUS.OPEN:
+            // Self review
             optimisticNextStep = {
                 type,
                 title: 'Next Steps:',
-                message: isPreventSelfApprovalEnabled && isSelfApproval ? preventedSelfApprovalMessage : message,
+                message: [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'you',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'submit',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' these expenses. This report may be selected at random for manual approval.',
+                    },
+                ],
             };
-            break;
-        }
 
-        case CONST.REPORT.STATUS.SUBMITTED:
-            optimisticNextStep = {
-                type,
-                title: 'Next Steps:',
-                message: [{text: 'Waiting for'}, {text: submitterDisplayName, type: 'strong'}, {text: 'to'}, {text: 'review', type: 'strong'}, {text: ' %expenses.'}],
-            };
-            break;
-
-        case CONST.REPORT.STATUS.APPROVED: {
-            const message = [
-                {
-                    text: isSelfApproval ? Str.recapitalize(submitterDisplayName) : submitterDisplayName,
-                    type: 'strong',
-                },
-                {
-                    text: 'have marked these expenses as',
-                },
-                {
-                    text: 'paid',
-                    type: 'strong',
-                },
-            ];
-
-            if (!isPaidWithWallet) {
-                message.push({text: 'outside of Expensify.'});
+            // TODO: Clarify date
+            // Scheduled submit enabled
+            if (policy.isHarvestingEnabled) {
+                optimisticNextStep.message = [
+                    {
+                        text: 'These expenses are scheduled to ',
+                    },
+                    {
+                        text: 'automatically submit!',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' No further action required!',
+                    },
+                ];
             }
 
+            // Prevented self submitting
+            if (isPreventSelfApprovalEnabled && isSelfApproval) {
+                optimisticNextStep.message = [
+                    {
+                        text: "Oops! Looks like you're submitting to ",
+                    },
+                    {
+                        text: 'yourself',
+                        type: 'strong',
+                    },
+                    {
+                        text: '. Approving your own reports is ',
+                    },
+                    {
+                        text: 'forbidden',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
+                    },
+                ];
+            }
+
+            break;
+
+        // Generates an optimistic nextStep once a report has been submitted
+        case CONST.REPORT.STATUS.SUBMITTED:
+            // Self review & another reviewer
+            optimisticNextStep = {
+                type,
+                title: 'Next Steps:',
+                message: [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: submitterDisplayName,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'review',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ],
+            };
+
+            // Another owner
+            if (!isOwner) {
+                optimisticNextStep.message = [
+                    {
+                        text: ownerLogin,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' is waiting for ',
+                    },
+                    {
+                        text: 'you',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'review',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' these %expenses.',
+                    },
+                ];
+            }
+
+            break;
+
+        // Generates an optimistic nextStep once a report has been approved
+        case CONST.REPORT.STATUS.APPROVED:
+            // Self review
+            optimisticNextStep = {
+                type,
+                title: 'Next Steps:',
+                message: [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'you',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'review',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ],
+            };
+
+            // Another owner
+            if (!isOwner) {
+                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.message = [
+                    {
+                        text: 'No further action required!',
+                    },
+                ];
+            }
+
+            break;
+
+        // Generates an optimistic nextStep once a report has been paid
+        case CONST.REPORT.STATUS.REIMBURSED:
+            // Paid with wallet
             optimisticNextStep = {
                 type,
                 title: 'Finished!',
-                message,
+                message: [
+                    {
+                        text: 'You',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' have marked these expenses as ',
+                    },
+                    {
+                        text: 'paid',
+                        type: 'strong',
+                    },
+                ],
             };
-            break;
-        }
 
+            // Paid outside of Expensify
+            if (typeof isPaidWithWallet === 'boolean' && !isPaidWithWallet) {
+                optimisticNextStep.message?.push({text: ' outside of Expensify'});
+            }
+
+            optimisticNextStep.message?.push({text: '.'});
+
+            break;
+
+        // Resets a nextStep
         default:
             optimisticNextStep = null;
     }
