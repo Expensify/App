@@ -363,7 +363,7 @@ function addActions(reportID: string, text = '', file?: File) {
         shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
-    
+
     if (reportIDDeeplinkedFromOldDot === reportID && report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE) {
         parameters.isOldDotConciergeChat = true;
     }
