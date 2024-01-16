@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -36,16 +35,7 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
 
-    // const {
-    //     amount: transactionAmount,
-    //     currency: transactionCurrency,
-    //     merchant: transactionMerchant,
-    //     created: transactionDate,
-    //     cardID: transactionCardID,
-    // } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-
     const transactionDetails = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-
     const transactionAmount =  transactionDetails?.amount
     const transactionCurrency = transactionDetails?.currency || ''
     const transactionMerchant = transactionDetails?.merchant
@@ -113,5 +103,3 @@ export default withOnyx<EReceiptProps, EReceiptOnyxProps>({
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
 })(EReceipt);
-
-export type {EReceiptProps, EReceiptOnyxProps};
