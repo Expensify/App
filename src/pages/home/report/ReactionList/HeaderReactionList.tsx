@@ -5,7 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import type {ReactionListProps} from './reactionPropTypes';
+import type {ReactionListProps} from './types';
 
 type HeaderReactionListProps = ReactionListProps & {
     /** Returns true if the current account has reacted to the report action (with the given skin tone). */

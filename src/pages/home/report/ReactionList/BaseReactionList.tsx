@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import HeaderReactionList from './HeaderReactionList';
-import type {ReactionListProps} from './reactionPropTypes';
+import type {ReactionListProps} from './types';
 
 type BaseReactionListProps = ReactionListProps & {
     /**

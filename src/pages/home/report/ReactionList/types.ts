@@ -1,4 +1,4 @@
-export type ReactionListProps = {
+type ReactionListProps = {
     /** Hide the ReactionList modal popover */
     onClose?: () => void;
 
@@ -11,3 +11,5 @@ export type ReactionListProps = {
     /** Count of the emoji */
     emojiCount: number;
 };
+
+export type {ReactionListProps};
