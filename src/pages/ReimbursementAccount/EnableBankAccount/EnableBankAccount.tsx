@@ -104,11 +104,11 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                             icon={Expensicons.Close}
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                            disabled={Boolean(pendingAction) || !isEmptyObject(errors)}
+                            disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>
-                {Boolean(user?.isCheckingDomain) && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
+                {!!user?.isCheckingDomain && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
             {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScreenWrapper>

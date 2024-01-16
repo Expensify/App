@@ -84,7 +84,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             scrollContextEnabled
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
-            isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && (plaidData?.bankAccounts ?? []).length > 0}
+            isSubmitButtonVisible={!!selectedPlaidAccountID && (plaidData?.bankAccounts ?? []).length > 0}
         >
             <AddPlaidBankAccount
                 text={translate('bankAccount.plaidBodyCopy')}
