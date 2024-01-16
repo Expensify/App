@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
@@ -1067,11 +1067,23 @@ function getReportNotificationPreference(report: OnyxEntry<Report>): string | nu
 }
 
 /**
- * Returns whether or not the author of the action is this user
- *
+ * Checks if the current user is the action's author
  */
-function isActionCreator(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionCreator(reportAction: OnyxEntry<ReportAction> | Partial<ReportAction>): boolean {
     return reportAction?.actorAccountID === currentUserAccountID;
+}
+
+/**
+ * Returns the notification preference of the action's child report if it exists.
+ * Otherwise, calculates it based on the action's authorship.
+ */
+function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportAction> | Partial<ReportAction>): NotificationPreference {
+    const childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
+    if (childReportNotificationPreference) {
+        return childReportNotificationPreference;
+    }
+
+    return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
 /**
@@ -3540,7 +3552,7 @@ function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: 
             if (!report?.participantAccountIDs) {
                 return false;
             }
-            const sortedParticipanctsAccountIDs = report.parentReportActionIDs?.sort();
+            const sortedParticipanctsAccountIDs = report.participantAccountIDs?.sort();
             // Only return the room if it has all the participants and is not a policy room
             return report.policyID === policyID && lodashIsEqual(newParticipantList, sortedParticipanctsAccountIDs);
         }) ?? null
@@ -4326,6 +4338,25 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
+ * Given a report field and a report, get the title of the field.
+ * This is specially useful when we have a report field of type formula.
+ */
+function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
+    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
+
+    if (reportField.type !== 'formula') {
+        return value;
+    }
+
+    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
+        if (report && property in report) {
+            return report[property as keyof Report]?.toString() ?? match;
+        }
+        return match;
+    });
+}
+
+/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
@@ -4533,8 +4564,10 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    getReportFieldTitle,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    getChildReportNotificationPreference,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails};

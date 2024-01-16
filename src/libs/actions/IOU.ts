@@ -997,6 +997,7 @@ function getUpdateMoneyRequestParams(
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
@@ -1087,6 +1088,31 @@ function getUpdateMoneyRequestParams(
             errorFields: null,
         },
     });
+
+    if (isScanning && (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency'))) {
+        optimisticData.push(
+            ...[
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {
+                        [transactionThread.parentReportActionID]: {
+                            whisperedToAccountIDs: [],
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
+                    value: {
+                        [iouReport.parentReportActionID]: {
+                            whisperedToAccountIDs: [],
+                        },
+                    },
+                },
+            ],
+        );
+    }
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
@@ -1199,6 +1225,21 @@ function updateMoneyRequestTag(transactionID: string, transactionThreadReportID:
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestTag', params, onyxData);
+}
+
+/**
+ * Updates the description of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} comment
+ */
+function updateMoneyRequestDescription(transactionID, transactionThreadReportID, comment) {
+    const transactionChanges = {
+        comment,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestDescription', params, onyxData);
 }
 
 /** Edits an existing distance request */
@@ -3838,6 +3879,7 @@ export {
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestDescription,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
