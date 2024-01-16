@@ -1,20 +1,24 @@
 import React from 'react';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import Icon from './Icon';
+import {Info} from './Icon/Expensicons';
+import {PressableWithoutFeedback} from './Pressable';
+import Text from './Text';
 
-type MoneyRequestReferralProgramCTAProps = {
-    referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+type ReferralProgramCTAProps = {
+    referralContentType:
+        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST
+        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
+        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
+        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
 };
 
-function MoneyRequestReferralProgramCTA({referralContentType}: MoneyRequestReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -41,9 +45,10 @@ function MoneyRequestReferralProgramCTA({referralContentType}: MoneyRequestRefer
                 src={Info}
                 height={20}
                 width={20}
+                fill={theme.icon}
             />
         </PressableWithoutFeedback>
     );
 }
 
-export default MoneyRequestReferralProgramCTA;
+export default ReferralProgramCTA;
