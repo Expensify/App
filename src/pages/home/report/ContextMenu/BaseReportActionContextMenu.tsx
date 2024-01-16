@@ -42,8 +42,10 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     originalReportID: string;
 
-    /** If true, this component will be a small, row-oriented menu that displays icons but not text.
-  If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row. */
+    /**
+     * If true, this component will be a small, row-oriented menu that displays icons but not text.
+     * If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
+     */
     isMini?: boolean;
 
     /** Controls the visibility of this component. */
