@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type SafeAreaInsetProps from '@pages/SafeAreaInsetProps';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
@@ -40,7 +41,7 @@ type TagPickerProps = TagPickerOnyxProps & {
      * Safe area insets required for reflecting the portion of the view,
      * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
      */
-    insets: Record<string, unknown>;
+    insets: SafeAreaInsetProps;
 };
 
 function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption, insets, onSubmit}: TagPickerProps) {
