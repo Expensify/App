@@ -3,9 +3,9 @@ import type {LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Image from './Image';
-import MultiGestureCanvas, {defaultZoomRange} from './MultiGestureCanvas';
-import getCanvasFitScale from './MultiGestureCanvas/getCanvasFitScale';
+import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from './MultiGestureCanvas';
 import type {ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
+import {getCanvasFitScale} from './MultiGestureCanvas/utils';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
 // The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
@@ -25,7 +25,7 @@ type ImageOnLoadEvent = NativeSyntheticEvent<ContentSize>;
 
 type LightboxProps = {
     /** Whether source url requires authentication */
-    isAuthTokenRequired: boolean;
+    isAuthTokenRequired?: boolean;
 
     /** URI to full-sized attachment */
     uri: string;
@@ -37,19 +37,19 @@ type LightboxProps = {
     onError: () => void;
 
     /** Additional styles to add to the component */
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
 
     /** The index of the carousel item */
-    index: number;
+    index?: number;
 
     /** The index of the currently active carousel item */
-    activeIndex: number;
+    activeIndex?: number;
 
     /** Whether the Lightbox is used within a carousel component and there are other sibling elements */
-    hasSiblingCarouselItems: boolean;
+    hasSiblingCarouselItems?: boolean;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
-    zoomRange: ZoomRange;
+    zoomRange?: Partial<ZoomRange>;
 };
 
 /**
@@ -64,7 +64,7 @@ function Lightbox({
     index = 0,
     activeIndex = 0,
     hasSiblingCarouselItems = false,
-    zoomRange = defaultZoomRange,
+    zoomRange = DEFAULT_ZOOM_RANGE,
 }: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
