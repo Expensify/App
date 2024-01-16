@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -27,7 +27,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -45,6 +45,9 @@ type ReportPreviewOnyxProps = {
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
+
+    /** All the transactions, used to update ReportPreview label and status */
+    transactions: OnyxCollection<Transaction>;
 };
 
 type ReportPreviewProps = ReportPreviewOnyxProps & {
@@ -87,6 +90,7 @@ function ReportPreview({
     action,
     containerStyles,
     contextMenuAnchor,
+    transactions,
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
@@ -97,14 +101,14 @@ function ReportPreview({
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
-            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
-            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
-            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action),
+            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.transactions, props.iouReportID, props.action],
+        [transactions, iouReportID, action],
     );
 
     const managerID = iouReport?.managerID ?? 0;
