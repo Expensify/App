@@ -59,8 +59,7 @@ function LegalNamePage(props) {
             ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = 'common.error.fieldRequired';
-        }
-        if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+        } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
@@ -68,8 +67,7 @@ function LegalNamePage(props) {
             ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = 'common.error.fieldRequired';
-        }
-        if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
+        } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
