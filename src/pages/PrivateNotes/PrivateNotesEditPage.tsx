@@ -1,12 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {OnyxCollection} from 'react-native-onyx';
+import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,50 +14,42 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import reportPropTypes from '@pages/reportPropTypes';
-import * as Report from '@userActions/Report';
+import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type { PersonalDetails, Report } from '@src/types/onyx';
+import type { Note } from '@src/types/onyx/Report';
 
-const propTypes = {
+type PrivateNotesEditPageOnyxProps = {
+    /* Onyx Props */
+
     /** All of the personal details for everyone */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: OnyxCollection<PersonalDetails>,
+}
+
+type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps & {
 
     /** The report currently being looked at */
-    report: reportPropTypes,
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** reportID and accountID passed via route: /r/:reportID/notes */
-            reportID: PropTypes.string,
-            accountID: PropTypes.string,
-        }),
-    }).isRequired,
-};
+    report: Report,
 
-const defaultProps = {
-    report: {},
-    personalDetailsList: {},
-};
+    route: RouteProp<{params: {reportID: string; accountID: string}}>;
+}
 
-function PrivateNotesEditPage({route, personalDetailsList, report}) {
+function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotesEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
-        () => Report.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '')).trim(),
+        () => ReportActions.getDraftPrivateNote(report.reportID).trim() || parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
     );
 
     /**
@@ -67,8 +59,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
      */
     const debouncedSavePrivateNote = useMemo(
         () =>
-            _.debounce((text) => {
-                Report.savePrivateNotesDraft(report.reportID, text);
+            lodashDebounce((text: string) => {
+                ReportActions.savePrivateNotesDraft(report.reportID, text);
             }, 1000),
         [report.reportID],
     );
@@ -94,18 +86,18 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
     );
 
     const savePrivateNote = () => {
-        const originalNote = lodashGet(report, ['privateNotes', route.params.accountID, 'note'], '');
+        const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = Report.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
-            Report.updatePrivateNotes(report.reportID, route.params.accountID, editedNote);
+            editedNote = ReportActions.handleUserDeletedLinksInHtml(privateNote.trim(), parser.htmlToMarkdown(originalNote).trim());
+            ReportActions.updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
         // We want to delete saved private note draft after saving the note
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if (!_.some({...report.privateNotes, [route.params.accountID]: {note: editedNote}}, (item) => item.note)) {
+        if(({...report.privateNotes, [route.params.accountID]: {note: editedNote}} as Note).note) {
             ReportUtils.navigateToDetailsPage(report);
         } else {
             Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
@@ -133,16 +125,16 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
             >
                 <Text style={[styles.mb5]}>
                     {translate(
-                        Str.extractEmailDomain(lodashGet(personalDetailsList, [route.params.accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
+                        Str.extractEmailDomain(personalDetailsList?.[route.params.accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN
                             ? 'privateNotes.sharedNoteMessage'
                             : 'privateNotes.personalNoteMessage',
                     )}
                 </Text>
                 <OfflineWithFeedback
                     errors={{
-                        ...lodashGet(report, ['privateNotes', route.params.accountID, 'errors'], ''),
+                        ...report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? '',
                     }}
-                    onClose={() => Report.clearPrivateNotesError(report.reportID, route.params.accountID)}
+                    onClose={() => ReportActions.clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}
                 >
                     <InputWrapper
@@ -158,7 +150,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         defaultValue={privateNote}
                         value={privateNote}
-                        onChangeText={(text) => {
+                        onChangeText={(text: string) => {
                             debouncedSavePrivateNote(text);
                             setPrivateNote(text);
                         }}
@@ -177,15 +169,11 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
 }
 
 PrivateNotesEditPage.displayName = 'PrivateNotesEditPage';
-PrivateNotesEditPage.propTypes = propTypes;
-PrivateNotesEditPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withReportAndPrivateNotesOrNotFound('privateNotes.title'),
-    withOnyx({
+export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
+    withOnyx<PrivateNotesEditPageProps, PrivateNotesEditPageOnyxProps>({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-    }),
-)(PrivateNotesEditPage);
+    })(PrivateNotesEditPage)
+);

@@ -161,4 +161,4 @@ type Report = {
 
 export default Report;
 
-export type {NotificationPreference, WriteCapability};
+export type {NotificationPreference, WriteCapability, Note};
