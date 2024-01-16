@@ -44,7 +44,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
             {menuItems.map((menuItemProps) => (
                 <MenuItem
                     key={menuItemProps.title}
-                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link!!, e) : undefined}
                     ref={popoverAnchor}
                     shouldBlockSelection={!!menuItemProps.link}
                     // eslint-disable-next-line react/jsx-props-no-spreading

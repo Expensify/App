@@ -1,4 +1,4 @@
-import {RouteProp} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -34,7 +34,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigateBackTo: Route = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS;
-    const menuItems = [
+    const menuItems: MenuItemWithLink[] = [
         {
             title: translate('getAssistancePage.chatWithConcierge'),
             onPress: () => Report.navigateToConciergeChat(),
@@ -54,7 +54,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
     ];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
-    const guideCalendarLink = account?.guideCalendarLink;
+    const guideCalendarLink = account?.guideCalendarLink as string;
     if (guideCalendarLink) {
         menuItems.splice(1, 0, {
             title: translate('getAssistancePage.scheduleSetupCall'),
