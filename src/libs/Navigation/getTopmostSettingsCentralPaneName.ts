@@ -9,7 +9,15 @@ function getTopmostSettingsCentralPaneName(state: NavigationState | PartialState
 
     const topmostCentralPane = state.routes.filter((route) => typeof route !== 'number' && 'name' in route && route.name === SCREENS.SETTINGS_CENTRAL_PANE).at(-1);
 
-    if (!topmostCentralPane || typeof topmostCentralPane === 'number' || !('state' in topmostCentralPane)) {
+    if (!topmostCentralPane) {
+        return;
+    }
+
+    if (!!topmostCentralPane.params && 'screen' in topmostCentralPane.params && typeof topmostCentralPane.params.screen === 'string') {
+        return topmostCentralPane.params.screen;
+    }
+
+    if (!topmostCentralPane.state) {
         return;
     }
 
