@@ -1,4 +1,5 @@
-import React, {type ForwardedRef, useEffect} from 'react';
+import React, {forwardRef, useEffect} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,11 +24,7 @@ type CountrySelectorProps = {
     inputID: string;
 };
 
-type CountrySelectorPropsWithForwardedRef = CountrySelectorProps & {
-    forwardedRef: ForwardedRef<View>;
-};
-
-function CountrySelector({errorText = '', value: countryCode, onInputChange, forwardedRef = () => {}}: CountrySelectorPropsWithForwardedRef) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -45,7 +42,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange, for
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={title}
-                ref={forwardedRef}
+                ref={ref}
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
@@ -62,12 +59,4 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange, for
 
 CountrySelector.displayName = 'CountrySelector';
 
-const CountrySelectorWithRef = React.forwardRef((props: CountrySelectorProps, ref: ForwardedRef<View>) => (
-    <CountrySelector
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-export default CountrySelectorWithRef;
+export default forwardRef(CountrySelector);
