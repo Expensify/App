@@ -1,31 +1,32 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import compose from '@libs/compose';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
 
 const propTypes = {
-    ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -40,15 +41,17 @@ function getFlavor() {
     return '';
 }
 
-function AboutPage(props) {
+type MenuItem = {translationKey: TranslationPaths; icon: IconAsset; iconRight?: IconAsset; action: () => Promise<void>; link?: string};
+
+function AboutPage() {
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = props;
-    const popoverAnchor = useRef(null);
+    const popoverAnchor = useRef<View | RNText | null>(null);
     const waitForNavigate = useWaitForNavigation();
 
     const menuItems = useMemo(() => {
-        const baseMenuItems = [
+        const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
                 icon: Expensicons.Link,
@@ -65,6 +68,7 @@ function AboutPage(props) {
                 iconRight: Expensicons.NewWindow,
                 action: () => {
                     Link.openExternalLink(CONST.GITHUB_URL);
+                    return Promise.resolve();
                 },
                 link: CONST.GITHUB_URL,
             },
@@ -74,6 +78,7 @@ function AboutPage(props) {
                 iconRight: Expensicons.NewWindow,
                 action: () => {
                     Link.openExternalLink(CONST.UPWORK_URL);
+                    return Promise.resolve();
                 },
                 link: CONST.UPWORK_URL,
             },
@@ -83,16 +88,18 @@ function AboutPage(props) {
                 action: waitForNavigate(Report.navigateToConciergeChat),
             },
         ];
-        return _.map(baseMenuItems, (item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey),
-            icon: item.icon,
-            iconRight: item.iconRight,
-            onPress: item.action,
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+            key: translationKey,
+            title: translate(translationKey),
+            icon,
+            iconRight,
+            onPress: action,
             shouldShowRightIcon: true,
-            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
+            onSecondaryInteraction: link
+                ? (e: GestureResponderEvent | MouseEvent) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor.current)
+                : undefined,
             ref: popoverAnchor,
-            shouldBlockSelection: Boolean(item.link),
+            shouldBlockSelection: !!link,
         }));
     }, [translate, waitForNavigate]);
 
@@ -114,15 +121,15 @@ function AboutPage(props) {
 
     return (
         <IllustratedHeaderPageLayout
-            title={props.translate('initialSettingsPage.about')}
+            title={translate('initialSettingsPage.about')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.Coin}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
-                <Text style={[styles.textHeadline, styles.mb1]}>{props.translate('footer.aboutExpensify')}</Text>
-                <Text style={[styles.baseFontStyle, styles.mb4]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
+                <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>
+                <Text style={[styles.webViewStyles.baseFontStyle, styles.mb4]}>{translate('initialSettingsPage.aboutPage.description')}</Text>
             </View>
             <MenuItemList
                 menuItems={menuItems}
@@ -133,19 +140,19 @@ function AboutPage(props) {
                     style={[styles.chatItemMessageHeaderTimestamp]}
                     numberOfLines={1}
                 >
-                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                    {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
                     <TextLink
                         style={[styles.textMicroSupporting, styles.link]}
                         href={CONST.TERMS_URL}
                     >
-                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
                     </TextLink>{' '}
-                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                    {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
                     <TextLink
                         style={[styles.textMicroSupporting, styles.link]}
                         href={CONST.PRIVACY_URL}
                     >
-                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
+                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
                     </TextLink>
                     .
                 </Text>
@@ -157,4 +164,4 @@ function AboutPage(props) {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(withLocalize, withWindowDimensions)(AboutPage);
+export default withWindowDimensions(AboutPage);
