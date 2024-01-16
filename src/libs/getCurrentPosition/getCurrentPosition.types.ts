@@ -13,7 +13,7 @@ type GeolocationSuccessCallback = (position: {
     timestamp: number;
 }) => void;
 
-type GeolocationErrorCodeType = ValueOf<typeof GeolocationErrorCode>;
+type GeolocationErrorCodeType = ValueOf<typeof GeolocationErrorCode> | null;
 
 type GeolocationErrorCallback = (error: {
     code: GeolocationErrorCodeType;

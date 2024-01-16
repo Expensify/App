@@ -1988,7 +1988,7 @@ function toggleEmojiReaction(
     reportID: string,
     reportAction: ReportAction,
     reactionObject: Emoji,
-    existingReactions: ReportActionReactions | undefined,
+    existingReactions: OnyxEntry<ReportActionReactions>,
     paramSkinTone: number = preferredSkinTone,
 ) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);

@@ -1,11 +1,12 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
+import {ActivityIndicator, Keyboard, LogBox, ScrollView, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -69,7 +70,7 @@ function AddressSearch(
     const [isFocused, setIsFocused] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
-    const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType | null>(null);
+    const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef<View>(null);

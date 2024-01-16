@@ -2491,7 +2491,7 @@ function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadRep
 }
 
 /**
- * @param {String} transactionID
+ * @param {String | undefined} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
  */
@@ -2713,6 +2713,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             value: {
                 [reportAction.reportActionID]: {
                     ...reportAction,
+                    pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
