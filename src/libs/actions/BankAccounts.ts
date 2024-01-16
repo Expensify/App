@@ -125,15 +125,6 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount) {
-    type ConnectBankAccountWithPlaidParams = {
-        bankAccountID: number;
-        routingNumber: string;
-        accountNumber: string;
-        bank?: string;
-        plaidAccountID: string;
-        plaidAccessToken: string;
-    };
-
     const parameters: ConnectBankAccountWithPlaidParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -152,17 +143,6 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account: PlaidBankAccount) {
-    type AddPersonalBankAccountParams = {
-        addressName: string;
-        routingNumber: string;
-        accountNumber: string;
-        isSavings: boolean;
-        setupType: string;
-        bank?: string;
-        plaidAccountID: string;
-        plaidAccessToken: string;
-    };
-
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName,
         routingNumber: account.routingNumber,
@@ -213,8 +193,6 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
 }
 
 function deletePaymentBankAccount(bankAccountID: number) {
-    type DeletePaymentBankAccountParams = {bankAccountID: number};
-
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
     const onyxData: OnyxData = {
@@ -245,16 +223,11 @@ function deletePaymentBankAccount(bankAccountID: number) {
  *
  * This action is called by the requestor step in the Verified Bank Account flow
  */
-function updatePersonalInformationForBankAccount(params: RequestorStepProps) {
+function updatePersonalInformationForBankAccount(params: UpdatePersonalInformationForBankAccountParams) {
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT, params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
 }
 
 function validateBankAccount(bankAccountID: number, validateCode: string) {
-    type ValidateBankAccountWithTransactionsParams = {
-        bankAccountID: number;
-        validateCode: string;
-    };
-
     const parameters: ValidateBankAccountWithTransactionsParams = {
         bankAccountID,
         validateCode,
@@ -361,13 +334,6 @@ function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
  *
  */
 function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string) {
-    type ConnectBankAccountManuallyParams = {
-        bankAccountID: number;
-        accountNumber?: string;
-        routingNumber?: string;
-        plaidMask?: string;
-    };
-
     const parameters: ConnectBankAccountManuallyParams = {
         bankAccountID,
         accountNumber,
@@ -382,11 +348,6 @@ function connectBankAccountManually(bankAccountID: number, accountNumber?: strin
  * Verify the user's identity via Onfido
  */
 function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoData) {
-    type VerifyIdentityForBankAccountParams = {
-        bankAccountID: number;
-        onfidoData: string;
-    };
-
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
@@ -432,13 +393,6 @@ function openWorkspaceView() {
 }
 
 function handlePlaidError(bankAccountID: number, error: string, errorDescription: string, plaidRequestID: string) {
-    type BankAccountHandlePlaidErrorParams = {
-        bankAccountID: number;
-        error: string;
-        errorDescription: string;
-        plaidRequestID: string;
-    };
-
     const parameters: BankAccountHandlePlaidErrorParams = {
         bankAccountID,
         error,

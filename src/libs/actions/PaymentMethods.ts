@@ -132,11 +132,6 @@ function getMakeDefaultPaymentOnyxData(
  *
  */
 function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod: PaymentMethod, currentPaymentMethod: PaymentMethod) {
-    type MakeDefaultPaymentMethodParams = {
-        bankAccountID: number;
-        fundID: number;
-    };
-
     const parameters: MakeDefaultPaymentMethodParams = {
         bankAccountID,
         fundID,
@@ -148,8 +143,6 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
     });
 }
 
-type PaymentCardParams = {expirationDate: string; cardNumber: string; securityCode: string; nameOnCard: string; addressZipCode: string};
-
 /**
  * Calls the API to add a new card.
  *
@@ -157,17 +150,6 @@ type PaymentCardParams = {expirationDate: string; cardNumber: string; securityCo
 function addPaymentCard(params: PaymentCardParams) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
-
-    type AddPaymentCardParams = {
-        cardNumber: string;
-        cardYear: string;
-        cardMonth: string;
-        cardCVV: string;
-        addressName: string;
-        addressZip: string;
-        currency: ValueOf<typeof CONST.CURRENCY>;
-        isP2PDebitCard: boolean;
-    };
 
     const parameters: AddPaymentCardParams = {
         cardNumber: params.cardNumber,
@@ -356,10 +338,6 @@ function clearWalletTermsError() {
 }
 
 function deletePaymentCard(fundID: number) {
-    type DeletePaymentCardParams = {
-        fundID: number;
-    };
-
     const parameters: DeletePaymentCardParams = {
         fundID,
     };

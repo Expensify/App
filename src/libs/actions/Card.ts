@@ -41,10 +41,6 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
         },
     ];
 
-    type ReportVirtualExpensifyCardFraudParams = {
-        cardID: number;
-    };
-
     const parameters: ReportVirtualExpensifyCardFraudParams = {
         cardID,
     };
@@ -88,11 +84,6 @@ function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReas
             },
         },
     ];
-
-    type RequestReplacementExpensifyCardParams = {
-        cardId: number;
-        reason: string;
-    };
 
     const parameters: RequestReplacementExpensifyCardParams = {
         cardId,
@@ -142,11 +133,6 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
             },
         },
     ];
-
-    type ActivatePhysicalExpensifyCardParams = {
-        cardLastFourDigits: string;
-        cardID: number;
-    };
 
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,

@@ -2598,11 +2598,6 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
     ];
 
-    type ResolveActionableMentionWhisperParams = {
-        reportActionID: string;
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
-    };
-
     const parameters: ResolveActionableMentionWhisperParams = {
         reportActionID: reportAction.reportActionID,
         resolution,

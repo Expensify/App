@@ -72,14 +72,6 @@ Onyx.connect({
 function signOut() {
     Log.info('Flushing logs before signing out', true, {}, true);
 
-    type LogOutParams = {
-        authToken: string | null;
-        partnerUserID: string;
-        partnerName: string;
-        partnerPassword: string;
-        shouldRetry: boolean;
-    };
-
     const params: LogOutParams = {
         // Send current authToken because we will immediately clear it once triggering this command
         authToken: NetworkStore.getAuthToken(),
@@ -179,10 +171,6 @@ function resendValidationLink(login = credentials.login) {
         },
     ];
 
-    type ResendValidationLinkParams = {
-        email?: string;
-    };
-
     const params: ResendValidationLinkParams = {email: login};
 
     API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
@@ -211,10 +199,6 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-
-    type RequestNewValidateCodeParams = {
-        email?: string;
-    };
 
     const params: RequestNewValidateCodeParams = {email: login};
 
@@ -293,11 +277,6 @@ function beginSignIn(email: string) {
 function beginAppleSignIn(idToken: string | undefined | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    type BeginAppleSignInParams = {
-        idToken: typeof idToken;
-        preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-    };
-
     const params: BeginAppleSignInParams = {idToken, preferredLocale};
 
     API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, {optimisticData, successData, failureData});
@@ -309,11 +288,6 @@ function beginAppleSignIn(idToken: string | undefined | null) {
  */
 function beginGoogleSignIn(token: string | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
-
-    type BeginGoogleSignInParams = {
-        token: string | null;
-        preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-    };
 
     const params: BeginGoogleSignInParams = {token, preferredLocale};
 
@@ -426,14 +400,6 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        type SignInUserParams = {
-            twoFactorAuthCode?: string;
-            email?: string;
-            preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-            validateCode?: string;
-            deviceInfo: string;
-        };
-
         const params: SignInUserParams = {
             twoFactorAuthCode,
             email: credentials.login,
@@ -512,14 +478,6 @@ function signInWithValidateCode(accountID: number, code: string, twoFactorAuthCo
         },
     ];
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        type SignInUserWithLinkParams = {
-            accountID: number;
-            validateCode?: string;
-            twoFactorAuthCode?: string;
-            preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
-            deviceInfo: string;
-        };
-
         const params: SignInUserWithLinkParams = {
             accountID,
             validateCode,
@@ -732,10 +690,6 @@ function requestUnlinkValidationLink() {
         },
     ];
 
-    type RequestUnlinkValidationLinkParams = {
-        email?: string;
-    };
-
     const params: RequestUnlinkValidationLinkParams = {email: credentials.login};
 
     API.write(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK, params, {optimisticData, successData, failureData});
@@ -778,11 +732,6 @@ function unlinkLogin(accountID: number, validateCode: string) {
             },
         },
     ];
-
-    type UnlinkLoginParams = {
-        accountID: number;
-        validateCode: string;
-    };
 
     const params: UnlinkLoginParams = {
         accountID,
@@ -863,10 +812,6 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
             },
         },
     ];
-
-    type ValidateTwoFactorAuthParams = {
-        twoFactorAuthCode: string;
-    };
 
     const params: ValidateTwoFactorAuthParams = {twoFactorAuthCode};
 

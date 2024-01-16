@@ -109,10 +109,6 @@ function getCountryISO(countryName: string): string {
 
 function updatePronouns(pronouns: string) {
     if (currentUserAccountID) {
-        type UpdatePronounsParams = {
-            pronouns: string;
-        };
-
         const parameters: UpdatePronounsParams = {pronouns};
 
         API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
@@ -135,11 +131,6 @@ function updatePronouns(pronouns: string) {
 
 function updateDisplayName(firstName: string, lastName: string) {
     if (currentUserAccountID) {
-        type UpdateDisplayNameParams = {
-            firstName: string;
-            lastName: string;
-        };
-
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
         API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
@@ -166,11 +157,6 @@ function updateDisplayName(firstName: string, lastName: string) {
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
-    type UpdateLegalNameParams = {
-        legalFirstName: string;
-        legalLastName: string;
-    };
-
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
 
     API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
@@ -193,10 +179,6 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
  * @param dob - date of birth
  */
 function updateDateOfBirth({dob}: DateOfBirthForm) {
-    type UpdateDateOfBirthParams = {
-        dob?: string;
-    };
-
     const parameters: UpdateDateOfBirthParams = {dob};
 
     API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, parameters, {
@@ -215,16 +197,6 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
-    type UpdateHomeAddressParams = {
-        homeAddressStreet: string;
-        addressStreet2: string;
-        homeAddressCity: string;
-        addressState: string;
-        addressZipCode: string;
-        addressCountry: string;
-        addressStateLong?: string;
-    };
-
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -274,9 +246,6 @@ function updateAutomaticTimezone(timezone: Timezone) {
         return;
     }
 
-    type UpdateAutomaticTimezoneParams = {
-        timezone: string;
-    };
     const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
         timezone: JSON.stringify(formatedTimezone),
@@ -304,10 +273,6 @@ function updateAutomaticTimezone(timezone: Timezone) {
 function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
     const timezone: Timezone = {
         selected: selectedTimezone,
-    };
-
-    type UpdateSelectedTimezoneParams = {
-        timezone: string;
     };
 
     const parameters: UpdateSelectedTimezoneParams = {
@@ -474,10 +439,6 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
             },
         },
     ];
-
-    type UpdateUserAvatarParams = {
-        file: File | CustomRNImageManipulatorResult;
-    };
 
     const parameters: UpdateUserAvatarParams = {file};
 

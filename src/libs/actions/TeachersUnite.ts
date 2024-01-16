@@ -52,13 +52,6 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
         },
     ];
 
-    type ReferTeachersUniteVolunteerParams = {
-        reportID: string;
-        firstName: string;
-        lastName: string;
-        partnerUserID: string;
-    };
-
     const parameters: ReferTeachersUniteVolunteerParams = {
         reportID: publicRoomReportID,
         firstName,
@@ -177,14 +170,6 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
             value: null,
         },
     ];
-
-    type AddSchoolPrincipalParams = {
-        firstName: string;
-        lastName: string;
-        partnerUserID: string;
-        policyID: string;
-        reportCreationData: string;
-    };
 
     const parameters: AddSchoolPrincipalParams = {
         firstName,

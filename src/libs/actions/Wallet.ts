@@ -287,18 +287,6 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
         address: {city, country, state, street, zip},
     } = privatePersonalDetails;
 
-    type RequestPhysicalExpensifyCardParams = {
-        authToken: string;
-        legalFirstName: string;
-        legalLastName: string;
-        phoneNumber: string;
-        addressCity: string;
-        addressCountry: string;
-        addressState: string;
-        addressStreet: string;
-        addressZip: string;
-    };
-
     const requestParams: RequestPhysicalExpensifyCardParams = {
         authToken,
         legalFirstName,
