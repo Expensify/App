@@ -82,6 +82,9 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** The original file name of workspace's avatar */
+    originalFileName?: string;
 };
 
 export default Policy;
