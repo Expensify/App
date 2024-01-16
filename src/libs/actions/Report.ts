@@ -129,12 +129,10 @@ const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
-    console.debug("CRISTIIII - " + url);
     const params = new URLSearchParams(url ?? '');
     const exitToRoute = params.get('exitTo') ?? '';
     const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
     reportIDDeeplinkedFromOldDot = reportID;
-    console.debug("CRISTIIII - " + reportIDDeeplinkedFromOldDot);
 });
 
 /** Get the private pusher channel name for a Report. */
@@ -365,9 +363,8 @@ function addActions(reportID: string, text = '', file?: File) {
         shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
-        console.debug("CRISTIIII - reportIDDeeplinkedFromOldDot: " + reportIDDeeplinkedFromOldDot);
+    
     if (reportIDDeeplinkedFromOldDot === reportID && report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE) {
-        console.debug("CRISTIIII - isOldDotConciergeChat: " + true);
         parameters.isOldDotConciergeChat = true;
     }
 
