@@ -1,33 +1,28 @@
-import React, {forwardRef, Ref, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 type PopoverReactionListProps = {
-    innerRef: Ref<any>;
+    ref: ForwardedRef<InnerReactionListRefType>;
 };
 
+type ShowReactionList = (event: React.MouseEvent, reactionListAnchor: HTMLElement, emojiName: string, reportActionID: string) => void;
+
 type InnerReactionListRefType = {
-    showReactionList: (
-        event: {
-            nativeEvent: {
-                pageX: number;
-                pageY: number;
-            };
-        },
-        reactionListAnchor: HTMLElement,
-    ) => void;
+    showReactionList: ShowReactionList;
     hideReactionList: () => void;
     isActiveReportAction: (actionID: number | string) => boolean;
 };
 
-const PopoverReactionList = (props: PopoverReactionListProps) => {
+function PopoverReactionList(props: PopoverReactionListProps) {
     const innerReactionListRef = useRef<InnerReactionListRefType>(null);
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
     const [reactionListEmojiName, setReactionListEmojiName] = useState('');
 
-    const showReactionList = (event: React.MouseEvent, reactionListAnchor: HTMLElement, emojiName: string, reportActionID: string) => {
+    const showReactionList: ShowReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
         setReactionListReportActionID(reportActionID);
         setReactionListEmojiName(emojiName);
-        innerReactionListRef.current?.showReactionList(event, reactionListAnchor);
+        innerReactionListRef.current?.showReactionList(event, reactionListAnchor, emojiName, reportActionID);
     };
 
     const hideReactionList = () => {
@@ -36,7 +31,7 @@ const PopoverReactionList = (props: PopoverReactionListProps) => {
 
     const isActiveReportAction = (actionID: number | string) => Boolean(actionID) && reactionListReportActionID === actionID;
 
-    useImperativeHandle(props.innerRef, () => ({showReactionList, hideReactionList, isActiveReportAction}));
+    useImperativeHandle(props.ref, () => ({showReactionList, hideReactionList, isActiveReportAction}));
 
     return (
         <BasePopoverReactionList
@@ -45,16 +40,16 @@ const PopoverReactionList = (props: PopoverReactionListProps) => {
             emojiName={reactionListEmojiName}
         />
     );
-};
+}
 
 PopoverReactionList.displayName = 'PopoverReactionList';
 
 export default React.memo(
-    forwardRef((props, ref) => (
+    forwardRef<InnerReactionListRefType>((props, ref) => (
         <PopoverReactionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            innerRef={ref}
+            ref={ref}
         />
     )),
 );

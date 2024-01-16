@@ -54,9 +54,11 @@ type BasePopoverReactionListState = {
 
 class BasePopoverReactionList extends React.Component<BasePopoverReactionListPropsWithLocalWithOnyx, BasePopoverReactionListState> {
     reactionListAnchor: React.RefObject<HTMLElement>;
+
     dimensionsEventListener: {
         remove: () => void;
     } | null;
+
     constructor(props: BasePopoverReactionListPropsWithLocalWithOnyx) {
         super(props);
 
