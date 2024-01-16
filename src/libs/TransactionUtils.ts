@@ -395,7 +395,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
-function isCardTransaction(transaction: Transaction): boolean {
+function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const cardID = transaction?.cardID ?? 0;
     return isCorporateCard(cardID);
 }

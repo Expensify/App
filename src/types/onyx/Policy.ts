@@ -82,6 +82,9 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** A list of disabled fields */
+    disabledFields?: Record<string, boolean>;
 };
 
 export default Policy;

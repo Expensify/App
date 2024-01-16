@@ -1,30 +1,24 @@
-import lodashGet from 'lodash/get';
-import lodashValues from 'lodash/values';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import categoryPropTypes from '@components/categoryPropTypes';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
-import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import ViolationMessages from '@components/ViolationMessages';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
+import type {ViolationField} from '@hooks/useViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -34,96 +28,67 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
-import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
-const violationNames = lodashValues(CONST.VIOLATIONS);
+type MoneyRequestViewTransactionOnyxProps = {
+    /** The transaction associated with the transactionThread */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+};
 
-const transactionViolationPropType = PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    name: PropTypes.oneOf(violationNames).isRequired,
-    data: PropTypes.shape({
-        rejectedBy: PropTypes.string,
-        rejectReason: PropTypes.string,
-        amount: PropTypes.string,
-        surcharge: PropTypes.number,
-        invoiceMarkup: PropTypes.number,
-        maxAge: PropTypes.number,
-        tagName: PropTypes.string,
-        formattedLimitAmount: PropTypes.string,
-        categoryLimit: PropTypes.string,
-        limit: PropTypes.string,
-        category: PropTypes.string,
-        brokenBankConnection: PropTypes.bool,
-        isAdmin: PropTypes.bool,
-        email: PropTypes.string,
-        isTransactionOlderThan7Days: PropTypes.bool,
-        member: PropTypes.string,
-        taxName: PropTypes.string,
-    }),
-});
-
-const propTypes = {
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
-
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: PropTypes.bool.isRequired,
-
-    /* Onyx Props */
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
-
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** The policy the report is tied to */
-    ...policyPropTypes,
+type MoneyRequestViewOnyxPropsWithoutTransaction = {
+    /** The policy object for the current route */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
-
-    /** The transaction associated with the transactionThread */
-    transaction: transactionPropTypes,
-
-    /** Violations detected in this transaction */
-    transactionViolations: PropTypes.arrayOf(transactionViolationPropType),
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: tagPropTypes,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTags>;
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** The expense report or iou report (only will have a value if this is a transaction thread) */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The actions from the parent report */
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+
+    /** Violations detected in this transaction */
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
 
-const defaultProps = {
-    parentReport: {},
-    parentReportActions: {},
-    transaction: {
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
-        comment: {comment: ''},
-    },
-    transactionViolations: [],
-    policyCategories: {},
-    policyTags: {},
-    ...policyDefaultProps,
+type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutTransaction & {
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
+
+    /** Whether we should display the horizontal rule below the component */
+    shouldShowHorizontalRule: boolean;
 };
 
-function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy, transactionViolations}) {
+type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
+
+function MoneyRequestView({
+    report,
+    parentReport,
+    parentReportActions,
+    policyCategories,
+    shouldShowHorizontalRule,
+    transaction,
+    policyTags,
+    policy,
+    transactionViolations,
+}: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
-    const parentReportAction = parentReportActions[report.parentReportActionID] || {};
+    const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -137,20 +102,20 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction);
+    } = ReportUtils.getTransactionDetails(transaction) ?? {};
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
+    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
     if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
-    const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
+    const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
 
     // Flags for allowing or disallowing editing a money request
-    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
@@ -167,26 +132,30 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     // Fetches only the first tag, for now
     const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagsList = lodashGet(policyTag, 'tags', {});
+    const policyTagsList = policyTag?.tags ?? {};
 
     // Flags for showing categories and tags
-    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
-    const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
+    // transactionCategory can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    // transactionTag can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagsList)));
+    const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-    const {getViolationsForField} = useViolations(transactionViolations);
-    const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
+    const {getViolationsForField} = useViolations(transactionViolations ?? []);
+    const hasViolations = useCallback((field: ViolationField): boolean => !!canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
     const saveBillable = useCallback(
-        (newBillable) => {
+        (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newBillable === TransactionUtils.getBillable(transaction)) {
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestBillable(transaction.transactionID, report.reportID, newBillable);
+            IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '', report?.reportID, newBillable);
             Navigation.dismissModal();
         },
         [transaction, report],
@@ -225,8 +194,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     }
 
-    const pendingAction = lodashGet(transaction, 'pendingAction');
-    const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
+    const pendingAction = transaction?.pendingAction;
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
@@ -236,9 +205,11 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
-                                thumbnail={receiptURIs.thumbnail}
-                                image={receiptURIs.image}
-                                isLocalFile={receiptURIs.isLocalFile}
+                                // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
+                                thumbnail={receiptURIs?.thumbnail}
+                                // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
+                                image={receiptURIs?.image}
+                                isLocalFile={receiptURIs?.isLocalFile}
                                 transaction={transaction}
                                 enablePreviewModal
                                 canEditReceipt={canEditReceipt}
@@ -254,7 +225,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                     CONST.IOU.ACTION.EDIT,
                                     CONST.IOU.TYPE.REQUEST,
-                                    transaction.transactionID,
+                                    transaction?.transactionID ?? '',
                                     report.reportID,
                                     Navigation.getActiveRouteWithoutParams(),
                                 ),
@@ -263,7 +234,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     />
                 )}
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
                         shouldShowTitleIcon={isSettled}
@@ -273,12 +244,12 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                        brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     />
                     {canUseViolations && <ViolationMessages violations={getViolationsForField('amount')} />}
                 </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                     <MenuItemWithTopDescription
                         description={translate('common.description')}
                         shouldParseTitle
@@ -288,16 +259,16 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         numberOfLinesTitle={0}
                     />
                     {canUseViolations && <ViolationMessages violations={getViolationsForField('comment')} />}
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
-                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
+                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.waypoints ?? transaction?.pendingAction}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
-                            title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
+                            title={hasPendingWaypoints ? transactionMerchant?.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
                             interactive={canEditDistance}
                             shouldShowRightIcon={canEditDistance}
                             titleStyle={styles.flex1}
@@ -305,7 +276,9 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         />
                     </OfflineWithFeedback>
                 ) : (
-                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
+                    // Merchant can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.merchant || transaction?.pendingAction}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
                             title={isEmptyMerchant ? '' : transactionMerchant}
@@ -313,13 +286,13 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
                 )}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                     <MenuItemWithTopDescription
                         description={translate('common.date')}
                         title={transactionDate}
@@ -327,13 +300,13 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                        brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     />
                     {canUseViolations && <ViolationMessages violations={getViolationsForField('date')} />}
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
-                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
+                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.category ?? transaction?.pendingAction}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={transactionCategory}
@@ -341,27 +314,27 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
-                            brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('category')} />}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && (
-                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
+                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.tag ?? transaction?.pendingAction}>
                         <MenuItemWithTopDescription
-                            description={lodashGet(policyTag, 'name', translate('common.tag'))}
+                            description={policyTag?.name ?? translate('common.tag')}
                             title={transactionTag}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
-                            brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
                     </OfflineWithFeedback>
                 )}
                 {isCardTransaction && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
                             title={cardProgramName}
@@ -376,7 +349,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
                             <Switch
                                 accessibilityLabel={translate('common.billable')}
-                                isOn={transactionBillable}
+                                isOn={!!transactionBillable}
                                 onToggle={saveBillable}
                             />
                         </View>
@@ -397,50 +370,42 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     );
 }
 
-MoneyRequestView.propTypes = propTypes;
-MoneyRequestView.defaultProps = defaultProps;
 MoneyRequestView.displayName = 'MoneyRequestView';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
+export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestViewOnyxPropsWithoutTransaction>({
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+    },
+    policyCategories: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}`,
+    },
+    policyTags: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
+    },
+    parentReport: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+    },
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        canEvict: false,
+    },
+    transactionViolations: {
+        key: ({report}) => {
+            const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+            const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+            const transactionID = originalMessage?.IOUTransactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
         },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        },
-        policyCategories: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}`,
-        },
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    }),
-    withOnyx({
+    },
+})(
+    withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions[report.parentReportActionID];
-                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
+                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
+                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+                const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
-        transactionViolation: {
-            key: ({report}) => {
-                const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-            },
-        },
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
-        },
-    }),
-)(MoneyRequestView);
+    })(MoneyRequestView),
+);
