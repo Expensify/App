@@ -75,6 +75,8 @@ function ReportActionsListItemRenderer({
             error: reportAction.error,
             created: reportAction.created,
             actorAccountID: reportAction.actorAccountID,
+            childVisibleActionCount: reportAction.childVisibleActionCount,
+            childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
         }),
         [
             reportAction.actionName,
@@ -91,6 +93,8 @@ function ReportActionsListItemRenderer({
             reportAction.reportActionID,
             reportAction.whisperedToAccountIDs,
             reportAction.actorAccountID,
+            reportAction.childVisibleActionCount,
+            reportAction.childOldestFourAccountIDs,
         ],
     );
 
