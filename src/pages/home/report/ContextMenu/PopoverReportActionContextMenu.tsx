@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {EmitterSubscription, View} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -22,6 +22,13 @@ type Location = {
     x: number;
     y: number;
 };
+
+function getPageCoords(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
+    if ('nativeEvent' in event) {
+        return event.nativeEvent;
+    }
+    return event;
+}
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportActionContextMenu>) {
@@ -155,7 +162,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isPinnedChat = false,
         isUnreadChat = false,
     ) => {
-        const {pageX = 0, pageY = 0} = 'nativeEvent' in event ? event.nativeEvent : {};
+        const {pageX = 0, pageY = 0} = getPageCoords(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLElement;
 
