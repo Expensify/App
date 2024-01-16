@@ -84,7 +84,7 @@ const decomposeString = (value: string, length: number): string[] => {
  * Converts an array of strings into a single string. If there are undefined or
  * empty values, it will replace them with a space.
  */
-const composeToString = (value: string[]): string => value.map((v) => (v === undefined || v === '' ? CONST.MAGIC_CODE_EMPTY_CHAR : v)).join('');
+const composeToString = (value: string[]): string => value.map((v) => (!v ? CONST.MAGIC_CODE_EMPTY_CHAR : v)).join('');
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
