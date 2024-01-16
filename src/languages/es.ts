@@ -1033,9 +1033,9 @@ export default {
         },
     },
     reportDescriptionPage: {
-        roomDescription: 'Descripción de la habitación',
-        roomDescriptionOptional: 'Descripción de la habitación (opcional)',
-        explainerText: 'Establece una descripción personalizada para la habitación.',
+        roomDescription: 'Descripción de la sala de chat',
+        roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
+        explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
     languagePage: {
         language: 'Idioma',
