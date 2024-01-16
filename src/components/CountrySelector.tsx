@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -16,7 +16,7 @@ type CountrySelectorProps = {
     onInputChange: (value?: string) => void;
 
     /** Current selected country  */
-    value?: keyof typeof CONST.ALL_COUNTRIES;
+    value?: Country;
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types

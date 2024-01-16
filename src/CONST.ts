@@ -3123,4 +3123,8 @@ const CONST = {
     },
 } as const;
 
+type Country = keyof typeof CONST.ALL_COUNTRIES;
+
+export type {Country};
+
 export default CONST;
