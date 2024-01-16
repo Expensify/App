@@ -15,7 +15,6 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
-import getInitialNumToRender from '@libs/getInitialNumToRender';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -26,6 +25,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -142,7 +142,7 @@ function ReportActionsList({
     isComposerFullSize,
     listID,
     onContentSizeChange,
-    enableAutoscrollToTopThreshold,
+    shouldEnableAutoscrollToTopThreshold,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -543,7 +543,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                     key={listID}
-                    enableAutoscrollToTopThreshold={enableAutoscrollToTopThreshold}
+                    shouldEnableAutoscrollToTopThreshold={shouldEnableAutoscrollToTopThreshold}
                 />
             </Animated.View>
         </>

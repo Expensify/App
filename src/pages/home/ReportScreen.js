@@ -173,7 +173,7 @@ function ReportScreen({
     const shouldTriggerLoadingRef = useRef(!!reportActionIDFromRoute);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const [isPrepareLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
+    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
     const isFocused = useIsFocused();
     const reportActions = useMemo(() => {
         if (_.isEmpty(allReportActions)) {
@@ -268,7 +268,7 @@ function ReportScreen({
     }, [report, reportIDFromRoute]);
 
     const shouldShowSkeleton =
-        isPrepareLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions);
+        isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata.isLoadingInitialReportActions);
 
     const shouldShowReportActionList = isReportReadyForDisplay && !isLoading;
 

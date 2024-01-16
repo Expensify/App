@@ -409,7 +409,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
                 policy={props.policy}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
-                enableAutoscrollToTopThreshold={hasNewestReportAction && !reportActionID}
+                shouldEnableAutoscrollToTopThreshold={hasNewestReportAction && !reportActionID}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>
