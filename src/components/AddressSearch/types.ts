@@ -5,7 +5,7 @@ import type Locale from '@src/types/onyx/Locale';
 
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Boolean to indicate if the button is clickable */
     isDisabled?: boolean;
