@@ -27,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
+import BeneficialOwnersStep from './BeneficialOwnersStep';
 import CompanyStep from './CompanyStep';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
@@ -105,6 +106,7 @@ const defaultProps = {
 const ROUTE_NAMES = {
     COMPANY: 'company',
     PERSONAL_INFORMATION: 'personal-information',
+    BENEFICIAL_OWNERS: 'beneficial-owners',
     CONTRACT: 'contract',
     VALIDATE: 'validate',
     ENABLE: 'enable',
@@ -125,6 +127,8 @@ function getStepToOpenFromRouteParams(route) {
             return CONST.BANK_ACCOUNT.STEP.COMPANY;
         case ROUTE_NAMES.PERSONAL_INFORMATION:
             return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+        case ROUTE_NAMES.BENEFICIAL_OWNERS:
+            return CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS;
         case ROUTE_NAMES.CONTRACT:
             return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
         case ROUTE_NAMES.VALIDATE:
@@ -146,6 +150,8 @@ function getRouteForCurrentStep(currentStep) {
             return ROUTE_NAMES.COMPANY;
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
             return ROUTE_NAMES.PERSONAL_INFORMATION;
+        case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
+            return ROUTE_NAMES.BENEFICIAL_OWNERS;
         case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
             return ROUTE_NAMES.CONTRACT;
         case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -370,20 +376,24 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+                BankAccounts.clearOnfidoToken();
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
                 if (shouldShowOnfido) {
                     BankAccounts.clearOnfidoToken();
                 } else {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
                 }
                 break;
 
+            case CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS:
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                break;
+
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                BankAccounts.clearOnfidoToken();
-                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS);
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -415,20 +425,24 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
     const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
-        isOffline && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
+        isOffline &&
+        _.contains(
+            [
+                CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                CONST.BANK_ACCOUNT.STEP.COMPANY,
+                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
+                CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS,
+                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+            ],
+            currentStep,
+        )
     );
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
-        const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
-        return (
-            <ReimbursementAccountLoadingIndicator
-                isSubmittingVerificationsData={isSubmittingVerificationsData}
-                onBackButtonPress={goBack}
-            />
-        );
+        return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
     let errorText;
@@ -493,7 +507,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             <CompanyStep
                 onBackButtonPress={goBack}
                 onCloseButtonPress={goBackToWorkspace}
-                policyID={policyID}
             />
         );
     }
@@ -504,6 +517,15 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             <RequestorStep
                 ref={requestorStepRef}
                 shouldShowOnfido={Boolean(shouldShowOnfido)}
+                onBackButtonPress={goBack}
+                onCloseButtonPress={goBackToWorkspace}
+            />
+        );
+    }
+
+    if (currentStep === CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS) {
+        return (
+            <BeneficialOwnersStep
                 onBackButtonPress={goBack}
                 onCloseButtonPress={goBackToWorkspace}
             />

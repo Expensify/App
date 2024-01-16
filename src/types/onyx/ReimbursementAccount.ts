@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
-import type {ACHContractStepProps, BeneficialOwnersStepDraftProps, CompanyStepProps, RequestorStepProps} from './ReimbursementAccountDraft';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from './ReimbursementAccountDraft';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
@@ -32,7 +32,7 @@ type ACHData = {
 
     /** Bank account owner name */
     addressName?: string;
-} & BeneficialOwnersStepDraftProps &
+} & BeneficialOwnersStepProps &
     CompanyStepProps &
     RequestorStepProps &
     ACHContractStepProps;

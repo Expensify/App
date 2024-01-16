@@ -39,10 +39,15 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const setupType = reimbursementAccount?.achData?.subStep ?? '';
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
     const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     const handleConnectDifferentAccount = () => {
+        if (bankAccountID) {
+            ReimbursementAccount.requestResetFreePlanBankAccount();
+            return;
+        }
         const bankAccountData = {
             [bankInfoStepKeys.ROUTING_NUMBER]: '',
             [bankInfoStepKeys.ACCOUNT_NUMBER]: '',

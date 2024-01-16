@@ -19,6 +19,9 @@ import OnfidoInitialize from './substeps/OnfidoInitialize';
 type VerifyIdentityOnyxProps = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+    /** Onfido applicant ID from ONYX */
+    onfidoApplicantID: OnyxEntry<string>;
 };
 
 type VerifyIdentityProps = VerifyIdentityOnyxProps & {
@@ -31,20 +34,19 @@ type VerifyIdentityProps = VerifyIdentityOnyxProps & {
 
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [OnfidoInitialize];
 
-function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress}: VerifyIdentityProps) {
+function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress, onfidoApplicantID}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const submit = useCallback(
         (onfidoData?: OnfidoData) => {
             if (!onfidoData) {
                 return;
             }
 
-            BankAccounts.verifyIdentityForBankAccount(reimbursementAccount?.achData?.bankAccountID ?? 0, onfidoData);
+            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID});
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
-        [reimbursementAccount],
+        [reimbursementAccount, onfidoApplicantID],
     );
 
     const {componentToRender: SubStep, isEditing, moveTo, nextScreen} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
@@ -60,7 +62,7 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonP
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
-                    startStepIndex={3}
+                    startStepIndex={2}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
@@ -78,5 +80,8 @@ VerifyIdentity.displayName = 'VerifyIdentity';
 export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    onfidoApplicantID: {
+        key: ONYXKEYS.ONFIDO_APPLICANT_ID,
     },
 })(VerifyIdentity);

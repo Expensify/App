@@ -33,7 +33,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
 
-    const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName);
+    const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && reimbursementAccount?.achData?.state !== 'SETUP');
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
