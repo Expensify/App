@@ -287,4 +287,5 @@ export type {
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageAddComment,
+    OriginalMessageActionableMentionWhisper
 };
