@@ -108,7 +108,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                         />
                     </OfflineWithFeedback>
                 </Section>
-                {!!user?.isCheckingDomain && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
+                {user?.isCheckingDomain && <Text style={[styles.formError, styles.mh5]}>{translate('workspace.card.checkingDomain')}</Text>}
             </ScrollView>
             {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScreenWrapper>
