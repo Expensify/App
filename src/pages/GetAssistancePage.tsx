@@ -34,7 +34,7 @@ type GetAssistancePageProps = GetAssistanceOnyxProps & {
 function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigateBackTo: Route = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS;
+    const navigateBackTo = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS.getRoute();
     const menuItems: MenuItemWithLink[] = [
         {
             title: translate('getAssistancePage.chatWithConcierge'),
