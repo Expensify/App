@@ -1445,6 +1445,8 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
 
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+
+        REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
     },
 
     PRONOUNS: {

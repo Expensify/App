@@ -667,8 +667,8 @@ function ReportActionItem({
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     <MoneyReportView
-                        policyReportFields={Object.values(policyReportFields ?? {})}
                         report={report}
+                        policyReportFields={Object.values(policyReportFields ?? {})}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>
