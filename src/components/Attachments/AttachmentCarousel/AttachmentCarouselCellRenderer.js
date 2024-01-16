@@ -1,6 +1,7 @@
+import {CellContainer} from '@shopify/flash-list';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {PixelRatio, View} from 'react-native';
+import {PixelRatio} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -22,7 +23,7 @@ function AttachmentCarouselCellRenderer(props) {
     const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
     return (
-        <View
+        <CellContainer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={props.forwardedRef}
@@ -35,9 +36,11 @@ AttachmentCarouselCellRenderer.propTypes = propTypes;
 AttachmentCarouselCellRenderer.defaultProps = defaultProps;
 AttachmentCarouselCellRenderer.displayName = 'AttachmentCarouselCellRenderer';
 
-export default React.memo(React.forwardRef((props, ref) => (
-    <AttachmentCarouselCellRenderer
-        {...props}
-        forwardedRef={ref}
-    />
-)));
+export default React.memo(
+    React.forwardRef((props, ref) => (
+        <AttachmentCarouselCellRenderer
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
