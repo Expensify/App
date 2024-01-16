@@ -140,7 +140,6 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
-    SETTINGS_STATUS_SET: 'settings/profile/status/set',
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
         getRoute: (accountID: string) => `a/${accountID}/avatar` as const,
