@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -11,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
