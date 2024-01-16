@@ -73,6 +73,9 @@ const propTypes = {
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
     }),
+    
+    /** The reportID of the request */
+    reportID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
