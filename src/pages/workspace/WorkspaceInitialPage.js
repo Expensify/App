@@ -206,22 +206,22 @@ function WorkspaceInitialPage(props) {
                 onSelected: () => setIsDeleteModalOpen(true),
             },
         ];
-        if (adminsRoom) {
+        if (adminsRoom || policy.chatReportIDAdmins) {
             items.push({
                 icon: Expensicons.Hashtag,
                 text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                onSelected: () => Navigation.dismissModal(adminsRoom.reportID),
+                onSelected: () => Navigation.dismissModal(adminsRoom ? adminsRoom.reportID : policy.chatReportIDAdmins.toString()),
             });
         }
-        if (announceRoom) {
+        if (announceRoom || policy.chatReportIDAnnounce) {
             items.push({
                 icon: Expensicons.Hashtag,
                 text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                onSelected: () => Navigation.dismissModal(announceRoom.reportID),
+                onSelected: () => Navigation.dismissModal(announceRoom ? announceRoom.reportID : policy.chatReportIDAnnounce.toString()),
             });
         }
         return items;
-    }, [adminsRoom, announceRoom, translate]);
+    }, [adminsRoom, announceRoom, translate, policy]);
 
     const prevPolicy = usePrevious(policy);
 
