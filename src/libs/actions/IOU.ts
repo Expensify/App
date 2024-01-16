@@ -1089,28 +1089,26 @@ function getUpdateMoneyRequestParams(
         },
     });
 
-    if (isScanning && (_.has(transactionChanges, 'amount') || _.has(transactionChanges, 'currency'))) {
+    if (isScanning && ('amount' in transactionChanges || 'currency' in transactionChanges)) {
         optimisticData.push(
-            ...[
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-                    value: {
-                        [transactionThread.parentReportActionID]: {
-                            whisperedToAccountIDs: [],
-                        },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [transactionThread?.parentReportActionID ?? '']: {
+                        whisperedToAccountIDs: [],
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`,
-                    value: {
-                        [iouReport.parentReportActionID]: {
-                            whisperedToAccountIDs: [],
-                        },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
+                value: {
+                    [iouReport?.parentReportActionID ?? '']: {
+                        whisperedToAccountIDs: [],
                     },
                 },
-            ],
+            },
         );
     }
 
@@ -1227,15 +1225,9 @@ function updateMoneyRequestTag(transactionID: string, transactionThreadReportID:
     API.write('UpdateMoneyRequestTag', params, onyxData);
 }
 
-/**
- * Updates the description of a money request
- *
- * @param {String} transactionID
- * @param {Number} transactionThreadReportID
- * @param {String} comment
- */
-function updateMoneyRequestDescription(transactionID, transactionThreadReportID, comment) {
-    const transactionChanges = {
+/** Updates the description of a money request */
+function updateMoneyRequestDescription(transactionID: string, transactionThreadReportID: string, comment: string) {
+    const transactionChanges: TransactionChanges = {
         comment,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
