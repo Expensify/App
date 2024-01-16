@@ -37,7 +37,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
 
-    if (Object.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES).includes(contentType)) {
+    if (!Object.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES).includes(contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     }
 
@@ -45,7 +45,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const contentBody = translate(`referralProgram.${contentType}.body`);
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
-    const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(account?.primaryLogin ?? '')}`;
+    const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}${account?.primaryLogin ? `/?thanks=${account.primaryLogin}` : ''}`;
 
     return (
         <HeaderPageLayout
