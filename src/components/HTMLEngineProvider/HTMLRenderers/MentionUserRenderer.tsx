@@ -38,7 +38,8 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID)) {
         const user = personalDetails.htmlAttribAccountID;
         accountID = parseInt(htmlAttribAccountID, 10);
-        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') ?? user?.displayName ?? translate('common.hidden');
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || user?.displayName || translate('common.hidden');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
