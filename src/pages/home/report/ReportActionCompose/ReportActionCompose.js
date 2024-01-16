@@ -20,7 +20,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import getModalState from '@libs/getModalState';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
@@ -332,7 +331,6 @@ function ReportActionCompose({
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !isReportReadyForDisplay) {
@@ -420,8 +418,8 @@ function ReportActionCompose({
                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                             reportID={reportID}
                             parentReportID={report.parentReportID}
+                            parentReportActionID={report.parentReportActionID}
                             includesChronos={ReportUtils.chatIncludesChronos(report)}
-                            parentReportAction={parentReportAction}
                             isEmptyChat={isEmptyChat}
                             lastReportAction={lastReportAction}
                             isMenuVisible={isMenuVisible}

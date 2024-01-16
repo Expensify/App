@@ -72,6 +72,7 @@ function ComposerWithSuggestions({
     // Onyx
     modal,
     preferredSkinTone,
+    parentReportActions,
     numberOfLines,
     // HOCs
     isKeyboardShown,
@@ -80,6 +81,7 @@ function ComposerWithSuggestions({
     includeChronos,
     isEmptyChat,
     lastReportAction,
+    parentReportActionID,
     // Focus
     onFocus,
     onBlur,
@@ -107,7 +109,6 @@ function ComposerWithSuggestions({
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
-    parentReportAction,
     // For testing
     children,
 }) {
@@ -133,6 +134,7 @@ function ComposerWithSuggestions({
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
+    const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
@@ -362,7 +364,6 @@ function ComposerWithSuggestions({
             const valueLength = valueRef.current.length;
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !includeChronos) {
                 e.preventDefault();
-
                 if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
@@ -673,6 +674,11 @@ export default compose(
         },
         editFocused: {
             key: ONYXKEYS.INPUT_FOCUSED,
+        },
+        parentReportActions: {
+            key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            canEvict: false,
+            initWithStoredValues: false,
         },
     }),
 )(memo(ComposerWithSuggestionsWithRef));
