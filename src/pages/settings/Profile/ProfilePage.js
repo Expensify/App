@@ -109,7 +109,7 @@ function ProfilePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 shouldShowBackButton={props.isSmallScreenWidth}
             />
             <ScrollView>

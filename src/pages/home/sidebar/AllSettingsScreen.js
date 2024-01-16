@@ -40,21 +40,21 @@ function AllSettingsScreen() {
                 translationKey: 'allSettingsScreen.subscriptions',
                 icon: Expensicons.MoneyBag,
                 action: () => {
-                    Link.openOldDotLink(CONST.ADMIN_POLICIES_URL);
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                link: CONST.ADMIN_POLICIES_URL,
+                link: CONST.OLDDOT_URLS.ADMIN_POLICIES_URL,
             },
             {
                 translationKey: 'allSettingsScreen.cardsAndDomains',
                 icon: Expensicons.CardsAndDomains,
                 action: () => {
-                    Link.openOldDotLink(CONST.ADMIN_DOMAINS_URL);
+                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                link: CONST.ADMIN_DOMAINS_URL,
+                link: CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL,
             },
         ];
         return _.map(baseMenuItems, (item) => ({

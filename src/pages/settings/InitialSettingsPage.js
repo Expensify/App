@@ -175,9 +175,11 @@ function InitialSettingsPage(props) {
                     translationKey: 'initialSettingsPage.goToExpensifyClassic',
                     icon: Expensicons.NewExpensify,
                     action: () => {
-                        Link.openExternalLink(CONST.EXPENSIFY_INBOX_URL);
+                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
-                    link: CONST.EXPENSIFY_INBOX_URL,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    link: Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',

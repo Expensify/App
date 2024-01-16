@@ -86,7 +86,7 @@ class ShareCodePage extends React.Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS.ROOT)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                     shouldShowBackButton={isReport || this.props.isSmallScreenWidth}
                 />
 
