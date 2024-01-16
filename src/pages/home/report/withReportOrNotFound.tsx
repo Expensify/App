@@ -1,15 +1,17 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -36,6 +38,18 @@ export default function (
             const contentShown = React.useRef(false);
 
             const isReportIdInRoute = props.route.params.reportID?.length;
+
+            // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
+            // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
+            useEffect(() => {
+                if (!isReportIdInRoute || isNotEmptyObject(props.report)) {
+                    // If the report is not required or is already loaded, we don't need to call the API
+                    return;
+                }
+
+                Report.openReport(props.route.params.reportID);
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+            }, [isReportIdInRoute, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
