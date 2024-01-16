@@ -26,13 +26,14 @@ import ROUTES from '@src/ROUTES';
 import type {Report, Session} from '@src/types/onyx';
 
 type ShareCodePageOnyxProps = WithCurrentUserPersonalDetailsProps & {
+    /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
+
+    /** The report currently being looked at */
+    report?: OnyxEntry<Report>;
 };
 
-type ShareCodePageProps = ShareCodePageOnyxProps & {
-    /** The report currently being looked at */
-    report?: Report;
-};
+type ShareCodePageProps = ShareCodePageOnyxProps;
 
 function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
