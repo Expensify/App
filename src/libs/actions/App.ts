@@ -398,7 +398,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady()
+        Navigation.waitForProtectedRoutes()
             .then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack(ROUTES.HOME);
