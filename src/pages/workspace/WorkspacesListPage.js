@@ -307,7 +307,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                     />
                 </HeaderWithBackButton>
-                <ScrollView contentContainerStyle={styles.pt5}>
+                <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
                             menuItems={workspaceFeatures}
