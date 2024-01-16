@@ -17,7 +17,7 @@ import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withReportAct
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
-import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import ActionableItemButtons, {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
@@ -274,7 +274,7 @@ function ReportActionItem({
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {Object} [event] - A press event.
+     * @param [event] - A press event.
      */
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
@@ -320,7 +320,7 @@ function ReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction],
     );
 
-    const actionableItemButtons = useMemo(() => {
+    const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (!(action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && (!action?.originalMessage.resolution ?? null))) {
             return [];
         }
@@ -505,12 +505,7 @@ function ReportActionItem({
                                 for example: Invite a user mentioned but not a member of the room
                                 https://github.com/Expensify/App/issues/32741
                             */}
-                            {actionableItemButtons.length > 0 && (
-                                <ActionableItemButtons
-                                    action={action}
-                                    items={actionableItemButtons}
-                                />
-                            )}
+                            {actionableItemButtons.length > 0 && <ActionableItemButtons items={actionableItemButtons} />}
                         </View>
                     ) : (
                         <ReportActionItemMessageEdit
@@ -704,7 +699,9 @@ function ReportActionItem({
     const isWhisper = whisperedToAccountIDs.length > 0;
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
-    const whisperedToPersonalDetails = isWhisper ? Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) : [];
+    const whisperedToPersonalDetails = isWhisper
+        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
+        : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction

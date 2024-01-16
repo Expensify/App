@@ -236,7 +236,9 @@ type OriginalMessageModifiedExpense = {
 
 type OriginalMessageReimbursementQueued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    };
 };
 
 type OriginalMessageReimbursementDequeued = {

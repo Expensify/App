@@ -608,6 +608,7 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            NOTHING: '',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
