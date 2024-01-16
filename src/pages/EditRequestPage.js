@@ -193,13 +193,8 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
                 return;
             }
 
-            // This is possible only in case of IOU requests.
-            if (newTrimmedMerchant === '') {
-                IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
-                return;
-            }
-
-            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newMerchant);
+            // An empty newTrimmedMerchant is only possible for the P2P IOU case
+            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newTrimmedMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
             Navigation.dismissModal();
         },
         [transactionMerchant, transaction, report],
@@ -218,18 +213,22 @@ function EditRequestPage({report, policy, policyTaxRates, route, policyCategorie
         [transactionTag, transaction.transactionID, report.reportID],
     );
 
+    const saveComment = useCallback(
+        ({comment: newComment}) => {
+            // Only update comment if it has changed
+            if (newComment.trim() !== transactionDescription) {
+                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
+            }
+            Navigation.dismissModal();
+        },
+        [transactionDescription, transaction.transactionID, report.reportID],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
-                onSubmit={(transactionChanges) => {
-                    // In case the comment hasn't been changed, do not make the API request.
-                    if (transactionChanges.comment.trim() === transactionDescription) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({comment: transactionChanges.comment.trim()});
-                }}
+                onSubmit={saveComment}
             />
         );
     }
