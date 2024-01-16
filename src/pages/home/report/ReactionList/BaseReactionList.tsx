@@ -1,7 +1,8 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import Str from 'expensify-common/lib/str';
 import React from 'react';
-import {FlatList, type FlatListProps} from 'react-native';
+import {FlatList} from 'react-native';
+import type {FlatListProps} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -33,9 +34,9 @@ type BaseReactionListProps = ReactionListProps & {
 
 /**
  * Create a unique key for each action in the FlatList.
- * @param {Object} item
- * @param {Number} index
- * @return {String}
+ * @param item object
+ * @param index number
+ * @return string
  */
 const keyExtractor: FlatListProps<PersonalDetails>['keyExtractor'] = (item, index) => `${item.login}+${index}`;
 
@@ -45,11 +46,11 @@ const keyExtractor: FlatListProps<PersonalDetails>['keyExtractor'] = (item, inde
  * Generate and return an object with properties length(height of each individual row),
  * offset(distance of the current row from the top of the FlatList), index(current row index)
  *
- * @param {*} _ FlatList item
- * @param {Number} index row index
- * @returns {Object}
+ * @param data FlatList item
+ * @param  index number - row index
+ * @returns object
  */
-const getItemLayout = (_: any, index: number): {length: number; offset: number; index: number} => ({
+const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, index: number): {length: number; offset: number; index: number} => ({
     index,
     length: variables.listItemHeightNormal,
     offset: variables.listItemHeightNormal * index,
@@ -67,9 +68,9 @@ function BaseReactionList(props: BaseReactionListProps) {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly
      *
-     * @param {Object} params
-     * @param {Object} params.item
-     * @return {React.Component}
+     * @param params object
+     * @param params.item object
+     * @return React.Component
      */
     const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => (
         <OptionRow
@@ -77,23 +78,26 @@ function BaseReactionList(props: BaseReactionListProps) {
             style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
             hoverStyle={hoveredComponentBG}
             onSelectRow={() => {
-                props.onClose && props.onClose();
+                if (props.onClose) {
+                    props.onClose();
+                }
+
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
             }}
             option={{
                 reportID: String(item.accountID),
-                text: Str.removeSMSDomain(item.displayName || ''),
-                alternateText: Str.removeSMSDomain(item.login || ''),
+                text: Str.removeSMSDomain(item.displayName ?? ''),
+                alternateText: Str.removeSMSDomain(item.login ?? ''),
                 participantsList: [item],
                 icons: [
                     {
                         id: item.accountID,
                         source: UserUtils.getAvatar(item.avatar, item.accountID),
-                        name: item.login || '',
+                        name: item.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: item.login || String(item.accountID),
+                keyForList: item.login ?? String(item.accountID),
             }}
         />
     );

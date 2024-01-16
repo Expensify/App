@@ -5,8 +5,10 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import _ from 'underscore';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import withCurrentUserPersonalDetails, {type WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {type WithLocalizeProps} from '@components/withLocalize';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import type {WithLocalizeProps} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -14,7 +16,7 @@ import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
-import {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
+import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
 type BasePopoverReactionListOnyxProps = {
     /** The reactions for the report action */
@@ -29,7 +31,7 @@ type BasePopoverReactionListProps = {
     emojiName: string;
 
     /** The ref of the action */
-    ref: React.Ref<any>;
+    ref: React.Ref<React.JSX.Element>;
 };
 
 type BasePopoverReactionListWithLocalizeProps = WithLocalizeProps & WithCurrentUserPersonalDetailsProps;
