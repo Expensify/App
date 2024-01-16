@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -54,7 +55,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
     ];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
-    const guideCalendarLink = account?.guideCalendarLink as string;
+    const guideCalendarLink = account?.guideCalendarLink;
     if (guideCalendarLink) {
         menuItems.splice(1, 0, {
             title: translate('getAssistancePage.scheduleSetupCall'),
