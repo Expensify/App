@@ -10,7 +10,7 @@ type MenuItemLink = string | (() => Promise<string>);
 
 type MenuItemWithLink = MenuItemProps & {
     /** The link to open when the menu item is clicked */
-    link: MenuItemLink;
+    link?: MenuItemLink;
 };
 
 type MenuItemListProps = {

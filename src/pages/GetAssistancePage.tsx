@@ -1,6 +1,7 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,10 +15,10 @@ import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { Account } from '@src/types/onyx';
+import type { Account } from '@src/types/onyx';
 import { RouteProp } from '@react-navigation/native';
 import ROUTES from '@src/ROUTES';
-
+import type {Route} from '@src/ROUTES';
 
 type GetAssistanceOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -25,13 +26,13 @@ type GetAssistanceOnyxProps = {
 };
 
 type GetAssistancePageProps = GetAssistanceOnyxProps & {
-    route: RouteProp<{params: {taskID: string; backTo: string}}>;
+    route: RouteProp<{params: {backTo: Route}}>;
 };
 
 function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigateBackTo = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS
+    const navigateBackTo: Route = route?.params.backTo || ROUTES.SETTINGS_CONTACT_METHODS
     const menuItems = [
         {
             title: translate('getAssistancePage.chatWithConcierge'),
@@ -61,7 +62,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
-            link: guideCalendarLink,
+            link: guideCalendarLink
         });
     }
 
