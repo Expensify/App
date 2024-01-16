@@ -2,27 +2,17 @@
 import {useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, withSpring} from 'react-native-reanimated';
+import {runOnJS, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import {SPRING_CONFIG} from './constants';
-import type {CanvasSize, ContentSize, MultiGestureCanvasVariables, OnScaleChangedCallback} from './types';
+import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
 
-type UseTapGesturesProps = {
-    canvasSize: CanvasSize;
-    contentSize: ContentSize;
-    minContentScale: MultiGestureCanvasVariables['minContentScale'];
-    maxContentScale: MultiGestureCanvasVariables['maxContentScale'];
-    offsetX: MultiGestureCanvasVariables['offsetX'];
-    offsetY: MultiGestureCanvasVariables['offsetY'];
-    pinchScale: MultiGestureCanvasVariables['pinchScale'];
-    zoomScale: MultiGestureCanvasVariables['zoomScale'];
-    reset: MultiGestureCanvasVariables['reset'];
-    stopAnimation: MultiGestureCanvasVariables['stopAnimation'];
-    onScaleChanged: OnScaleChangedCallback;
-    onTap: MultiGestureCanvasVariables['onTap'];
-};
+type UseTapGesturesProps = Pick<
+    MultiGestureCanvasVariables,
+    'canvasSize' | 'contentSize' | 'minContentScale' | 'maxContentScale' | 'offsetX' | 'offsetY' | 'pinchScale' | 'zoomScale' | 'reset' | 'stopAnimation' | 'onScaleChanged' | 'onTap'
+>;
 
 const useTapGestures = ({
     canvasSize,
@@ -45,7 +35,7 @@ const useTapGestures = ({
     // On double tap the content should be zoomed to fill, but at least zoomed by DOUBLE_TAP_SCALE
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
-    const zoomToCoordinates = MultiGestureCanvasUtils.useWorkletCallback(
+    const zoomToCoordinates = useWorkletCallback(
         (focalX: number, focalY: number) => {
             'worklet';
 

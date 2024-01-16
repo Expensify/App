@@ -33,7 +33,7 @@ function BaseAttachmentViewPdf({
             if (isUsedInCarousel && attachmentCarouselPagerContext) {
                 const shouldPagerScroll = scale === 1;
 
-                attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);
+                attachmentCarouselPagerContext.onScaleChanged(1);
 
                 if (attachmentCarouselPagerContext.shouldPagerScroll.value === shouldPagerScroll) {
                     return;

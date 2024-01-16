@@ -11,16 +11,16 @@ const SPRING_CONFIG: WithSpringConfig = {
 };
 
 // The default zoom range within the user can pinch to zoom the content inside the canvas
-const defaultZoomRange: Required<ZoomRange> = {
+const DEFAULT_ZOOM_RANGE: Required<ZoomRange> = {
     min: 1,
     max: 20,
 };
 
-// The zoom scale bounce factors are used to determine the amount of bounce
+// The zoom range bounce factors are used to determine the amount of bounce
 // that is allowed when the user zooms more than the min or max zoom levels
-const zoomScaleBounceFactors: Required<ZoomRange> = {
+const ZOOM_RANGE_BOUNCE_FACTORS: Required<ZoomRange> = {
     min: 0.7,
     max: 1.5,
 };
 
-export {SPRING_CONFIG, defaultZoomRange, zoomScaleBounceFactors};
+export {SPRING_CONFIG, DEFAULT_ZOOM_RANGE, ZOOM_RANGE_BOUNCE_FACTORS};

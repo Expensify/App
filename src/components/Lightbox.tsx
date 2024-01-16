@@ -27,7 +27,7 @@ type LightboxProps = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: boolean;
 
-    /** URI to full-sized attachment, SVG function, or numeric static image on native platforms */
+    /** URI to full-sized attachment */
     uri: string;
 
     /** Triggers whenever the zoom scale changes */

@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
 import {SPRING_CONFIG} from './constants';
-import type {CanvasSize, ContentSize, MultiGestureCanvasVariables} from './types';
+import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
 // This value determines how fast the pan animation should phase out
@@ -11,18 +11,10 @@ import * as MultiGestureCanvasUtils from './utils';
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
 const PAN_DECAY_DECELARATION = 0.9915;
 
-type UsePanGestureProps = {
-    canvasSize: CanvasSize;
-    contentSize: ContentSize;
-    zoomScale: MultiGestureCanvasVariables['zoomScale'];
-    totalScale: MultiGestureCanvasVariables['totalScale'];
-    offsetX: MultiGestureCanvasVariables['offsetX'];
-    offsetY: MultiGestureCanvasVariables['offsetY'];
-    panTranslateX: MultiGestureCanvasVariables['panTranslateX'];
-    panTranslateY: MultiGestureCanvasVariables['panTranslateY'];
-    isSwipingInPager: MultiGestureCanvasVariables['isSwipingInPager'];
-    stopAnimation: MultiGestureCanvasVariables['stopAnimation'];
-};
+type UsePanGestureProps = Pick<
+    MultiGestureCanvasVariables,
+    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'isSwipingInPager' | 'stopAnimation'
+>;
 
 const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isSwipingInPager, stopAnimation}: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
@@ -37,7 +29,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
     // Can be used to limit gesture or implementing tension effect
-    const getBounds = MultiGestureCanvasUtils.useWorkletCallback(() => {
+    const getBounds = useWorkletCallback(() => {
         let horizontalBoundary = 0;
         let verticalBoundary = 0;
 
@@ -73,7 +65,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
     // We want to smoothly decay/end the gesture by phasing out the pan animation
     // In case the content is outside of the boundaries of the canvas,
     // we need to move the content back into the boundaries
-    const finishPanGesture = MultiGestureCanvasUtils.useWorkletCallback(() => {
+    const finishPanGesture = useWorkletCallback(() => {
         // If the content is centered within the canvas, we don't need to run any animations
         if (offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             return;

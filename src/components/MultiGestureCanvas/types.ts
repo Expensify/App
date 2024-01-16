@@ -1,5 +1,4 @@
 import type {SharedValue} from 'react-native-reanimated';
-import type {WorkletFunction} from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
 /** Dimensions of the canvas rendered by the MultiGestureCanvas */
 type CanvasSize = {
@@ -15,8 +14,8 @@ type ContentSize = {
 
 /** Range of zoom that can be applied to the content by pinching or double tapping. */
 type ZoomRange = {
-    min?: number;
-    max?: number;
+    min: number;
+    max: number;
 };
 
 /** Triggered whenever the scale of the MultiGestureCanvas changes */
@@ -27,6 +26,9 @@ type OnTapCallback = (() => void) | undefined;
 
 /** Types used of variables used within the MultiGestureCanvas component and it's hooks */
 type MultiGestureCanvasVariables = {
+    canvasSize: CanvasSize;
+    contentSize: ContentSize;
+    zoomRange: ZoomRange;
     minContentScale: number;
     maxContentScale: number;
     isSwipingInPager: SharedValue<boolean>;
@@ -39,9 +41,10 @@ type MultiGestureCanvasVariables = {
     panTranslateY: SharedValue<number>;
     pinchTranslateX: SharedValue<number>;
     pinchTranslateY: SharedValue<number>;
-    stopAnimation: WorkletFunction<[], void>;
-    reset: WorkletFunction<[boolean], void>;
-    onTap: OnTapCallback;
+    stopAnimation: () => void;
+    reset: (animated: boolean) => void;
+    onTap: OnTapCallback | undefined;
+    onScaleChanged: OnScaleChangedCallback | undefined;
 };
 
 export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, MultiGestureCanvasVariables};

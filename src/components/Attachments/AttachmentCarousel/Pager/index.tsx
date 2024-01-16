@@ -1,4 +1,4 @@
-import type {Ref} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
@@ -33,7 +33,7 @@ type AttachmentCarouselPagerProps = {
     onScaleChanged: (scale: number) => void;
 };
 
-function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps, ref: Ref<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
     const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef<PagerView>(null);

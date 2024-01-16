@@ -2,24 +2,14 @@
 import {useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
-import {SPRING_CONFIG, zoomScaleBounceFactors} from './constants';
-import type {CanvasSize, MultiGestureCanvasVariables, OnScaleChangedCallback, ZoomRange} from './types';
-import * as MultiGestureCanvasUtils from './utils';
+import {runOnJS, useAnimatedReaction, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
+import type {MultiGestureCanvasVariables} from './types';
 
-type UsePinchGestureProps = {
-    canvasSize: CanvasSize;
-    zoomScale: MultiGestureCanvasVariables['zoomScale'];
-    zoomRange: Required<ZoomRange>;
-    offsetX: MultiGestureCanvasVariables['offsetX'];
-    offsetY: MultiGestureCanvasVariables['offsetY'];
-    pinchTranslateX: MultiGestureCanvasVariables['pinchTranslateX'];
-    pinchTranslateY: MultiGestureCanvasVariables['pinchTranslateY'];
-    pinchScale: MultiGestureCanvasVariables['pinchScale'];
-    isSwipingInPager: MultiGestureCanvasVariables['isSwipingInPager'];
-    stopAnimation: MultiGestureCanvasVariables['stopAnimation'];
-    onScaleChanged: OnScaleChangedCallback;
-};
+type UsePinchGestureProps = Pick<
+    MultiGestureCanvasVariables,
+    'canvasSize' | 'zoomScale' | 'zoomRange' | 'offsetX' | 'offsetY' | 'pinchTranslateX' | 'pinchTranslateY' | 'pinchScale' | 'isSwipingInPager' | 'stopAnimation' | 'onScaleChanged'
+>;
 
 const usePinchGesture = ({
     canvasSize,
@@ -67,7 +57,7 @@ const usePinchGesture = ({
      * Calculates the adjusted focal point of the pinch gesture,
      * based on the canvas size and the current offset
      */
-    const getAdjustedFocal = MultiGestureCanvasUtils.useWorkletCallback(
+    const getAdjustedFocal = useWorkletCallback(
         (focalX: number, focalY: number) => ({
             x: focalX - (canvasSize.width / 2 + offsetX.value),
             y: focalY - (canvasSize.height / 2 + offsetY.value),
@@ -115,7 +105,7 @@ const usePinchGesture = ({
             const newZoomScale = pinchScale.value * evt.scale;
 
             // Limit the zoom scale to zoom range including bounce range
-            if (zoomScale.value >= zoomRange.min * zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * zoomScaleBounceFactors.max) {
+            if (zoomScale.value >= zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min && zoomScale.value <= zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max) {
                 zoomScale.value = newZoomScale;
                 currentPinchScale.value = evt.scale;
 

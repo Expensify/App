@@ -2,13 +2,12 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
-import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {defaultZoomRange, SPRING_CONFIG} from './constants';
-import getCanvasFitScale from './getCanvasFitScale';
+import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
@@ -20,7 +19,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
      * Wheter the canvas is currently active (in the screen) or not.
      * Disables certain gestures and functionality
      */
-    isActive: boolean;
+    isActive?: boolean;
 
     /** The width and height of the canvas.
      *  This is needed in order to properly scale the content in the canvas
@@ -33,7 +32,7 @@ type MultiGestureCanvasProps = ChildrenProps & {
     contentSize?: ContentSize;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
-    zoomRange?: ZoomRange;
+    zoomRange?: Partial<ZoomRange>;
 
     /** Handles scale changed event */
     onScaleChanged?: OnScaleChangedCallback;
@@ -86,8 +85,8 @@ function MultiGestureCanvas({
 
     const zoomRange = useMemo(
         () => ({
-            min: zoomRangeProp?.min ?? defaultZoomRange.min,
-            max: zoomRangeProp?.max ?? defaultZoomRange.max,
+            min: zoomRangeProp?.min ?? DEFAULT_ZOOM_RANGE.min,
+            max: zoomRangeProp?.max ?? DEFAULT_ZOOM_RANGE.max,
         }),
         [zoomRangeProp?.max, zoomRangeProp?.min],
     );
@@ -95,7 +94,7 @@ function MultiGestureCanvas({
     // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors
     // to fit the content inside the canvas
     // We later use the lower of the two scale factors to fit the content inside the canvas
-    const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
+    const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => MultiGestureCanvasUtils.getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
 
     const zoomScale = useSharedValue(1);
 
@@ -119,7 +118,7 @@ function MultiGestureCanvas({
     /**
      * Stops any currently running decay animation from panning
      */
-    const stopAnimation = MultiGestureCanvasUtils.useWorkletCallback(() => {
+    const stopAnimation = useWorkletCallback(() => {
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
     });
@@ -127,7 +126,7 @@ function MultiGestureCanvas({
     /**
      * Resets the canvas to the initial state and animates back smoothly
      */
-    const reset = MultiGestureCanvasUtils.useWorkletCallback((animated: boolean) => {
+    const reset = useWorkletCallback((animated: boolean) => {
         pinchScale.value = 1;
 
         stopAnimation();
@@ -269,6 +268,5 @@ function MultiGestureCanvas({
 MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
-export {defaultZoomRange};
-export {zoomScaleBounceFactors} from './constants';
+export {DEFAULT_ZOOM_RANGE, ZOOM_RANGE_BOUNCE_FACTORS};
 export type {MultiGestureCanvasProps};
