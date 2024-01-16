@@ -262,8 +262,8 @@ function createTaskAndNavigate(
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxTypes.Report) {
-    const taskReportID = taskReport.reportID;
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
+    const taskReportID = taskReport?.reportID ?? '';
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
@@ -332,8 +332,8 @@ function completeTask(taskReport: OnyxTypes.Report) {
 /**
  * Reopen a closed task
  */
-function reopenTask(taskReport: OnyxTypes.Report) {
-    const taskReportID = taskReport.reportID;
+function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
+    const taskReportID = taskReport?.reportID ?? '';
     const message = `marked as incomplete`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
@@ -900,7 +900,7 @@ function dismissModalAndClearOutTaskInfo() {
 /**
  * Returns Task assignee accountID
  */
-function getTaskAssigneeAccountID(taskReport: OnyxTypes.Report): number | undefined {
+function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
     if (!taskReport) {
         return;
     }
@@ -916,14 +916,14 @@ function getTaskAssigneeAccountID(taskReport: OnyxTypes.Report): number | undefi
 /**
  * Returns Task owner accountID
  */
-function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | undefined {
+function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
     return taskReport?.ownerAccountID;
 }
 
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  */
-function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, policyRole: PolicyValue | undefined): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, policyRole: PolicyValue | undefined): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -985,3 +985,5 @@ export {
     clearTaskErrors,
     canModifyTask,
 };
+
+export type {PolicyValue};
