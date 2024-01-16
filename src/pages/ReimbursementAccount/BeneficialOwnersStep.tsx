@@ -15,13 +15,13 @@ import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
-import BeneficialOwnerCheckUBO from './substeps/BeneficialOwnerCheckUBO';
-import AddressUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
-import ConfirmationUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
-import DateOfBirthUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/DateOfBirthUBO';
-import LegalNameUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/LegalNameUBO';
-import SocialSecurityNumberUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/SocialSecurityNumberUBO';
-import CompanyOwnersListUBO from './substeps/CompanyOwnersListUBO';
+import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
+import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
+import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
+import DateOfBirthUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/DateOfBirthUBO';
+import LegalNameUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/LegalNameUBO';
+import SocialSecurityNumberUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/SocialSecurityNumberUBO';
+import CompanyOwnersListUBO from './BeneficialOwnerInfo/substeps/CompanyOwnersListUBO';
 
 type BeneficialOwnerInfoOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -31,15 +31,12 @@ type BeneficialOwnerInfoOnyxProps = {
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
-type BeneficialOwnerInfoProps = {
+type BeneficialOwnersStepProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
     /** Exits flow and goes back to the workspace initial page */
     onCloseButtonPress: () => void;
-
-    /** Changes variable responsible for displaying step 4 or 5 */
-    setIsBeneficialOwnerInfoSet: (newState: boolean) => void;
 } & BeneficialOwnerInfoOnyxProps;
 
 const BODY_CONTENT: Array<React.ComponentType<SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>> = [
@@ -52,7 +49,7 @@ const BODY_CONTENT: Array<React.ComponentType<SubStepProps & {beneficialOwnerBei
 const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
-function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress, setIsBeneficialOwnerInfoSet}: BeneficialOwnerInfoProps) {
+function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
@@ -85,12 +82,11 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
             ),
         );
 
-        BankAccounts.updateBeneficialOwnersForBankAccountDraft({
+        BankAccounts.updateBeneficialOwnersForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
             ownsMoreThan25Percent: isUserUBO,
             beneficialOwners: JSON.stringify(beneficialOwners),
             beneficialOwnerKeys,
         });
-        setIsBeneficialOwnerInfoSet(true);
     };
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {
@@ -225,7 +221,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
     return (
         <ScreenWrapper
-            testID={BeneficialOwnerInfo.displayName}
+            testID={BeneficialOwnersStep.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -290,13 +286,13 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     );
 }
 
-BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
+BeneficialOwnersStep.displayName = 'BeneficialOwnersStep';
 
-export default withOnyx<BeneficialOwnerInfoProps, BeneficialOwnerInfoOnyxProps>({
+export default withOnyx<BeneficialOwnersStepProps, BeneficialOwnerInfoOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
-})(BeneficialOwnerInfo);
+})(BeneficialOwnersStep);

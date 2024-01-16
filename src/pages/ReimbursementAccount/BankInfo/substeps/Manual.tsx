@@ -62,7 +62,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
         [translate],
     );
 
-    const shouldDisableInputs = Boolean(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '');
+    const shouldDisableInputs = Boolean(reimbursementAccount?.achData?.bankAccountID ?? '');
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.

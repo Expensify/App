@@ -3,9 +3,6 @@ import React from 'react';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 
 const propTypes = {
-    /* The workspace policyID */
-    policyID: PropTypes.string,
-
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
 
@@ -13,14 +10,9 @@ const propTypes = {
     onCloseButtonPress: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    policyID: '',
-};
-
-function CompanyStep({policyID, onBackButtonPress, onCloseButtonPress}) {
+function CompanyStep({onBackButtonPress, onCloseButtonPress}) {
     return (
         <BusinessInfo
-            policyID={policyID}
             onBackButtonPress={onBackButtonPress}
             onCloseButtonPress={onCloseButtonPress}
         />
@@ -28,7 +20,6 @@ function CompanyStep({policyID, onBackButtonPress, onCloseButtonPress}) {
 }
 
 CompanyStep.propTypes = propTypes;
-CompanyStep.defaultProps = defaultProps;
 CompanyStep.displayName = 'CompanyStep';
 
 export default CompanyStep;

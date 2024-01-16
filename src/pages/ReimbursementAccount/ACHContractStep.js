@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
-import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
+import React from 'react';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 
 const propTypes = {
@@ -12,23 +11,10 @@ const propTypes = {
 };
 
 function ACHContractStep({onBackButtonPress, onCloseButtonPress}) {
-    const [isBeneficialOwnerInfoSet, setIsBeneficialOwnerInfoSet] = useState(false);
-    const handleCompleteVerificationBackButtonPress = () => setIsBeneficialOwnerInfoSet(false);
-
-    if (isBeneficialOwnerInfoSet) {
-        return (
-            <CompleteVerification
-                onBackButtonPress={handleCompleteVerificationBackButtonPress}
-                onCloseButtonPress={onCloseButtonPress}
-            />
-        );
-    }
-
     return (
-        <BeneficialOwnerInfo
+        <CompleteVerification
             onBackButtonPress={onBackButtonPress}
             onCloseButtonPress={onCloseButtonPress}
-            setIsBeneficialOwnerInfoSet={setIsBeneficialOwnerInfoSet}
         />
     );
 }

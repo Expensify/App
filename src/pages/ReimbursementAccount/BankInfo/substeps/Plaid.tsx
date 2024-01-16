@@ -72,7 +72,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
         onNext();
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '0');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
     const selectedPlaidAccountID = reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '';
 
     return (

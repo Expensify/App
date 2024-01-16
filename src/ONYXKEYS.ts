@@ -127,6 +127,7 @@ const ONYXKEYS = {
 
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
+    ONFIDO_APPLICANT_ID: 'onfidoApplicantID',
 
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'preferredLocale',
@@ -398,6 +399,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
+    [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
