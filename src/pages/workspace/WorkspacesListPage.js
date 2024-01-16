@@ -227,7 +227,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             _.reduce(
                 reports,
                 (result, report) => {
-                    if (!report || !report.reportID) {
+                    if (!report || !report.reportID || !report.policyID) {
                         return result;
                     }
 
