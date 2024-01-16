@@ -313,7 +313,7 @@ function HeaderView(props) {
                                                 {subtitle}
                                             </Text>
                                         )}
-                                        {!_.isEmpty(reportDescription) && (
+                                        {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
