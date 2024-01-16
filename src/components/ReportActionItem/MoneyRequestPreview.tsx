@@ -373,7 +373,10 @@ export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>(
         key: ONYXKEYS.SESSION,
     },
     transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action?.originalMessage?.IOUTransactionID) || 0}`,
+        key: ({action}) => {
+            const originalMessage = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : undefined;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${originalMessage?.IOUTransactionID ?? 0}`;
+        },
     },
     walletTerms: {
         key: ONYXKEYS.WALLET_TERMS,

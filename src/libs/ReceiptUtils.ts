@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {ImageSourcePropType} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import ReceiptHTML from '@assets/images/receipt-html.png';
