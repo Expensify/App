@@ -3,7 +3,7 @@ import {createContext} from 'react';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
 
-type AttachmentCarouselPagerContextType = {
+type AttachmentCarouselPagerContextValue = {
     onTap: () => void;
     onScaleChanged: (scale: number) => void;
     pagerRef: ForwardedRef<PagerView>;
@@ -11,7 +11,7 @@ type AttachmentCarouselPagerContextType = {
     isSwipingInPager: SharedValue<boolean>;
 };
 
-const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextType | null>(null);
+const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);
 
 export default AttachmentCarouselPagerContext;
-export type {AttachmentCarouselPagerContextType};
+export type {AttachmentCarouselPagerContextValue};
