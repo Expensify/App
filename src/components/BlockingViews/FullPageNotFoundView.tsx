@@ -40,7 +40,7 @@ type FullPageNotFoundViewProps = {
     onLinkPress?: () => void;
 
     /** Whether we should force the full page view */
-    forceFullScreen?: boolean;
+    shouldForceFullScreen?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -54,14 +54,14 @@ function FullPageNotFoundView({
     shouldShowLink = true,
     shouldShowBackButton = true,
     onLinkPress = () => Navigation.dismissModal(),
-    forceFullScreen = false,
+    shouldForceFullScreen = false,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (shouldShow) {
         return (
-            <ForceFullScreenView forceFullScreen={forceFullScreen}>
+            <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}

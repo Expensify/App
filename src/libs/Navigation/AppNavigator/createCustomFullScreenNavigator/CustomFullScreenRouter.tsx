@@ -30,7 +30,7 @@ function adaptStateIfNecessary(state: StackState) {
             // noinspection JSConstantReassignment
             state.stale = true; // eslint-disable-line
 
-            // Unshift the default settings central pane screen.
+            // Push the default settings central pane screen.
             if (state.stale === true) {
                 state.routes.push({
                     name: SCREENS.SETTINGS_CENTRAL_PANE,

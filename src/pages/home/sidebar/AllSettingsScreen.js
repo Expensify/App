@@ -76,7 +76,7 @@ function AllSettingsScreen() {
             testID={AllSettingsScreen.displayName}
             includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
-            shouldDisableSafeAreaPaddingBottom
+            style={[styles.pb0]}
         >
             <Breadcrumbs
                 breadcrumbs={[

@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import Button from './Button';
 import MenuItem from './MenuItem';

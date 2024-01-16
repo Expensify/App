@@ -57,7 +57,7 @@ type SectionProps = ChildrenProps & {
     isCentralPane?: boolean;
 
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation;
+    illustration?: DotLottieAnimation;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;

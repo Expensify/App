@@ -177,8 +177,6 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
                     link: Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
                 },
                 {
