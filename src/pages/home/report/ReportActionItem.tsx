@@ -1,4 +1,3 @@
-import {get} from 'lodash';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
@@ -14,11 +13,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '@components/OnyxProvider';
+import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts, withBlockedFromConcierge, withReportActionsDrafts} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
-import ActionableItemButtons, {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
@@ -37,7 +37,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
@@ -79,11 +78,9 @@ import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
 const getDraftMessage = (drafts: OnyxTypes.ReportActionsDrafts, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
-    console.log('getDraftMessage', drafts);
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
     const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
-    return drafts?.[draftKey]?.[props.action.reportActionID]?.message;
-    // return drafts[draftKey].
+    return drafts?.[draftKey]?.[action.reportActionID]?.message;
 };
 
 type ReportActionItemOnyxProps = {
@@ -100,6 +97,8 @@ type ReportActionItemOnyxProps = {
 
     /** All the report actions belonging to the report's parent */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+
+    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportField>;
 };
 
 type ReportActionItemProps = {
@@ -124,15 +123,10 @@ type ReportActionItemProps = {
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
-    // /** Draft message - if this is set the comment is in 'edit' mode */
-    draftMessage?: string;
-
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
     linkedReportActionID?: string;
-
-    blockedFromConcierge?: boolean;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is ReportActionBase & OriginalMessageIOU => actionObj?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -140,7 +134,6 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
 function ReportActionItem({
     action,
     report,
-    draftMessage = undefined,
     linkedReportActionID,
     displayAsGroup,
     emojiReactions,
@@ -153,14 +146,13 @@ function ReportActionItem({
     userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
-    blockedFromConcierge,
+    policyReportFields,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const blockedFromConciergeTest = useBlockedFromConcierge();
+    const blockedFromConcierge = useBlockedFromConcierge();
     const reportActionDrafts = useReportActionsDrafts();
-    const draftMessageTest = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
-    console.log({blockedFromConciergeTest, draftMessageTest, blockedFromConcierge, draftMessage});
+    const draftMessage = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -249,7 +241,8 @@ function ReportActionItem({
         downloadedPreviews.current = urls;
         Report.expandURLPreview(report.reportID, action.reportActionID);
     }, [action, report.reportID]);
-
+    console.log({policyReportFields});
+    console.log(action.actionName, action.originalMessage);
     useEffect(() => {
         if (!draftMessage || !ReportActionsUtils.isDeletedAction(action)) {
             return;
@@ -411,7 +404,7 @@ function ReportActionItem({
                 // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
-                        taskReportID={action.originalMessage.taskReportID.toString()}
+                        taskReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ? action.originalMessage?.taskReportID?.toString() ?? '' : ''}
                         chatReportID={report.reportID}
                         policyID={ReportUtils.getRootParentReport(report)?.policyID ?? ''}
                         action={action}
@@ -674,6 +667,7 @@ function ReportActionItem({
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     <MoneyReportView
+                        policyReportFields={Object.values(policyReportFields ?? {})}
                         report={report}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
@@ -795,45 +789,35 @@ function ReportActionItem({
     );
 }
 
-export default compose(
-    withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
-    withReportActionsDrafts({
-        propName: 'draftMessage',
-        transformValue: (drafts, props) => {
-            const originalReportID = ReportUtils.getOriginalReportID(props.report.reportID, props.action);
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
-            console.log({drafts});
-            return drafts?.[draftKey]?.[props.action.reportActionID]?.message;
+export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    },
+    iouReport: {
+        key: ({action}) => {
+            const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
+            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`;
         },
-    }),
-    withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-            initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
-        },
-        iouReport: {
-            key: ({action}) => {
-                const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-                return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`;
-            },
-        },
-        emojiReactions: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? ''}`,
-            canEvict: false,
-        },
-    }),
-)(
+    },
+    policyReportFields: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}`,
+    },
+    emojiReactions: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
+    },
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? ''}`,
+        canEvict: false,
+    },
+})(
     memo(
         ReportActionItem,
         (prevProps, nextProps) =>
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
-            prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
