@@ -23,7 +23,7 @@ type Location = {
     y: number;
 };
 
-function getPageCoords(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
+function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
         return event.nativeEvent;
     }
@@ -162,7 +162,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isPinnedChat = false,
         isUnreadChat = false,
     ) => {
-        const {pageX = 0, pageY = 0} = getPageCoords(event);
+        const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLElement;
 
