@@ -5,12 +5,12 @@ import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InitialUrlContext from '@libs/InitialUrlContext';
+import Navigation from '@libs/Navigation/Navigation';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Navigation from '@libs/Navigation/Navigation';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -68,7 +68,7 @@ function LogOutPreviousUserPage(props) {
             // which is already called when AuthScreens mounts.
             if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
-                    Navigation.navigate(exitTo, "FORCED_UP");
+                    Navigation.navigate(exitTo, 'FORCED_UP');
                 });
             }
         });
