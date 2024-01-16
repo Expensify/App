@@ -120,7 +120,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
             // This functionality is being built here: https://github.com/Expensify/App/issues/23291
             iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
-            true,
+            false,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
