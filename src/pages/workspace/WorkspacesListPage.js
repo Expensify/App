@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -9,7 +9,6 @@ import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -307,17 +306,19 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                     />
                 </HeaderWithBackButton>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <FeatureList
-                        menuItems={workspaceFeatures}
-                        title={translate('workspace.emptyWorkspace.title')}
-                        subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                        ctaText={translate('workspace.new.newWorkspace')}
-                        onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                        illustration={LottieAnimations.WorkspacePlanet}
-                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-                    />
-                </View>
+                <ScrollView contentContainerStyle={styles.pt5}>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <FeatureList
+                            menuItems={workspaceFeatures}
+                            title={translate('workspace.emptyWorkspace.title')}
+                            subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                            ctaText={translate('workspace.new.newWorkspace')}
+                            onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            illustration={LottieAnimations.WorkspacePlanet}
+                            illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                        />
+                    </View>
+                </ScrollView>
             </ScreenWrapper>
         );
     }
