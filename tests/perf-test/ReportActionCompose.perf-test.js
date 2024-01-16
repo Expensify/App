@@ -7,7 +7,6 @@ import {LocaleContextProvider} from '../../src/components/LocaleContextProvider'
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
-import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import ReportActionCompose from '../../src/pages/home/report/ReportActionCompose/ReportActionCompose';
@@ -64,8 +63,6 @@ beforeEach(() => {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
 });
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, KeyboardStateProvider, WindowDimensionsProvider]}>
@@ -96,7 +93,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
         fireEvent.press(composer);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] should press add attachemnt button', async () => {
@@ -108,7 +105,7 @@ test('[ReportActionCompose] should press add attachemnt button', async () => {
         fireEvent.press(attachmentButton, mockEvent);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] should press add emoji button', async () => {
@@ -120,7 +117,7 @@ test('[ReportActionCompose] should press add emoji button', async () => {
         fireEvent.press(emojiButton);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] should press send message button', async () => {
@@ -132,7 +129,7 @@ test('[ReportActionCompose] should press send message button', async () => {
         fireEvent.press(sendButton);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] render composer with attachement modal interactions', async () => {
@@ -152,5 +149,5 @@ test('[ReportActionCompose] render composer with attachement modal interactions'
         fireEvent.press(assignTaskButton, mockEvent);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
+    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });

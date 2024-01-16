@@ -33,7 +33,6 @@ const personalDetails = createCollection<PersonalDetails>(
 );
 
 const mockedResponseMap = getMockedReports(5000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
 describe('SidebarUtils', () => {
     beforeAll(() => {
@@ -58,7 +57,7 @@ describe('SidebarUtils', () => {
         const parentReportAction = createRandomReportAction(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs});
+        await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction));
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
@@ -90,6 +89,6 @@ describe('SidebarUtils', () => {
         ) as unknown as OnyxCollection<ReportAction[]>;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions), {runs});
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions));
     });
 });
