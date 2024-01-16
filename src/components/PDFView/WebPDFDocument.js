@@ -105,7 +105,7 @@ const WebPDFDocument = memo(
                 onLoadSuccess={onDocumentLoadSuccess}
                 onPassword={onPassword}
             >
-                {pageViewportsLength && (
+                {!!pageViewportsLength && (
                     <List
                         outerRef={setListAttributes}
                         style={listStyle}
