@@ -272,8 +272,8 @@ function completeTask(taskReport: OnyxTypes.Report) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.APPROVED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             },
         },
 
@@ -302,7 +302,7 @@ function completeTask(taskReport: OnyxTypes.Report) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             },
         },
         {
@@ -343,7 +343,7 @@ function reopenTask(taskReport: OnyxTypes.Report) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
@@ -373,8 +373,8 @@ function reopenTask(taskReport: OnyxTypes.Report) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.APPROVED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             },
         },
         {

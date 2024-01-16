@@ -84,12 +84,13 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
+
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompleted = !isEmptyObject(taskReport)
-        ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
-        : action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
+        ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
+        : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport ?? {}) ?? action?.childManagerAccountID ?? '';
     const assigneeLogin = personalDetails[taskAssigneeAccountID]?.login ?? '';
