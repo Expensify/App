@@ -64,7 +64,7 @@ function ReferralDetailsPage({route, account}) {
             headerContent={
                 <Icon
                     src={PaymentHands}
-                    width={393}
+                    width={589}
                     height={232}
                 />
             }
