@@ -36,7 +36,7 @@ function WorkspaceAvatar({route, policy, isLoadingApp = true}: WorkspaceAvatarPr
                 Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(getPolicyIDFromRoute(route)));
             }}
             isWorkspaceAvatar
-            originalFileName={policy?.name ?? ''}
+            originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
             isLoading={!Object.keys(policy ?? {}).length && isLoadingApp}
         />
