@@ -8,8 +8,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import MenuItem, {MenuItemProps} from '@components/MenuItem';
+import OfflineWithFeedback, {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -26,9 +26,14 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, UserWallet} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {PolicyRoute, WithPolicyOnyxProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingOnyxProps} from './withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
+type WorkspaceItem = MenuItemProps &
+    OfflineWithFeedbackProps & {
+        action: () => void;
+        dismissError: () => void;
+    };
 
 type WorkspaceListPageOnyxProps = {
     /** The list of this user's policies */
@@ -44,13 +49,7 @@ type WorkspaceListPageOnyxProps = {
     userWallet: OnyxEntry<UserWallet>;
 };
 
-type WithPolicyAndFullscreenLoadingProps = React.ComponentType<
-    WithPolicyOnyxProps & {
-        route: PolicyRoute;
-    } & WithPolicyAndFullscreenLoadingOnyxProps
->;
-
-type WorkspaceListPageProps = WorkspaceListPageOnyxProps;
+type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
 
 const workspaceFeatures = [
     {
@@ -89,7 +88,7 @@ function WorkspacesListPage({
     reimbursementAccount = {},
     userWallet = {
         currentBalance: 0,
-    } as OnyxEntry<UserWallet>,
+    },
 }: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -104,9 +103,8 @@ function WorkspacesListPage({
     /**
      * Gets the menu item for each workspace
      */
-    const getMenuItem = (item: any, index: number) => {
-        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.wallet';
+    const getMenuItem = (item: WorkspaceItem, index: number) => {
+        const keyTitle = item.title;
 
         return (
             <OfflineWithFeedback
@@ -118,13 +116,13 @@ function WorkspacesListPage({
             >
                 <MenuItem
                     title={keyTitle}
-                    icon={item.icon}
+                    icon={item.icon!}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
                     onPress={item.action}
                     iconStyles={item.iconStyles}
                     iconFill={item.iconFill}
                     shouldShowRightIcon
-                    badgeText={getWalletBalance(isPaymentItem)}
+                    badgeText={getWalletBalance(false)}
                     fallbackIcon={item.fallbackIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     disabled={item.disabled}
@@ -136,8 +134,8 @@ function WorkspacesListPage({
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
-    const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const workspaces: WorkspaceItem[] = useMemo(() => {
+        const reimbursementAccountBrickRoadIndicator = reimbursementAccount?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
         return _.chain(policies)
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map((policy) => ({
@@ -211,5 +209,5 @@ export default withPolicyAndFullscreenLoading(
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
-    })(WorkspacesListPage) as WithPolicyAndFullscreenLoadingProps,
+    })(WorkspacesListPage),
 );
