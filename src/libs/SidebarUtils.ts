@@ -80,6 +80,18 @@ function isSidebarLoadedReady(): Promise<unknown> {
     return sidebarIsReadyPromise;
 }
 
+function hasReportCommonPolicyMember(reportParticipantAccountIDs: number[], policyMembersAccountIDs: string[]) {
+    const set1 = new Set(policyMembersAccountIDs);
+
+    for (const reportParticipant of reportParticipantAccountIDs) {
+        if (set1.has(reportParticipant.toString())) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -121,6 +133,7 @@ function getOrderedReportIDs(
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportAction[]>,
     currentPolicyID = '',
+    policyMembersAccountIDs: string[] = [],
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
@@ -176,10 +189,11 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
-    if (currentPolicyID) {
-        reportsToDisplay = reportsToDisplay.filter((report) => report.policyID === currentPolicyID);
+    if (currentPolicyID || policyMembersAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) =>
+            report.policyID === '_FAKE_' ? hasReportCommonPolicyMember(report.participantAccountIDs ?? [], policyMembersAccountIDs) : report.policyID === currentPolicyID,
+        );
     }
-
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
