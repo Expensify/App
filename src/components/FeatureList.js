@@ -48,9 +48,11 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems}) {
         >
             <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4]}>
                 {_.map(menuItems, ({translationKey, icon}) => (
-                    <View style={isLargeScreenWidth ? styles.mnw50 : styles.w100}>
+                    <View
+                        key={translationKey}
+                        style={isLargeScreenWidth ? styles.mnw50 : styles.w100}
+                    >
                         <MenuItem
-                            key={translationKey}
                             title={translate(translationKey)}
                             icon={icon}
                             iconWidth={variables.avatarSizeMedium}
