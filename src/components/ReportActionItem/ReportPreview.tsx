@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -18,7 +18,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type PaymentVerbTranslationPath = 'iou.payerSpent' | 'iou.payerOwes' | 'iou.payerPaid';
@@ -97,10 +95,17 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
-    const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
-    const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
-    const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+        () => ({
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
+            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
+        }),
+        // When transactions get updated these status may have changed, so that is a case where we also want to run this.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.transactions, props.iouReportID, props.action],
+    );
 
     const managerID = iouReport?.managerID ?? 0;
     const isCurrentUserManager = managerID === session?.accountID;
@@ -133,7 +138,7 @@ function ReportPreview({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         formattedMerchant ||
         translate('iou.requestCount', {
-            count: numberOfRequests,
+            count: numberOfRequests - numberOfScanningReceipts,
             scanningReceipts: numberOfScanningReceipts,
         });
 
@@ -192,28 +197,6 @@ function ReportPreview({
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-
-    useEffect(() => {
-        const unsubscribeOnyxTransaction = onyxSubscribe({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (allTransactions) => {
-                if (isEmptyObject(allTransactions)) {
-                    return;
-                }
-
-                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(iouReportID, action));
-                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(iouReportID));
-                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(iouReportID));
-            },
-        });
-
-        return () => {
-            unsubscribeOnyxTransaction();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -343,5 +326,8 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    transactions: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
     },
 })(ReportPreview);
