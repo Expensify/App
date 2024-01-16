@@ -141,7 +141,7 @@ function WorkspacesListPage({
             .map((policy) => ({
                 title: policy?.name,
                 icon: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
-                iconType: policy?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                iconType: CONST.ICON_TYPE_WORKSPACE,
                 action: () => {
                     if (!policy) {
                         return;
@@ -160,6 +160,7 @@ function WorkspacesListPage({
                     dismissWorkspaceError(policy.id, policy.pendingAction);
                 },
                 disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                children: null,
             }))
             .sortBy((policy) => policy?.title?.toLowerCase())
             .value();
