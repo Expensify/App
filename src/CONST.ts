@@ -652,6 +652,7 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+            // 'hidden' is a special report level preference that appears when you look at a thread without commenting on it
             HIDDEN: 'hidden',
         },
         // Options for which room members can post
