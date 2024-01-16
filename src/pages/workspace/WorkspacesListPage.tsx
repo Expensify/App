@@ -8,8 +8,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem, {MenuItemProps} from '@components/MenuItem';
-import OfflineWithFeedback, {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import MenuItem from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -116,7 +118,7 @@ function WorkspacesListPage({
             >
                 <MenuItem
                     title={keyTitle}
-                    icon={item.icon!}
+                    icon={item.icon ?? ''}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
                     onPress={item.action}
                     iconStyles={item.iconStyles}
