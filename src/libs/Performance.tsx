@@ -3,8 +3,8 @@ import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
-import {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance} from 'react-native-performance';
-import {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
+import type {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance} from 'react-native-performance';
+import type {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
@@ -14,7 +14,7 @@ type WrappedComponentConfig = {id: string};
 
 type PerformanceEntriesCallback = (entry: PerformanceEntry) => void;
 
-type Phase = 'mount' | 'update';
+type Phase = 'mount' | 'update' | 'nested-update';
 
 type WithRenderTraceHOC = <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>) => React.ComponentType<P & React.RefAttributes<unknown>>;
 

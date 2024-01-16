@@ -104,7 +104,7 @@ function TermsStep(props) {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            chatReportID: props.walletTerms.chatReportID,
+                            reportID: props.walletTerms.chatReportID,
                         });
                     }}
                     message={errorMessage}
