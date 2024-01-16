@@ -23,7 +23,19 @@ type CompanyStepProps = {
     hasNoConnectionToCannabis?: boolean;
 };
 
-
+type RequestorStepProps = {
+    firstName?: string;
+    lastName?: string;
+    requestorAddressStreet?: string;
+    requestorAddressCity?: string;
+    requestorAddressState?: string;
+    requestorAddressZipCode?: string;
+    dob?: string | Date;
+    ssnLast4?: string;
+    isControllingOfficer?: boolean;
+    isOnfidoSetupComplete?: boolean;
+    onfidoData?: OnfidoData;
+};
 
 type ACHContractStepProps = {
     ownsMoreThan25Percent?: boolean;

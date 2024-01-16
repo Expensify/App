@@ -2,8 +2,20 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type {
+    ActivatePhysicalExpensifyCardParams,
+    AddNewContactMethodParams,
+    AddPaymentCardParams,
+    AddPersonalBankAccountParams,
+    AddSchoolPrincipalParams,
     AuthenticatePusherParams,
+    BankAccountHandlePlaidErrorParams,
     BeginSignInParams,
+    CloseAccountParams,
+    ConnectBankAccountManuallyParams,
+    ConnectBankAccountWithPlaidParams,
+    DeleteContactMethodParams,
+    DeletePaymentBankAccountParams,
+    DeletePaymentCardParams,
     ExpandURLPreviewParams,
     GetMissingOnyxMessagesParams,
     GetNewerActionsParams,
@@ -13,6 +25,8 @@ import type {
     GetRouteParams,
     GetStatementPDFParams,
     HandleRestrictedEventParams,
+    LogOutParams,
+    MakeDefaultPaymentMethodParams,
     OpenAppParams,
     OpenOldDotLinkParams,
     OpenPlaidBankAccountSelectorParams,
@@ -23,12 +37,43 @@ import type {
     OpenReportParams,
     OpenRoomMembersPageParams,
     ReconnectAppParams,
+    ReferTeachersUniteVolunteerParams,
+    ReportVirtualExpensifyCardFraudParams,
+    RequestContactMethodValidateCodeParams,
+    RequestNewValidateCodeParams,
+    RequestPhysicalExpensifyCardParams,
+    RequestReplacementExpensifyCardParams,
+    RequestUnlinkValidationLinkParams,
+    ResolveActionableMentionWhisperParams,
     RevealExpensifyCardDetailsParams,
     SearchForReportsParams,
     SendPerformanceTimingParams,
+    SetContactMethodAsDefaultParams,
+    SignInUserWithLinkParams,
     SignInWithShortLivedAuthTokenParams,
+    UnlinkLoginParams,
+    UpdateAutomaticTimezoneParams,
+    UpdateChatPriorityModeParams,
+    UpdateDateOfBirthParams,
+    UpdateDisplayNameParams,
+    UpdateFrequentlyUsedEmojisParams,
+    UpdateHomeAddressParams,
+    UpdateLegalNameParams,
+    UpdateNewsletterSubscriptionParams,
+    UpdatePersonalInformationForBankAccountParams,
+    UpdatePreferredEmojiSkinToneParams,
     UpdatePreferredLocaleParams,
+    UpdatePronounsParams,
+    UpdateSelectedTimezoneParams,
+    UpdateStatusParams,
+    UpdateThemeParams,
+    UpdateUserAvatarParams,
+    ValidateBankAccountWithTransactionsParams,
+    ValidateLoginParams,
+    ValidateSecondaryLoginParams,
+    VerifyIdentityForBankAccountParams,
 } from './parameters';
+import type SignInUserParams from './parameters/SignInUserParams';
 
 type ApiRequestWithSideEffects = ValueOf<typeof CONST.API_REQUEST_TYPE, 'MAKE_REQUEST_WITH_SIDE_EFFECTS' | 'READ'>;
 
@@ -131,6 +176,87 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.OPEN_PROFILE]: OpenProfileParams;
     [WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT]: HandleRestrictedEventParams;
     [WRITE_COMMANDS.OPEN_REPORT]: OpenReportParams;
+    [WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT]: DeletePaymentBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT]: UpdatePersonalInformationForBankAccountParams;
+    [WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS]: ValidateBankAccountWithTransactionsParams;
+    [WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT]: UpdateCompanyInformationForBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT]: UpdateBeneficialOwnersForBankAccountParams;
+    [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY]: ConnectBankAccountManuallyParams;
+    [WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT]: VerifyIdentityForBankAccountParams;
+    [WRITE_COMMANDS.BANK_ACCOUNT_HANDLE_PLAID_ERROR]: BankAccountHandlePlaidErrorParams;
+    [WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD]: ReportVirtualExpensifyCardFraudParams;
+    [WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD]: RequestReplacementExpensifyCardParams;
+    [WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD]: ActivatePhysicalExpensifyCardParams;
+    [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: MakeDefaultPaymentMethodParams;
+    [WRITE_COMMANDS.ADD_PAYMENT_CARD]: AddPaymentCardParams;
+    [WRITE_COMMANDS.DELETE_PAYMENT_CARD]: DeletePaymentCardParams;
+    [WRITE_COMMANDS.UPDATE_PRONOUNS]: UpdatePronounsParams;
+    [WRITE_COMMANDS.UPDATE_DISPLAY_NAME]: UpdateDisplayNameParams;
+    [WRITE_COMMANDS.UPDATE_LEGAL_NAME]: UpdateLegalNameParams;
+    [WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH]: UpdateDateOfBirthParams;
+    [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: UpdateHomeAddressParams;
+    [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: UpdateAutomaticTimezoneParams;
+    [WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE]: UpdateSelectedTimezoneParams;
+    [WRITE_COMMANDS.UPDATE_USER_AVATAR]: UpdateUserAvatarParams;
+    [WRITE_COMMANDS.DELETE_USER_AVATAR]: EmptyObject;
+    [WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER]: ReferTeachersUniteVolunteerParams;
+    [WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL]: AddSchoolPrincipalParams;
+    [WRITE_COMMANDS.CLOSE_ACCOUNT]: CloseAccountParams;
+    [WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE]: RequestContactMethodValidateCodeParams;
+    [WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION]: UpdateNewsletterSubscriptionParams;
+    [WRITE_COMMANDS.DELETE_CONTACT_METHOD]: DeleteContactMethodParams;
+    [WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD]: AddNewContactMethodParams;
+    [WRITE_COMMANDS.VALIDATE_LOGIN]: ValidateLoginParams;
+    [WRITE_COMMANDS.VALIDATE_SECONDARY_LOGIN]: ValidateSecondaryLoginParams;
+    [WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE]: UpdatePreferredEmojiSkinToneParams;
+    [WRITE_COMMANDS.UPDATE_FREQUENTLY_USED_EMOJIS]: UpdateFrequentlyUsedEmojisParams;
+    [WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE]: UpdateChatPriorityModeParams;
+    [WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT]: SetContactMethodAsDefaultParams;
+    [WRITE_COMMANDS.UPDATE_THEME]: UpdateThemeParams;
+    [WRITE_COMMANDS.UPDATE_STATUS]: UpdateStatusParams;
+    [WRITE_COMMANDS.CLEAR_STATUS]: ClearStatusParams;
+    [WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET]: UpdatePersonalDetailsForWalletParams;
+    [WRITE_COMMANDS.VERIFY_IDENTITY]: VerifyIdentityParams;
+    [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: AcceptWalletTermsParams;
+    [WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET]: AnswerQuestionsForWalletParams;
+    [WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD]: RequestPhysicalExpensifyCardParams;
+    [WRITE_COMMANDS.LOG_OUT]: LogOutParams;
+    [WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK]: RequestAccountValidationLinkParams;
+    [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: RequestNewValidateCodeParams;
+    [WRITE_COMMANDS.SIGN_IN_WITH_APPLE]: SignInWithAppleParams;
+    [WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE]: SignInWithGoogleParams;
+    [WRITE_COMMANDS.SIGN_IN_USER]: SignInUserParams;
+    [WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK]: SignInUserWithLinkParams;
+    [WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK]: RequestUnlinkValidationLinkParams;
+    [WRITE_COMMANDS.UNLINK_LOGIN]: UnlinkLoginParams;
+    [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: EnableTwoFactorAuthParams;
+    [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: DisableTwoFactorAuthParams;
+    [WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: TwoFactorAuthValidateParams;
+    [WRITE_COMMANDS.ADD_COMMENT]: AddCommentParams;
+    [WRITE_COMMANDS.ADD_ATTACHMENT]: AddAttachmentParams;
+    [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: ConnectBankAccountWithPlaidParams;
+    [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: AddPersonalBankAccountParams;
+    [WRITE_COMMANDS.OPT_IN_TO_PUSH_NOTIFICATIONS]: OptInToPushNotificationsParams;
+    [WRITE_COMMANDS.OPT_OUT_OF_PUSH_NOTIFICATIONS]: OptOutOfPushNotificationsParams;
+    [WRITE_COMMANDS.RECONNECT_TO_REPORT]: ReconnectToReportParams;
+    [WRITE_COMMANDS.READ_NEWEST_ACTION]: ReadNewestActionParams;
+    [WRITE_COMMANDS.MARK_AS_UNREAD]: MarkAsUnreadParams;
+    [WRITE_COMMANDS.TOGGLE_PINNED_CHAT]: TogglePinnedChatParams;
+    [WRITE_COMMANDS.DELETE_COMMENT]: DeleteCommentParams;
+    [WRITE_COMMANDS.UPDATE_COMMENT]: UpdateCommentParams;
+    [WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE]: UpdateReportNotificationPreferenceParams;
+    [WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE]: UpdateWelcomeMessageParams;
+    [WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY]: UpdateReportWriteCapabilityParams;
+    [WRITE_COMMANDS.ADD_WORKSPACE_ROOM]: AddWorkspaceRoomParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME]: UpdatePolicyRoomNameParams;
+    [WRITE_COMMANDS.ADD_EMOJI_REACTION]: AddEmojiReactionParams;
+    [WRITE_COMMANDS.REMOVE_EMOJI_REACTION]: RemoveEmojiReactionParams;
+    [WRITE_COMMANDS.LEAVE_ROOM]: LeaveRoomParams;
+    [WRITE_COMMANDS.INVITE_TO_ROOM]: InviteToRoomParams;
+    [WRITE_COMMANDS.REMOVE_FROM_ROOM]: RemoveFromRoomParams;
+    [WRITE_COMMANDS.FLAG_COMMENT]: FlagCommentParams;
+    [WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE]: UpdateReportPrivateNoteParams;
+    [WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER]: ResolveActionableMentionWhisperParams;
 };
 
 const READ_COMMANDS = {

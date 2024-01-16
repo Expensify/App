@@ -481,11 +481,7 @@ function deleteAvatar() {
         },
     ];
 
-    type DeleteUserAvatarParams = Record<string, never>;
-
-    const parameters: DeleteUserAvatarParams = {};
-
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
 }
 
 /**

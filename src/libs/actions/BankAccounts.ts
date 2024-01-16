@@ -1,6 +1,16 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {OpenReimbursementAccountPageParams} from '@libs/API/parameters';
+import type {
+    AddPersonalBankAccountParams,
+    BankAccountHandlePlaidErrorParams,
+    ConnectBankAccountManuallyParams,
+    ConnectBankAccountWithPlaidParams,
+    DeletePaymentBankAccountParams,
+    OpenReimbursementAccountPageParams,
+    UpdatePersonalInformationForBankAccountParams,
+    ValidateBankAccountWithTransactionsParams,
+    VerifyIdentityForBankAccountParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 

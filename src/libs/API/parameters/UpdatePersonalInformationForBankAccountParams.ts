@@ -1,15 +1,5 @@
-type UpdatePersonalInformationForBankAccountParams = {
-    firstName?: string;
-    lastName?: string;
-    requestorAddressStreet?: string;
-    requestorAddressCity?: string;
-    requestorAddressState?: string;
-    requestorAddressZipCode?: string;
-    dob?: string | Date;
-    ssnLast4?: string;
-    isControllingOfficer?: boolean;
-    isOnfidoSetupComplete?: boolean;
-    onfidoData?: OnfidoData;
-};
+import type {RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+
+type UpdatePersonalInformationForBankAccountParams = RequestorStepProps;
 
 export default UpdatePersonalInformationForBankAccountParams;
