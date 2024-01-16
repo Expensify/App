@@ -298,12 +298,11 @@ function AttachmentPickerWithMenuItems({
                             onModalShow={() => setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT)}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
+                                setMenuVisibility(false);
                                 if (index !== menuItems.length - 1) {
-                                    setMenuVisibility(false);
                                     return;
                                 }
                                 setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
-                                setMenuVisibility(false);
 
                                 // In order for the file picker to open dynamically, the click
                                 // function must be called from within a event handler that was initiated

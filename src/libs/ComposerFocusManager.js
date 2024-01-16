@@ -83,13 +83,13 @@ function saveFocusState(id, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, sh
         });
     }
 
-    if (!input) {
-        return;
-    }
     if (container && container.contains(input)) {
         return;
     }
     focusMap.set(id, {input, businessType});
+    if (!input) {
+        return;
+    }
     input.blur();
 }
 
@@ -101,6 +101,9 @@ function saveFocusState(id, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, sh
  * @param {Boolean} shouldIgnoreFocused
  */
 function focus(input, shouldIgnoreFocused = false) {
+    if (!input) {
+        return;
+    }
     if (shouldIgnoreFocused) {
         input.focus();
         return;
@@ -118,9 +121,9 @@ function focus(input, shouldIgnoreFocused = false) {
  * @param {Number} id
  * @param {Boolean} shouldIgnoreFocused
  * @param {String} businessType
- * @param {String} ReFocusType
+ * @param {String} restoreFocusType
  */
-function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, ReFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT) {
+function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, restoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT) {
     if (!id) {
         return;
     }
@@ -136,27 +139,31 @@ function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST
         return;
     }
     activeModals.splice(index, 1);
-    if (ReFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
+    if (restoreFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
         return;
     }
-    if (ReFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
-        focusMap.delete(id);
+
+    const {input} = focusMap.get(id) || {};
+    focusMap.delete(id);
+    if (restoreFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
         return;
     }
 
     // This modal is not the topmost one, do not restore it.
     if (activeModals.length > index) {
+        if (input) {
+            const lastId = last(activeModals);
+            focusMap.set(lastId, {...focusMap.get(lastId), input});
+        }
         return;
     }
-    const value = focusMap.get(id);
-    if (value) {
-        focus(value.input, shouldIgnoreFocused);
-        focusMap.delete(id);
+    if (input) {
+        focus(input, shouldIgnoreFocused);
         return;
     }
 
     // Try to find the topmost one and restore it
-    const stack = filter([...focusMap], ([, v]) => v.businessType === businessType);
+    const stack = filter([...focusMap], ([, v]) => v.input && v.businessType === businessType);
     if (stack.length < 1) {
         return;
     }
@@ -221,12 +228,12 @@ function tryRestoreFocusAfterClosedCompletely(id, businessType, restoreType) {
  * @param {String} businessType
  */
 function tryRestoreFocusByExternal(businessType) {
-    if (focusMap.size < 1) {
+    const [key, {input}] = last(filter([...focusMap], ([, value]) => value.businessType === businessType));
+    focusMap.delete(key);
+    if (!input) {
         return;
     }
-    const [key, {input}] = last(filter([...focusMap], ([, value]) => value.businessType === businessType));
     input.focus();
-    focusMap.delete(key);
 }
 
 export default {

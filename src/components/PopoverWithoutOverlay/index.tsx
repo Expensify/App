@@ -1,7 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
+import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import {ActiveModalContext} from '@components/Modal/ActiveModalProvider';
 import ModalContent from '@components/Modal/ModalContent';
 import {PopoverContext} from '@components/PopoverProvider';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -24,6 +25,7 @@ function PopoverWithoutOverlay(
         isVisible,
         onClose,
         onModalHide = () => {},
+        shouldClearFocusWithType,
         restoreFocusType,
         children,
     }: PopoverWithoutOverlayProps,
@@ -35,6 +37,7 @@ function PopoverWithoutOverlay(
     const {windowWidth, windowHeight} = useWindowDimensions();
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
     const insets = useSafeAreaInsets();
+    const {businessType} = useContext(ActiveModalContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles(
             'popover',
@@ -58,7 +61,7 @@ function PopoverWithoutOverlay(
                 anchorRef,
             });
             removeOnClose = Modal.setCloseModal(() => onClose(anchorRef));
-            ComposerFocusManager.saveFocusState(modalId, undefined, undefined, withoutOverlayRef.current);
+            ComposerFocusManager.saveFocusState(modalId, businessType, shouldClearFocusWithType, withoutOverlayRef.current);
             ComposerFocusManager.resetReadyToFocus(modalId);
         } else {
             onModalHide();
@@ -118,8 +121,11 @@ function PopoverWithoutOverlay(
             shouldAddTopSafeAreaPadding,
         ],
     );
+
+    const restoreFocusTypeRef = useRef<PopoverWithoutOverlayProps['restoreFocusType']>();
+    restoreFocusTypeRef.current = restoreFocusType;
     const handleDismissContent = () => {
-        ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, undefined, restoreFocusType);
+        ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, businessType, restoreFocusTypeRef.current);
 
         // On the web platform, because there is no overlay, modal can be closed and opened instantly and randomly,
         // this will cause the input box to gain and lose focus instantly while the subsequent modal is opened.
