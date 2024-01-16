@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,20 +11,20 @@ import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import type {Transaction} from "@src/types/onyx";
 
 type EReceiptOnyxProps = {
     transaction: OnyxEntry<Transaction>;
-}
+};
 
 type EReceiptProps = EReceiptOnyxProps & {
     /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string;
-}
+};
 
 function EReceipt({transaction, transactionID}: EReceiptProps) {
     const styles = useThemeStyles();
@@ -31,26 +32,26 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.
-    const colorStyles =  StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
+    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
 
     const transactionDetails = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-    const transactionAmount =  transactionDetails?.amount
-    const transactionCurrency = transactionDetails?.currency || ''
-    const transactionMerchant = transactionDetails?.merchant
-    const transactionDate = transactionDetails?.created
-    const transactionCardID = transactionDetails?.cardID
+    const transactionAmount = transactionDetails?.amount;
+    const transactionCurrency = transactionDetails?.currency ?? '';
+    const transactionMerchant = transactionDetails?.merchant;
+    const transactionDate = transactionDetails?.created;
+    const transactionCardID = transactionDetails?.cardID;
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
-    const amount = currency ? formattedAmount.replace(currency, ''): '';
+    const amount = currency ? formattedAmount.replace(currency, '') : '';
     const cardDescription = transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '';
 
-    const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor): {};
+    const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : {};
 
     return (
-        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor): {}]}>
+        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}]}>
             <View style={styles.fullScreen}>
                 <EReceiptThumbnail transactionID={transactionID} />
             </View>
