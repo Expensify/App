@@ -294,7 +294,7 @@ function InitialSettingsPage(props) {
                     },
                     ...defaultMenuItems,
                 ],
-                (item) => item.translationKey !== 'initialSettingsPage.signOut',
+                (item) => item.translationKey !== 'initialSettingsPage.signOut' && item.translationKey !== 'initialSettingsPage.goToExpensifyClassic',
             );
 
             return hybridAppMenuItems;
