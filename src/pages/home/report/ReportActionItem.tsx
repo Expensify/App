@@ -2,7 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Button from '@components/Button';
@@ -13,7 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts, withBlockedFromConcierge, withReportActionsDrafts} from '@components/OnyxProvider';
+import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
@@ -60,6 +60,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {DecisionName, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type {PolicyReportFields} from '@src/types/onyx/PolicyReportField';
 import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -77,10 +78,11 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 
-const getDraftMessage = (drafts: OnyxTypes.ReportActionsDrafts, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
+const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
     const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`;
-    return drafts?.[draftKey]?.[action.reportActionID]?.message;
+    const draftMessage = drafts?.[draftKey]?.[action.reportActionID];
+    return typeof draftMessage === 'string' ? draftMessage : draftMessage?.message;
 };
 
 type ReportActionItemOnyxProps = {
@@ -98,7 +100,8 @@ type ReportActionItemOnyxProps = {
     /** All the report actions belonging to the report's parent */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
-    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportField>;
+    /** All policy report fields */
+    policyReportFields: OnyxEntry<PolicyReportFields>;
 };
 
 type ReportActionItemProps = {
@@ -151,7 +154,8 @@ function ReportActionItem({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const blockedFromConcierge = useBlockedFromConcierge();
-    const reportActionDrafts = useReportActionsDrafts();
+    // TODO need to fix createOnyxContext to report types as OnyxCollection if provided key is collection
+    const reportActionDrafts = useReportActionsDrafts() as OnyxCollection<OnyxTypes.ReportActionsDrafts>;
     const draftMessage = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -241,8 +245,7 @@ function ReportActionItem({
         downloadedPreviews.current = urls;
         Report.expandURLPreview(report.reportID, action.reportActionID);
     }, [action, report.reportID]);
-    console.log({policyReportFields});
-    console.log(action.actionName, action.originalMessage);
+
     useEffect(() => {
         if (!draftMessage || !ReportActionsUtils.isDeletedAction(action)) {
             return;
@@ -783,6 +786,7 @@ function ReportActionItem({
                 )}
             </Hoverable>
             <View style={styles.reportActionSystemMessageContainer}>
+                {/* @ts-expect-error TODO check if there is a field on the reportAction object */}
                 <InlineSystemMessage message={action.error} />
             </View>
         </PressableWithSecondaryInteraction>
