@@ -29,11 +29,12 @@ type AttachmentCarouselPagerProps = {
     items: PagerItem[];
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
+    onTap: () => void;
     onPageSelected: () => void;
     onScaleChanged: (scale: number) => void;
 };
 
-function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
     const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef<PagerView>(null);
@@ -89,12 +90,13 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
 
     const contextValue = useMemo(
         () => ({
-            onScaleChanged,
             pagerRef,
             shouldPagerScroll,
             isSwipingInPager,
+            onTap,
+            onScaleChanged,
         }),
-        [isSwipingInPager, shouldPagerScroll, onScaleChanged],
+        [shouldPagerScroll, isSwipingInPager, onTap, onScaleChanged],
     );
 
     return (

@@ -101,10 +101,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 index={index}
                 activeIndex={page}
                 isFocused={isActive && activeSource === item.source}
-                onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, page],
     );
 
     const handleScaleChange = useCallback(
@@ -122,11 +121,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     return (
-        <View
-            style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onMouseEnter={() => setShouldShowArrows(true)}
-            onMouseLeave={() => setShouldShowArrows(false)}
-        >
+        <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
             {page == null ? (
                 <FullScreenLoadingIndicator />
             ) : (
@@ -154,6 +149,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 items={attachments}
                                 renderItem={renderItem}
                                 initialIndex={page}
+                                onTap={() => {
+                                    if (!isZoomedOut) {
+                                        return;
+                                    }
+                                    setShouldShowArrows(!shouldShowArrows);
+                                }}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                                 onScaleChanged={handleScaleChange}
                                 ref={pagerRef}
