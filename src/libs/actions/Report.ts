@@ -1670,7 +1670,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
 function deleteReport(reportID: string) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
@@ -1821,7 +1821,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
     if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
         return false;
@@ -2072,7 +2072,7 @@ function getCurrentUserAccountID(): number {
 
 /** Leave a report by setting the state to submitted and closed */
 function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
 
     if (!report) {
         return;
@@ -2164,7 +2164,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
 /** Invites people to a room */
 function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
 
     if (!report) {
         return;
@@ -2229,7 +2229,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
 /** Removes people from a room */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
