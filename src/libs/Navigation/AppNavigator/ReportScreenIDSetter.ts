@@ -36,8 +36,18 @@ const getLastAccessedReportID = (
     openOnAdminRoom: boolean,
     reportMetadata: OnyxCollection<ReportMetadata>,
     policyID?: string,
+    policyMemberAccountIDs?: string[],
 ): string | undefined => {
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom, reportMetadata, policyID);
+    const lastReport = ReportUtils.findLastAccessedReport(
+        reports,
+        ignoreDefaultRooms,
+        policies,
+        !!isFirstTimeNewExpensifyUser,
+        openOnAdminRoom,
+        reportMetadata,
+        policyID,
+        policyMemberAccountIDs,
+    );
     return lastReport?.reportID;
 };
 

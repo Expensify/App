@@ -621,12 +621,43 @@ function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean 
 }
 
 /**
+ * Checks if the supplied report has a common policy member with the array passed in params.
+ */
+function hasReportCommonPolicyMemberWithArray(report: Report, policyMembersAccountIDs: string[]) {
+    if (!report.participantAccountIDs) {
+        return false;
+    }
+
+    const policyMembersAccountIDsSet = new Set(policyMembersAccountIDs);
+
+    for (const reportParticipant of report.participantAccountIDs) {
+        if (policyMembersAccountIDsSet.has(reportParticipant.toString())) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Checks if the supplied report belongs to workspace based on the provided params.
+ */
+function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
+    return report.policyID === '_FAKE_' ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
+}
+
+/**
  * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID, if provided.
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>, reportMetadata: OnyxCollection<ReportMetadata>, policyID?: string): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(
+    reports: OnyxCollection<Report>,
+    reportMetadata: OnyxCollection<ReportMetadata>,
+    policyID?: string,
+    policyMemberAccountIDs: string[] = [],
+): Array<OnyxEntry<Report>> {
     let reportsValues = Object.values(reports ?? {});
     if (policyID) {
-        reportsValues = reportsValues.filter((report) => report?.policyID === policyID);
+        reportsValues = reportsValues.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
     }
 
     return reportsValues
@@ -907,13 +938,14 @@ function findLastAccessedReport(
     openOnAdminRoom = false,
     reportMetadata: OnyxCollection<ReportMetadata> = {},
     policyID?: string,
+    policyMemberAccountIDs?: string[],
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports, reportMetadata, policyID);
+    let sortedReports = sortReportsByLastRead(reports, reportMetadata, policyID, policyMemberAccountIDs);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {
@@ -4588,6 +4620,7 @@ export {
     shouldAutoFocusOnKeyPress,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    doesReportBelongToWorkspace,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
