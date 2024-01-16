@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
-import {Info} from './Icon/Expensicons';
+import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 
@@ -16,9 +16,12 @@ type ReferralProgramCTAProps = {
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
+
+    /** Method to trigger when pressing close button of the banner */
+    onCloseButtonPress?: () => void;
 };
 
-function ReferralProgramCTA({referralContentType}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, onCloseButtonPress = () => {}}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -41,12 +44,21 @@ function ReferralProgramCTA({referralContentType}: ReferralProgramCTAProps) {
                     {translate(`referralProgram.${referralContentType}.buttonText2`)}
                 </Text>
             </Text>
-            <Icon
-                src={Info}
-                height={20}
-                width={20}
-                fill={theme.icon}
-            />
+            <PressableWithoutFeedback
+                onPress={onCloseButtonPress}
+                onMouseDown={(e) => {
+                    e.preventDefault();
+                }}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityLabel={translate('common.close')}
+            >
+                <Icon
+                    src={Close}
+                    height={20}
+                    width={20}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
         </PressableWithoutFeedback>
     );
 }

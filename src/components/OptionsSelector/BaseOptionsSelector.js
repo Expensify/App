@@ -662,7 +662,10 @@ class BaseOptionsSelector extends Component {
                 </View>
                 {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
+                        <ReferralProgramCTA
+                            referralContentType={this.props.referralContentType}
+                            onCloseButtonPress={this.handleReferralModal}
+                        />
                     </View>
                 )}
 
