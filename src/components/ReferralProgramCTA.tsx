@@ -31,7 +31,7 @@ function ReferralProgramCTA({referralContentType, onCloseButtonPress = () => {}}
             onPress={() => {
                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
             }}
-            style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+            style={[styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5]}
             accessibilityLabel="referral"
             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
         >
@@ -49,6 +49,7 @@ function ReferralProgramCTA({referralContentType, onCloseButtonPress = () => {}}
                 onMouseDown={(e) => {
                     e.preventDefault();
                 }}
+                style={[styles.touchableButtonImage]}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={translate('common.close')}
             >
