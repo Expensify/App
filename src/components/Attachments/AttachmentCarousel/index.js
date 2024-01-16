@@ -1,6 +1,6 @@
+import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
-import {FlashList} from '@shopify/flash-list';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -13,9 +13,7 @@ import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
@@ -26,17 +24,17 @@ import useCarouselArrows from './useCarouselArrows';
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
-    itemVisiblePercentThreshold: 95,
+    itemVisiblePercentThreshold: 66,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, windowWidth}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-    const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
@@ -123,28 +121,34 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item}) => {
-            console.log('rendering: ', item);
-            return (
-                <CarouselItem
-                    item={item}
-                    isFocused={activeSource === item.source}
-                    isSingleItem={attachments.length === 1}
-                    onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
-                    size={containerDimensions}
-                />
-            );
-        },
-        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows, containerDimensions],
+        ({item, index}) => (
+            <View style={containerDimensions}>
+                {/* Prevents fetching too many attachments at once, by only rendering a few pages near the active page */}
+                {Math.abs(page - index) <= 2 && (
+                    <CarouselItem
+                        item={item}
+                        isFocused={activeSource === item.source}
+                        isSingleItem={attachments.length === 1}
+                        index={index}
+                        activeIndex={page}
+                        onPress={canUseTouchScreen ? () => setShouldShowArrows((current) => !current) : undefined}
+                    />
+                )}
+            </View>
+        ),
+        [activeSource, attachments.length, canUseTouchScreen, containerDimensions, page, setShouldShowArrows],
     );
 
     return (
         <View
+            key={windowWidth}
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) => setContainerDimensions({
-                width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width),
-                height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height),
-            })}
+            onLayout={({nativeEvent}) =>
+                setContainerDimensions({
+                    width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width),
+                    height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height),
+                })
+            }
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
@@ -174,8 +178,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             keyboardShouldPersistTaps="handled"
                             listKey="AttachmentCarousel"
                             horizontal
-                            disableAutoLayout
-                            disableHorizontalListHeightMeasurement
                             estimatedListSize={containerDimensions}
                             decelerationRate="fast"
                             showsHorizontalScrollIndicator={false}
@@ -191,12 +193,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             scrollEnabled={canUseTouchScreen}
                             ref={scrollRef}
                             initialScrollIndex={page}
-                            estimatedFirstItemOffset={page * containerDimensions.width}
-                            initialNumToRender={3}
-                            windowSize={5}
-                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                             data={attachments}
-                            CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
                             keyExtractor={(item) => item.source}
                             viewabilityConfig={viewabilityConfig}

@@ -3070,7 +3070,6 @@ const CONST = {
      */
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
-        CAROUSEL: 3,
     },
 
     BRICK_ROAD: {
