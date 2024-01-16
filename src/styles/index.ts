@@ -3299,13 +3299,23 @@ const styles = (theme: ThemeColors) =>
                 top: receiptImageTopPosition,
             } satisfies ViewStyle),
 
-        cardSection: {
+        cardSectionContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusCard,
-            marginBottom: 20,
-            marginHorizontal: 16,
             width: 'auto',
             textAlign: 'left',
+            overflow: 'hidden',
+            marginBottom: 20,
+            marginHorizontal: 16,
+        },
+
+        cardSectionIllustrationContainer: {
+            padding: 0,
+        },
+
+        cardSectionIllustration: {
+            width: 'auto',
+            height: variables.sectionIllustrationHeight,
         },
 
         cardSectionTitle: {

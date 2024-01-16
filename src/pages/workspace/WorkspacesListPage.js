@@ -288,15 +288,25 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
     if (_.isEmpty(workspaces)) {
         return (
-            <IllustratedHeaderPageLayout
-                backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-                illustration={LottieAnimations.WorkspacePlanet}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
-                title={translate('common.workspaces')}
-                style={!isSmallScreenWidth && styles.alignItemsCenter}
-                shouldShowBackButton={isSmallScreenWidth}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+                testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
             >
+                <HeaderWithBackButton
+                    title={translate('common.workspaces')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                >
+                    <Button
+                        accessibilityLabel={translate('workspace.new.newWorkspace')}
+                        success
+                        medium
+                        text={translate('workspace.new.newWorkspace')}
+                        onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                    />
+                </HeaderWithBackButton>
                 <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <FeatureList
                         menuItems={workspaceFeatures}
@@ -304,9 +314,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         subtitle={translate('workspace.emptyWorkspace.subtitle')}
                         ctaText={translate('workspace.new.newWorkspace')}
                         onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                        illustration={LottieAnimations.WorkspacePlanet}
+                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                     />
                 </View>
-            </IllustratedHeaderPageLayout>
+            </ScreenWrapper>
         );
     }
 
