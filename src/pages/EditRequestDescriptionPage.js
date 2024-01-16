@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +77,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        submitOnEnter={!Browser.isMobile()}
+                        submitOnEnter={!canUseTouchScreen()}
                     />
                 </View>
             </FormProvider>
