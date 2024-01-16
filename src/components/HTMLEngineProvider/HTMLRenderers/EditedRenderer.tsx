@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-function EditedRenderer({tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
+function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

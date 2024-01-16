@@ -1,8 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleSheet} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TText} from 'react-native-render-html';
+import type {TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -22,9 +22,9 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRendererProps<TText>;
+type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRendererProps<TText | TPhrasing>;
 
-function MentionUserRenderer({style, tnode, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
+function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -38,9 +38,9 @@ function MentionUserRenderer({style, tnode, currentUserPersonalDetails, ...defau
     if (!isEmpty(htmlAttribAccountID)) {
         const user = personalDetails.htmlAttribAccountID;
         accountID = parseInt(htmlAttribAccountID, 10);
-        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') ?? user?.displayName ?? '' ?? translate('common.hidden');
+        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') ?? user?.displayName ?? translate('common.hidden');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
-    } else if (!isEmptyObject(tnode.data)) {
+    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         displayNameOrLogin = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
 
@@ -78,7 +78,7 @@ function MentionUserRenderer({style, tnode, currentUserPersonalDetails, ...defau
                         <Text
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
-                            style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention) as StyleProp<TextStyle>, {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                            style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                             role={CONST.ROLE.LINK}
                             testID="span"
                             href={`/${navigationRoute}`}

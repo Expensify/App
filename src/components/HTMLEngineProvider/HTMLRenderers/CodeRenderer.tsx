@@ -1,12 +1,12 @@
 import React from 'react';
 import type {TextStyle} from 'react-native';
 import {splitBoxModelStyle} from 'react-native-render-html';
-import type {CustomRendererProps, TText} from 'react-native-render-html';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import useStyleUtils from '@hooks/useStyleUtils';
 
-type CodeRendererProps = CustomRendererProps<TText> & {
+type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
     key?: string;
 };
@@ -35,8 +35,8 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
         fontFamily: font,
 
         // We need to override this properties bellow that was defined in `textStyle`
-        // Because by default the `react-native-render- html` add a style in the elements,
-        // for example the <strong> tag has a fontWeig ht: "bold" and in the android it break the font
+        // Because by default the `react-native-render-html` add a style in the elements,
+        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
         fontWeight: undefined,
         fontStyle: undefined,
     };
