@@ -69,7 +69,7 @@ function LogOutPreviousUserPage(props) {
             if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     // remove this screen and navigate to exit route
-                    Navigation.goBack()
+                    Navigation.goBack();
                     Navigation.navigate(exitTo);
                 });
             }
