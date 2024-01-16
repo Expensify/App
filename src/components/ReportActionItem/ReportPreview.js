@@ -166,7 +166,7 @@ function ReportPreview(props) {
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
-    const hasOnlyLoadingDistanceRequests = hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => TransactionUtils.isLoadingDistanceRequest(transaction));
+    const hasOnlyLoadingDistanceRequests = hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => TransactionUtils.isDistanceBeingCalculated(transaction));
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {

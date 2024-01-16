@@ -309,11 +309,11 @@ function getOriginalAmount(transaction: Transaction): number {
 }
 
 /**
- * Verify if the transaction is of Distance request and is not fully ready:
+ * Verify if the transaction is of Distance request and is expecting the distance to be calculated on the server:
  * - it has a zero amount, which means the request was created offline and expects the distance calculation from the server
  * - it is in `isLoading` state, which means the waypoints were updated offline and the distance requires re-calculation
  */
-function isLoadingDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isDistanceBeingCalculated(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
         return false;
     }
@@ -331,7 +331,7 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     }
 
     const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : transaction.merchant ?? '';
-    return isLoadingDistanceRequest(transaction) ? merchant.replace(CONST.REGEX.FIRST_SPACE, Localize.translateLocal('common.tbd')) : merchant;
+    return isDistanceBeingCalculated(transaction) ? merchant.replace(CONST.REGEX.FIRST_SPACE, Localize.translateLocal('common.tbd')) : merchant;
 }
 
 function getDistance(transaction: Transaction): number {
@@ -586,7 +586,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
-    isLoadingDistanceRequest,
+    isDistanceBeingCalculated,
     isExpensifyCardTransaction,
     isCardTransaction,
     isPending,

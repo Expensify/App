@@ -1857,7 +1857,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     const currency = TransactionUtils.getCurrency(transaction);
 
     let formattedAmount;
-    if (TransactionUtils.isLoadingDistanceRequest(transaction)) {
+    if (TransactionUtils.isDistanceBeingCalculated(transaction)) {
         formattedAmount = Localize.translateLocal('common.tbd');
     } else {
         formattedAmount = amount ? CurrencyUtils.convertToDisplayString(amount, currency) : '';
