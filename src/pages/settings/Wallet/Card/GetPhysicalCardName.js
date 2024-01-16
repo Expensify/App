@@ -2,11 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +44,7 @@ function GetPhysicalCardName({
         params: {domain},
     },
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const onValidate = (values) => {
         const errors = {};
@@ -71,7 +73,8 @@ function GetPhysicalCardName({
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
         >
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID="legalFirstName"
                 name="legalFirstName"
                 label={translate('getPhysicalCard.legalFirstName')}
@@ -79,10 +82,10 @@ function GetPhysicalCardName({
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalFirstName}
-                containerStyles={[styles.mt5, styles.mh5]}
                 shouldSaveDraft
             />
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID="legalLastName"
                 name="legalLastName"
                 label={translate('getPhysicalCard.legalLastName')}
@@ -90,7 +93,7 @@ function GetPhysicalCardName({
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 autoCapitalize="words"
                 defaultValue={legalLastName}
-                containerStyles={[styles.mt5, styles.mh5]}
+                containerStyles={styles.mt5}
                 shouldSaveDraft
             />
         </BaseGetPhysicalCard>

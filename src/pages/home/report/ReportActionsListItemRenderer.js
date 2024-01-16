@@ -19,11 +19,8 @@ const propTypes = {
     /** Report for this action */
     report: reportPropTypes.isRequired,
 
-    /** Whether the option has an outstanding IOU */
-    hasOutstandingIOU: PropTypes.bool,
-
-    /** Sorted actions prepared for display */
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool.isRequired,
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
@@ -40,7 +37,6 @@ const propTypes = {
 
 const defaultProps = {
     mostRecentIOUReportActionID: '',
-    hasOutstandingIOU: false,
     linkedReportActionID: '',
 };
 
@@ -48,8 +44,7 @@ function ReportActionsListItemRenderer({
     reportAction,
     index,
     report,
-    hasOutstandingIOU,
-    sortedReportActions,
+    displayAsGroup,
     mostRecentIOUReportActionID,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
@@ -66,6 +61,7 @@ function ReportActionsListItemRenderer({
             reportID={report.reportID}
             parentReportID={`${report.parentReportID}`}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
+            index={index}
         />
     ) : (
         <ReportActionItem
@@ -73,14 +69,16 @@ function ReportActionsListItemRenderer({
             report={report}
             action={reportAction}
             linkedReportActionID={linkedReportActionID}
-            displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+            displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
-                _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
+                _.contains(
+                    [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                    reportAction.actionName,
+                )
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-            hasOutstandingIOU={hasOutstandingIOU}
             index={index}
         />
     );

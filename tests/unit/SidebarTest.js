@@ -13,7 +13,7 @@ jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+    IS_LOADING_APP: 'isLoadingApp',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -51,12 +51,12 @@ describe('Sidebar', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
@@ -66,7 +66,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -86,8 +86,8 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3, true),
                 policyName: 'Vikings Policy',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const action = {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3, true),
@@ -99,7 +99,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
@@ -109,7 +109,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),

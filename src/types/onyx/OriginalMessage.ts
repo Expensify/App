@@ -1,13 +1,31 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-
+type OriginalMessageActionName =
+    | 'ADDCOMMENT'
+    | 'APPROVED'
+    | 'CHRONOSOOOLIST'
+    | 'CLOSED'
+    | 'CREATED'
+    | 'IOU'
+    | 'MODIFIEDEXPENSE'
+    | 'REIMBURSEMENTQUEUED'
+    | 'RENAMED'
+    | 'REPORTPREVIEW'
+    | 'SUBMITTED'
+    | 'TASKCANCELLED'
+    | 'TASKCOMPLETED'
+    | 'TASKEDITED'
+    | 'TASKREOPENED'
+    | 'ACTIONABLEMENTIONWHISPER'
+    | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
 };
+type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
 
 type IOUDetails = {
     amount: number;
@@ -15,24 +33,30 @@ type IOUDetails = {
     currency: string;
 };
 
+type IOUMessage = {
+    /** The ID of the iou transaction */
+    IOUTransactionID?: string;
+    IOUReportID?: string;
+    expenseReportID?: string;
+    amount: number;
+    comment?: string;
+    currency: string;
+    lastModified?: string;
+    participantAccountIDs?: number[];
+    type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    cancellationReason?: string;
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
+};
+
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
-    originalMessage: {
-        /** The ID of the iou transaction */
-        IOUTransactionID?: string;
-
-        IOUReportID?: number;
-
-        /** Only exists when we are sending money */
-        IOUDetails?: IOUDetails;
-
-        amount: number;
-        comment?: string;
-        currency: string;
-        lastModified?: string;
-        participantAccountIDs?: number[];
-        type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
-    };
+    originalMessage: IOUMessage;
 };
 
 type FlagSeverityName = ValueOf<
@@ -54,7 +78,7 @@ type DecisionName = ValueOf<
 >;
 type Decision = {
     decision: DecisionName;
-    timestamp: string;
+    timestamp?: string;
 };
 
 type User = {
@@ -67,10 +91,19 @@ type Reaction = {
     users: User[];
 };
 
+type Closed = {
+    policyName: string;
+    reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
+    lastModified?: string;
+    newAccountID?: number;
+    oldAccountID?: number;
+};
+
 type OriginalMessageAddComment = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
     originalMessage: {
         html: string;
+        source?: OriginalMessageSource;
         lastModified?: string;
         taskReportID?: string;
         edits?: string[];
@@ -82,6 +115,19 @@ type OriginalMessageAddComment = {
         reactions?: Reaction[];
     };
 };
+
+type OriginalMessageActionableMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    originalMessage: {
+        inviteeAccountIDs: number[];
+        inviteeEmails: string;
+        lastModified: string;
+        reportID: number;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
+    };
+};
+
 type OriginalMessageSubmitted = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
     originalMessage: unknown;
@@ -89,16 +135,12 @@ type OriginalMessageSubmitted = {
 
 type OriginalMessageClosed = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
-    originalMessage: {
-        policyName: string;
-        reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
-        lastModified?: string;
-    };
+    originalMessage: Closed;
 };
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
-    originalMessage: unknown;
+    originalMessage?: unknown;
 };
 
 type OriginalMessageRenamed = {
@@ -116,6 +158,12 @@ type ChronosOOOTimestamp = {
     timezone: string;
     // eslint-disable-next-line @typescript-eslint/naming-convention
     timezone_type: number;
+};
+
+type ChangeLog = {
+    targetAccountIDs?: number[];
+    roomName?: string;
+    reportID?: number;
 };
 
 type ChronosOOOEvent = {
@@ -146,18 +194,12 @@ type OriginalMessageReportPreview = {
 
 type OriginalMessagePolicyChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
-    originalMessage: {
-        targetAccountIDs?: number[];
-        roomName?: string;
-    };
+    originalMessage: ChangeLog;
 };
 
 type OriginalMessagePolicyTask = {
@@ -165,13 +207,31 @@ type OriginalMessagePolicyTask = {
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED;
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+        | typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
     originalMessage: unknown;
 };
 
 type OriginalMessageModifiedExpense = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
-    originalMessage: unknown;
+    originalMessage: {
+        oldMerchant?: string;
+        merchant?: string;
+        oldCurrency?: string;
+        currency?: string;
+        oldAmount?: number;
+        amount?: number;
+        oldComment?: string;
+        newComment?: string;
+        oldCreated?: string;
+        created?: string;
+        oldCategory?: string;
+        category?: string;
+        oldTag?: string;
+        tag?: string;
+        oldBillable?: string;
+        billable?: string;
+    };
 };
 
 type OriginalMessageReimbursementQueued = {
@@ -179,10 +239,26 @@ type OriginalMessageReimbursementQueued = {
     originalMessage: unknown;
 };
 
+type OriginalMessageReimbursementDequeued = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+    originalMessage: unknown;
+};
+
+type OriginalMessageMoved = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MOVED;
+    originalMessage: {
+        fromPolicyID: string;
+        toPolicyID: string;
+        newParentReportID: string;
+        movedReportID: string;
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
+    | OriginalMessageActionableMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
@@ -193,7 +269,22 @@ type OriginalMessage =
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
-    | OriginalMessageReimbursementQueued;
+    | OriginalMessageReimbursementQueued
+    | OriginalMessageReimbursementDequeued
+    | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName};
+export type {
+    ChronosOOOEvent,
+    Decision,
+    Reaction,
+    ActionName,
+    IOUMessage,
+    ReimbursementDeQueuedMessage,
+    Closed,
+    OriginalMessageActionName,
+    ChangeLog,
+    OriginalMessageIOU,
+    OriginalMessageCreated,
+    OriginalMessageAddComment,
+};

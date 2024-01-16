@@ -6,8 +6,8 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 function KeyboardShortcutsPage() {
@@ -36,7 +36,7 @@ function KeyboardShortcutsPage() {
             key={shortcut.displayName}
             title={shortcut.displayName}
             description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
-            wrapperStyle={styles.ph0}
+            wrapperStyle={[styles.ph0, styles.cursorAuto]}
             interactive={false}
         />
     );
