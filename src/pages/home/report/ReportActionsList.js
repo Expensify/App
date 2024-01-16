@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -138,19 +138,19 @@ function ReportActionsList({
     isComposerFullSize,
 }) {
     const styles = useThemeStyles();
-    const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const unreadActionSubscription = useRef(null);
+
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
             return null;
         }
         return cacheUnreadMarkers.get(report.reportID);
     };
+    const reportScrollManager = useReportScrollManager();
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
@@ -160,7 +160,10 @@ function ReportActionsList({
     const lastReadTimeRef = useRef(report.lastReadTime);
     const isUnreadMessageFocused = useRef(false);
 
-    const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
+    const sortedVisibleReportActions = useMemo(
+        () => _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors),
+        [sortedReportActions, isOffline],
+    );
     const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
     const reportActionSize = useRef(sortedVisibleReportActions.length);
 
@@ -237,21 +240,34 @@ function ReportActionsList({
     }, [report.lastReadTime, report.reportID]);
 
     useEffect(() => {
-        // If the reportID changes, we reset the userActiveSince to null, we need to do it because
-        // this component doesn't unmount when the reportID changes
-        if (unreadActionSubscription.current) {
-            unreadActionSubscription.current.remove();
-            unreadActionSubscription.current = null;
-        }
-
-        // Listen to specific reportID for unread event and set the marker to new message
-        unreadActionSubscription.current = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
+        const resetUnreadMarker = (newLastReadTime) => {
             cacheUnreadMarkers.delete(report.reportID);
             lastReadTimeRef.current = newLastReadTime;
             setCurrentUnreadMarker(null);
+        };
+
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
+            resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
+
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
+            resetUnreadMarker(newLastReadTime);
+            setMessageManuallyMarkedUnread(0);
+        });
+
+        return () => {
+            unreadActionSubscription.remove();
+            readNewestActionSubscription.remove();
+        };
     }, [report.reportID]);
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -274,7 +290,7 @@ function ReportActionsList({
             if (!isFromCurrentUser) {
                 return;
             }
-            reportScrollManager.scrollToBottom();
+            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         });
 
         const cleanup = () => {
@@ -373,9 +389,9 @@ function ReportActionsList({
         (reportAction, index) => {
             let shouldDisplay = false;
             if (!currentUnreadMarker) {
-                const nextMessage = sortedReportActions[index + 1];
+                const nextMessage = sortedVisibleReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadTimeRef.current);
-                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
                     // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
@@ -392,7 +408,7 @@ function ReportActionsList({
 
             return shouldDisplay;
         },
-        [currentUnreadMarker, sortedReportActions, report.reportID, messageManuallyMarkedUnread],
+        [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
     useEffect(() => {
@@ -400,7 +416,7 @@ function ReportActionsList({
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
         let markerFound = false;
-        _.each(sortedReportActions, (reportAction, index) => {
+        _.each(sortedVisibleReportActions, (reportAction, index) => {
             if (!shouldDisplayNewMarker(reportAction, index)) {
                 return;
             }
@@ -413,7 +429,7 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (

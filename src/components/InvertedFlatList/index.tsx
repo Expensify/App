@@ -5,6 +5,7 @@ import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {InvertedFlatListProps} from './types';
+import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
@@ -44,6 +45,7 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, onScrollEnd: on
             ref={ref}
             onScroll={handleScroll}
             onScrollEnd={handleScrollEnd}
+            CellRendererComponent={CellRendererComponent}
         />
     );
 }

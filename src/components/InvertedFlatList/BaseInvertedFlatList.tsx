@@ -4,8 +4,8 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import FlatList from '@components/FlatList';
 import type {InvertedFlatListProps} from './types';
 
-const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 const WINDOW_SIZE = 15;
+const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
 function BaseInvertedFlatList<T>({onScroll: onScrollProp = () => {}, onScrollEnd: onScrollEndProp = () => {}, ...props}: InvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const lastScrollEvent = useRef<number | null>(null);
