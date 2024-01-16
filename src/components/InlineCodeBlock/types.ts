@@ -11,4 +11,4 @@ type InlineCodeBlockProps<TComponent extends TTextOrTPhrasing> = {
 };
 
 export default InlineCodeBlockProps;
-export type {TTextOrTPhrasing}
+export type {TTextOrTPhrasing};

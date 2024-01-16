@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import Text from '@components/Text';
 import type InlineCodeBlockProps from './types';
-import type { TTextOrTPhrasing } from './types';
+import type {TTextOrTPhrasing} from './types';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, textStyle, defaultRendererProps, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const flattenTextStyle = StyleSheet.flatten(textStyle);
