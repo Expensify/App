@@ -63,10 +63,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isActionOwner = parentReportAction.actorAccountID === (session?.accountID ?? null);
 
     const deleteTransaction = useCallback(() => {
-        const {
-            originalMessage: {IOUTransactionID = ''},
-        } = parentReportAction;
-        IOU.deleteMoneyRequest(IOUTransactionID, parentReportAction, true);
+        IOU.deleteMoneyRequest(parentReportAction.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
         setIsDeleteModalVisible(false);
     }, [parentReportAction, setIsDeleteModalVisible]);
 
