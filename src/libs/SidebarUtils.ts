@@ -80,18 +80,6 @@ function isSidebarLoadedReady(): Promise<unknown> {
     return sidebarIsReadyPromise;
 }
 
-function hasReportCommonPolicyMember(reportParticipantAccountIDs: number[], policyMembersAccountIDs: string[]) {
-    const set1 = new Set(policyMembersAccountIDs);
-
-    for (const reportParticipant of reportParticipantAccountIDs) {
-        if (set1.has(reportParticipant.toString())) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -190,9 +178,7 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMembersAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) =>
-            report.policyID === '_FAKE_' ? hasReportCommonPolicyMember(report.participantAccountIDs ?? [], policyMembersAccountIDs) : report.policyID === currentPolicyID,
-        );
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, currentPolicyID, policyMembersAccountIDs));
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
