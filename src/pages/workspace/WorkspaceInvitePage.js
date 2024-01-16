@@ -255,7 +255,9 @@ function WorkspaceInvitePage(props) {
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers.includes(parsePhoneNumber(searchValue).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue)
+            excludedUsers.includes(
+                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+            )
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
