@@ -55,10 +55,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
     };
 
     /**
-     * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.partnerUserID
-     * @returns {Object} - An object containing the errors for each inputID
+     * @returns - An object containing the errors for each inputID
      */
     const validate = useCallback(
         (values: KnowATeacherFormData) => {

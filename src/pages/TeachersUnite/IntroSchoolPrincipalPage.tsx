@@ -40,6 +40,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
     const {isProduction} = useEnvironment();
 
     /**
+     * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: IntroSchoolPrincipalFormData) => {
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
@@ -47,7 +48,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
     };
 
     /**
-     * @returns {Object} - An object containing the errors for each inputID
+     * @returns - An object containing the errors for each inputID
      */
     const validate = useCallback(
         (values: IntroSchoolPrincipalFormData) => {
