@@ -557,6 +557,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                 }}
                 onItemSelected={(method) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
+                shouldShowPersonalBankAccountOption
             />
         </>
     );
