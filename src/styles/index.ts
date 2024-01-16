@@ -443,6 +443,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
+        textIvoryLight: {
+            color: theme.iconColorfulBackground,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
@@ -1739,7 +1743,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -2094,7 +2098,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         avatarInnerTextSmall: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeExtraSmall,
             lineHeight: undefined,
             marginLeft: -2,
@@ -2450,7 +2454,7 @@ const styles = (theme: ThemeColors) =>
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeXLarge,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             textAlign: 'center',
@@ -3326,6 +3330,13 @@ const styles = (theme: ThemeColors) =>
         emojiReactionBubbleText: {
             verticalAlign: 'middle',
         },
+
+        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                position: 'absolute',
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+                ...spacing.mh4,
+            } satisfies ViewStyle),
 
         reactionCounterText: {
             fontSize: 13,
