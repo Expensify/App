@@ -13,10 +13,10 @@ const PAN_DECAY_DECELARATION = 0.9915;
 
 type UsePanGestureProps = Pick<
     MultiGestureCanvasVariables,
-    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'isSwipingInPager' | 'stopAnimation'
+    'canvasSize' | 'contentSize' | 'zoomScale' | 'totalScale' | 'offsetX' | 'offsetY' | 'panTranslateX' | 'panTranslateY' | 'isPagerSwiping' | 'stopAnimation'
 >;
 
-const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isSwipingInPager, stopAnimation}: UsePanGestureProps): PanGesture => {
+const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isPagerSwiping, stopAnimation}: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
@@ -117,7 +117,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesMove((_evt, state) => {
             // We only allow panning when the content is zoomed in
-            if (zoomScale.value <= 1 || isSwipingInPager.value) {
+            if (zoomScale.value <= 1 || isPagerSwiping.value) {
                 return;
             }
 
@@ -147,7 +147,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             panTranslateY.value = 0;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
-            if (isSwipingInPager.value) {
+            if (isPagerSwiping.value) {
                 return;
             }
 

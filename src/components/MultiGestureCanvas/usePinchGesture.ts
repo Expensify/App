@@ -8,7 +8,7 @@ import type {MultiGestureCanvasVariables} from './types';
 
 type UsePinchGestureProps = Pick<
     MultiGestureCanvasVariables,
-    'canvasSize' | 'zoomScale' | 'zoomRange' | 'offsetX' | 'offsetY' | 'pinchTranslateX' | 'pinchTranslateY' | 'pinchScale' | 'isSwipingInPager' | 'stopAnimation' | 'onScaleChanged'
+    'canvasSize' | 'zoomScale' | 'zoomRange' | 'offsetX' | 'offsetY' | 'pinchTranslateX' | 'pinchTranslateY' | 'pinchScale' | 'isPagerSwiping' | 'stopAnimation' | 'onScaleChanged'
 >;
 
 const usePinchGesture = ({
@@ -20,7 +20,7 @@ const usePinchGesture = ({
     pinchTranslateX: totalPinchTranslateX,
     pinchTranslateY: totalPinchTranslateY,
     pinchScale,
-    isSwipingInPager,
+    isPagerSwiping,
     stopAnimation,
     onScaleChanged,
 }: UsePinchGestureProps): PinchGesture => {
@@ -43,6 +43,16 @@ const usePinchGesture = ({
     // we need to have extra "bounce" translation variables
     const pinchBounceTranslateX = useSharedValue(0);
     const pinchBounceTranslateY = useSharedValue(0);
+
+    const triggerScaleChangedEvent = () => {
+        'worklet';
+
+        if (onScaleChanged === undefined) {
+            return;
+        }
+
+        runOnJS(onScaleChanged)(zoomScale.value);
+    };
 
     // Update the total (pinch) translation based on the regular pinch + bounce
     useAnimatedReaction(
@@ -80,7 +90,7 @@ const usePinchGesture = ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesDown((_evt, state) => {
             // We don't want to activate pinch gesture when we are swiping in the pager
-            if (!isSwipingInPager.value) {
+            if (!isPagerSwiping.value) {
                 return;
             }
 
@@ -109,9 +119,7 @@ const usePinchGesture = ({
                 zoomScale.value = newZoomScale;
                 currentPinchScale.value = evt.scale;
 
-                if (onScaleChanged !== undefined) {
-                    runOnJS(onScaleChanged)(zoomScale.value);
-                }
+                triggerScaleChangedEvent();
             }
 
             // Calculate new pinch translation
@@ -145,26 +153,18 @@ const usePinchGesture = ({
                 pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
             }
 
-            const triggerScaleChangeCallback = () => {
-                if (onScaleChanged === undefined) {
-                    return;
-                }
-
-                runOnJS(onScaleChanged)(zoomScale.value);
-            };
-
             if (zoomScale.value < zoomRange.min) {
                 // If the zoom scale is less than the minimum zoom scale, we need to set the zoom scale to the minimum
                 pinchScale.value = zoomRange.min;
-                zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG, triggerScaleChangeCallback);
+                zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG, triggerScaleChangedEvent);
             } else if (zoomScale.value > zoomRange.max) {
                 // If the zoom scale is higher than the maximum zoom scale, we need to set the zoom scale to the maximum
                 pinchScale.value = zoomRange.max;
-                zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG, triggerScaleChangeCallback);
+                zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG, triggerScaleChangedEvent);
             } else {
                 // Otherwise, we just update the pinch scale offset
                 pinchScale.value = zoomScale.value;
-                triggerScaleChangeCallback();
+                triggerScaleChangedEvent();
             }
         });
 

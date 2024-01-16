@@ -1,8 +1,8 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type PagerView from 'react-native-pager-view';
-import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
+import Animated, {cancelAnimation, runOnUI, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,14 +43,12 @@ function MultiGestureCanvas({
     contentSize = {width: 1, height: 1},
     zoomRange: zoomRangeProp,
     isActive = true,
-    onScaleChanged: onScaleChangedProp,
     children,
+    onScaleChanged: onScaleChangedProp,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const pagerRefFallback = useRef<PagerView>(null);
-    const shouldPagerScrollFallback = useSharedValue(false);
     const isSwipingInPagerFallback = useSharedValue(false);
 
     // If the MultiGestureCanvas used inside a AttachmentCarouselPager, we need to adapt the behaviour based on the pager state
@@ -58,18 +56,17 @@ function MultiGestureCanvas({
     const {
         onTap,
         onScaleChanged: onScaleChangedContext,
-        shouldPagerScroll,
-        isSwipingInPager,
+        isPagerSwiping,
+        pagerRef,
     } = useMemo(
         () =>
             attachmentCarouselPagerContext ?? {
                 onTap: () => {},
                 onScaleChanged: () => {},
-                pagerRef: pagerRefFallback,
-                shouldPagerScroll: shouldPagerScrollFallback,
-                isSwipingInPager: isSwipingInPagerFallback,
+                pagerRef: undefined,
+                isPagerSwiping: isSwipingInPagerFallback,
             },
-        [attachmentCarouselPagerContext, isSwipingInPagerFallback, shouldPagerScrollFallback],
+        [attachmentCarouselPagerContext, isSwipingInPagerFallback],
     );
 
     /**
@@ -126,7 +123,9 @@ function MultiGestureCanvas({
     /**
      * Resets the canvas to the initial state and animates back smoothly
      */
-    const reset = useWorkletCallback((animated: boolean) => {
+    const reset = useWorkletCallback((animated: boolean, callbackProp?: () => void) => {
+        const callback = callbackProp ?? (() => {});
+
         pinchScale.value = 1;
 
         stopAnimation();
@@ -140,7 +139,7 @@ function MultiGestureCanvas({
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
-            zoomScale.value = withSpring(1, SPRING_CONFIG);
+            zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
             return;
         }
 
@@ -151,6 +150,8 @@ function MultiGestureCanvas({
         pinchTranslateX.value = 0;
         pinchTranslateY.value = 0;
         zoomScale.value = 1;
+
+        callback();
     });
 
     const {singleTapGesture: basicSingleTapGesture, doubleTapGesture} = useTapGestures({
@@ -169,6 +170,11 @@ function MultiGestureCanvas({
     });
     const singleTapGesture = basicSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
+    const panGestureSimultaneousList = useMemo(
+        () => (pagerRef === undefined ? [singleTapGesture, doubleTapGesture] : [pagerRef as unknown as Exclude<GestureRef, number>, singleTapGesture, doubleTapGesture]),
+        [doubleTapGesture, pagerRef, singleTapGesture],
+    );
+
     const panGesture = usePanGesture({
         canvasSize,
         contentSize,
@@ -178,10 +184,10 @@ function MultiGestureCanvas({
         offsetY,
         panTranslateX,
         panTranslateY,
-        isSwipingInPager,
+        isPagerSwiping,
         stopAnimation,
     })
-        .simultaneousWithExternalGesture(singleTapGesture, doubleTapGesture)
+        .simultaneousWithExternalGesture(...panGestureSimultaneousList)
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
@@ -193,19 +199,10 @@ function MultiGestureCanvas({
         pinchTranslateX,
         pinchTranslateY,
         pinchScale,
-        isSwipingInPager,
+        isPagerSwiping,
         stopAnimation,
         onScaleChanged,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
-
-    // Enables/disables the pager scroll based on the zoom scale
-    // When the content is zoomed in/out, the pager should be disabled
-    useAnimatedReaction(
-        () => zoomScale.value,
-        () => {
-            shouldPagerScroll.value = zoomScale.value === 1;
-        },
-    );
 
     // Trigger a reset when the canvas gets inactive, but only if it was already mounted before
     const mounted = useRef(false);

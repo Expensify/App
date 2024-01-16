@@ -36,7 +36,7 @@ const useTapGestures = ({
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
     const zoomToCoordinates = useWorkletCallback(
-        (focalX: number, focalY: number) => {
+        (focalX: number, focalY: number, callbackProp: () => void) => {
             'worklet';
 
             stopAnimation();
@@ -100,9 +100,11 @@ const useTapGestures = ({
                 offsetAfterZooming.y = 0;
             }
 
+            const callback = callbackProp || (() => {});
+
             offsetX.value = withSpring(offsetAfterZooming.x, SPRING_CONFIG);
             offsetY.value = withSpring(offsetAfterZooming.y, SPRING_CONFIG);
-            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
+            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG, callback);
             pinchScale.value = doubleTapScale;
         },
         [scaledContentWidth, scaledContentHeight, canvasSize, doubleTapScale],
@@ -113,22 +115,26 @@ const useTapGestures = ({
         .maxDelay(150)
         .maxDistance(20)
         .onEnd((evt) => {
+            const triggerScaleChangedEvent = () => {
+                'worklet';
+
+                if (onScaleChanged != null) {
+                    runOnJS(onScaleChanged)(zoomScale.value);
+                }
+            };
+
             // If the content is already zoomed, we want to reset the zoom,
             // otherwise we want to zoom in
             if (zoomScale.value > 1) {
-                reset(true);
+                reset(true, triggerScaleChangedEvent);
             } else {
-                zoomToCoordinates(evt.x, evt.y);
-            }
-
-            if (onScaleChanged !== undefined) {
-                runOnJS(onScaleChanged)(zoomScale.value);
+                zoomToCoordinates(evt.x, evt.y, triggerScaleChangedEvent);
             }
         });
 
     const singleTapGesture = Gesture.Tap()
         .numberOfTaps(1)
-        .maxDuration(50)
+        .maxDuration(125)
         .onBegin(() => {
             stopAnimation();
         })

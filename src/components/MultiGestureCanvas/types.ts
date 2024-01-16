@@ -31,7 +31,7 @@ type MultiGestureCanvasVariables = {
     zoomRange: ZoomRange;
     minContentScale: number;
     maxContentScale: number;
-    isSwipingInPager: SharedValue<boolean>;
+    isPagerSwiping: SharedValue<boolean>;
     zoomScale: SharedValue<number>;
     totalScale: SharedValue<number>;
     pinchScale: SharedValue<number>;
@@ -42,7 +42,7 @@ type MultiGestureCanvasVariables = {
     pinchTranslateX: SharedValue<number>;
     pinchTranslateY: SharedValue<number>;
     stopAnimation: () => void;
-    reset: (animated: boolean) => void;
+    reset: (animated: boolean, callbackProp: () => void) => void;
     onTap: OnTapCallback | undefined;
     onScaleChanged: OnScaleChangedCallback | undefined;
 };

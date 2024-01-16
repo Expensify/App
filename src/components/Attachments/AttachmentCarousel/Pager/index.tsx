@@ -5,7 +5,7 @@ import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
 import {createNativeWrapper} from 'react-native-gesture-handler';
 import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
-import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
+import Animated, {useSharedValue} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
@@ -27,6 +27,7 @@ type PagerItem = {
 
 type AttachmentCarouselPagerProps = {
     items: PagerItem[];
+    scrollEnabled?: boolean;
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
     onTap: () => void;
@@ -34,44 +35,42 @@ type AttachmentCarouselPagerProps = {
     onScaleChanged: (scale: number) => void;
 };
 
-function AttachmentCarouselPager({items, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
+function AttachmentCarouselPager(
+    {items, scrollEnabled = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
+    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
+) {
     const styles = useThemeStyles();
-    const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef<PagerView>(null);
 
-    const isSwipingInPager = useSharedValue(false);
-    const activeIndex = useSharedValue(initialIndex);
+    const isPagerSwiping = useSharedValue(false);
+    const activePage = useSharedValue(initialIndex);
+    const [activePageState, setActivePageState] = useState(initialIndex);
 
     const pageScrollHandler = usePageScrollHandler(
         {
             onPageScroll: (e) => {
                 'worklet';
 
-                activeIndex.value = e.position;
-                isSwipingInPager.value = e.offset !== 0;
+                activePage.value = e.position;
+                isPagerSwiping.value = e.offset !== 0;
             },
         },
         [],
     );
 
-    const [activePage, setActivePage] = useState(initialIndex);
-
     useEffect(() => {
-        setActivePage(initialIndex);
-        activeIndex.value = initialIndex;
-    }, [activeIndex, initialIndex]);
+        setActivePageState(initialIndex);
+        activePage.value = initialIndex;
+    }, [activePage, initialIndex]);
 
-    // we use reanimated for this since onPageSelected is called
-    // in the middle of the pager animation
-    useAnimatedReaction(
-        () => isSwipingInPager.value,
-        (stillScrolling) => {
-            if (stillScrolling) {
-                return;
-            }
-
-            runOnJS(setActivePage)(activeIndex.value);
-        },
+    const contextValue = useMemo(
+        () => ({
+            pagerRef,
+            isPagerSwiping,
+            onTap,
+            onScaleChanged,
+        }),
+        [isPagerSwiping, onTap, onScaleChanged],
     );
 
     useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
@@ -84,28 +83,13 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onTap, onPage
         [],
     );
 
-    const animatedProps = useAnimatedProps(() => ({
-        scrollEnabled: shouldPagerScroll.value,
-    }));
-
-    const contextValue = useMemo(
-        () => ({
-            pagerRef,
-            shouldPagerScroll,
-            isSwipingInPager,
-            onTap,
-            onScaleChanged,
-        }),
-        [shouldPagerScroll, isSwipingInPager, onTap, onScaleChanged],
-    );
-
     return (
         <AttachmentCarouselPagerContext.Provider value={contextValue}>
             <AnimatedPagerView
                 pageMargin={40}
                 offscreenPageLimit={1}
+                scrollEnabled={scrollEnabled}
                 onPageScroll={pageScrollHandler}
-                animatedProps={animatedProps}
                 onPageSelected={onPageSelected}
                 ref={pagerRef}
                 style={styles.flex1}
@@ -116,7 +100,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onTap, onPage
                         key={item.source}
                         style={styles.flex1}
                     >
-                        {renderItem({item, index, isActive: index === activePage})}
+                        {renderItem({item, index, isActive: index === activePageState})}
                     </View>
                 ))}
             </AnimatedPagerView>
