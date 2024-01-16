@@ -15,7 +15,7 @@ import type {RenderContentProps} from './BaseGetPhysicalCard';
 
 type GetPhysicalCardAddressOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
 type GetPhysicalCardAddressProps = GetPhysicalCardAddressOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;

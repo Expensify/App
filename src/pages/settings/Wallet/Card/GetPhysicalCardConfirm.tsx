@@ -31,7 +31,7 @@ const goToGetPhysicalCardAddress = (domain: string) => {
 
 type GetPhysicalCardConfirmOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
 type GetPhysicalCardConfirmProps = GetPhysicalCardConfirmOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;

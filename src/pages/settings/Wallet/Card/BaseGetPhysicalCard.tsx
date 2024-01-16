@@ -34,7 +34,7 @@ type BaseGetPhysicalCardOnyxProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
@@ -72,7 +72,6 @@ type BaseGetPhysicalCardProps = BaseGetPhysicalCardOnyxProps & {
     onValidate?: OnValidate;
 };
 
-
 function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}: RenderContentProps) {
     const styles = useThemeStyles();
 
@@ -87,7 +86,7 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
         >
             {children}
         </FormProvider>
-    )
+    );
 }
 
 function BaseGetPhysicalCard({
@@ -150,8 +149,9 @@ function BaseGetPhysicalCard({
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
             const virtualCard = domainCards.find((card) => card?.isVirtual);
-            const cardID = virtualCard?.cardID ?? '';
-            Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken, updatedPrivatePersonalDetails);
+            const cardID = virtualCard?.cardID ?? 0;
+
+            Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken ?? '', updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);

@@ -2,8 +2,8 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -21,7 +21,7 @@ type OnValidateResult = {
 
 type GetPhysicalCardPhoneOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
 type GetPhysicalCardPhoneProps = GetPhysicalCardPhoneOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;

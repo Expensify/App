@@ -1,8 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +22,7 @@ type OnValidateResult = {
 
 type GetPhysicalCardNameOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
 type GetPhysicalCardNameProps = GetPhysicalCardNameOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME>;
@@ -77,7 +77,7 @@ function GetPhysicalCardName({
                 defaultValue={legalFirstName}
                 shouldSaveDraft
             />
-             <InputWrapper
+            <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="legalLastName"

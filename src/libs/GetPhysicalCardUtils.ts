@@ -76,7 +76,7 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
  * @param draftValues
  * @returns
  */
-function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm | undefined>): PrivatePersonalDetails {
+function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm>): PrivatePersonalDetails {
     const {addressLine1, addressLine2, city = '', country = '', legalFirstName, legalLastName, phoneNumber, state = '', zipPostCode = ''} = draftValues ?? {};
     return {
         legalFirstName,
