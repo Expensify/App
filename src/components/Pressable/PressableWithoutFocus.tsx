@@ -15,7 +15,7 @@ function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: Pressa
 
     const pressAndBlur = () => {
         ref?.current?.blur();
-        onPress();
+        onPress?.();
     };
 
     return (

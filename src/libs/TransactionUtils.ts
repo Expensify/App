@@ -37,10 +37,10 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-function isDistanceRequest(transaction: Transaction): boolean {
+function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
 
     // This is the case for transaction objects once they have been saved to the server
@@ -258,7 +258,7 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport?: boolean): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
@@ -385,8 +385,8 @@ function getHeaderTitleTranslationKey(transaction: Transaction): string {
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: Transaction): boolean {
-    if (!transaction.cardID) {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.cardID) {
         return false;
     }
     return isExpensifyCard(transaction.cardID);
@@ -403,8 +403,8 @@ function isCardTransaction(transaction: Transaction): boolean {
 /**
  * Check if the transaction status is set to Pending.
  */
-function isPending(transaction: Transaction): boolean {
-    if (!transaction.status) {
+function isPending(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction?.status) {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.PENDING;

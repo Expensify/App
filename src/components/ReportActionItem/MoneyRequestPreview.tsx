@@ -1,20 +1,18 @@
 import {truncate} from 'lodash';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
-import refPropTypes from '@components/refPropTypes';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -29,144 +27,135 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImages from './ReportActionItemImages';
 
-const propTypes = {
-    /** The active IOUReport, used for Onyx subscription */
-    // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.string.isRequired,
+type MoneyRequestPreviewOnyxProps = {
+    /** All of the personal details for everyone */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    /** The associated chatReport */
-    chatReportID: PropTypes.string.isRequired,
-
-    /** Callback for the preview pressed */
-    onPreviewPressed: PropTypes.func,
-
-    /** All the data of the action, used for showing context menu */
-    action: PropTypes.shape(reportActionPropTypes),
-
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: refPropTypes,
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive: PropTypes.func,
-
-    /** Extra styles to pass to View wrapper */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /* Onyx Props */
-
-    /** chatReport associated with iouReport */
-    chatReport: reportPropTypes,
+    /** Chat report associated with iouReport */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
 
     /** IOU report data object */
-    iouReport: iouReportPropTypes,
-
-    /** True if this is this IOU is a split instead of a 1:1 request */
-    isBillSplit: PropTypes.bool.isRequired,
-
-    /** True if the IOU Preview card is hovered */
-    isHovered: PropTypes.bool,
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(
-        PropTypes.shape({
-            /** This is either the user's full name, or their login if full name is an empty string */
-            displayName: PropTypes.string,
-        }),
-    ),
-
-    /** The transaction attached to the action.message.iouTransactionID */
-    transaction: transactionPropTypes,
+    iouReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The transaction attached to the action.message.iouTransactionID */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Information about the user accepting the terms for payments */
-    walletTerms: walletTermsPropTypes,
+    walletTerms: OnyxEntry<OnyxTypes.WalletTerms>;
+};
+
+type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
+    /** The active IOUReport, used for Onyx subscription */
+    // The iouReportID is used inside withOnyx HOC
+    // eslint-disable-next-line react/no-unused-prop-types
+    iouReportID: string;
+
+    /** The associated chatReport */
+    chatReportID: string;
+
+    /** Callback for the preview pressed */
+    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** All the data of the action, used for showing context menu */
+    action: OnyxTypes.ReportAction;
+
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor?: ContextMenuAnchor;
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive?: () => void;
+
+    /** Extra styles to pass to View wrapper */
+    containerStyles: StyleProp<ViewStyle>;
+
+    /** True if this is this IOU is a split instead of a 1:1 request */
+    isBillSplit: boolean;
+
+    /** True if the IOU Preview card is hovered */
+    isHovered?: boolean;
 
     /** Whether or not an IOU report contains money requests in a different currency
      * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
      */
-    shouldShowPendingConversionMessage: PropTypes.bool,
+    shouldShowPendingConversionMessage?: boolean;
 
     /** Whether a message is a whisper */
-    isWhisper: PropTypes.bool,
+    isWhisper?: boolean;
 };
 
-const defaultProps = {
-    iouReport: {},
-    onPreviewPressed: null,
-    action: undefined,
-    contextMenuAnchor: undefined,
-    checkIfContextMenuActive: () => {},
-    containerStyles: [],
-    walletTerms: {},
-    chatReport: {},
-    isHovered: false,
-    personalDetails: {},
-    session: {
-        email: null,
-    },
-    transaction: {},
-    shouldShowPendingConversionMessage: false,
-    isWhisper: false,
-};
-
-function MoneyRequestPreview(props) {
+function MoneyRequestPreview({
+    iouReport,
+    isBillSplit,
+    session,
+    action,
+    personalDetails,
+    chatReport,
+    transaction,
+    contextMenuAnchor,
+    chatReportID,
+    onPreviewPressed,
+    containerStyles,
+    walletTerms,
+    checkIfContextMenuActive = () => {},
+    shouldShowPendingConversionMessage = false,
+    isHovered = false,
+    isWhisper = false,
+}: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
-    if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
+    if (isEmptyObject(iouReport) && !isBillSplit) {
         return null;
     }
 
-    const sessionAccountID = lodashGet(props.session, 'accountID', null);
-    const managerID = props.iouReport.managerID || '';
-    const ownerAccountID = props.iouReport.ownerAccountID || '';
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
+    const sessionAccountID = session?.accountID;
+    const managerID = iouReport?.managerID ?? -1;
+    const ownerAccountID = iouReport?.ownerAccountID ?? -1;
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
-    const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
-    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
-    const sortedParticipantAvatars = _.sortBy(participantAvatars, (avatar) => avatar.id);
-    if (isPolicyExpenseChat && props.isBillSplit) {
-        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+    const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    // TODO: Remove the assertion once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
+    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {}) as OnyxCommon.Icon[];
+    const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
+    if (isPolicyExpenseChat && isBillSplit) {
+        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(chatReport));
     }
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(transaction) ?? {};
     const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
-    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
-    const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
-    const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
+    const isSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
-    const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
-    const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
-    const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
+    const shouldShowMerchant = !!requestMerchant && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
+    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
 
     let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
@@ -175,20 +164,21 @@ function MoneyRequestPreview(props) {
         merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
+    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
 
-    const getSettledMessage = () => {
+    const getSettledMessage = (): string => {
         if (isExpensifyCardTransaction) {
             return translate('common.done');
         }
         return translate('iou.settledExpensify');
     };
 
-    const showContextMenu = (event) => {
-        showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
+    const showContextMenu = (event: GestureResponderEvent) => {
+        // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
+        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
     };
 
-    const getPreviewHeaderText = () => {
+    const getPreviewHeaderText = (): string => {
         if (isDistanceRequest) {
             return translate('common.distance');
         }
@@ -197,30 +187,30 @@ function MoneyRequestPreview(props) {
             return translate('common.receipt');
         }
 
-        if (props.isBillSplit) {
+        if (isBillSplit) {
             return translate('iou.split');
         }
 
         if (isExpensifyCardTransaction) {
             let message = translate('iou.card');
-            if (TransactionUtils.isPending(props.transaction)) {
+            if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;
             }
             return message;
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
-        } else if (props.iouReport.isWaitingOnBankAccount) {
+        } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
-        } else if (props.iouReport.isCancelledIOU) {
+        } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
         }
         return message;
     };
 
-    const getDisplayAmountText = () => {
+    const getDisplayAmountText = (): string => {
         if (isDistanceRequest) {
             return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency) : translate('common.tbd');
         }
@@ -229,18 +219,18 @@ function MoneyRequestPreview(props) {
             return translate('iou.receiptScanning');
         }
 
-        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
-    const getDisplayDeleteAmountText = () => {
-        const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
+    const getDisplayDeleteAmountText = (): string => {
+        const {amount, currency} = ReportUtils.getTransactionDetails(action.originalMessage as OnyxTypes.Transaction) ?? {};
 
         if (isDistanceRequest) {
-            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.action.originalMessage), currency);
+            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(action.originalMessage as OnyxTypes.Transaction), currency);
         }
 
         return CurrencyUtils.convertToDisplayString(amount, currency);
@@ -251,36 +241,35 @@ function MoneyRequestPreview(props) {
     const childContainer = (
         <View>
             <OfflineWithFeedback
-                errors={props.walletTerms.errors}
+                errors={walletTerms?.errors}
                 onClose={() => {
                     PaymentMethods.clearWalletTermsError();
-                    Report.clearIOUError(props.chatReportID);
+                    Report.clearIOUError(chatReportID);
                 }}
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
             >
                 <View
                     style={[
-                        isScanning || props.isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
-                        !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
+                        isScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
+                        !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
                     {hasReceipt && (
                         <ReportActionItemImages
+                            // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                             images={receiptImages}
-                            isHovered={props.isHovered || isScanning}
+                            isHovered={isHovered || isScanning}
                             size={1}
                         />
                     )}
-                    {_.isEmpty(props.transaction) &&
-                    !ReportActionsUtils.isMessageDeleted(props.action) &&
-                    lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
+                    {isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
                                 {!isSettled && hasFieldErrors && (
                                     <Icon
@@ -294,15 +283,14 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            props.isBillSplit &&
-                                                StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                            isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
                                     >
                                         {displayAmount}
                                     </Text>
-                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                    {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
@@ -311,13 +299,13 @@ function MoneyRequestPreview(props) {
                                         </View>
                                     )}
                                 </View>
-                                {props.isBillSplit && (
+                                {isBillSplit && (
                                     <View style={styles.moneyRequestPreviewBoxAvatar}>
                                         <MultipleAvatars
                                             icons={sortedParticipantAvatars}
                                             shouldStackHorizontally
                                             size="small"
-                                            isHovered={props.isHovered}
+                                            isHovered={isHovered}
                                             shouldUseCardBackground
                                         />
                                     </View>
@@ -325,16 +313,16 @@ function MoneyRequestPreview(props) {
                             </View>
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
-                                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                    {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
                                     {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
-                                {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
+                                {isBillSplit && participantAccountIDs.length > 0 && requestAmount && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                                         {translate('iou.amountEach', {
                                             amount: CurrencyUtils.convertToDisplayString(
-                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
+                                                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? ''),
                                                 requestCurrency,
                                             ),
                                         })}
@@ -348,32 +336,30 @@ function MoneyRequestPreview(props) {
         </View>
     );
 
-    if (!props.onPreviewPressed) {
+    if (!onPreviewPressed) {
         return childContainer;
     }
 
-    const shouldDisableOnPress = props.isBillSplit && _.isEmpty(props.transaction);
+    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
 
     return (
         <PressableWithFeedback
-            onPress={shouldDisableOnPress ? undefined : props.onPreviewPressed}
+            onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
-            accessibilityLabel={props.isBillSplit ? translate('iou.split') : translate('iou.cash')}
+            accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, ...props.containerStyles, shouldDisableOnPress && styles.cursorDefault]}
+            style={[styles.moneyRequestPreviewBox, containerStyles, shouldDisableOnPress && styles.cursorDefault]}
         >
             {childContainer}
         </PressableWithFeedback>
     );
 }
 
-MoneyRequestPreview.propTypes = propTypes;
-MoneyRequestPreview.defaultProps = defaultProps;
 MoneyRequestPreview.displayName = 'MoneyRequestPreview';
 
-export default withOnyx({
+export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
@@ -387,7 +373,7 @@ export default withOnyx({
         key: ONYXKEYS.SESSION,
     },
     transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action?.originalMessage?.IOUTransactionID) || 0}`,
     },
     walletTerms: {
         key: ONYXKEYS.WALLET_TERMS,
