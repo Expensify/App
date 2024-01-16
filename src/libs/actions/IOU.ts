@@ -682,16 +682,16 @@ function getMoneyRequestInformation(
     currency: string,
     created: string,
     merchant: string,
+    receipt: Receipt | undefined,
+    existingTransactionID: string | undefined,
+    category: string | undefined,
+    tag: string | undefined,
+    billable: boolean | undefined,
+    policy: OnyxTypes.Policy | EmptyObject | undefined,
+    policyTags: OnyxTypes.PolicyTags | undefined,
+    policyCategories: OnyxTypes.PolicyCategories | undefined,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
-    receipt?: Receipt,
-    existingTransactionID?: string,
-    category?: string,
-    tag?: string,
-    billable?: boolean,
-    policy?: OnyxTypes.Policy | EmptyObject,
-    policyTags?: OnyxTypes.PolicyTags,
-    policyCategories?: OnyxTypes.PolicyCategories,
 ): MoneyRequestInformation {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -920,8 +920,6 @@ function createDistanceRequest(
         currency,
         created,
         merchant,
-        userAccountID,
-        currentUserEmail,
         optimisticReceipt,
         undefined,
         category,
@@ -930,6 +928,8 @@ function createDistanceRequest(
         policy,
         policyTags,
         policyCategories,
+        userAccountID,
+        currentUserEmail,
     );
 
     type CreateDistanceRequestParams = {
@@ -1244,8 +1244,6 @@ function requestMoney(
             currency,
             created,
             merchant,
-            payeeAccountID,
-            payeeEmail,
             receipt,
             undefined,
             category,
@@ -1254,6 +1252,8 @@ function requestMoney(
             policy,
             policyTags,
             policyCategories,
+            payeeAccountID,
+            payeeEmail,
         );
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
