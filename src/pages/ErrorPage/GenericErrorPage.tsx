@@ -9,7 +9,7 @@ import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,20 +18,18 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-};
-
-function GenericErrorPage({translate}) {
+function GenericErrorPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+
     const {resetBoundary} = useErrorBoundary();
 
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
-                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
+                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(Number(paddingBottom))]}>
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <View>
                             <View style={styles.mb5}>
@@ -78,7 +76,7 @@ function GenericErrorPage({translate}) {
                             </View>
                         </View>
                     </View>
-                    <View styles={styles.alignSelfEnd}>
+                    <View>
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                             <ImageSVG
                                 contentFit="contain"
@@ -95,7 +93,6 @@ function GenericErrorPage({translate}) {
     );
 }
 
-GenericErrorPage.propTypes = propTypes;
 GenericErrorPage.displayName = 'ErrorPage';
 
-export default withLocalize(GenericErrorPage);
+export default GenericErrorPage;

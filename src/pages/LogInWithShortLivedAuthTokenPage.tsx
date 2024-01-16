@@ -1,7 +1,7 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
@@ -13,62 +13,40 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import type {Account} from '@src/types/onyx';
 
-const propTypes = {
-    /** The parameters needed to authenticate with a short-lived token are in the URL */
-    route: PropTypes.shape({
-        /** Each parameter passed via the URL */
-        params: PropTypes.shape({
-            /** Short-lived authToken to sign in a user */
-            shortLivedAuthToken: PropTypes.string,
-
-            /** Short-lived authToken to sign in as a user, if they are coming from the old mobile app */
-            shortLivedToken: PropTypes.string,
-
-            /** The email of the transitioning user */
-            email: PropTypes.string,
-        }),
-    }).isRequired,
-
+type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Whether a sign is loading */
-        isLoading: PropTypes.bool,
-    }),
+    account: OnyxEntry<Account>;
 };
 
-const defaultProps = {
-    account: {
-        isLoading: false,
-    },
-};
+type LogInWithShortLivedAuthTokenPageProps = LogInWithShortLivedAuthTokenPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
-function LogInWithShortLivedAuthTokenPage(props) {
+function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedAuthTokenPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
-        const email = lodashGet(props, 'route.params.email', '');
-
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
-        const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '') || lodashGet(props, 'route.params.shortLivedToken', '');
+        const token = shortLivedAuthToken || shortLivedToken;
 
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
-        if (shortLivedAuthToken && !props.account.isLoading) {
-            Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
+        if (token && !account?.isLoading) {
+            Session.signInWithShortLivedAuthToken(email, token);
             return;
         }
 
         // If an error is returned as part of the route, ensure we set it in the onyxData for the account
-        const error = lodashGet(props, 'route.params.error', '');
         if (error) {
             Session.setAccountError(error);
         }
 
-        const exitTo = lodashGet(props, 'route.params.exitTo', '');
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(exitTo);
@@ -76,9 +54,9 @@ function LogInWithShortLivedAuthTokenPage(props) {
         }
         // The only dependencies of the effect are based on props.route
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.route]);
+    }, [route]);
 
-    if (props.account.isLoading) {
+    if (account?.isLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -94,7 +72,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
-                    <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                    <Text style={styles.textAlignCenter}>
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
@@ -119,10 +97,8 @@ function LogInWithShortLivedAuthTokenPage(props) {
     );
 }
 
-LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
-LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
 LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
-export default withOnyx({
+export default withOnyx<LogInWithShortLivedAuthTokenPageProps, LogInWithShortLivedAuthTokenPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
 })(LogInWithShortLivedAuthTokenPage);
