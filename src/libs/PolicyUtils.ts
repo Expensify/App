@@ -184,14 +184,13 @@ function getTagListName(policyTags: OnyxEntry<PolicyTags>) {
 /**
  * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
  */
-function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
+function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string): PolicyTags {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return {};
     }
 
     const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-
-    return policyTags?.[policyTagKey]?.tags ?? {};
+    return (policyTags?.[policyTagKey]?.tags as unknown as PolicyTags) ?? {};
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
