@@ -2,7 +2,7 @@ import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import isEmpty from 'lodash/isEmpty';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {NullishDeep} from 'react-native-onyx/lib/types';
@@ -126,6 +126,16 @@ Onyx.connect({
 const allReports: OnyxCollection<Report> = {};
 let conciergeChatReportID: string | undefined;
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
+
+let reportIDDeeplinkedFromOldDot: string | undefined;
+Linking.getInitialURL().then((url) => {
+    console.debug("CRISTIIII - " + url);
+    const params = new URLSearchParams(url ?? '');
+    const exitToRoute = params.get('exitTo') ?? '';
+    const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
+    reportIDDeeplinkedFromOldDot = reportID;
+    console.debug("CRISTIIII - " + reportIDDeeplinkedFromOldDot);
+});
 
 /** Get the private pusher channel name for a Report. */
 function getReportChannelName(reportID: string): string {
@@ -343,6 +353,7 @@ function addActions(reportID: string, text = '', file?: File) {
         timezone?: string;
         shouldAllowActionableMentionWhispers?: boolean;
         clientCreatedTime?: string;
+        isOldDotConciergeChat?: boolean;
     };
 
     const parameters: AddCommentOrAttachementParameters = {
@@ -354,6 +365,11 @@ function addActions(reportID: string, text = '', file?: File) {
         shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
+        console.debug("CRISTIIII - reportIDDeeplinkedFromOldDot: " + reportIDDeeplinkedFromOldDot);
+    if (reportIDDeeplinkedFromOldDot === reportID && report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE) {
+        console.debug("CRISTIIII - isOldDotConciergeChat: " + true);
+        parameters.isOldDotConciergeChat = true;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
