@@ -66,7 +66,7 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
                 marginBottom: -20,
             }}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4]}>
+            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
                 {_.map(menuItems, ({translationKey, icon}) => (
                     <View
                         key={translationKey}
