@@ -1,7 +1,7 @@
 import {useCallback, useRef, useState} from 'react';
-import type {UseSubStep} from './types';
+import type {SubStepProps, UseSubStep} from './types';
 
-export default function useSubStep<T>({bodyContent, onFinished, startFrom = 0}: UseSubStep<T>) {
+export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 

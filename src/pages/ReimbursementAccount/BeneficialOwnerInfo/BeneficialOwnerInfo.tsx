@@ -123,7 +123,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         moveTo,
         resetScreenIndex,
         goToTheLastStep,
-    } = useSubStep<{beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>({
+    } = useSubStep<SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>({
         bodyContent: BODY_CONTENT,
         startFrom: 0,
         onFinished: handleBeneficialOwnerDetailsFormSubmit,

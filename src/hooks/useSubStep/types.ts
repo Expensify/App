@@ -18,9 +18,9 @@ type SubStepProps = {
     prevScreen?: () => void;
 };
 
-type UseSubStep<T = void> = {
+type UseSubStep<TProps extends SubStepProps> = {
     /** array of components that will become sub steps */
-    bodyContent: Array<ComponentType<SubStepProps & T>>;
+    bodyContent: Array<ComponentType<SubStepProps & TProps>>;
 
     /** called on last sub step  */
     onFinished: (data?: OnfidoData) => void;
