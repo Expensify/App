@@ -99,6 +99,8 @@ function IOURequestStepWaypoint({
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+    
+    const [restoreFocusType, setRestoreFocusType] = useState();
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -162,6 +164,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteStopAndHideModal = () => {
+        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         Transaction.removeWaypoint(transaction, pageIndex, true);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
@@ -208,7 +211,10 @@ function IOURequestStepWaypoint({
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
-                            onSelected: () => setIsDeleteStopModalOpen(true),
+                            onSelected: () => {
+                                setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT);
+                                setIsDeleteStopModalOpen(true);
+                            },
                         },
                     ]}
                 />
@@ -221,6 +227,7 @@ function IOURequestStepWaypoint({
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
+                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
