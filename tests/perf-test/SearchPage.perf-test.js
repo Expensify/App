@@ -12,6 +12,7 @@ import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomReport from '../utils/collections/reports';
 import PusherHelper from '../utils/PusherHelper';
@@ -39,31 +40,23 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const getMockedReportsMap = (length = 100) => {
-    const mockReports = Array.from({length}, (__, i) => {
-        const reportID = i + 1;
-        const report = createRandomReport(reportID);
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+const getMockedReports = (length = 100) =>
+    createCollection(
+        (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+        (index) => createRandomReport(index),
+        length,
+    );
 
-        return {[reportKey]: report};
-    });
+const getMockedPersonalDetails = (length = 100) =>
+    createCollection(
+        (item) => item.accountID,
+        (index) => createPersonalDetails(index),
+        length,
+    );
 
-    return _.assign({}, ...mockReports);
-};
-
-const getMockedPersonalDetailsMap = (length) => {
-    const mockPersonalDetails = Array.from({length}, (__, i) => {
-        const personalDetailsKey = i + 1;
-        const personalDetails = createPersonalDetails(personalDetailsKey);
-        return {[personalDetailsKey]: personalDetails};
-    });
-
-    return _.assign({}, ...mockPersonalDetails);
-};
-
-const mockedReports = getMockedReportsMap(600);
+const mockedReports = getMockedReports(600);
 const mockedBetas = _.values(CONST.BETAS);
-const mockedPersonalDetails = getMockedPersonalDetailsMap(100);
+const mockedPersonalDetails = getMockedPersonalDetails(100);
 
 beforeAll(() =>
     Onyx.init({
@@ -155,7 +148,7 @@ test('[Search Page] should interact when text input changes', async () => {
 
 test('[Search Page] should render options list', async () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
-    const smallMockedPersonalDetails = getMockedPersonalDetailsMap(5);
+    const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
