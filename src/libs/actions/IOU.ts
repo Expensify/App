@@ -131,14 +131,14 @@ type SendMoneyParamsData = {
 let betas: OnyxTypes.Beta[] = [];
 Onyx.connect({
     key: ONYXKEYS.BETAS,
-    callback: (val) => (betas = val ?? []),
+    callback: (value) => (betas = value ?? []),
 });
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        allPersonalDetails = val ?? {};
+    callback: (value) => {
+        allPersonalDetails = value ?? {};
     },
 });
 
@@ -146,20 +146,20 @@ let allReports: OnyxCollection<OnyxTypes.Report> = null;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: (val) => (allReports = val),
+    callback: (value) => (allReports = value),
 });
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
+    callback: (value) => {
+        if (!value) {
             allTransactions = {};
             return;
         }
 
-        allTransactions = val;
+        allTransactions = value;
     },
 });
 
@@ -167,8 +167,8 @@ let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        allTransactionDrafts = val ?? {};
+    callback: (value) => {
+        allTransactionDrafts = value ?? {};
     },
 });
 
@@ -176,13 +176,13 @@ let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionVi
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
+    callback: (value) => {
+        if (!value) {
             allTransactionViolations = {};
             return;
         }
 
-        allTransactionViolations = val;
+        allTransactionViolations = value;
     },
 });
 
@@ -190,8 +190,8 @@ let allDraftSplitTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        allDraftSplitTransactions = val ?? {};
+    callback: (value) => {
+        allDraftSplitTransactions = value ?? {};
     },
 });
 
@@ -199,8 +199,8 @@ let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
-    callback: (val) => {
-        allNextSteps = val ?? {};
+    callback: (value) => {
+        allNextSteps = value ?? {};
     },
 });
 
@@ -208,25 +208,25 @@ let userAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserEmail = val?.email ?? '';
-        userAccountID = val?.accountID ?? -1;
+    callback: (value) => {
+        currentUserEmail = value?.email ?? '';
+        userAccountID = value?.accountID ?? -1;
     },
 });
 
 let currentUserPersonalDetails: OnyxTypes.PersonalDetails | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        currentUserPersonalDetails = val?.[userAccountID] ?? {};
+    callback: (value) => {
+        currentUserPersonalDetails = value?.[userAccountID] ?? {};
     },
 });
 
 let currentDate: OnyxEntry<string> = '';
 Onyx.connect({
     key: ONYXKEYS.CURRENT_DATE,
-    callback: (val) => {
-        currentDate = val;
+    callback: (value) => {
+        currentDate = value;
     },
 });
 
@@ -1190,27 +1190,27 @@ function getUpdateMoneyRequestParams(
 /**
  * Updates the created date of a money request
  */
-function updateMoneyRequestDate(transactionID: string, transactionThreadReportID: string, val: string) {
+function updateMoneyRequestDate(transactionID: string, transactionThreadReportID: string, value: string) {
     const transactionChanges: TransactionChanges = {
-        created: val,
+        created: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestDate', params, onyxData);
 }
 
 /** Updates the billable field of a money request */
-function updateMoneyRequestBillable(transactionID: string, transactionThreadReportID: string, val: boolean) {
+function updateMoneyRequestBillable(transactionID: string, transactionThreadReportID: string, value: boolean) {
     const transactionChanges: TransactionChanges = {
-        billable: val,
+        billable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestBillable', params, onyxData);
 }
 
 /** Updates the merchant field of a money request */
-function updateMoneyRequestMerchant(transactionID: string, transactionThreadReportID: string, val: string) {
+function updateMoneyRequestMerchant(transactionID: string, transactionThreadReportID: string, value: string) {
     const transactionChanges: TransactionChanges = {
-        merchant: val,
+        merchant: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestMerchant', params, onyxData);
