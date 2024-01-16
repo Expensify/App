@@ -2713,6 +2713,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             value: {
                 [reportAction.reportActionID]: {
                     ...reportAction,
+                    pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
