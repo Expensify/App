@@ -7,4 +7,5 @@ type UpdateHomeAddressParams = {
     addressCountry: string;
     addressStateLong?: string;
 };
+
 export default UpdateHomeAddressParams;

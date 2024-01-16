@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 type SignInUserWithLinkParams = {
     accountID: number;
     validateCode?: string;
