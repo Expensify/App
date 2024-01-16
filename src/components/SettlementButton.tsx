@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,14 +13,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {AnchorAlignment, LastPaymentMethod, Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Report} from '@src/types/onyx';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 
-type KYCFlowEvent = GestureResponderEvent | KeyboardEvent;
+type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: string) => void;
 
@@ -211,7 +212,7 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: MutableRefObject<HTMLDivElement | View | null>) => (
+            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: RefObject<View>) => (
                 <ButtonWithDropdownMenu
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
@@ -219,7 +220,6 @@ function SettlementButton({
                     onPress={(event: KYCFlowEvent, iouPaymentType: PaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/25065) is migrated to TypeScript.
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
