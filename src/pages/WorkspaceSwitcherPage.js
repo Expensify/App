@@ -193,20 +193,7 @@ function WorkspaceSwitcherPage({policies}) {
                 </View>
             </>
         );
-    }, [
-        activeWorkspaceID,
-        getIndicatorTypeForPolicy,
-        hasUnreadData,
-        selectPolicy,
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.justifyContentBetween,
-        styles.label,
-        styles.mb3,
-        styles.mh4,
-        theme.textSupporting,
-        translate,
-    ]);
+    }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles, theme.textSupporting, translate]);
 
     const workspacesSection = useMemo(
         () => (
@@ -263,32 +250,7 @@ function WorkspaceSwitcherPage({policies}) {
                 )}
             </>
         ),
-        [
-            inputCallbackRef,
-            onChangeText,
-            searchTerm,
-            selectPolicy,
-            selectedOption,
-            styles.alignItemsEnd,
-            styles.borderRadiusNormal,
-            styles.buttonDefaultBG,
-            styles.buttonHoveredBG,
-            styles.flexRow,
-            styles.justifyContentBetween,
-            styles.label,
-            styles.mb1,
-            styles.mb3,
-            styles.mh4,
-            styles.mt0,
-            styles.mt2,
-            styles.mt3,
-            styles.p2,
-            styles.pt0,
-            theme.textSupporting,
-            translate,
-            usersWorkspaces.length,
-            usersWorkspacesSectionData,
-        ],
+        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData],
     );
 
     useEffect(() => {
