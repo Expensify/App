@@ -376,12 +376,21 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
+    const measureComposer = useCallback((e) => {
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
+            payload: {
+                composerHeight: e.nativeEvent.layout.height,
+            },
+        });
+    }, [actionSheetAwareScrollViewContext]);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View style={isComposerFullSize ? styles.flex1 : {}}>
+            <View onLayout={measureComposer} style={isComposerFullSize ? styles.flex1 : {}}>
                 <PortalHost name="suggestions" />
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
