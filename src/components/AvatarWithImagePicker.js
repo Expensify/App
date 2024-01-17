@@ -6,6 +6,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
@@ -129,6 +130,7 @@ function AvatarWithImagePicker({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
@@ -271,6 +273,24 @@ function AvatarWithImagePicker({
         return menuItems;
     };
 
+    useEffect(() => {
+        if (!anchorRef.current) {
+            return;
+        }
+
+        if (!isMenuVisible) {
+            return;
+        }
+
+        anchorRef.current.measureInWindow((x, y, width, height) => {
+            setPopoverPosition({
+                horizontal: x + (width - variables.photoUploadPopoverWidth) / 2,
+                vertical: y + height + variables.spacing2,
+            });
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isMenuVisible, isSmallScreenWidth]);
+
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
             <View style={[styles.pRelative, avatarStyle]}>
@@ -282,20 +302,7 @@ function AvatarWithImagePicker({
                 >
                     <Tooltip text={translate('avatarWithImagePicker.editImage')}>
                         <PressableWithoutFeedback
-                            onPress={() => {
-                                if (!anchorRef.current) {
-                                    return;
-                                }
-
-                                anchorRef.current.measureInWindow((x, y, width, height) => {
-                                    setPopoverPosition({
-                                        horizontal: x + (width - variables.photoUploadPopoverWidth) / 2,
-                                        vertical: y + height + variables.spacing2,
-                                    });
-                                });
-
-                                setIsMenuVisible((prev) => !prev);
-                            }}
+                            onPress={() => setIsMenuVisible((prev) => !prev)}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen}
