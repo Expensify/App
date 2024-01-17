@@ -15,7 +15,7 @@ type ConfirmModalProps = {
     onConfirm: () => void;
 
     /** A callback to call when the form has been closed */
-    onCancel?: (ref?: React.RefObject<HTMLElement>) => void;
+    onCancel?: () => void;
 
     /** Modal visibility */
     isVisible: boolean;

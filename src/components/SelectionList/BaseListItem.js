@@ -105,11 +105,11 @@ function BaseListItem({
                         textStyles={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            isUserItem || item.isSelected || item.alternateText ? styles.sidebarLinkTextBold : null,
+                            styles.sidebarLinkTextBold,
                             styles.pre,
                             item.alternateText ? styles.mb1 : null,
                         ]}
-                        alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
+                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
