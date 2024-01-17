@@ -640,10 +640,20 @@ function hasReportCommonPolicyMemberWithArray(report: Report, policyMembersAccou
 }
 
 /**
+ * Only returns true if this is our main 1:1 DM report with Concierge
+ */
+function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
+    return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+}
+
+/**
  * Checks if the supplied report belongs to workspace based on the provided params.
  */
 function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
-    return report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
+    return (
+        isConciergeChatReport(report) ||
+        (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID)
+    );
 }
 
 /**
@@ -858,13 +868,6 @@ function isChatThread(report: OnyxEntry<Report>): boolean {
 
 function isDM(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && !getChatType(report);
-}
-
-/**
- * Only returns true if this is our main 1:1 DM report with Concierge
- */
-function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
-    return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
 /**
