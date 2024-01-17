@@ -472,7 +472,7 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    if (Object.keys(optimisticPolicyRecentlyUsedTags).length) {
+    if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
@@ -480,7 +480,7 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    if (optimisticPersonalDetailListAction && Object.keys(optimisticPersonalDetailListAction).length) {
+    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1377,7 +1377,7 @@ function createSplitsAndOnyxData(
             ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
             : ReportUtils.getChatByParticipants(participantAccountIDs);
     const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
+    const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
@@ -1542,8 +1542,8 @@ function createSplitsAndOnyxData(
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
-        const email = !!isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
-        const accountID = !!isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
+        const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
         }
@@ -1678,7 +1678,7 @@ function createSplitsAndOnyxData(
             optimisticPolicyRecentlyUsedCategories,
             optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
-            !!shouldCreateNewOneOnOneIOUReport,
+            shouldCreateNewOneOnOneIOUReport,
         );
 
         const individualSplit = {
