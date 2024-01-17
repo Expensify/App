@@ -51,8 +51,8 @@ describe('Migrations', () => {
         it('Should remove any individual reportActions that have no data in Onyx', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
-                    1: {},
-                    2: {},
+                    1: null,
+                    2: null,
                 },
             })
                 .then(PersonalDetailsByAccountID)

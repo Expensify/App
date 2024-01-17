@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +10,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
+import Text from './Text';
 
 type AnonymousReportFooterPropsWithOnyx = {
     /** The policy which the user has access to and which the report is tied to */
