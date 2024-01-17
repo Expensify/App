@@ -33,7 +33,7 @@ const useAnimatedKeyboard2 = () => {
                 heightWhenOpened.value = height.value;
             }
 
-            console.log("onStart", e, new Date().getTime());
+            // console.log("onStart", e, new Date().getTime());
 
             if (e.height > 0) {
                 state.value = KeyboardState.OPENING;
@@ -44,14 +44,14 @@ const useAnimatedKeyboard2 = () => {
         onMove: (e) => {
             "worklet";
 
-            console.log("onMove", e, new Date().getTime());
+            // console.log("onMove", e, new Date().getTime());
 
             height.value = e.height;
         },
         onEnd: (e) => {
             "worklet";
 
-            console.log("onEnd", e, new Date().getTime());
+            // console.log("onEnd", e, new Date().getTime());
 
             if (e.height > 0) {
                 state.value = KeyboardState.OPEN;
@@ -149,7 +149,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
         }
         const lastKeyboardHeight = syncLocalWorkletState.lastKeyboardHeight;
 
-        const {popoverHeight, fy, height} = current.payload || {};
+        const {popoverHeight, fy, height, composerHeight} = current.payload || {};
 
         const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
 
@@ -246,8 +246,8 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN:
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
-                    console.log("TRANSITION #14 -> ", lastKeyboardHeight, new Date().getTime());
-                    return lastKeyboardHeight;
+                    console.log("TRANSITION #14 -> ", lastKeyboardHeight, popoverHeight, composerHeight, new Date().getTime());
+                    return popoverHeight - composerHeight;
                     // return 451;
                     // return withTiming(lastKeyboardHeight, {duration: 250});
                     return withSequence(
@@ -277,6 +277,13 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     return 0;
                     /*return withSequence(
                         // artificial delay for one frame, because `paddingBottom` in KAV is updated only in next frame
+                        withTiming(popoverHeight - keyboard.height.value - safeArea.bottom, {
+                            duration: 0,
+                        }),
+                        withSpring(0, config)
+                    );*/
+                    /*return withSequence(
+                        // artificial delay for one frame, because `paddingBottom` in KAV is updated only in next frame
                         withTiming(keyboard.heightWhenOpened.value - safeArea.bottom, {
                             duration: 8,
                         }),
@@ -286,7 +293,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     );*/
                 }
 
-                return keyboard.heightWhenOpened.value - safeArea.bottom;
+                return popoverHeight - composerHeight;
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {

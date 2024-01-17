@@ -3,7 +3,7 @@ import {runOnJS, runOnUI, useSharedValue, useWorkletCallback} from 'react-native
 import Log from '../libs/Log';
 
 // When you need to debug state machine change this to true
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 
 /**
  * A hook that creates a state machine that can be used with Reanimated Worklets.
@@ -103,7 +103,11 @@ function useWorkletStateMachine(stateMachine, initialState) {
                 ...action.payload,
             };
         } else {
-            nextPayload = action.payload;
+            // experimentally - let's always combine states
+            nextPayload = {
+                ...state.current.payload,
+                ...action.payload,
+            };
         }
 
         log(`Next STATE: ${nextState}`, nextPayload);
