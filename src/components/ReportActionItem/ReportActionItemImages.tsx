@@ -26,13 +26,13 @@ type ReportActionItemImagesProps = {
     // to be computed from another prop
 
     /** max number of images to show in the row if different than images length */
-    size: number;
+    size?: number;
 
     /** total number of images if different than images length */
-    total: number;
+    total?: number;
 
     /** if the corresponding report action item is hovered */
-    isHovered: boolean;
+    isHovered?: boolean;
 };
 
 /**
@@ -50,9 +50,9 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     const StyleUtils = useStyleUtils();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
-    const numberOfShownImages = Math.min(size || images.length, images.length);
+    const numberOfShownImages = Math.min(size ?? images.length, images.length);
     const shownImages = images.slice(0, numberOfShownImages);
-    const remaining = (total || images.length) - size;
+    const remaining = (total ?? images.length) - numberOfShownImages;
     const MAX_REMAINING = 9;
 
     // The height varies depending on the number of images we are displaying.

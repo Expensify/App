@@ -17,7 +17,7 @@ import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
-    thumbnail: string | number | null;
+    thumbnail?: string | number;
 
     /** URI for the image or local numeric reference for the image  */
     image: string | number;
@@ -41,7 +41,7 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail = null, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false}: ReportActionItemImageProps) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
