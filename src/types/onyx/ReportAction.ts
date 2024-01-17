@@ -187,7 +187,7 @@ type ReportActionBase = {
     delegateAccountID?: string;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors | OnyxCommon.ErrorsObject;
+    errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;

@@ -39,8 +39,6 @@ type MemberChangeMessageRoomReferenceElement = {
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
-type ActionsToMerge = Record<string, ReportAction | null>;
-
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -444,8 +442,8 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 
 /**
  */
-function getLastVisibleAction(reportID: string, actionsToMerge: ActionsToMerge = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
+function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
+    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge ?? {}));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -454,7 +452,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: ActionsToMerge =
     return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: ActionsToMerge = {}): LastVisibleMessage {
+function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): LastVisibleMessage {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 

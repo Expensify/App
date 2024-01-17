@@ -10,8 +10,6 @@ type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | un
 
 type Errors = Record<string, string | null>;
 
-type ErrorsObject = Record<string, Errors>;
-
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
 type Icon = {
@@ -31,4 +29,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, ErrorsObject};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};

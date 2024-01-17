@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
-import type {ErrorFields, Errors, ErrorsObject} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -46,7 +46,7 @@ function getMicroSecondOnyxError(error: string | null): Errors {
  * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxErrorObject(error: Errors): ErrorsObject {
+function getMicroSecondOnyxErrorObject(error: Errors): ErrorFields {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
