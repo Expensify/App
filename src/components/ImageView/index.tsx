@@ -112,11 +112,11 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         return {offsetX, offsetY};
     };
 
-    const onContainerPress = (mouseEvent?: GestureResponderEvent | KeyboardEvent) => {
-        const e = mouseEvent as unknown as ReactMouseEvent;
+    const onContainerPress = (e?: GestureResponderEvent | KeyboardEvent) => {
+        const mouseEvent = e as unknown as ReactMouseEvent;
         if (!isZoomed && !isDragging) {
-            if (e.nativeEvent) {
-                const {offsetX, offsetY} = e.nativeEvent;
+            if (mouseEvent.nativeEvent) {
+                const {offsetX, offsetY} = mouseEvent.nativeEvent;
 
                 // Dividing clicked positions by the zoom scale to get coordinates
                 // so that once we zoom we will scroll to the clicked location.
@@ -139,8 +139,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     const trackPointerPosition = useCallback(
         (e: MouseEvent) => {
+            const mouseEvent = e as unknown as ReactMouseEvent;
             // Whether the pointer is released inside the ImageView
-            const isInsideImageView = scrollableRef.current?.contains(e.target as Node);
+            const isInsideImageView = scrollableRef.current?.contains(mouseEvent.nativeEvent.target as Node);
 
             if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
                 setIsDragging(false);
@@ -152,13 +153,14 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     const trackMovement = useCallback(
         (e: MouseEvent) => {
+            const mouseEvent = e as unknown as ReactMouseEvent;
             if (!isZoomed) {
                 return;
             }
 
             if (isDragging && isMouseDown && scrollableRef.current) {
-                const x = e.x;
-                const y = e.y;
+                const x = mouseEvent.nativeEvent.x;
+                const y = mouseEvent.nativeEvent.y;
                 const moveX = initialX - x;
                 const moveY = initialY - y;
                 scrollableRef.current.scrollLeft = initialScrollLeft + moveX;
