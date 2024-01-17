@@ -22,7 +22,7 @@ type OnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
-    /** The policy being used */
+    /** The policy object for the current route */
     policy: OnyxEntry<Policy>;
 
     /** Personal details of all the users */
