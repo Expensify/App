@@ -1360,6 +1360,10 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
     );
 }
 
+function getGroupChatParticipantIDs(participants: number[]): number[] {
+    return [...new Set([...participants, ...(currentUserAccountID ? [currentUserAccountID] : [])])];
+}
+
 /**
  * Returns an array of the participants Ids of a report
  *
@@ -1379,8 +1383,8 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         return onlyUnique;
     }
 
-    if (isGroupChat(report) && currentUserAccountID) {
-        return [...new Set([...participants, currentUserAccountID])];
+    if (isGroupChat(report)) {
+        return getGroupChatParticipantIDs(participants);
     }
 
     return participants;
@@ -1403,8 +1407,8 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
         return onlyUnique;
     }
 
-    if (isGroupChat(report) && currentUserAccountID) {
-        return [...new Set([...visibleChatMemberAccountIDs, currentUserAccountID])];
+    if (isGroupChat(report)) {
+        return getGroupChatParticipantIDs(visibleChatMemberAccountIDs);
     }
 
     return visibleChatMemberAccountIDs;
