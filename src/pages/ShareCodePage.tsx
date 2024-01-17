@@ -41,8 +41,10 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
+    const isReport = !!report?.reportID;
+
     const getSubtitle = () => {
-        if (report) {
+        if (isReport) {
             if (ReportUtils.isExpenseReport(report)) {
                 return ReportUtils.getPolicyName(report);
             }
@@ -59,7 +61,6 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
         return session?.email;
     };
 
-    const isReport = !!report?.reportID;
     const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
     const subtitle = getSubtitle();
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
