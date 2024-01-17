@@ -10,6 +10,9 @@ type Login = {
     /** Date login was validated, used to show info indicator status */
     validatedDate?: string;
 
+    /** Whether the user validation code was sent */
+    validateCodeSent?: boolean;
+
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
 

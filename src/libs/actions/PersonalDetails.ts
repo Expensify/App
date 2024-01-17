@@ -43,20 +43,19 @@ Onyx.connect({
 });
 
 /**
- * Returns the displayName for a user
+ * Creates a new displayName for a user based on passed personal details or login.
  */
-function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> | null): string {
+function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail ?? allPersonalDetails?.[login];
 
-    if (!userDetails) {
+    if (!personalDetails) {
         return userLogin;
     }
 
-    const firstName = userDetails.firstName ?? '';
-    const lastName = userDetails.lastName ?? '';
+    const firstName = personalDetails.firstName ?? '';
+    const lastName = personalDetails.lastName ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
 
     // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
@@ -150,7 +149,7 @@ function updateDisplayName(firstName: string, lastName: string) {
                         [currentUserAccountID]: {
                             firstName,
                             lastName,
-                            displayName: getDisplayName(currentUserEmail ?? '', {
+                            displayName: createDisplayName(currentUserEmail ?? '', {
                                 firstName,
                                 lastName,
                             }),
@@ -566,7 +565,7 @@ export {
     deleteAvatar,
     extractFirstAndLastNameFromAvailableDetails,
     getCountryISO,
-    getDisplayName,
+    createDisplayName,
     getPrivatePersonalDetails,
     openPersonalDetailsPage,
     openPublicProfilePage,

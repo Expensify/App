@@ -1,6 +1,8 @@
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -72,6 +74,7 @@ import type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
@@ -100,6 +103,7 @@ import type {
 export default {
     common: {
         cancel: 'Cancelar',
+        dismiss: 'Descartar',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -474,7 +478,12 @@ export default {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar dinero, pedir dinero, o asignar una tarea!',
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
+        iouTypes: {
+            send: 'enviar dinero',
+            split: 'dividir una factura',
+            request: 'pedir dinero',
+        },
     },
     reportAction: {
         asCopilot: 'como copiloto de',
@@ -560,6 +569,8 @@ export default {
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
+        cancelPayment: 'Cancelar el pago',
+        cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
         canceled: 'Canceló',
@@ -571,7 +582,8 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) => `${count} solicitudes${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
+        requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
         deleteRequest: 'Eliminar pedido',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
         settledExpensify: 'Pagado',
@@ -596,6 +608,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `El pago de ${amount} ha sido cancelado por el administrador.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -630,6 +643,7 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
             genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
+            duplicateWaypointsErrorMessage: 'Por favor elimina los puntos de ruta duplicados',
             atLeastTwoDifferentWaypoints: 'Por favor introduce al menos dos direcciones diferentes',
             splitBillMultipleParticipantsErrorMessage: 'Solo puedes dividir una cuenta entre un único espacio de trabajo o con usuarios individuales. Por favor actualiza tu selección.',
             invalidMerchant: 'Por favor ingrese un comerciante correcto.',
@@ -1581,7 +1595,7 @@ export default {
             VBANoECardCopy:
                 'Añade tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
-            benefit1: 'Hasta un 4% de devolución en tus gastos',
+            benefit1: 'Hasta un 2% de devolución en tus gastos',
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
@@ -1771,7 +1785,7 @@ export default {
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
-            canceled: 'tarea eliminado',
+            canceled: 'tarea eliminada',
             reopened: 'marcada como incompleta',
             error: 'No tiene permiso para realizar la acción solicitada.',
         },
@@ -2409,7 +2423,7 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
         deletedRequest: '[Pedido eliminado]',
         reversedTransaction: '[Transacción anulada]',
-        deletedTask: '[Tarea eliminado]',
+        deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2422,6 +2436,10 @@ export default {
     qrCodes: {
         copy: 'Copiar',
         copied: '¡Copiado!',
+    },
+    actionableMentionWhisperOptions: {
+        invite: 'Invitar',
+        nothing: 'No hacer nada',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
@@ -2516,30 +2534,30 @@ export default {
             buttonText1: 'Inicia un chat y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Pide dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Envía dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
+            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en chatear, enviar o pedir dinero, dividir una factura o compartir tu enlace de invitación con un amigo, y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
+            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en chatear, enviar o pedir dinero, dividir una factura o compartir tu enlace de invitación con un amigo, y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },

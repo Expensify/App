@@ -42,7 +42,7 @@ Once you've set up your third party payment option, you can start using it to re
 
 4. **Track Payment Status**: You can track the status of payments and view transaction details within your Expensify account.
 
-# FAQ’s
+{% include faq-begin.md %}
 
 ## Q: Are there any fees associated with using third party payment options in Expensify?
 
@@ -57,3 +57,5 @@ A: Expensify allows you to link multiple payment providers if needed. You can se
 A: The reimbursement limit may depend on the policies and settings configured within your Expensify account and the limits imposed by your chosen payment provider.
 
 With Expensify's third party payment options, you can simplify your expense management and reimbursement processes. By following the steps outlined in this guide, you can set up and use third party payments efficiently.
+
+{% include faq-end.md %}

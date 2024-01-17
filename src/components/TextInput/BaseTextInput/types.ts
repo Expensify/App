@@ -24,7 +24,7 @@ type CustomBaseTextInputProps = {
     errorText?: MaybePhraseKey;
 
     /** Icon to display in right side of text input */
-    icon: IconAsset | null;
+    icon?: IconAsset | null;
 
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;

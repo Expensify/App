@@ -73,7 +73,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
  * @param path - Path that you are looking for.
  * @return - Returns distance to path or -1 if the path is not found in root navigator.
  */
-function getDistanceFromPathInRootNavigator(path: string): number {
+function getDistanceFromPathInRootNavigator(path?: string): number {
     let currentState = navigationRef.getRootState();
 
     for (let index = 0; index < 5; index++) {
@@ -125,7 +125,8 @@ function isActiveRoute(routePath: Route): boolean {
     let activeRoute = getActiveRoute();
     activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
 
-    return activeRoute === routePath;
+    // We remove redundant (consecutive and trailing) slashes from path before matching
+    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
 }
 
 /**
@@ -148,7 +149,7 @@ function navigate(route: Route = ROUTES.HOME, type?: string) {
  * @param shouldEnforceFallback - Enforces navigation to fallback route
  * @param shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
+function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
