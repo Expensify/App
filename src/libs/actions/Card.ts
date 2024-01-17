@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RevealExpensifyCardDetailsParams} from '@libs/API/parameters';
+import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFraudParams, RequestReplacementExpensifyCardParams, RevealExpensifyCardDetailsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -50,10 +50,10 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
 
 /**
  * Call the API to deactivate the card and request a new one
- * @param cardId - id of the card that is going to be replaced
+ * @param cardID - id of the card that is going to be replaced
  * @param reason - reason for replacement
  */
-function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReason) {
+function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -86,7 +86,7 @@ function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReas
     ];
 
     const parameters: RequestReplacementExpensifyCardParams = {
-        cardId,
+        cardID,
         reason,
     };
 
