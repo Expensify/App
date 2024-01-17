@@ -55,6 +55,9 @@ const propTypes = {
     /** Total money amount in form <currency><amount> */
     formattedAmount: PropTypes.string,
 
+    /** The text to be displayed on the main button */
+    buttonText: PropTypes.string,
+
     /** The size of button size */
     buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
 
@@ -104,6 +107,7 @@ const defaultProps = {
     style: [],
     policyID: '',
     formattedAmount: '',
+    buttonText: '',
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     kycWallAnchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
@@ -129,6 +133,7 @@ function SettlementButton({
     isDisabled,
     isLoading,
     formattedAmount,
+    buttonText,
     nvp_lastPaymentMethod,
     onPress,
     pressOnEnter,
@@ -238,6 +243,7 @@ function SettlementButton({
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                    text={buttonText}
                 />
             )}
         </KYCWall>

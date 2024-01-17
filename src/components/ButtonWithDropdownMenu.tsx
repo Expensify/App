@@ -192,4 +192,4 @@ function ButtonWithDropdownMenu({
 
 ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
 
-1;
+export default React.memo(ButtonWithDropdownMenu);

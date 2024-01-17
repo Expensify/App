@@ -157,6 +157,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
+                            buttonText={`${translate('iou.pay')} ${formattedAmount}`}
                         />
                     </View>
                 )}
@@ -188,6 +189,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
+                            buttonText={`${translate('iou.pay')} ${formattedAmount}`}
                         />
                     </View>
                 )}
