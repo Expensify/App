@@ -2044,7 +2044,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
     }
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
-    if (!!isEmptyObject(transaction)) {
+    if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Request
         return Localize.translateLocal('iou.request');
     }
