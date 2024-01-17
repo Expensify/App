@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Performance from '@libs/Performance';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
@@ -29,7 +30,6 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Performance from '@libs/Performance';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -125,7 +125,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         }
 
         // Capture metric for opening the search page
-        Performance.markStart(CONST.TIMING.OPEN_SEARCH)
+        Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
         Navigation.navigate(ROUTES.SEARCH);
     }, [isCreateMenuOpen]);

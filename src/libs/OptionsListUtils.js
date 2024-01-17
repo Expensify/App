@@ -14,6 +14,7 @@ import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
+import Performance from './Performance';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
@@ -23,7 +24,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-import Performance from './Performance';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
