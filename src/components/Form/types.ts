@@ -1,11 +1,12 @@
-import type {ComponentProps, FocusEvent, ForwardedRef, FunctionComponent, Key, MutableRefObject, ReactNode, Ref, RefAttributes} from 'react';
-import {ComponentType} from 'react';
+import type {FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type Form from '@src/types/onyx/Form';
 import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
+
+type MeasureLayoutOnSuccessCallback = (left: number, top: number, width: number, height: number) => void;
 
 type BaseInputProps = {
     shouldSetTouchedOnBlurOnly?: boolean;
@@ -20,8 +21,10 @@ type BaseInputProps = {
     shouldSaveDraft?: boolean;
     shouldUseDefaultValue?: boolean;
     key?: Key | null | undefined;
-    ref?: Ref<FunctionComponent<BaseInputProps>>;
+    ref?: Ref<BaseInputProps>;
     isFocused?: boolean;
+    measureLayout?: (ref: unknown, callback: MeasureLayoutOnSuccessCallback) => void;
+    focus?: () => void;
 };
 
 type InputWrapperProps<TInput, TInputProps extends BaseInputProps> = TInputProps & {
@@ -66,7 +69,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps) => TInputProps;
 
-type InputRef = FunctionComponent<BaseInputProps>;
-type InputRefs = Record<string, MutableRefObject<InputRef>>;
+type InputRefs = Record<string, MutableRefObject<BaseInputProps>>;
 
-export type {InputWrapperProps, FormProps, RegisterInput, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRef, InputRefs, OnyxFormKeyWithoutDraft};
+export type {InputWrapperProps, FormProps, RegisterInput, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRefs, OnyxFormKeyWithoutDraft};

@@ -1,4 +1,3 @@
-import type * as OnyxTypes from './index';
 import type * as OnyxCommon from './OnyxCommon';
 
 type FormValueType = string | boolean | Date;

@@ -85,7 +85,7 @@ function FormWrapper({
                             const focusInput = inputRef && 'current' in inputRef ? inputRef.current : undefined;
 
                             // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
-                            if (typeof focusInput?.isFocused !== 'function') {
+                            if (focusInput && typeof focusInput?.isFocused !== 'function') {
                                 Keyboard.dismiss();
                             }
 
@@ -102,7 +102,7 @@ function FormWrapper({
                             }
 
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                            focusInput?.focus();
+                            focusInput?.focus?.();
                         }}
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}

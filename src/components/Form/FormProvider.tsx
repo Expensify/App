@@ -15,7 +15,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {BaseInputProps, FormProps, InputRef, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
+import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 
@@ -207,7 +207,7 @@ function FormProvider(
 
     const registerInput = useCallback<RegisterInput>(
         <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps): TInputProps => {
-            const newRef: MutableRefObject<InputRef> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+            const newRef: MutableRefObject<BaseInputProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
