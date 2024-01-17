@@ -153,7 +153,7 @@ function KYCWall({
              * Set the source, so we can tailor the process according to how we got here.
              * We do not want to set this on mount, as the source can change upon completing the flow, e.g. when upgrading the wallet to Gold.
              */
-            Wallet.setKYCWallSource(source ?? '', chatReportID);
+            Wallet.setKYCWallSource(source, chatReportID);
 
             if (shouldShowAddPaymentMenu) {
                 setShouldShowAddPaymentMenu(false);
