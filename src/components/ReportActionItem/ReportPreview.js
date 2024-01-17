@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -13,9 +13,9 @@ import refPropTypes from '@components/refPropTypes';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -23,14 +23,12 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +105,9 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** All the transactions, used to update ReportPreview label and status */
+    transactions: PropTypes.objectOf(transactionPropTypes),
+
     ...withLocalizePropTypes,
 };
 
@@ -123,18 +124,25 @@ const defaultProps = {
     policy: {
         isHarvestingEnabled: false,
     },
+    transactions: {},
 };
 
 function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
-    const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
-    const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
-    const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
-    const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+        () => ({
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
+            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
+        }),
+        // When transactions get updated these status may have changed, so that is a case where we also want to run this.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.transactions, props.iouReportID, props.action],
+    );
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
@@ -165,7 +173,7 @@ function ReportPreview(props) {
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {
-            count: numberOfRequests,
+            count: numberOfRequests - numberOfScanningReceipts,
             scanningReceipts: numberOfScanningReceipts,
         });
 
@@ -221,32 +229,10 @@ function ReportPreview(props) {
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
-    useEffect(() => {
-        const unsubscribeOnyxTransaction = onyxSubscribe({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (allTransactions) => {
-                if (_.isEmpty(allTransactions)) {
-                    return;
-                }
-
-                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
-                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
-                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
-            },
-        });
-
-        return () => {
-            unsubscribeOnyxTransaction();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isGroupPolicy
-        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+    const isPayer = isPaidGroupPolicy
+        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
@@ -254,11 +240,11 @@ function ReportPreview(props) {
         [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
-        if (!isGroupPolicy) {
+        if (!isPaidGroupPolicy) {
             return false;
         }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
+    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
         <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>
@@ -286,7 +272,7 @@ function ReportPreview(props) {
                         <View style={styles.reportPreviewBoxBody}>
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, getLineHeightStyle(variables.lineHeightXXLarge)]}>{getPreviewMessage()}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                                 </View>
                                 {!iouSettled && hasErrors && (
                                     <Icon
@@ -372,6 +358,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
         },
     }),
 )(ReportPreview);

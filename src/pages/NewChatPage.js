@@ -13,10 +13,10 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
@@ -61,6 +61,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -116,7 +117,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    function toggleOption(option) {
+    const toggleOption = (option) => {
         const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
@@ -154,7 +155,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
-    }
+    };
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -162,9 +163,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      *
      * @param {Object} option
      */
-    function createChat(option) {
+    const createChat = (option) => {
         Report.navigateToAndOpenReport([option.login]);
-    }
+    };
 
     /**
      * Creates a new group chat with all the selected options and the current user,
@@ -178,7 +179,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         Report.navigateToAndOpenReport(logins);
     };
 
-    useEffect(() => {
+    const updateOptions = useCallback(() => {
         const {
             recentReports,
             personalDetails: newChatPersonalDetails,
@@ -208,6 +209,26 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
+    useEffect(() => {
+        const interactionTask = doInteractionTask(() => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!didScreenTransitionEnd) {
+            return;
+        }
+        updateOptions();
+    }, [didScreenTransitionEnd, updateOptions]);
+
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
         Report.searchInServer(text);
@@ -231,9 +252,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                    keyboardVerticalOffset={
-                        variables.contentHeaderHeight + insets.top + (Permissions.canUsePolicyRooms(betas) ? variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0)
-                    }
+                    keyboardVerticalOffset={variables.contentHeaderHeight + insets.top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
@@ -241,15 +260,15 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
-                            onAddToSelection={(option) => toggleOption(option)}
+                            onAddToSelection={toggleOption}
                             sections={sections}
                             selectedOptions={selectedOptions}
-                            onSelectRow={(option) => createChat(option)}
+                            onSelectRow={createChat}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                            shouldShowOptions={isOptionsDataReady}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}

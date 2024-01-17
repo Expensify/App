@@ -1,12 +1,13 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import OnyxPolicy from '@src/types/onyx/Policy';
-import Report from '@src/types/onyx/Report';
+import type OnyxPolicy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
 import * as Policy from './Policy';
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
@@ -131,7 +132,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
             if (report) {
-                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED;
+                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED;
             }
             return false;
         });

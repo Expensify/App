@@ -1,5 +1,6 @@
 import {useContext} from 'react';
-import AnimatedStepContext, {StepContext} from './AnimatedStepContext';
+import type {StepContext} from './AnimatedStepContext';
+import AnimatedStepContext from './AnimatedStepContext';
 
 function useAnimatedStepContext(): StepContext {
     const context = useContext(AnimatedStepContext);
