@@ -26,6 +26,12 @@ type DropdownOption = {
 };
 
 type ButtonWithDropdownMenuProps = {
+    /**
+     * This text will be used for the main button text. If this option is ommitted, then the text of the first selected option is used for the button text instead.
+     * Use this when you want to display a different text for the button than the text of the first selected option.
+     */
+    text?: string;
+
     /** Text to display for the menu header */
     menuHeaderText?: string;
 
@@ -63,6 +69,7 @@ function ButtonWithDropdownMenu({
     isDisabled = false,
     pressOnEnter = false,
     menuHeaderText = '',
+    text = '',
     style,
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     anchorAlignment = {
@@ -114,7 +121,7 @@ function ButtonWithDropdownMenu({
                         pressOnEnter={pressOnEnter}
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
-                        text={selectedItem.text}
+                        text={text || selectedItem.text}
                         isDisabled={isDisabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
@@ -154,7 +161,7 @@ function ButtonWithDropdownMenu({
                     isDisabled={isDisabled}
                     style={[styles.w100, style]}
                     isLoading={isLoading}
-                    text={selectedItem.text}
+                    text={text || selectedItem.text}
                     onPress={(event) => onPress(event, options[0].value)}
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
@@ -185,4 +192,4 @@ function ButtonWithDropdownMenu({
 
 ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
 
-export default React.memo(ButtonWithDropdownMenu);
+1;
