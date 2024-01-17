@@ -5,11 +5,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type ShowContextMenuContextProps = {
-    anchor: RNText | null;
+    anchor: ContextMenuAnchor;
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
     checkIfContextMenuActive: () => void;
@@ -36,7 +37,7 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
-    anchor: RNText | null,
+    anchor: ContextMenuAnchor,
     reportID: string,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,

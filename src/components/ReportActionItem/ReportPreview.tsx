@@ -228,7 +228,6 @@ function ReportPreview({
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role="button"
