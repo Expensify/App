@@ -25,3 +25,5 @@ export default function withNavigationFocus<TProps extends WithNavigationFocusPr
     WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent)})`;
     return React.forwardRef(WithNavigationFocus);
 }
+
+export type {WithNavigationFocusProps};
