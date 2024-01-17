@@ -113,6 +113,7 @@ function WorkspaceSwitcherPage({policies}) {
             setSelectedOption(undefined);
         }
         setActiveWorkspaceID(policyID);
+        // TO DO: Unify workspace-related navigation
         Navigation.goBack();
         Navigation.navigate(`${pathPrefix}${ROUTES.HOME}`);
         Navigation.navigate(ROUTES.REPORT);
