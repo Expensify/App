@@ -265,6 +265,7 @@ function WorkspaceSwitcherPage({policies}) {
         <HeaderPageLayout
             title={translate('workspace.switcher.headerTitle')}
             backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SWITCHER.ROOT].backgroundColor}
+            onBackButtonPress={Navigation.goBack}
         >
             {everythingSection}
             {workspacesSection}
