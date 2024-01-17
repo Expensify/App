@@ -8,13 +8,14 @@ import TextPill from '@components/TextPill';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@userActions/IOU';
 
 function ProcessMoneyRequestHoldPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const onConfirm = useCallback(() => {
-        // Currently only goes back, this will be changed after backends for hold will be merged
+        IOU.setShownHoldUseExplaination();
         Navigation.goBack();
     }, []);
 

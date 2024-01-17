@@ -3484,6 +3484,10 @@ function setMoneyRequestReceipt(receiptPath, receiptFilename) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
 }
 
+function setShownHoldUseExplaination() {
+    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
+}
+
 function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -3725,6 +3729,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setUpDistanceTransaction,
+    setShownHoldUseExplaination,
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestMerchant,

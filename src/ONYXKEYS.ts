@@ -155,6 +155,9 @@ const ONYXKEYS = {
     /** Whether the user has tried focus mode yet */
     NVP_TRY_FOCUS_MODE: 'tryFocusMode',
 
+    /** Whether the user has been shown the hold educational interstitial yet */
+    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
+
     /** Boolean flag used to display the focus mode notification */
     FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
 
@@ -390,6 +393,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
+    [ONYXKEYS.NVP_HOLD_USE_EXPLAINED]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];

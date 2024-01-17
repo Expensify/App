@@ -24,6 +24,7 @@ import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
+import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
@@ -54,6 +55,8 @@ const propTypes = {
 
     /** All the data for the transaction */
     transaction: transactionPropTypes,
+
+    shownHoldUseExplaination: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,10 +66,11 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
+    shownHoldUseExplaination: true,
     policy: {},
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplaination, policy, personalDetails}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -136,6 +140,30 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         }
     }
 
+    const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
+
+    useEffect(() => {
+        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplaination);
+    }, [isOnHold, shownHoldUseExplaination]);
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (shouldShowHoldMenu) {
+            if (isSmallScreenWidth) {
+                if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+                    Navigation.goBack();
+                }
+            } else {
+                Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+            }
+        }
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+
+    const handleHoldRequestClose = () => {
+        setShouldShowHoldMenu(false);
+        IOU.setShownHoldUseExplaination();
+    };
+
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
@@ -196,6 +224,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 cancelText={translate('common.cancel')}
                 danger
             />
+            {isSmallScreenWidth && shouldShowHoldMenu && (
+                <ProcessMoneyRequestHoldMenu
+                    onClose={handleHoldRequestClose}
+                    onConfirm={handleHoldRequestClose}
+                    isVisible={shouldShowHoldMenu}
+                />
+            )}
         </>
     );
 }
@@ -224,6 +259,10 @@ export default compose(
                 const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
             },
+        },
+        shownHoldUseExplaination: {
+            key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
+            initWithStoredValues: false,
         },
     }),
 )(MoneyRequestHeader);
