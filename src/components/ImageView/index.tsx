@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -112,8 +112,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         return {offsetX, offsetY};
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onContainerPress = (e: any) => {
+    const onContainerPress = (mouseEvent?: GestureResponderEvent | KeyboardEvent) => {
+        const e = mouseEvent as unknown as ReactMouseEvent;
         if (!isZoomed && !isDragging) {
             if (e.nativeEvent) {
                 const {offsetX, offsetY} = e.nativeEvent;
@@ -138,10 +138,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     };
 
     const trackPointerPosition = useCallback(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (e: any) => {
+        (e: MouseEvent) => {
             // Whether the pointer is released inside the ImageView
-            const isInsideImageView = scrollableRef.current?.contains(e.nativeEvent.target);
+            const isInsideImageView = scrollableRef.current?.contains(e.target as Node);
 
             if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
                 setIsDragging(false);
