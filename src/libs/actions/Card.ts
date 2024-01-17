@@ -52,10 +52,10 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
 
 /**
  * Call the API to deactivate the card and request a new one
- * @param cardId - id of the card that is going to be replaced
+ * @param cardID - id of the card that is going to be replaced
  * @param reason - reason for replacement
  */
-function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReason) {
+function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReason) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -88,12 +88,12 @@ function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReas
     ];
 
     type RequestReplacementExpensifyCardParams = {
-        cardId: number;
+        cardID: number;
         reason: string;
     };
 
     const parameters: RequestReplacementExpensifyCardParams = {
-        cardId,
+        cardID,
         reason,
     };
 
