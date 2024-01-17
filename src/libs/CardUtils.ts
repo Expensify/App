@@ -74,13 +74,13 @@ function getYearFromExpirationDateString(expirationDateString: string) {
 function formatCardExpiration(expirationDateString: string) {
     // already matches MM/YY format
     const dateFormat = /^\d{2}\/\d{4}$/;
-    if (dateFormat.test(expirationDateString)){
+    if (dateFormat.test(expirationDateString)) {
         return expirationDateString;
     }
 
     const expirationMonth = getMonthFromExpirationDateString(expirationDateString);
     const expirationYear = getYearFromExpirationDateString(expirationDateString);
-    
+
     return `${expirationMonth}/${expirationYear}`;
 }
 

@@ -235,7 +235,7 @@ function ExpensifyCardPage({
                                             <>
                                                 <MenuItemWithTopDescription
                                                     description={translate('cardPage.virtualCardNumber')}
-                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    title={CardUtils.maskCard('')}
                                                     interactive={false}
                                                     titleStyle={styles.walletCardNumber}
                                                     shouldShowRightComponent
