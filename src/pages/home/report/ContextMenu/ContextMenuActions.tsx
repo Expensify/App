@@ -1,6 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -27,8 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {hideContextMenu, showDeleteModal, showContextMenu} from './ReportActionContextMenu';
-import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
+import {hideContextMenu, showContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionText(reportAction: OnyxEntry<ReportAction>): string {

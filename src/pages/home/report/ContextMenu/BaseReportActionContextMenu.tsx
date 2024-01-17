@@ -122,7 +122,7 @@ function BaseReportActionContextMenu({
     );
     filteredContextMenuActions =
         isMini && filteredContextMenuActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS
-            ? [...filteredContextMenuActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1), filteredContextMenuActions.at(-1)] as typeof filteredContextMenuActions
+            ? ([...filteredContextMenuActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1), filteredContextMenuActions.at(-1)] as typeof filteredContextMenuActions)
             : filteredContextMenuActions;
 
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
