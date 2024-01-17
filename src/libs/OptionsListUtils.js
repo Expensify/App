@@ -23,6 +23,7 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+import Performance from './Performance';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -1651,7 +1652,8 @@ function getOptions(
  * @returns {Object}
  */
 function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
-    return getOptions(reports, personalDetails, {
+    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    const options = getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
@@ -1666,6 +1668,9 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includeMoneyRequests: true,
         includeTasks: true,
     });
+    Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
+    return options;
 }
 
 /**

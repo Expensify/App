@@ -29,6 +29,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Performance from '@libs/Performance';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -122,6 +123,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
+
+        // Capture metric for opening the search page
+        Performance.markStart(CONST.TIMING.OPEN_SEARCH)
 
         Navigation.navigate(ROUTES.SEARCH);
     }, [isCreateMenuOpen]);
