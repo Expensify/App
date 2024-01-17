@@ -2491,7 +2491,7 @@ function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadRep
 }
 
 /**
- * @param {String} transactionID
+ * @param {String | undefined} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
  */
@@ -3405,7 +3405,6 @@ function cancelPayment(expenseReport, chatReport) {
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
                           ...chatReport,
-                          hasOutstandingIOU: true,
                           hasOutstandingChildRequest: true,
                           iouReportID: expenseReport.reportID,
                       },
@@ -3449,7 +3448,6 @@ function cancelPayment(expenseReport, chatReport) {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
-                          hasOutstandingIOU: false,
                           hasOutstandingChildRequest: false,
                           iouReportID: 0,
                       },

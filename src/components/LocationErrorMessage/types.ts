@@ -1,3 +1,5 @@
+import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
+
 type LocationErrorMessageProps = {
     /** A callback that runs when close icon is pressed */
     onClose: () => void;
@@ -9,7 +11,7 @@ type LocationErrorMessageProps = {
      * - code 2 = location is unavailable or there is some connection issue
      * - code 3 = location fetch timeout
      */
-    locationErrorCode?: -1 | 1 | 2 | 3;
+    locationErrorCode?: GeolocationErrorCodeType | null;
 };
 
 export default LocationErrorMessageProps;
