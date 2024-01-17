@@ -109,9 +109,9 @@ type RadioItem = {
     /** The type of action that's pending  */
     pendingAction?: undefined;
 
-    sectionIndex: number; // smb throw this out
+    sectionIndex: number;
 
-    index: number; // mb throw this out
+    index: number;
 };
 
 type RadioListItemProps = CommonListItemProps<RadioItem> & {
