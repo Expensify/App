@@ -44,7 +44,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
-    const isKeyboardShown = useKeyboardState();
+    const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
 
     useEffect(() => {
