@@ -58,12 +58,7 @@ type BuildNextStepParameters = {
  * @returns nextStep
  */
 function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
-    const {
-        statusNum = CONST.REPORT.STATUS_NUM.OPEN,
-        // TODO: Clarify default value
-        isPreventSelfApprovalEnabled = false,
-        ownerAccountID = -1,
-    } = report;
+    const {statusNum = CONST.REPORT.STATUS_NUM.OPEN, isPreventSelfApprovalEnabled = false, ownerAccountID = -1} = report;
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
     const isOwner = currentUserAccountID === ownerAccountID;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
