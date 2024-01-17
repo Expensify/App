@@ -333,9 +333,7 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
     });
 }
 
-/**
- * Reset money request info from the store with its initial value
- */
+/** Reset money request info from the store with its initial value */
 function resetMoneyRequestInfo(id = '') {
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -358,9 +356,7 @@ function resetMoneyRequestInfo(id = '') {
     });
 }
 
-/**
- *  Helper function to get the receipt error for money requests, or the generic error if there's no receipt
- */
+/** Helper function to get the receipt error for money requests, or the generic error if there's no receipt */
 function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true): Errors | ErrorFields {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
@@ -1187,9 +1183,7 @@ function getUpdateMoneyRequestParams(
     };
 }
 
-/**
- * Updates the created date of a money request
- */
+/** Updates the created date of a money request */
 function updateMoneyRequestDate(transactionID: string, transactionThreadReportID: string, value: string) {
     const transactionChanges: TransactionChanges = {
         created: value,
@@ -1242,7 +1236,6 @@ function updateDistanceRequest(transactionID: string, transactionThreadReportID:
 
 /**
  * Request money from another user
- *
  * @param amount - always in the smallest unit of the currency
  */
 function requestMoney(
@@ -2599,9 +2592,7 @@ function editMoneyRequest(transaction: OnyxTypes.Transaction, transactionThreadR
     }
 }
 
-/**
- * Updates the amount and currency fields of a money request
- */
+/** Updates the amount and currency fields of a money request */
 function updateMoneyRequestAmountAndCurrency(transactionID: string, transactionThreadReportID: string, currency: string, amount: number) {
     const transactionChanges = {
         amount,
@@ -3695,9 +3686,7 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
-/**
- * Initialize money request info and navigate to the MoneyRequest page
- */
+/** Initialize money request info and navigate to the MoneyRequest page */
 function startMoneyRequest(iouType: string, reportID = '') {
     resetMoneyRequestInfo(`${iouType}${reportID}`);
     Navigation.navigate(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
@@ -3768,9 +3757,7 @@ function setUpDistanceTransaction() {
     Onyx.merge(ONYXKEYS.IOU, {transactionID});
 }
 
-/**
- * Navigates to the next IOU page based on where the IOU request was started
- */
+/** Navigates to the next IOU page based on where the IOU request was started */
 function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, report?: OnyxTypes.Report, path = '') {
     const moneyRequestID = `${iouType}${report?.reportID ?? ''}`;
     const shouldReset = iou?.id !== moneyRequestID && !!report?.reportID;
