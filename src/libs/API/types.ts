@@ -39,6 +39,7 @@ import type {
     ReconnectAppParams,
     ReferTeachersUniteVolunteerParams,
     ReportVirtualExpensifyCardFraudParams,
+    RequestAccountValidationLinkParams,
     RequestContactMethodValidateCodeParams,
     RequestNewValidateCodeParams,
     RequestPhysicalExpensifyCardParams,
@@ -71,6 +72,7 @@ import type {
     ValidateBankAccountWithTransactionsParams,
     ValidateLoginParams,
     ValidateSecondaryLoginParams,
+    ValidateTwoFactorAuthParams,
     VerifyIdentityForBankAccountParams,
 } from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
@@ -214,7 +216,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT]: SetContactMethodAsDefaultParams;
     [WRITE_COMMANDS.UPDATE_THEME]: UpdateThemeParams;
     [WRITE_COMMANDS.UPDATE_STATUS]: UpdateStatusParams;
-    [WRITE_COMMANDS.CLEAR_STATUS]: ClearStatusParams;
+    [WRITE_COMMANDS.CLEAR_STATUS]: EmptyObject;
     [WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET]: UpdatePersonalDetailsForWalletParams;
     [WRITE_COMMANDS.VERIFY_IDENTITY]: VerifyIdentityParams;
     [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: AcceptWalletTermsParams;
@@ -229,11 +231,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK]: SignInUserWithLinkParams;
     [WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK]: RequestUnlinkValidationLinkParams;
     [WRITE_COMMANDS.UNLINK_LOGIN]: UnlinkLoginParams;
-    [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: EnableTwoFactorAuthParams;
-    [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: DisableTwoFactorAuthParams;
-    [WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: TwoFactorAuthValidateParams;
-    [WRITE_COMMANDS.ADD_COMMENT]: AddCommentParams;
-    [WRITE_COMMANDS.ADD_ATTACHMENT]: AddAttachmentParams;
+    [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: EmptyObject;
+    [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: EmptyObject;
+    [WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: ValidateTwoFactorAuthParams;
+    [WRITE_COMMANDS.ADD_COMMENT]: AddCommentOrAttachementParams;
+    [WRITE_COMMANDS.ADD_ATTACHMENT]: AddCommentOrAttachementParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: ConnectBankAccountWithPlaidParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: AddPersonalBankAccountParams;
     [WRITE_COMMANDS.OPT_IN_TO_PUSH_NOTIFICATIONS]: OptInToPushNotificationsParams;

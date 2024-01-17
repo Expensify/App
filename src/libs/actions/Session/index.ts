@@ -7,7 +7,20 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
-import type {AuthenticatePusherParams, BeginSignInParams, SignInWithShortLivedAuthTokenParams} from '@libs/API/parameters';
+import type {
+    AuthenticatePusherParams,
+    BeginAppleSignInParams,
+    BeginGoogleSignInParams,
+    BeginSignInParams,
+    LogOutParams,
+    RequestAccountValidationLinkParams,
+    RequestNewValidateCodeParams,
+    RequestUnlinkValidationLinkParams,
+    SignInUserWithLinkParams,
+    SignInWithShortLivedAuthTokenParams,
+    UnlinkLoginParams,
+    ValidateTwoFactorAuthParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -171,7 +184,7 @@ function resendValidationLink(login = credentials.login) {
         },
     ];
 
-    const params: ResendValidationLinkParams = {email: login};
+    const params: RequestAccountValidationLinkParams = {email: login};
 
     API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
@@ -779,7 +792,7 @@ function toggleTwoFactorAuth(enable: boolean) {
         },
     ];
 
-    API.write(enable ? 'EnableTwoFactorAuth' : 'DisableTwoFactorAuth', {}, {optimisticData, successData, failureData});
+    API.write(enable ? WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH : WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, {}, {optimisticData, successData, failureData});
 }
 
 function validateTwoFactorAuth(twoFactorAuthCode: string) {
@@ -815,7 +828,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
 
     const params: ValidateTwoFactorAuthParams = {twoFactorAuthCode};
 
-    API.write('TwoFactorAuth_Validate', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData});
 }
 
 /**

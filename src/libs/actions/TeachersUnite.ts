@@ -9,6 +9,7 @@ import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+import { AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams } from '@libs/API/parameters';
 
 type CreationData = {
     reportID: string;

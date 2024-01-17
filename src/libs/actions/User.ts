@@ -4,7 +4,22 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {GetStatementPDFParams} from '@libs/API/parameters';
+import type {
+    AddNewContactMethodParams,
+    CloseAccountParams,
+    DeleteContactMethodParams,
+    GetStatementPDFParams,
+    RequestContactMethodValidateCodeParams,
+    SetContactMethodAsDefaultParams,
+    UpdateChatPriorityModeParams,
+    UpdateFrequentlyUsedEmojisParams,
+    UpdateNewsletterSubscriptionParams,
+    UpdatePreferredEmojiSkinToneParams,
+    UpdateStatusParams,
+    UpdateThemeParams,
+    ValidateLoginParams,
+    ValidateSecondaryLoginParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -806,7 +821,7 @@ function clearCustomStatus() {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.CLEAR_STATUS, undefined, {
+    API.write(WRITE_COMMANDS.CLEAR_STATUS, {}, {
         optimisticData,
     });
 }

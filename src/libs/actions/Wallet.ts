@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {RequestPhysicalExpensifyCardParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import type CONST from '@src/CONST';
@@ -263,12 +264,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
         },
     ];
 
-    type AnswerQuestionsForWallet = {
-        idologyAnswers: string;
-        idNumber: string;
-    };
-
-    const requestParams: AnswerQuestionsForWallet = {
+    const requestParams: AnswerQuestionsForWalletParams = {
         idologyAnswers,
         idNumber,
     };

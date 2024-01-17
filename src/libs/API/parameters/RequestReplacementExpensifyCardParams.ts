@@ -1,5 +1,6 @@
 type RequestReplacementExpensifyCardParams = {
-    cardId: number;
+    cardID: number;
     reason: string;
 };
+
 export default RequestReplacementExpensifyCardParams;

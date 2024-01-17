@@ -43,7 +43,7 @@ export type {default as RequestNewValidateCodeParams} from './RequestNewValidate
 export type {default as RequestPhysicalExpensifyCardParams} from './RequestPhysicalExpensifyCardParams';
 export type {default as RequestReplacementExpensifyCardParams} from './RequestReplacementExpensifyCardParams';
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
-export type {default as ResendValidationLinkParams} from './ResendValidationLinkParams';
+export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';
 export type {default as ResolveActionableMentionWhisperParams} from './ResolveActionableMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
