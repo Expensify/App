@@ -276,7 +276,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**
