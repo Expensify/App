@@ -412,10 +412,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return sections;
         }
 
-        return _.map(sections, (section) => {
-            const disabledItems = [];
-            const selectedItems = [];
-            const unselectedItems = [];
+        return sections.map((section) => {
+            const disabledItems: TItem[] = [];
+            const selectedItems: TItem[] = [];
+            const unselectedItems: TItem[] = [];
 
             section.data.forEach((item) => {
                 if (item.isDisabled) {
