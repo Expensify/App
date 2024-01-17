@@ -51,7 +51,7 @@ type AuthScreensProps = {
     isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
 
     /** The last Onyx update ID was applied to the client */
-    lastUpdateIDAppliedToClient: OnyxEntry<number>;
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
@@ -63,6 +63,7 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -112,6 +113,21 @@ Onyx.connect({
     },
 });
 
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value: OnyxEntry<number>) => {
+        lastUpdateIDAppliedToClient = value;
+    },
+});
+
+function handleNetworkReconnect() {
+    if (isLoadingApp) {
+        App.openApp();
+    } else {
+        App.reconnectApp(lastUpdateIDAppliedToClient);
+    }
+}
+
 const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -129,7 +145,7 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -156,13 +172,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => {
-            if (isLoadingApp) {
-                App.openApp();
-            } else {
-                App.reconnectApp(lastUpdateIDAppliedToClient);
-            }
-        });
+        NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -180,7 +190,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient);
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -329,7 +339,7 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     isUsingMemoryOnlyKeys: {
         key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
     },
-    lastUpdateIDAppliedToClient: {
+    initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
 })(AuthScreensMemoized);

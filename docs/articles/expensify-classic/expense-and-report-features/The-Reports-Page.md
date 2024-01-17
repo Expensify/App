@@ -31,7 +31,7 @@ To export a report to a CSV file, follow these steps on the Reports page:
 2. Navigate to the upper right corner of the page and click the "Export to" button.
 3. From the drop-down options that appear, select your preferred export format.
 
-# FAQ
+{% include faq-begin.md %}
 ## What does it mean if the integration icon for a report is grayed out? 
 If the integration icon for a report appears grayed out, the report has yet to be fully exported. 
 To address this, consider these options:
@@ -41,3 +41,4 @@ To address this, consider these options:
 ## How can I  see a specific expense on a report? 
 To locate a specific expense within a report, click on the Report from the Reports page and then click on an expense to view the expense details.  
 
+{% include faq-end.md %}

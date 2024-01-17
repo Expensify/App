@@ -1,5 +1,6 @@
-import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
+import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -275,9 +276,9 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
 /**
  * Helper method to return eReceipt color code
  */
-function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
@@ -1351,6 +1352,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
             ...positioning.r4,
             ...styles.cursorDefault,
+            ...styles.userSelectNone,
             position: 'absolute',
             zIndex: 8,
         }),

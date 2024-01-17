@@ -74,6 +74,10 @@ type WelcomeToRoomParams = {
     roomName: string;
 };
 
+type UsePlusButtonParams = {
+    additionalText: string;
+};
+
 type ReportArchiveReasonsClosedParams = {
     displayName: string;
 };
@@ -130,6 +134,8 @@ type PayerSettledParams = {amount: number | string};
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
+
+type AdminCanceledRequestParams = {amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -284,6 +290,7 @@ type TranslationFlatObject = {
 };
 
 export type {
+    AdminCanceledRequestParams,
     ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
@@ -376,6 +383,7 @@ export type {
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
+    UsePlusButtonParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
     WelcomeNoteParams,

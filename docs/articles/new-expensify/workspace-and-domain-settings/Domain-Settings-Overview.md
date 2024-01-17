@@ -131,10 +131,12 @@ To enable SAML SSO in Expensify you will first need to claim and verify your dom
 - For disputing digital Expensify Card purchases, two-factor authentication must be enabled.
 - It might take up to 2 hours for domain-level enforcement to take effect, and users will be prompted to configure their individual 2FA settings on their next login to Expensify.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How many domains can I have?
 You can manage multiple domains by adding them through **Settings > Domains > New Domain**. However, to verify additional domains, you must be a Workspace Admin on a Control Workspace. Keep in mind that the Collect plan allows verification for just one domain.
 
 ## What’s the difference between claiming a domain and verifying a domain?
 Claiming a domain is limited to users with matching email domains, and allows Workspace Admins with a company email to manage bills, company cards, and reconciliation. Verifying a domain offers extra features and security.
+
+{% include faq-end.md %}

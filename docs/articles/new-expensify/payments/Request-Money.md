@@ -31,6 +31,7 @@ These two features ensure you can live in the moment and settle up afterward.
 - Enter a reason for the split
 - The split is then shared equally between the attendees
 
-# FAQs
+{% include faq-begin.md %}
 ## Can I request money from more than one person at a time?
 If you need to request money for more than one person at a time, you’ll want to use the Split Bill feature. The Request Money option is for one-to-one payments between two people.
+{% include faq-end.md %}
