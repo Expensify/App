@@ -12,6 +12,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
+import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
 function PopoverWithoutOverlay(
@@ -60,7 +61,7 @@ function PopoverWithoutOverlay(
                 close: onClose,
                 anchorRef,
             });
-            removeOnClose = Modal.setCloseModal(() => onClose(anchorRef));
+            removeOnClose = Modal.setCloseModal(onClose);
             ComposerFocusManager.saveFocusState(modalId, businessType, shouldClearFocusWithType, withoutOverlayRef.current);
             ComposerFocusManager.resetReadyToFocus(modalId);
         } else {
@@ -140,7 +141,7 @@ function PopoverWithoutOverlay(
     return (
         <View
             style={[modalStyle, {zIndex: 1}]}
-            ref={withoutOverlayRef}
+            ref={viewRef(withoutOverlayRef)}
         >
             <ModalContent onDismiss={handleDismissContent}>
                 <View

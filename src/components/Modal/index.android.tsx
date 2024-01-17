@@ -1,6 +1,5 @@
 import React, {useRef} from 'react';
 import {AppState} from 'react-native';
-import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import type BaseModalProps from './types';
@@ -39,4 +38,4 @@ function Modal({useNativeDriver = true, restoreFocusType, onModalHide, ...rest}:
 }
 
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default Modal;

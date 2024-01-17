@@ -99,7 +99,7 @@ function IOURequestStepWaypoint({
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
-    
+
     const [restoreFocusType, setRestoreFocusType] = useState();
 
     const waypointDescriptionKey = useMemo(() => {

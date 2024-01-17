@@ -198,9 +198,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             value: {
                 [contactMethod]: {
                     partnerUserID: '',
-                    errorFields: {
-                        deletedLogin: null,
-                    },
+                    errorFields: null,
                     pendingFields: {
                         deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
@@ -225,6 +223,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
+                        ...oldLoginData?.errorFields,
                         deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
