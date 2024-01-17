@@ -33,10 +33,10 @@ type FileNameAndExtension = {
 function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
     // If there're errors, we need to display them in preview. We can store many files in errors, but we just need to get the last one
-    const errors = _.findLast(transaction.errors) as ReceiptError;
-    const path = errors.source ?? transaction?.receipt?.source ?? receiptPath ?? '';
+    const errors = _.findLast(transaction.errors) as ReceiptError | undefined;
+    const path = errors?.source ?? transaction?.receipt?.source ?? receiptPath ?? '';
     // filename of uploaded image or last part of remote URI
-    const filename = errors.filename ?? transaction?.filename ?? receiptFileName ?? '';
+    const filename = errors?.filename ?? transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
 
     const hasEReceipt = transaction?.hasEReceipt;
