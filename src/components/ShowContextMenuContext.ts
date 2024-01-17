@@ -1,6 +1,6 @@
 import {createContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -36,7 +36,7 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
-    anchor: RNText | null,
+    anchor: RNText | View | null,
     reportID: string,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,

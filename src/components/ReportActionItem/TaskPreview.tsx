@@ -65,7 +65,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         chatReportID: string;
 
         /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: RNText | null;
+        contextMenuAnchor: RNText | View | null;
 
         /** Callback for updating context menu active state, used for showing context menu */
         checkIfContextMenuActive: () => void;

@@ -314,7 +314,7 @@ function ReportActionItem({
 
     const toggleReaction = useCallback(
         (emoji: Emoji) => {
-            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions ?? undefined);
+            Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions);
         },
         [report, action, emojiReactions],
     );
@@ -411,7 +411,6 @@ function ReportActionItem({
                         policyID={ReportUtils.getRootParentReport(report)?.policyID ?? ''}
                         action={action}
                         isHovered={hovered}
-                        // TODO: Check if passing .current is correct
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     />
@@ -737,7 +736,6 @@ function ReportActionItem({
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}
                             originalReportID={originalReportID ?? ''}
-                            //    @ts-expect-error TODO: Remove this once TaskView (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                             isArchivedRoom={ReportUtils.isArchivedRoom(report)}
                             displayAsGroup={displayAsGroup}
                             isVisible={hovered && !draftMessage && !hasErrors}
