@@ -14,17 +14,19 @@ type PolicyTags = Record<string, PolicyTag>;
 
 // When queried from Onyx, if there is no matching policy tag list, the data
 // returned will be an empty object, represented by Record<string, undefined>.
-type PolicyTagList<T extends string = string> = Record<
-    T,
-    {
-        /** Name of the tag list */
-        name: T;
+type PolicyTagList<T extends string = string> =
+    | Record<
+          T,
+          {
+              /** Name of the tag list */
+              name: T;
 
-        /** Flag that determines if tags are required */
-        required: boolean;
+              /** Flag that determines if tags are required */
+              required: boolean;
 
-        tags: PolicyTags;
-    }
-> | Record<string, undefined>;
+              tags: PolicyTags;
+          }
+      >
+    | Record<string, undefined>;
 
 export type {PolicyTag, PolicyTags, PolicyTagList};
