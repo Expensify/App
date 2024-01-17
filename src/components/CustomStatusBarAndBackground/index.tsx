@@ -1,13 +1,13 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import {StatusBarStyle} from '@styles/index';
+import type {StatusBarStyle} from '@styles/index';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
-import usePrevious from '@hooks/usePrevious';
 
 type CustomStatusBarAndBackgroundProps = {
     /** Whether the CustomStatusBar is nested within another CustomStatusBar.
@@ -108,7 +108,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 }
             }
         },
-        [isRootStatusBarDisabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
+        [prevIsRootStatusBarDisabled, isRootStatusBarDisabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
     );
 
     useEffect(() => {
