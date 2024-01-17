@@ -1,11 +1,18 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+
+
+type FirstAndLastName = {
+    firstName: string;
+    lastName: string;
+};
 
 let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
@@ -198,6 +205,66 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
     return undefined;
 }
 
+/**
+ * Creates a new displayName for a user based on passed personal details or login.
+ *
+ * @param login - user's login
+ * @param passedPersonalDetails - details object with firstName and lastName
+ * @returns - The effective display name
+ */
+function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
+    // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
+    // so that the option looks cleaner in our UI.
+    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
+
+    if (!passedPersonalDetails) {
+        return userLogin;
+    }
+
+    const firstName = passedPersonalDetails.firstName ?? '';
+    const lastName = passedPersonalDetails.lastName ?? '';
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
+    return fullName || userLogin;
+}
+
+/**
+ * Gets the first and last name from the user's personal details.
+ * If the login is the same as the displayName, then they don't exist,
+ * so we return empty strings instead.
+ *
+ * @param login - user's login
+ * @param displayName - user display name
+ * @param firstName
+ * @param lastName
+ */
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
+    // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (firstName || lastName) {
+        return {firstName: firstName ?? '', lastName: lastName ?? ''};
+    }
+    if (login && Str.removeSMSDomain(login) === displayName) {
+        return {firstName: '', lastName: ''};
+    }
+
+    if (displayName) {
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        if (firstSpaceIndex === -1) {
+            return {firstName: displayName, lastName: ''};
+        }
+
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex).trim(),
+            lastName: displayName.substring(lastSpaceIndex).trim(),
+        };
+    }
+
+    return {firstName: '', lastName: ''};
+}
+
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -208,4 +275,6 @@ export {
     getFormattedStreet,
     getStreetLines,
     getEffectiveDisplayName,
+    createDisplayName,
+    extractFirstAndLastNameFromAvailableDetails
 };

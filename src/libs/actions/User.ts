@@ -10,6 +10,7 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,7 +24,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
-import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
 
@@ -716,7 +716,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetails.createDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
             },
         },

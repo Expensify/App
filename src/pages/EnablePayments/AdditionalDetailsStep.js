@@ -18,8 +18,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -194,7 +194,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
+                        defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
                     <InputWrapper
@@ -204,7 +204,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
+                        defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
                     <AddressForm
