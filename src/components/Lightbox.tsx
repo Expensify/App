@@ -4,7 +4,7 @@ import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Image from './Image';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from './MultiGestureCanvas';
-import type {ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
+import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
 import {getCanvasFitScale} from './MultiGestureCanvas/utils';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
@@ -63,8 +63,8 @@ function Lightbox({
 }: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
-    const [canvasSize, setCanvasSize] = useState<ContentSize>({width: 0, height: 0});
-    const isCanvasLoaded = canvasSize.width !== 0 && canvasSize.height !== 0;
+    const [canvasSize, setCanvasSize] = useState<CanvasSize>();
+    const isCanvasLoaded = canvasSize !== undefined;
     const updateCanvasSize = useCallback(
         ({
             nativeEvent: {
@@ -75,6 +75,7 @@ function Lightbox({
     );
 
     const [contentSize, setInternalContentSize] = useState<ContentSize | undefined>(() => cachedImageDimensions.get(uri));
+    const isContentLoaded = contentSize !== undefined;
     const setContentSize = useCallback(
         (newDimensions: ContentSize | undefined) => {
             setInternalContentSize(newDimensions);
@@ -83,10 +84,15 @@ function Lightbox({
         [uri],
     );
     const updateContentSize = useCallback(
-        ({nativeEvent: {width, height}}: ImageOnLoadEvent) => setContentSize({width: width * PixelRatio.get(), height: height * PixelRatio.get()}),
-        [setContentSize],
+        ({nativeEvent: {width, height}}: ImageOnLoadEvent) => {
+            if (contentSize !== undefined) {
+                return;
+            }
+
+            setContentSize({width: width * PixelRatio.get(), height: height * PixelRatio.get()});
+        },
+        [contentSize, setContentSize],
     );
-    const contentLoaded = contentSize != null;
 
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
@@ -125,7 +131,7 @@ function Lightbox({
     // because it's only going to be rendered after the fallback image is hidden.
     const shouldShowLightbox = !hasSiblingCarouselItems || !isFallbackVisible;
 
-    const isLoading = isActive && (!isCanvasLoaded || !contentLoaded);
+    const isLoading = isActive && (!isCanvasLoaded || !isContentLoaded);
 
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
@@ -151,7 +157,7 @@ function Lightbox({
         }
 
         if (isActive) {
-            if (contentLoaded && isFallbackVisible) {
+            if (isContentLoaded && isFallbackVisible) {
                 // We delay hiding the fallback image while image transformer is still rendering
                 setTimeout(() => {
                     setFallbackVisible(false);
@@ -166,7 +172,7 @@ function Lightbox({
             // Show fallback when the image goes out of focus or when the image is loading
             setFallbackVisible(true);
         }
-    }, [contentLoaded, hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
+    }, [isContentLoaded, hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
     return (
         <View

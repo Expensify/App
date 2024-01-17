@@ -44,7 +44,7 @@ type MultiGestureCanvasVariables = {
     stopAnimation: () => void;
     reset: (animated: boolean, callbackProp: () => void) => void;
     onTap: OnTapCallback | undefined;
-    onScaleChanged: OnScaleChangedCallback | undefined;
+    onScaleChanged?: OnScaleChangedCallback;
 };
 
 export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, MultiGestureCanvasVariables};
