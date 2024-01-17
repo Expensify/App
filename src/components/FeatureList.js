@@ -57,12 +57,8 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
             subtitleMuted
             illustration={illustration}
             illustrationBackgroundColor={illustrationBackgroundColor}
-            illustrationStyle={{
-                // Pixel perfect vertical alignment for this particular
-                // animation. Other lottie files might not need it.
-                marginTop: 12,
-                marginBottom: -20,
-            }}
+            // Pixel perfect vertical alignment for this particular animation. Other lottie files might not need it.
+            illustrationStyle={styles.featureListIllustrationStyle}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
