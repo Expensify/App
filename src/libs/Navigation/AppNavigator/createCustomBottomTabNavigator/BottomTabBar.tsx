@@ -26,7 +26,7 @@ function BottomTabBar() {
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
-        return topmostBottomTabRoute?.name;
+        return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
     return (

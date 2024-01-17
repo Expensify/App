@@ -47,7 +47,7 @@ const propTypes = {
     isUsingDefaultAvatar: PropTypes.bool,
 
     /** Size of Indicator */
-    size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
+    size: PropTypes.oneOf([CONST.AVATAR_SIZE.XLARGE, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: sourcePropTypes,
