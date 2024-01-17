@@ -54,7 +54,7 @@ function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, 
             {...restProps}
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}
-            scrollEventThrottle={scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            scrollEventThrottle={scrollEventThrottle ?? MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>
         </ScrollView>

@@ -1,6 +1,8 @@
-import React, {ComponentType, ReactNode, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,12 +15,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 import type UserOnyx from '@src/types/onyx/User';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {PolicyRoute, WithPolicyOnyxProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import type { PolicyRoute } from './withPolicy';
 
 type WorkspacePageWithSectionsOnyxProps = {
     /** From Onyx */
@@ -29,36 +33,38 @@ type WorkspacePageWithSectionsOnyxProps = {
     user: OnyxEntry<UserOnyx>;
 };
 
-type WorkspacePageWithSectionsProps = WorkspacePageWithSectionsOnyxProps & {
-    shouldSkipVBBACall: boolean;
 
-    /** The text to display in the header */
-    headerText: string;
+type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
+    WorkspacePageWithSectionsOnyxProps & {
+        shouldSkipVBBACall: boolean;
 
-    /** The route object passed to this page from the navigator */
-    route: PolicyRoute;
+        /** The text to display in the header */
+        headerText: string;
 
-    /** Main content of the page */
-    children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
+        /** The route object passed to this page from the navigator */
+        route: PolicyRoute;
 
-    /** Content to be added as fixed footer */
-    footer: ReactNode;
+        /** Main content of the page */
+        children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
 
-    /** The guides call task ID to associate with the workspace page being shown */
-    guidesCallTaskID: string;
+        /** Content to be added as fixed footer */
+        footer: ReactNode;
 
-    /** The route where we navigate when the user press the back button */
-    backButtonRoute: Route;
+        /** The guides call task ID to associate with the workspace page being shown */
+        guidesCallTaskID: string;
 
-    /** Option to use the default scroll view  */
-    shouldUseScrollView: boolean;
+        /** The route where we navigate when the user press the back button */
+        backButtonRoute: Route;
 
-    /** Option to show the loading page while the API is calling */
-    shouldShowLoading: boolean;
+        /** Option to use the default scroll view  */
+        shouldUseScrollView: boolean;
 
-    /** Policy values needed in the component */
-    policy: OnyxEntry<Policy>;
-};
+        /** Option to show the loading page while the API is calling */
+        shouldShowLoading: boolean;
+
+        /** Policy values needed in the component */
+        policy: OnyxEntry<Policy>;
+    };
 
 function fetchData(skipVBBACal?: boolean) {
     if (skipVBBACal) {
@@ -162,5 +168,5 @@ export default withPolicyAndFullscreenLoading(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-    })(WorkspacePageWithSections) as any,
+    })(WorkspacePageWithSections),
 );

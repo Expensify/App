@@ -20,10 +20,11 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
         >
-            {(hasVBA: boolean, policyID: string) => (
+
+            {(hasVBA?: boolean, policyID?: string) => (
                 <>
-                    {!hasVBA && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
-                    {hasVBA && <WorkspaceInvoicesVBAView policyID={policyID} />}
+                    {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
+                    {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
                 </>
             )}
         </WorkspacePageWithSections>
