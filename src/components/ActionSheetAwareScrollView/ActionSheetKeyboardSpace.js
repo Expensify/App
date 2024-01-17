@@ -1,7 +1,6 @@
 import React, {useContext, useState, useEffect, useCallback} from 'react';
 import Reanimated, {
     KeyboardState,
-    useAnimatedKeyboard,
     useAnimatedStyle,
     useDerivedValue,
     withSpring,
@@ -10,6 +9,7 @@ import Reanimated, {
     withSequence,
     withTiming,
     useSharedValue,
+    withDelay,
 } from 'react-native-reanimated';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,10 +22,16 @@ import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetA
 const useAnimatedKeyboard2 = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
+    const heightWhenOpened = useSharedValue(0);
 
     useKeyboardHandler({
         onStart: (e) => {
             "worklet";
+
+            // save the last height before dismiss
+            if (e.height === 0) {
+                heightWhenOpened.value = height.value;
+            }
 
             console.log("onStart", e, new Date().getTime());
 
@@ -57,7 +63,7 @@ const useAnimatedKeyboard2 = () => {
         },
     }, []);
 
-    return { state, height };
+    return { state, height, heightWhenOpened };
 };
 
 const config = {
@@ -130,7 +136,7 @@ function ActionSheetKeyboardSpace(props) {
         // we don't need to run any additional logic
         // it will always return 0 for idle state
         if (current.state === States.IDLE) {
-            console.log("TRANSITION #21");
+            console.log("TRANSITION #21", 0);
             return 0;
         }
 
@@ -178,12 +184,13 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     );
                 }
 
-                console.log("TRANSITION #4 -> return 0;")
+                console.log("TRANSITION #4 -> withSpring(0, config)")
                 return withSpring(0, config);
+                // return 0;
             }
 
             case States.POPOVER_CLOSED: {
-                console.log("TRANSITION #5");
+                console.log("TRANSITION #5 -> withSpring(0, config");
                 return withSpring(0, config, () => {
                     transition({
                         type: Actions.END_TRANSITION,
@@ -196,15 +203,15 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (Number.isNaN(previousElementOffset) || elementOffset > previousElementOffset) {
-                        console.log("TRANSITION #6");
+                        console.log("TRANSITION #6", elementOffset);
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
 
-                    console.log("TRANSITION #7");
+                    console.log("TRANSITION #7", Math.max(previousElementOffset, 0));
                     return withSpring(Math.max(previousElementOffset, 0), config);
                 }
 
-                console.log("TRANSITION #8");
+                console.log("TRANSITION #8 -> 0");
                 return 0;
             }
 
@@ -213,7 +220,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 // when item is higher than keyboard and bottom sheet
                 // we should just stay in place
                 if (elementOffset < 0) {
-                    console.log("TRANSITION #9");
+                    console.log("TRANSITION #9", invertedKeyboardHeight);
                     return invertedKeyboardHeight;
                 }
 
@@ -223,39 +230,68 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     const previousOffset = invertedKeyboardHeight + previousElementOffset;
 
                     if (Number.isNaN(previousOffset) || nextOffset > previousOffset) {
-                        console.log("TRANSITION #10");
+                        console.log("TRANSITION #10 -> ", nextOffset);
                         return withSpring(nextOffset, config);
                     }
 
-                    console.log("TRANSITION #11");
+                    console.log("TRANSITION #11 -> ", previousOffset);
                     return previousOffset;
                 }
 
-                console.log("TRANSITION #12");
+                console.log("TRANSITION #12 -> ", nextOffset);
                 return nextOffset;
             }
 
             case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN:
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN:
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
-                if (keyboard.state.value === KeyboardState.OPEN) {
-                    console.log("TRANSITION #13");
-                    return 0;
+                if (keyboard.state.value === KeyboardState.CLOSED) {
+                    console.log("TRANSITION #14 -> ", lastKeyboardHeight, new Date().getTime());
+                    return lastKeyboardHeight;
+                    // return 451;
+                    // return withTiming(lastKeyboardHeight, {duration: 250});
+                    return withSequence(
+                        // artificial delay for one frame, because `paddingBottom` in KAV is updated only in next frame
+                        withTiming(0, {
+                            duration: 8,
+                        }),
+                        withTiming(lastKeyboardHeight, {
+                            duration: 0,
+                        }),
+                    );
+                    // return lastKeyboardHeight;
+                    /*console.log("TRANSITION #13 ->", 0);
+                    return 0;*/
                 }
 
-                console.log("TRANSITION #14");
-                return lastKeyboardHeight;
+                /*console.log("TRANSITION #14 -> ", lastKeyboardHeight);
+                return lastKeyboardHeight;*/
+                console.log("TRANSITION #13 ->", 0);
+                return 0;
             }
 
             case States.KEYBOARD_POPOVER_CLOSED: {
-                transition({type: Actions.END_TRANSITION});
-                console.log("TRANSITION #15");
-                return invertedKeyboardHeight;
+                // transition({type: Actions.END_TRANSITION});
+                console.log("TRANSITION #15 -> ", lastKeyboardHeight, {keyboard: keyboard.height.value, lastKeyboardHeight});
+                if (keyboard.heightWhenOpened.value === keyboard.height.value) {
+                    return 0;
+                    /*return withSequence(
+                        // artificial delay for one frame, because `paddingBottom` in KAV is updated only in next frame
+                        withTiming(keyboard.heightWhenOpened.value - safeArea.bottom, {
+                            duration: 8,
+                        }),
+                        withTiming(0, {
+                            duration: 0,
+                        }),
+                    );*/
+                }
+
+                return keyboard.heightWhenOpened.value - safeArea.bottom;
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {
                 if (keyboard.state.value === KeyboardState.OPEN) {
-                    console.log("TRANSITION #16 -> if (keyboard.state.value === KeyboardState.OPEN) {");
+                    console.log("TRANSITION #16 -> 0");
                     return 0;
                 }
 
@@ -264,28 +300,27 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 console.log({elementOffset, keyboardHeight1: lastKeyboardHeight, state: keyboard.state.value, nextOffset});
 
                 if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
-                    console.log("TRANSITION #17");
+                    console.log("TRANSITION #17", lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                     return setAndTiming(lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                 }
 
-                console.log("TRANSITION #18");
+                console.log("TRANSITION #18 -> ", lastKeyboardHeight);
                 return lastKeyboardHeight;
             }
 
             case States.KEYBOARD_CLOSED_POPOVER: {
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
-                    console.log("rTRANSITION #19 -> return invertedKeyboardHeight;");
+                    console.log("TRANSITION #19 -> ", invertedKeyboardHeight);
                     return invertedKeyboardHeight;
                 }
 
                 if (keyboard.state.value === KeyboardState.CLOSED) {
-                    console.log("TRANSITION #1 -> keyboard.state.value === KeyboardState.CLOSED", {keyboardHeight, lastKeyboardHeight, elementOffset});
+                    console.log("TRANSITION #1 -> ", {keyboardHeight, lastKeyboardHeight, elementOffset});
                     return elementOffset + lastKeyboardHeight;
                 }
 
-                console.log("TRANSITION #2 -> return elementOffset; (374)", {keyboardHeight, lastKeyboardHeight, elementOffset});
-                console.log("from", elementOffset + lastKeyboardHeight, "to", elementOffset);
+                console.log("TRANSITION #2 -> ", {keyboardHeight, lastKeyboardHeight, elementOffset});
                 // return elementOffset;
                 // return 374;
                 return withSequence(
@@ -305,13 +340,14 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             }
 
             default:
-                console.log("TRANSITION #20");
+                console.log("TRANSITION #20 -> 0");
                 return 0;
         }
     });
 
-    const animatedStyle = useAnimatedStyle(() => console.log("translateY", translateY.value) || ({
-        transform: [{translateY: translateY.value}],
+    const animatedStyle = useAnimatedStyle(() => console.log("translateY", translateY.value, new Date().getTime()) || ({
+        // transform: [{translateY: translateY.value}],
+        paddingTop: translateY.value,
     }));
 
     return (
