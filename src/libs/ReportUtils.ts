@@ -640,37 +640,6 @@ function hasReportCommonPolicyMemberWithArray(report: Report, policyMembersAccou
 }
 
 /**
- * Checks if the supplied report belongs to workspace based on the provided params.
- */
-function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
-    return report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
-}
-
-/**
- * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID and policyMemberAccountIDs, if provided.
- */
-function sortReportsByLastRead(
-    reports: OnyxCollection<Report>,
-    reportMetadata: OnyxCollection<ReportMetadata>,
-    policyID?: string,
-    policyMemberAccountIDs: string[] = [],
-): Array<OnyxEntry<Report>> {
-    let reportsValues = Object.values(reports ?? {});
-    if (policyID) {
-        reportsValues = reportsValues.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
-    }
-
-    return reportsValues
-        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
-        .sort((a, b) => {
-            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
-            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
-
-            return aTime.valueOf() - bTime.valueOf();
-        });
-}
-
-/**
  * Whether the Money Request report is settled
  */
 function isSettled(reportID: string | undefined): boolean {
@@ -865,6 +834,40 @@ function isDM(report: OnyxEntry<Report>): boolean {
  */
 function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
     return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+}
+
+/**
+ * Checks if the supplied report belongs to workspace based on the provided params.
+ */
+function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
+    return (
+        isConciergeChatReport(report) ||
+        (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID)
+    );
+}
+
+/**
+ * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID and policyMemberAccountIDs, if provided.
+ */
+function sortReportsByLastRead(
+    reports: OnyxCollection<Report>,
+    reportMetadata: OnyxCollection<ReportMetadata>,
+    policyID?: string,
+    policyMemberAccountIDs: string[] = [],
+): Array<OnyxEntry<Report>> {
+    let reportsValues = Object.values(reports ?? {});
+    if (policyID) {
+        reportsValues = reportsValues.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
+    }
+
+    return reportsValues
+        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
+        .sort((a, b) => {
+            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
+            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
+
+            return aTime.valueOf() - bTime.valueOf();
+        });
 }
 
 /**
