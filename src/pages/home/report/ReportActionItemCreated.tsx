@@ -54,8 +54,8 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
 
     return (
         <OfflineWithFeedback
-            pendingAction={props.report?.pendingFields?.addWorkspaceRoom ?? props.report?.pendingFields?.createChat ?? undefined}
-            errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat ?? undefined}
+            pendingAction={props.report?.pendingFields?.addWorkspaceRoom ?? props.report?.pendingFields?.createChat}
+            errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
             needsOffscreenAlphaCompositing
