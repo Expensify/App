@@ -4,10 +4,9 @@ import type {NativeTouchEvent} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
-import type {ValueOf} from 'type-fest';
 import type {TransferMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
-import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams} from '@libs/API/parameters';
+import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -216,9 +215,7 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
     const paymentMethodIDKey =
         paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
 
-    type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>;
-
-    const parameters: TransferWalletBalanceParameters = {
+    const parameters: TransferWalletBalanceParams = {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 

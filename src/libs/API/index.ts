@@ -9,15 +9,7 @@ import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
-import type {
-    ApiRequestWithSideEffects,
-    ReadCommand,
-    ReadCommandParameters,
-    SideEffectRequestCommand,
-    SideEffectRequestCommandParameters,
-    WriteCommand,
-    WriteCommandParameters,
-} from './types';
+import type {ApiRequestWithSideEffects, ReadCommand, SideEffectRequestCommand, SideEffectRequestCommandParameters, WriteCommand, WriteCommandParameters} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -163,7 +155,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ReadCommandParameters[TCommand], onyxData: OnyxData = {}) {
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: SideEffectRequestCommandParameters[TCommand], onyxData: OnyxData = {}) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.

@@ -98,3 +98,5 @@ export type {default as UpdateCompanyInformationForBankAccountParams} from './Up
 export type {default as UpdatePersonalDetailsForWalletParams} from './UpdatePersonalDetailsForWalletParams';
 export type {default as VerifyIdentityParams} from './VerifyIdentityParams';
 export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams';
+export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
+export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
