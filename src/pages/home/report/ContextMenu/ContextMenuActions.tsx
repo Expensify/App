@@ -27,7 +27,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal, showContextMenu} from './ReportActionContextMenu';
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 
 /** Gets the HTML version of the message in an action */
 function getActionText(reportAction: OnyxEntry<ReportAction>): string {
@@ -57,6 +58,7 @@ type ShouldShow = (
     isPinnedChat: boolean,
     isUnreadChat: boolean,
     isOffline: boolean,
+    isMini: boolean,
 ) => boolean;
 
 type ContextMenuActionPayload = {
@@ -67,6 +69,9 @@ type ContextMenuActionPayload = {
     close: () => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    anchor?: MutableRefObject<HTMLElement | View | Text | null>;
+    checkIfContextMenuActive?: () => void;
+    event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -171,7 +176,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
-        icon: Expensicons.ChatBubble,
+        icon: Expensicons.ChatBubbleAdd,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
@@ -193,7 +198,77 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.subscribeToThread',
+        textTranslateKey: 'reportActionContextMenu.editAction',
+        icon: Expensicons.Pencil,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
+            if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                hideContextMenu(false);
+                const childReportID = reportAction?.childReportID ?? '0';
+                if (!childReportID) {
+                    const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
+                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
+                    Report.openReport(thread.reportID, userLogins, thread, reportAction?.reportActionID);
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
+                    return;
+                }
+                Report.openReport(childReportID);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+                return;
+            }
+            const editAction = () => {
+                if (!draftMessage) {
+                    Report.saveReportActionDraft(reportID, reportAction, getActionText(reportAction));
+                } else {
+                    Report.deleteReportActionDraft(reportID, reportAction);
+                }
+            };
+
+            if (closePopover) {
+                // Hide popover, then call editAction
+                hideContextMenu(false, editAction);
+                return;
+            }
+
+            // No popover to hide, call editAction immediately
+            editAction();
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.markAsUnread',
+        icon: Expensicons.Mail,
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Report.markCommentAsUnread(reportID, reportAction?.created);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.markAsRead',
+        icon: Expensicons.Mail,
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.readNewestAction(reportID);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: Expensicons.Bell,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
@@ -224,7 +299,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.unsubscribeFromThread',
+        textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.BellSlash,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) => {
             const childReportNotificationPreference = ReportUtils.getChildReportNotificationPreference(reportAction);
@@ -335,7 +410,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
     },
-
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
@@ -355,79 +429,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
-        },
-        getDescription: () => {},
-    },
-
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.markAsUnread',
-        icon: Expensicons.Mail,
-        successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
-        onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction?.created);
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }
-        },
-        getDescription: () => {},
-    },
-
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.markAsRead',
-        icon: Expensicons.Mail,
-        successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
-        onPress: (closePopover, {reportID}) => {
-            Report.readNewestAction(reportID);
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }
-        },
-        getDescription: () => {},
-    },
-
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.editAction',
-        icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
-            if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                hideContextMenu(false);
-                const childReportID = reportAction?.childReportID ?? '0';
-                if (!childReportID) {
-                    const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-                    Report.openReport(thread.reportID, userLogins, thread, reportAction?.reportActionID);
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-                    return;
-                }
-                Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
-                return;
-            }
-            const editAction = () => {
-                if (!draftMessage) {
-                    Report.saveReportActionDraft(reportID, reportAction, getActionText(reportAction));
-                } else {
-                    Report.deleteReportActionDraft(reportID, reportAction);
-                }
-            };
-
-            if (closePopover) {
-                // Hide popover, then call editAction
-                hideContextMenu(false, editAction);
-                return;
-            }
-
-            // No popover to hide, call editAction immediately
-            editAction();
         },
         getDescription: () => {},
     },
@@ -497,6 +498,31 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
 
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID));
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.menu',
+        icon: Expensicons.ThreeDots,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
+        onPress: (closePopover, {reportAction, reportID, event, anchor, selection, draftMessage, checkIfContextMenuActive}) => {
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+            const originalReport = ReportUtils.getReport(originalReportID);
+            showContextMenu(
+                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                event as GestureResponderEvent | MouseEvent,
+                selection,
+                anchor?.current as View | RNText | null,
+                reportID,
+                reportAction.reportActionID,
+                originalReportID,
+                draftMessage,
+                checkIfContextMenuActive,
+                checkIfContextMenuActive,
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
+            );
         },
         getDescription: () => {},
     },
