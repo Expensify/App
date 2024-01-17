@@ -1,14 +1,15 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, startOfDay, subYears} from 'date-fns';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import CONST from '@src/CONST';
-import {Report} from '@src/types/onyx';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {Report} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
+import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
+import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
 /**
@@ -28,6 +29,17 @@ function validateCardNumber(value: string): boolean {
         sum += intVal;
     }
     return sum % 10 === 0;
+}
+
+/**
+ * Validating that this is a valid address (PO boxes are not allowed)
+ */
+function isValidAddress(value: string): boolean {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
+        return false;
+    }
+
+    return !CONST.REGEX.PO_BOX.test(value);
 }
 
 /**
@@ -185,12 +197,68 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
 }
 
 /**
+ * Validate that given date is not in the past.
+ */
+function getDatePassedError(inputDate: string): string {
+    const currentDate = new Date();
+    const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
+
+    // If input date is not valid, return an error
+    if (!isValid(parsedDate)) {
+        return 'common.error.dateInvalid';
+    }
+
+    // Clear time for currentDate so comparison is based solely on the date
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (parsedDate < currentDate) {
+        return 'common.error.dateInvalid';
+    }
+
+    return '';
+}
+
+/**
  * Similar to backend, checks whether a website has a valid URL or not.
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
     const isLowerCase = url === url.toLowerCase();
     return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+}
+
+function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    const errors: Record<string, boolean> = {};
+
+    // Check that all required fields are filled
+    requiredFields.forEach((fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
+    if (!isValidAddress(identity.street)) {
+        errors.street = true;
+    }
+
+    if (!isValidZipCode(identity.zipCode)) {
+        errors.zipCode = true;
+    }
+
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
+        errors.dob = true;
+    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
+        errors.dobAge = true;
+    }
+
+    if (!isValidSSNLastFour(identity.ssnLast4)) {
+        errors.ssnLast4 = true;
+    }
+
+    return errors;
 }
 
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
@@ -239,6 +307,13 @@ function isValidRoutingNumber(routingNumber: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain any emojis
+ */
+function isValidCompanyName(name: string) {
+    return !name.match(CONST.REGEX.EMOJIS);
+}
+
+/**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
 function isValidDisplayName(name: string): boolean {
@@ -249,7 +324,8 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+    const hasAccentedChars = Boolean(name.match(CONST.REGEX.ACCENT_LATIN_CHARS));
+    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
 }
 
 /**
@@ -257,51 +333,6 @@ function isValidLegalName(name: string): boolean {
  */
 function isValidPersonName(value: string) {
     return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
-}
-
-/**
- * Validating that this is a valid address (PO boxes are not allowed)
- */
-function isValidAddress(value: string): boolean {
-    if (!isValidLegalName(value)) {
-        return false;
-    }
-
-    return !CONST.REGEX.PO_BOX.test(value);
-}
-
-function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors: Record<string, boolean> = {};
-
-    // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
-        if (isRequiredFulfilled(identity[fieldName])) {
-            return;
-        }
-        errors[fieldName] = true;
-    });
-
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
-    }
-
-    // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
-        errors.dob = true;
-    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
-        errors.dobAge = true;
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = true;
-    }
-
-    return errors;
 }
 
 /**
@@ -361,6 +392,27 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+/**
+ * Validates that the date and time are at least one minute in the future.
+ * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
+ * returns an object containing the error messages for the date and time
+ */
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+    if (!data) {
+        return {
+            dateValidationErrorKey: '',
+            timeValidationErrorKey: '',
+        };
+    }
+    const parsedInputData = parseISO(data);
+
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    return {
+        dateValidationErrorKey,
+        timeValidationErrorKey,
+    };
+};
 type ValuesType = Record<string, unknown>;
 
 /**
@@ -384,6 +436,7 @@ export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
+    isValidAddress,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -395,6 +448,7 @@ export {
     getFieldRequiredErrors,
     isValidUSPhone,
     isValidWebsite,
+    validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidRoutingNumber,
@@ -405,14 +459,15 @@ export {
     isValidRoomName,
     isValidTaxID,
     isValidValidateCode,
+    isValidCompanyName,
     isValidDisplayName,
     isValidLegalName,
-    isValidAddress,
-    validateIdentity,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    getDatePassedError,
     isValidRecoveryCode,
+    validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,
     isValidPersonName,
 };

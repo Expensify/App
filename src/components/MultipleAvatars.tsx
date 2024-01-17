@@ -1,10 +1,11 @@
 import React, {memo, useMemo} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
-import {AvatarSource} from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -80,6 +81,7 @@ function MultipleAvatars({
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
@@ -101,7 +103,7 @@ function MultipleAvatars({
 
     const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
 
-    let avatarContainerStyles = StyleUtils.getContainerStyles(styles, size, isInReportAction);
+    let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
@@ -141,7 +143,7 @@ function MultipleAvatars({
     if (icons.length === 1 && !shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={icons[0].id}
+                accountID={Number(icons[0].id)}
                 icon={icons[0]}
                 fallbackUserDetails={{
                     displayName: icons[0].name,
@@ -151,7 +153,6 @@ function MultipleAvatars({
                     <Avatar
                         source={icons[0].source}
                         size={size}
-                        fill={theme.iconSuccessFill}
                         name={icons[0].name}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}
@@ -161,7 +162,7 @@ function MultipleAvatars({
         );
     }
 
-    const oneAvatarSize = StyleUtils.getAvatarStyle(theme, size);
+    const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3;
 
@@ -183,7 +184,7 @@ function MultipleAvatars({
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
                                 key={`stackedAvatars-${icon.id}`}
-                                accountID={icon.id}
+                                accountID={Number(icon.id)}
                                 icon={icon}
                                 fallbackUserDetails={{
                                     displayName: icon.name,
@@ -202,7 +203,6 @@ function MultipleAvatars({
                                             StyleUtils.getAvatarBorderWidth(size),
                                         ]}
                                         source={icon.source ?? fallbackIcon}
-                                        fill={theme.iconSuccessFill}
                                         size={size}
                                         name={icon.name}
                                         type={icon.type}
@@ -256,7 +256,7 @@ function MultipleAvatars({
                 <View style={avatarContainerStyles}>
                     <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[0].type) : {}]}>
                         <UserDetailsTooltip
-                            accountID={icons[0].id}
+                            accountID={Number(icons[0].id)}
                             icon={icons[0]}
                             fallbackUserDetails={{
                                 displayName: icons[0].name,
@@ -266,7 +266,6 @@ function MultipleAvatars({
                             <View>
                                 <Avatar
                                     source={icons[0].source ?? fallbackIcon}
-                                    fill={theme.iconSuccessFill}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={icons[0].name}
@@ -278,7 +277,7 @@ function MultipleAvatars({
                         <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
-                                    accountID={icons[1].id}
+                                    accountID={Number(icons[1].id)}
                                     icon={icons[1]}
                                     fallbackUserDetails={{
                                         displayName: icons[1].name,
@@ -287,7 +286,6 @@ function MultipleAvatars({
                                     <View>
                                         <Avatar
                                             source={icons[1].source ?? fallbackIcon}
-                                            fill={theme.iconSuccessFill}
                                             size={avatarSize}
                                             imageStyles={[singleAvatarStyle]}
                                             name={icons[1].name}

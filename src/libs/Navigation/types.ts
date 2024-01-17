@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type NAVIGATORS from '@src/NAVIGATORS';
+import type {Route as Routes} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -45,44 +46,46 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.SETTINGS.PROFILE]: undefined;
-    [SCREENS.SETTINGS.PRONOUNS]: undefined;
-    [SCREENS.SETTINGS.DISPLAY_NAME]: undefined;
-    [SCREENS.SETTINGS.TIMEZONE]: undefined;
-    [SCREENS.SETTINGS.TIMEZONE_SELECT]: undefined;
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_INITIAL]: undefined;
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_LEGAL_NAME]: undefined;
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_DATE_OF_BIRTH]: undefined;
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS]: undefined;
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS_COUNTRY]: undefined;
-    [SCREENS.SETTINGS.CONTACT_METHODS]: undefined;
-    [SCREENS.SETTINGS.CONTACT_METHOD_DETAILS]: undefined;
-    [SCREENS.SETTINGS.NEW_CONTACT_METHOD]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES_PRIORITY_MODE]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES_LANGUAGE]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES_THEME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: undefined;
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: undefined;
-    [SCREENS.SETTINGS.WALLET]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET_DOMAIN_CARD]: undefined;
-    [SCREENS.SETTINGS.WALLET_REPORT_VIRTUAL_CARD_FRAUD]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_ACTIVATE]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: undefined;
-    [SCREENS.SETTINGS.WALLET_TRANSFER_BALANCE]: undefined;
-    [SCREENS.SETTINGS.WALLET_CHOOSE_TRANSFER_ACCOUNT]: undefined;
-    [SCREENS.SETTINGS.WALLET_ENABLE_PAYMENTS]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: undefined;
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: undefined;
+    [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
+    [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
-    [SCREENS.SETTINGS.STATUS]: undefined;
-    [SCREENS.SETTINGS.STATUS_SET]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
     [SCREENS.WORKSPACE.SETTINGS]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
@@ -124,7 +127,7 @@ type SettingsNavigatorParamList = {
 };
 
 type NewChatNavigatorParamList = {
-    [SCREENS.NEW_CHAT_ROOT]: undefined;
+    [SCREENS.NEW_CHAT.ROOT]: undefined;
 };
 
 type SearchNavigatorParamList = {
@@ -212,6 +215,18 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
+        iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
+        iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
     [SCREENS.MONEY_REQUEST.MERCHANT]: {
         iouType: string;
         reportID: string;
@@ -222,12 +237,6 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
     [SCREENS.MONEY_REQUEST.WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: number;
-    };
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
         iouType: string;
         transactionID: string;
         waypointIndex: string;
@@ -317,6 +326,10 @@ type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: undefined;
 };
 
+type ProcessMoneyRequestHoldNavigatorParamList = {
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+};
+
 type PrivateNotesNavigatorParamList = {
     [SCREENS.PRIVATE_NOTES.VIEW]: {
         reportID: string;
@@ -332,10 +345,13 @@ type PrivateNotesNavigatorParamList = {
     };
 };
 
+type LeftModalNavigatorParamList = {
+    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
@@ -355,6 +371,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: NavigatorScreenParams<FlagCommentNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: NavigatorScreenParams<EditRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SIGN_IN]: NavigatorScreenParams<SignInNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
@@ -362,18 +379,19 @@ type RightModalNavigatorParamList = {
 type PublicScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
+        email?: string;
+        error?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
+        exitTo?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
     };
     [SCREENS.UNLINK_LOGIN]: {
-        accountID: string;
-        validateCode: string;
+        accountID?: string;
+        validateCode?: string;
     };
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
@@ -398,16 +416,10 @@ type AuthScreensParamList = {
         reportID: string;
         source: string;
     };
-    [CONST.DEMO_PAGES.SAASTR]: {
-        name: string;
-    };
-    [CONST.DEMO_PAGES.SBE]: {
-        name: string;
-    };
     [SCREENS.NOT_FOUND]: undefined;
+    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [CONST.DEMO_PAGES.MONEY2020]: undefined;
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
@@ -421,6 +433,7 @@ export type {
     NavigationStateRoute,
     NavigationRoot,
     AuthScreensParamList,
+    LeftModalNavigatorParamList,
     RightModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,

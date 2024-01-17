@@ -4,17 +4,16 @@ import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
-import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function BaseModal(
     {
@@ -44,6 +43,7 @@ function BaseModal(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -133,9 +133,7 @@ function BaseModal(
         hideBackdrop,
     } = useMemo(
         () =>
-            getModalStyles(
-                theme,
-                styles,
+            StyleUtils.getModalStyles(
                 type,
                 {
                     windowWidth,
@@ -146,7 +144,7 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth, styles],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -183,7 +181,7 @@ function BaseModal(
             onModalHide={hideModal}
             onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
-            onSwipeComplete={onClose}
+            onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}

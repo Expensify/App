@@ -1,11 +1,13 @@
-import {createMaterialTopTabNavigator, MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
-import {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
+import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorOnyxProps = {
     selectedTab: OnyxEntry<string>;
@@ -19,6 +21,9 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
         /** Name of the selected tab */
         selectedTab?: string;
 
+        /** A function triggered when a tab has been selected */
+        onTabSelected?: (newIouType: string) => void;
+
         screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
     };
 
@@ -27,7 +32,7 @@ export const TopTab = createMaterialTopTabNavigator();
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
-function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...rest}: OnyxTabNavigatorProps) {
+function OnyxTabNavigator({id, selectedTab = '', children, onTabSelected = () => {}, screenListeners, ...rest}: OnyxTabNavigatorProps) {
     return (
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -43,9 +48,11 @@ function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...r
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index]);
+                    onTabSelected(routeNames[index]);
                 },
                 ...(screenListeners ?? {}),
             }}
+            screenOptions={defaultScreenOptions}
         >
             {children}
         </TopTab.Navigator>

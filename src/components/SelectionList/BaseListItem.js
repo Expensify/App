@@ -7,9 +7,9 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import {baseListItemPropTypes} from './selectionListPropTypes';
@@ -24,13 +24,27 @@ function BaseListItem({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
+    rightHandSideComponent,
     keyForList,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
+
+    const rightHandSideComponentRender = () => {
+        if (canSelectMultiple || !rightHandSideComponent) {
+            return null;
+        }
+
+        if (typeof rightHandSideComponent === 'function') {
+            return rightHandSideComponent(item);
+        }
+
+        return rightHandSideComponent;
+    };
 
     return (
         <OfflineWithFeedback
@@ -43,12 +57,12 @@ function BaseListItem({
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                testID={keyForList}
+                nativeID={keyForList}
             >
                 <View
                     style={[
@@ -61,10 +75,13 @@ function BaseListItem({
                     ]}
                 >
                     {canSelectMultiple && (
-                        <View style={StyleUtils.getCheckboxPressableStyle()}>
+                        <View
+                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            style={StyleUtils.getCheckboxPressableStyle()}
+                        >
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(theme, 20),
+                                    StyleUtils.getCheckboxContainerStyle(20),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,
@@ -85,12 +102,19 @@ function BaseListItem({
                     )}
                     <ListItem
                         item={item}
-                        isFocused={isFocused}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkTextBold,
+                            styles.pre,
+                            item.alternateText ? styles.mb1 : null,
+                        ]}
+                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
                     />
-                    {!canSelectMultiple && item.isSelected && (
+                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -103,6 +127,7 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
+                    {rightHandSideComponentRender()}
                 </View>
                 {Boolean(item.invitedSecondaryLogin) && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>

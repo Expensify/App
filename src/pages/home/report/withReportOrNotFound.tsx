@@ -1,13 +1,15 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import {RouteProp} from '@react-navigation/native';
-import React, {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {RouteProp} from '@react-navigation/native';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -39,7 +41,7 @@ export default function (
                 const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
 
                 const shouldShowNotFoundPage =
-                    !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, {});
+                    !Object.entries(props.report ?? {}).length || !props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas);
 
                 // If the content was shown but it's not anymore that means the report was deleted and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.

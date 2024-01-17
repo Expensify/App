@@ -1,5 +1,7 @@
-import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
-import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
+import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
+import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import {StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -44,6 +46,8 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         children: props.children,
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
+        // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
+        getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
     });
 
     const stateToRender = useMemo(() => {

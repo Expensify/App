@@ -1,17 +1,28 @@
 import Str from 'expensify-common/lib/str';
-import {SvgProps} from 'react-native-svg';
-import {ValueOf} from 'type-fest';
+import _ from 'lodash';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import Login from '@src/types/onyx/Login';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type Login from '@src/types/onyx/Login';
+import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
-type AvatarSource = React.FC<SvgProps> | string;
+type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
+
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),
+});
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -69,11 +80,18 @@ function hashText(text: string, range: number): number {
 }
 
 /**
+ * Generate a random accountID base on searchValue.
+ */
+function generateAccountID(searchValue: string): number {
+    return hashText(searchValue, 2 ** 32);
+}
+
+/**
  * Helper method to return the default avatar associated with the given accountID
  * @param [accountID]
  * @returns
  */
-function getDefaultAvatar(accountID = -1): React.FC<SvgProps> {
+function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     if (accountID <= 0) {
         return FallbackAvatar;
     }
@@ -83,22 +101,35 @@ function getDefaultAvatar(accountID = -1): React.FC<SvgProps> {
 
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
-    const accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
 
+    // When creating a chat, we generate an avatar using an ID and the backend response will modify the ID to the actual user ID.
+    // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
+    let accountIDHashBucket: AvatarRange;
+    if (avatarURL) {
+        const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
+        const lastDigit = match && parseInt(match[2], 10);
+        accountIDHashBucket = lastDigit as AvatarRange;
+    } else {
+        accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
+    }
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
 
 /**
  * Helper method to return default avatar URL associated with login
  */
-function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false): string {
+function getDefaultAvatarURL(accountID: string | number = ''): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
+    // To ensure that the avatar remains unchanged and matches the one returned by the backend,
+    // utilize an optimistic ID generated from the email instead of directly using the user ID.
+    const email = allPersonalDetails?.[accountID]?.login;
+    const originalOptimisticAccountID = email ? generateAccountID(email) : accountID;
 
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const accountIDHashBucket = (Number(accountID) % (isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT)) + 1;
-    const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
+    const accountIDHashBucket = (Number(originalOptimisticAccountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
+    const avatarPrefix = `default-avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
 }
@@ -107,7 +138,7 @@ function getDefaultAvatarURL(accountID: string | number = '', isNewDot = false):
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param avatarSource - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
+function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
     if (typeof avatarSource === 'string') {
         if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
@@ -120,7 +151,7 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
     }
 
     if (!avatarSource) {
-        // If null source, we should also use a default avatar
+        // If source is undefined, we should also use a default avatar
         return true;
     }
 
@@ -134,8 +165,8 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID) : avatarSource;
+function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource) : avatarSource;
 }
 
 /**
@@ -146,7 +177,7 @@ function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource
  * @param accountID - the accountID of the user
  */
 function getAvatarUrl(avatarURL: string, accountID: number): string {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID, true) : avatarURL;
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID) : avatarURL;
 }
 
 /**
@@ -185,13 +216,6 @@ function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): Ava
 }
 
 /**
- * Generate a random accountID base on searchValue.
- */
-function generateAccountID(searchValue: string): number {
-    return hashText(searchValue, 2 ** 32);
-}
-
-/**
  * Gets the secondary phone login number
  */
 function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
@@ -200,18 +224,18 @@ function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | unde
 }
 
 export {
-    hashText,
-    hasLoginListError,
-    hasLoginListInfo,
-    getLoginListBrickRoadIndicator,
-    getDefaultAvatar,
-    getDefaultAvatarURL,
-    isDefaultAvatar,
+    generateAccountID,
     getAvatar,
     getAvatarUrl,
-    getSmallSizeAvatar,
+    getDefaultAvatar,
+    getDefaultAvatarURL,
     getFullSizeAvatar,
-    generateAccountID,
+    getLoginListBrickRoadIndicator,
     getSecondaryPhoneLogin,
+    getSmallSizeAvatar,
+    hasLoginListError,
+    hasLoginListInfo,
+    hashText,
+    isDefaultAvatar,
 };
 export type {AvatarSource};

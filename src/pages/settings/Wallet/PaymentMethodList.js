@@ -16,14 +16,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -207,8 +206,8 @@ function PaymentMethodList({
     shouldEnableScroll,
     style,
 }) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -266,14 +265,13 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? StyleUtils.getIconFillColor(theme, CONST.BUTTON_STATES.PRESSED) : null,
-                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(theme, CONST.BUTTON_STATES.PRESSED)] : null,
+                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress, styles, theme]);
+    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -289,10 +287,11 @@ function PaymentMethodList({
                 title={translate('walletPage.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={styles.paymentMethod}
+                ref={buttonRef}
             />
         ),
 
-        [onPress, styles.paymentMethod, translate],
+        [onPress, styles.paymentMethod, translate, buttonRef],
     );
 
     /**
@@ -318,7 +317,7 @@ function PaymentMethodList({
                     description={item.description}
                     icon={item.icon}
                     disabled={item.disabled}
-                    iconFill={item.iconFill}
+                    displayInDefaultIconColor
                     iconHeight={item.iconHeight || item.iconSize}
                     iconWidth={item.iconWidth || item.iconSize}
                     iconStyles={item.iconStyles}
@@ -338,7 +337,7 @@ function PaymentMethodList({
 
     return (
         <>
-            <View style={[style, {minHeight: variables.optionRowHeight}]}>
+            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount && 1)) * variables.optionRowHeight}]}>
                 <FlashList
                     estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}
@@ -346,10 +345,10 @@ function PaymentMethodList({
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
                     onContentSizeChange={onListContentSizeChange}
                     scrollEnabled={shouldEnableScroll}
                 />
+                {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>
             {shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>

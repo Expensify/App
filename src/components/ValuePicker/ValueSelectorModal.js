@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -26,6 +26,9 @@ const propTypes = {
 
     /** Function to call when the user closes the modal */
     onClose: PropTypes.func,
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,14 +37,15 @@ const defaultProps = {
     label: '',
     onClose: () => {},
     onItemSelected: () => {},
+    shouldShowTooltips: true,
 };
 
-function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected, shouldShowTooltips}) {
     const styles = useThemeStyles();
     const [sectionsData, setSectionsData] = useState([]);
 
     useEffect(() => {
-        const itemsData = _.map(items, (item) => ({value: item.value, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
+        const itemsData = _.map(items, (item) => ({value: item.value, alternateText: item.description, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
         setSectionsData(itemsData);
     }, [items, selectedItem]);
 
@@ -69,6 +73,7 @@ function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onI
                     onSelectRow={onItemSelected}
                     initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation
+                    shouldShowTooltips={shouldShowTooltips}
                 />
             </ScreenWrapper>
         </Modal>

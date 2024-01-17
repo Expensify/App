@@ -1,12 +1,12 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import {AvatarType} from '@src/types/onyx/OnyxCommon';
+import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -50,15 +50,16 @@ type SubscriptAvatarProps = {
 function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = StyleUtils.getContainerStyles(styles, size);
+    const containerStyle = StyleUtils.getContainerStyles(size);
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={mainAvatar.id ?? -1}
+                accountID={Number(mainAvatar.id ?? -1)}
                 icon={mainAvatar}
             >
                 <View>
@@ -74,7 +75,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
             </UserDetailsTooltip>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={secondaryAvatar.id ?? -1}
+                accountID={Number(secondaryAvatar.id ?? -1)}
                 icon={secondaryAvatar}
             >
                 <View
@@ -90,7 +91,6 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
                         ]}
                         source={secondaryAvatar.source}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                        fill={theme.iconSuccessFill}
                         name={secondaryAvatar.name}
                         type={secondaryAvatar.type}
                         fallbackIcon={secondaryAvatar.fallbackIcon}
