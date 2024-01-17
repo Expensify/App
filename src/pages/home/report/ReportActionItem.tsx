@@ -152,8 +152,7 @@ function ReportActionItem({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const blockedFromConcierge = useBlockedFromConcierge();
-    // TODO need to fix createOnyxContext to report types as OnyxCollection if provided key is collection
-    const reportActionDrafts = useReportActionsDrafts() as OnyxCollection<OnyxTypes.ReportActionsDrafts>;
+    const reportActionDrafts = useReportActionsDrafts();
     const draftMessage = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -742,7 +741,7 @@ function ReportActionItem({
                                 onClose={() => ReportActions.clearReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
-                                    draftMessage !== undefined ? undefined : action.pendingAction || (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
+                                    draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
                                 errors={action.errors}

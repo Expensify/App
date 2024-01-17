@@ -27,7 +27,7 @@ export default function () {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<Record<string, ReportActionsDrafts>>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDraft]) => {
                     if (typeof reportActionDraft !== 'string') {
                         return;
@@ -47,6 +47,7 @@ export default function () {
 
                     // If newReportActionsDrafts[newOnyxKey] isn't set, fall back on the migrated draft if there is one
                     const currentActionsDrafts = newReportActionsDrafts[newOnyxKey] ?? allReportActionsDrafts[newOnyxKey];
+
                     newReportActionsDrafts[newOnyxKey] = {
                         ...currentActionsDrafts,
                         [reportActionID]: reportActionDraft,
