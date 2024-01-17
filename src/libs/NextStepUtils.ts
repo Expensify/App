@@ -59,7 +59,7 @@ type BuildNextStepParameters = {
  */
 function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
     const {
-        statusNum = CONST.REPORT.STATUS.OPEN,
+        statusNum = CONST.REPORT.STATUS_NUM.OPEN,
         // TODO: Clarify default value
         isPreventSelfApprovalEnabled = false,
         ownerAccountID = -1,
@@ -74,7 +74,7 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
 
     switch (statusNum) {
         // Generates an optimistic nextStep once a report has been opened
-        case CONST.REPORT.STATUS.OPEN:
+        case CONST.REPORT.STATUS_NUM.OPEN:
             // Self review
             optimisticNextStep = {
                 type,
@@ -143,7 +143,7 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
             break;
 
         // Generates an optimistic nextStep once a report has been submitted
-        case CONST.REPORT.STATUS.SUBMITTED:
+        case CONST.REPORT.STATUS_NUM.SUBMITTED:
             // Self review & another reviewer
             optimisticNextStep = {
                 type,
@@ -199,7 +199,7 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS.APPROVED:
+        case CONST.REPORT.STATUS_NUM.APPROVED:
             // Self review
             optimisticNextStep = {
                 type,
@@ -238,7 +238,7 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
             break;
 
         // Generates an optimistic nextStep once a report has been paid
-        case CONST.REPORT.STATUS.REIMBURSED:
+        case CONST.REPORT.STATUS_NUM.REIMBURSED:
             // Paid with wallet
             optimisticNextStep = {
                 type,

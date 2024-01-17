@@ -60,7 +60,7 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
             beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS.OPEN;
+                report.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
             });
 
             test('self review', () => {
@@ -150,7 +150,7 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been submitted', () => {
             beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS.SUBMITTED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
             });
 
             test('self review', () => {
@@ -246,7 +246,7 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
             beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS.APPROVED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
             });
 
             test('self review', () => {
@@ -293,7 +293,7 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been paid', () => {
             beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS.REIMBURSED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
             });
 
             test('paid with wallet', () => {
