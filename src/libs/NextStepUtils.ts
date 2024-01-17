@@ -149,7 +149,11 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
                 });
             }
 
-            // TODO add "This report may be selected at random for manual approval."
+            if (isOwner && policy.isAutoApprovalEnabled) {
+                optimisticNextStep.message?.push({
+                    text: ' This report may be selected at random for manual approval.',
+                });
+            }
 
             // Prevented self submitting
             if (isPreventSelfApprovalEnabled && isSelfApproval) {
