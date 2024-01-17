@@ -140,7 +140,6 @@ let lastVisitedPath: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.LAST_VISITED_PATH,
     callback: (value) => {
-         // When signed out, val is undefined
          if (!value) {
             return;
         }
