@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import type DisplayNamesProps from './types';
 
@@ -48,12 +49,12 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
-            style={[textStyles, styles.pRelative, numberOfLines === 1 ? styles.noWrap : {}]}
+            style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
         >
             {shouldUseFullTitle
-                ? fullTitle
+                ? ReportUtils.formatReportLastMessageText(fullTitle)
                 : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
