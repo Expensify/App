@@ -221,9 +221,9 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
-                    ...(oldLoginData ?? {}),
+                    ...oldLoginData,
                     errorFields: {
-                        ...(oldLoginData?.errorFields ?? {}),
+                        ...oldLoginData?.errorFields,
                         deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
