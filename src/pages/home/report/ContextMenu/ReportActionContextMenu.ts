@@ -36,7 +36,7 @@ type ShowContextMenu = (
 
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback: OnHideCallback) => void;
+    hideContextMenu: (callback?: OnHideCallback) => void;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
@@ -178,4 +178,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuAnchor};
+export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};
