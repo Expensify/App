@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
-import {isEmpty} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -29,6 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PaymentType} from '@src/types/onyx/OriginalMessage';
 import type {MileageRate} from '@src/types/onyx/Policy';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -42,6 +42,15 @@ import Switch from './Switch';
 import Text from './Text';
 import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
+
+type Option = Partial<ReportUtils.OptionData>;
+
+type CategorySection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    indexOffset: number;
+    data: Option[];
+};
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -69,7 +78,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         onConfirm?: (selectedParticipants: Participant[]) => void;
 
         /** Callback to parent modal to send money */
-        onSendMoney?: (paymentMethod: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => void;
+        onSendMoney?: (paymentMethod: PaymentType) => void;
 
         /** Callback to inform a participant is selected */
         onSelectParticipant?: (option: Participant) => void;
@@ -155,11 +164,14 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         /** A flag for verifying that the current report is a sub-report of a workspace chat */
         isPolicyExpenseChat?: boolean;
 
+        /** Whether there is smartscan failed */
         hasSmartScanFailed?: boolean;
 
+        /** ID of the report action  */
         reportActionID?: string;
 
-        transaction: OnyxTypes.Transaction;
+        /** Transaction object */
+        transaction?: OnyxTypes.Transaction;
     };
 
 function MoneyRequestConfirmationList({
@@ -171,7 +183,7 @@ function MoneyRequestConfirmationList({
     iouTag = '',
     iouIsBillable = false,
     onToggleBillable = () => {},
-    payeePersonalDetails = null,
+    payeePersonalDetails,
     canModifyParticipants = false,
     isReadOnly = false,
     bankAccountRoute = '',
@@ -245,7 +257,7 @@ function MoneyRequestConfirmationList({
     // A flag for showing the billable field
     const shouldShowBillable = !policy?.disabledFields?.defaultBillable ?? true;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction ?? null);
     const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
         ? translate('common.tbd')
@@ -273,7 +285,7 @@ function MoneyRequestConfirmationList({
             return false;
         }
 
-        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
+        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction ?? null)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -310,7 +322,7 @@ function MoneyRequestConfirmationList({
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 calculatedIouAmount > 0 ? CurrencyUtils.convertToDisplayString(calculatedIouAmount, iouCurrencyCode) : '',
-                // TODO: Remove assertion after OptionsListUtils will be migrated
+                // TODO: Remove the assertion once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
             ) as Participant[];
         },
         [iouAmount, iouCurrencyCode],
@@ -346,7 +358,7 @@ function MoneyRequestConfirmationList({
     const payeePersonalDetailsMemo = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
     const canModifyParticipantsValue = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
 
-    const optionSelectorSections = useMemo(() => {
+    const optionSelectorSections: CategorySection[] = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipants.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
@@ -445,17 +457,17 @@ function MoneyRequestConfirmationList({
      * Navigate to report details or profile of selected user
      */
     const navigateToReportOrUserDetail = (option: Participant | OnyxTypes.Report) => {
-        if ('accountID' in option) {
+        if ('accountID' in option && option.accountID) {
             const activeRoute = Navigation.getActiveRouteWithoutParams();
 
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
-        } else if (option.reportID) {
+        } else if ('reportID' in option && option.reportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID));
         }
     };
 
     const confirm = useCallback(
-        (paymentMethod: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => {
+        (paymentMethod: PaymentType) => {
             if (selectedParticipantsMemo.length === 0) {
                 return;
             }
@@ -480,7 +492,7 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
+                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
@@ -540,7 +552,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_event, value) => confirm(value)}
+                onPress={(_, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
@@ -574,7 +586,7 @@ function MoneyRequestConfirmationList({
         translate,
     ]);
 
-    const receiptData = ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename);
+    const receiptData = ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename);
     return (
         // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
         <OptionsSelector
@@ -591,7 +603,7 @@ function MoneyRequestConfirmationList({
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipantsValue ? styles.hoveredComponentBG : {}}
-            footerContent={(!isEmpty(iou?.id) || isEditingSplitBill) && footerContent}
+            footerContent={(!!iou?.id || isEditingSplitBill) && footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
         >
@@ -626,11 +638,11 @@ function MoneyRequestConfirmationList({
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(iouType, reportID));
                     }}
-                    style={{...styles.moneyRequestMenuItem, ...styles.mt2}}
+                    style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
                 />
             )}
             <MenuItemWithTopDescription
@@ -662,7 +674,8 @@ function MoneyRequestConfirmationList({
                     {shouldShowDate && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouCreated ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+                            title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
                             description={translate('common.date')}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
@@ -675,8 +688,8 @@ function MoneyRequestConfirmationList({
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction ?? null) ? translate('common.error.enterDate') : ''}
                         />
                     )}
                     {isDistanceRequest && (
@@ -707,8 +720,12 @@ function MoneyRequestConfirmationList({
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={
+                                shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))
+                                    ? translate('common.error.enterMerchant')
+                                    : ''
+                            }
                         />
                     )}
                     {shouldShowCategories && (
@@ -747,7 +764,7 @@ function MoneyRequestConfirmationList({
                             style={styles.moneyRequestMenuItem}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy?.requiresTag) ? translate('common.required') : ''}
+                            rightLabel={canUseViolations && !!policy?.requiresTag ? translate('common.required') : ''}
                         />
                     )}
 

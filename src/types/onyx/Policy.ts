@@ -92,10 +92,13 @@ type Policy = {
     /** Whether tax tracking enabled for policy */
     isTaxTrackingEnabled?: boolean;
 
+    /** List of fields which should disabled for the policy */
     disabledFields?: Record<string, boolean>;
 
+    /** Whether or not the policy requires categories */
     requiresCategory?: boolean;
 
+    /** Whether or not the policy requires tags */
     requiresTag?: boolean;
 };
 

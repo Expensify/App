@@ -8,8 +8,10 @@ type PolicyTaxRate = {
     /** Whether the tax is disabled */
     isDisabled?: boolean;
 
+    /** Default policy tax ID */
     defaultExternalID: string;
 
+    /** List of tax names and values */
     taxes: PolicyTaxRates;
 };
 
