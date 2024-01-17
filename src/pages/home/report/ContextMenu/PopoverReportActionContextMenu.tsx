@@ -1,23 +1,45 @@
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {Dimensions} from 'react-native';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
+import type {ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
-function PopoverReportActionContextMenu(_props, ref) {
+type ContextMenuAnchorCallback = (x: number, y: number) => void;
+
+type ContextMenuAnchor = {measureInWindow: (callback: ContextMenuAnchorCallback) => void};
+
+type Location = {
+    x: number;
+    y: number;
+};
+
+function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
+    if ('nativeEvent' in event) {
+        return event.nativeEvent;
+    }
+    return event;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
-    const typeRef = useRef(undefined);
-    const reportActionRef = useRef({});
+    const typeRef = useRef<ContextMenuType>();
+    const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef(undefined);
+    const reportActionDraftMessageRef = useRef<string>();
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -41,11 +63,11 @@ function PopoverReportActionContextMenu(_props, ref) {
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
-    const contentRef = useRef(null);
-    const anchorRef = useRef(null);
-    const dimensionsEventListener = useRef(null);
-    const contextMenuAnchorRef = useRef(null);
-    const contextMenuTargetNode = useRef(null);
+    const contentRef = useRef<View>(null);
+    const anchorRef = useRef<View | HTMLDivElement>(null);
+    const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
+    const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
+    const contextMenuTargetNode = useRef<HTMLElement | null>(null);
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
@@ -55,16 +77,11 @@ function PopoverReportActionContextMenu(_props, ref) {
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
 
-    /**
-     * Get the Context menu anchor position
-     * We calculate the achor coordinates from measureInWindow async method
-     *
-     * @returns {Promise<Object>}
-     */
+    /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
         () =>
-            new Promise((resolve) => {
-                if (contextMenuAnchorRef.current && _.isFunction(contextMenuAnchorRef.current.measureInWindow)) {
+            new Promise<Location>((resolve) => {
+                if (contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
                     contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
                 } else {
                     resolve({x: 0, y: 0});
@@ -73,9 +90,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         [],
     );
 
-    /**
-     * This gets called on Dimensions change to find the anchor coordinates for the action context menu.
-     */
+    /** This gets called on Dimensions change to find the anchor coordinates for the action context menu. */
     const measureContextMenuAnchorPosition = useCallback(() => {
         if (!isPopoverVisible) {
             return;
@@ -87,8 +102,8 @@ function PopoverReportActionContextMenu(_props, ref) {
             }
 
             popoverAnchorPosition.current = {
-                horizontal: cursorRelativePosition.horizontal + x,
-                vertical: cursorRelativePosition.vertical + y,
+                horizontal: cursorRelativePosition.current.horizontal + x,
+                vertical: cursorRelativePosition.current.vertical + y,
             };
         });
     }, [isPopoverVisible, getContextMenuMeasuredLocation]);
@@ -104,38 +119,34 @@ function PopoverReportActionContextMenu(_props, ref) {
         };
     }, [measureContextMenuAnchorPosition]);
 
-    /**
-     * Whether Context Menu is active for the Report Action.
-     *
-     * @param {Number|String} actionID
-     * @return {Boolean}
-     */
-    const isActiveReportAction = (actionID) => Boolean(actionID) && (reportActionIDRef.current === actionID || reportActionRef.current.reportActionID === actionID);
+    /** Whether Context Menu is active for the Report Action. */
+    const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) =>
+        !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
         reportActionIDRef.current = '0';
-        reportActionRef.current = {};
+        reportActionRef.current = null;
     };
 
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {string} type - context menu type [EMAIL, LINK, REPORT_ACTION]
-     * @param {Object} [event] - A press event.
-     * @param {String} [selection] - Copied content.
-     * @param {Element} contextMenuAnchor - popoverAnchor
-     * @param {String} reportID - Active Report Id
-     * @param {Object} reportActionID - ReportAction for ContextMenu
-     * @param {String} originalReportID - The currrent Report Id of the reportAction
-     * @param {String} draftMessage - ReportAction Draftmessage
-     * @param {Function} [onShow] - Run a callback when Menu is shown
-     * @param {Function} [onHide] - Run a callback when Menu is hidden
-     * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
-     * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
-     * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
-     * @param {Boolean} isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
+     * @param type - context menu type [EMAIL, LINK, REPORT_ACTION]
+     * @param [event] - A press event.
+     * @param [selection] - Copied content.
+     * @param contextMenuAnchor - popoverAnchor
+     * @param reportID - Active Report Id
+     * @param reportActionID - ReportAction for ContextMenu
+     * @param originalReportID - The currrent Report Id of the reportAction
+     * @param draftMessage - ReportAction Draftmessage
+     * @param [onShow] - Run a callback when Menu is shown
+     * @param [onHide] - Run a callback when Menu is hidden
+     * @param isArchivedRoom - Whether the provided report is an archived room
+     * @param isChronosReport - Flag to check if the chat participant is Chronos
+     * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+     * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
-    const showContextMenu = (
+    const showContextMenu: ReportActionContextMenu['showContextMenu'] = (
         type,
         event,
         selection,
@@ -151,9 +162,9 @@ function PopoverReportActionContextMenu(_props, ref) {
         isPinnedChat = false,
         isUnreadChat = false,
     ) => {
-        const nativeEvent = event.nativeEvent || {};
+        const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
-        contextMenuTargetNode.current = nativeEvent.target;
+        contextMenuTargetNode.current = event.target as HTMLElement;
 
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
@@ -162,18 +173,18 @@ function PopoverReportActionContextMenu(_props, ref) {
 
         getContextMenuMeasuredLocation().then(({x, y}) => {
             popoverAnchorPosition.current = {
-                horizontal: nativeEvent.pageX - x,
-                vertical: nativeEvent.pageY - y,
+                horizontal: pageX - x,
+                vertical: pageY - y,
             };
 
             popoverAnchorPosition.current = {
-                horizontal: nativeEvent.pageX,
-                vertical: nativeEvent.pageY,
+                horizontal: pageX,
+                vertical: pageY,
             };
             typeRef.current = type;
-            reportIDRef.current = reportID;
-            reportActionIDRef.current = reportActionID;
-            originalReportIDRef.current = originalReportID;
+            reportIDRef.current = reportID ?? '0';
+            reportActionIDRef.current = reportActionID ?? '0';
+            originalReportIDRef.current = originalReportID ?? '0';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -184,9 +195,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         });
     };
 
-    /**
-     * After Popover shows, call the registered onPopoverShow callback and reset it
-     */
+    /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
         onPopoverShow.current();
 
@@ -194,19 +203,13 @@ function PopoverReportActionContextMenu(_props, ref) {
         onPopoverShow.current = () => {};
     };
 
-    /**
-     * Run the callback and return a noop function to reset it
-     * @param {Function} callback
-     * @returns {Function}
-     */
-    const runAndResetCallback = (callback) => {
+    /** Run the callback and return a noop function to reset it */
+    const runAndResetCallback = (callback: () => void) => {
         callback();
         return () => {};
     };
 
-    /**
-     * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
-     */
+    /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
         reportIDRef.current = '0';
         reportActionIDRef.current = '0';
@@ -218,10 +221,10 @@ function PopoverReportActionContextMenu(_props, ref) {
 
     /**
      * Hide the ReportActionContextMenu modal popover.
-     * @param {Function} onHideActionCallback Callback to be called after popover is completely hidden
+     * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu = (onHideActionCallback) => {
-        if (_.isFunction(onHideActionCallback)) {
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (onHideActionCallback) => {
+        if (typeof onHideActionCallback === 'function') {
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
 
@@ -232,10 +235,11 @@ function PopoverReportActionContextMenu(_props, ref) {
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
-        if (ReportActionsUtils.isMoneyRequestAction(reportActionRef.current)) {
-            IOU.deleteMoneyRequest(reportActionRef.current.originalMessage.IOUTransactionID, reportActionRef.current);
-        } else {
-            Report.deleteReportComment(reportIDRef.current, reportActionRef.current);
+        const reportAction = reportActionRef.current;
+        if (ReportActionsUtils.isMoneyRequestAction(reportAction) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID, reportAction);
+        } else if (reportAction) {
+            Report.deleteReportComment(reportIDRef.current, reportAction);
         }
         setIsDeleteCommentConfirmModalVisible(false);
     }, []);
@@ -250,15 +254,8 @@ function PopoverReportActionContextMenu(_props, ref) {
         setHasUnreadMessages(false);
     };
 
-    /**
-     * Opens the Confirm delete action modal
-     * @param {String} reportID
-     * @param {Object} reportAction
-     * @param {Boolean} [shouldSetModalVisibility]
-     * @param {Function} [onConfirm]
-     * @param {Function} [onCancel]
-     */
-    const showDeleteModal = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+    /** Opens the Confirm delete action modal */
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
         onComfirmDeleteModal.current = onConfirm;
 
