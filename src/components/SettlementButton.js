@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -5,6 +6,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -42,9 +44,6 @@ const propTypes = {
 
     /** Should we show the payment options? */
     shouldShowApproveButton: PropTypes.bool,
-
-    /** The last payment method used per policy */
-    nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
 
     /** The policyID of the report we are paying */
     policyID: PropTypes.string,
@@ -87,6 +86,17 @@ const propTypes = {
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption: PropTypes.bool,
+
+    /* Onyx Props */
+
+    /** The last payment method used per policy */
+    nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
@@ -117,6 +127,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    session: {},
     shouldShowPersonalBankAccountOption: false,
 };
 
@@ -138,6 +149,7 @@ function SettlementButton({
     onPress,
     pressOnEnter,
     policyID,
+    session,
     shouldHidePaymentOptions,
     shouldShowApproveButton,
     style,
@@ -185,7 +197,16 @@ function SettlementButton({
             value: CONST.PAYMENT_METHODS.ELSEWHERE,
         };
 
-        buttonOptions.push(payWithBusinessBankAccountOption);
+        // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
+        // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
+        const canUseBusinessBankAccount =
+            ReportUtils.isExpenseReport(iouReport) ||
+            (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
+
+        if (canUseBusinessBankAccount) {
+            buttonOptions.push(payWithBusinessBankAccountOption);
+        }
+
         buttonOptions.push(payWithPersonalBankAccountOption);
         buttonOptions.push(payWithDebitCardOption);
         buttonOptions.push(payElsewhereOption);
@@ -194,7 +215,7 @@ function SettlementButton({
             buttonOptions.push(approveButtonOption);
         }
         return buttonOptions;
-    }, [translate, shouldHidePaymentOptions, shouldShowApproveButton]);
+    }, [iouReport, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -303,6 +324,9 @@ SettlementButton.displayName = 'SettlementButton';
 export default compose(
     withNavigation,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         nvp_lastPaymentMethod: {
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         },
