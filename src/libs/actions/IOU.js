@@ -312,6 +312,27 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
 }
 
 /**
+ * @param {Object} [policy]
+ * @param {Boolean} needsToBeManuallySubmitted
+ * @returns {Object}
+ */
+function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
+    if (!needsToBeManuallySubmitted) {
+        return {
+            hasOutstandingChildRequest: false,
+        };
+    }
+
+    if (PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    return {};
+}
+
+/**
  * Builds the Onyx data for a money request.
  *
  * @param {Object} chatReport
@@ -329,7 +350,7 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
- * @param {Boolean} hasOutstandingChildRequest
+ * @param {Boolean} needsToBeManuallySubmitted
  * @returns {Array} - An array containing the optimistic data, success data, and failure data.
  */
 function buildOnyxDataForMoneyRequest(
@@ -348,11 +369,10 @@ function buildOnyxDataForMoneyRequest(
     policy,
     policyTags,
     policyCategories,
-    hasOutstandingChildRequest = false,
+    needsToBeManuallySubmitted = true,
 ) {
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
+    const hasOutstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -363,7 +383,6 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                ...(isPolicyAdmin ? {hasOutstandingChildRequest: true} : {}),
                 hasOutstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
@@ -509,7 +528,7 @@ function buildOnyxDataForMoneyRequest(
                 iouReportID: chatReport.iouReportID,
                 lastReadTime: chatReport.lastReadTime,
                 pendingFields: null,
-                ...(isPolicyAdmin ? {hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest} : {}),
+                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -691,7 +710,7 @@ function getMoneyRequestInformation(
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
     // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = false;
+    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -810,10 +829,6 @@ function getMoneyRequestInformation(
           }
         : undefined;
 
-    // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
-    // so the employee has to submit to their manager manually.
-    const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
-
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
@@ -831,7 +846,7 @@ function getMoneyRequestInformation(
         policy,
         policyTags,
         policyCategories,
-        hasOutstandingChildRequest,
+        needsToBeManuallySubmitted,
     );
 
     return {
