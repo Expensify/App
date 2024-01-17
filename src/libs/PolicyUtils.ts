@@ -191,18 +191,13 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
     }
 
     const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-    const tags = cloneDeep(policyTags?.[policyTagKey]?.tags ?? {});
-
-    // This is to remove unnecessary escaping backslash in tag name sent from backend for "Parent: Child" type of tags.
-    Object.keys(tags).forEach((key) => {
-        const cleanedTagName = tags[key]?.name?.replace(/\\{1,2}:/g, ':');
-        if (cleanedTagName) {
-            tags[key].name = cleanedTagName;
-        }
-    });
+    const tags = policyTags?.[policyTagKey]?.tags ?? {};
 
     return tags;
 }
+
+// This is to remove unnecessary escaping backslash in tag name sent from backend for "Parent: Child" type of tags.
+const unescapeColon = (tag?: string) => tag?.replace(/\\{1,2}:/g, ':');
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -230,6 +225,7 @@ export {
     getTag,
     getTagListName,
     getTagList,
+    unescapeColon,
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,
