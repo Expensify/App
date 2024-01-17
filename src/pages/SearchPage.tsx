@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,42 +12,39 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from './personalDetailsPropType';
-import reportPropTypes from './reportPropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
 
-const propTypes = {
-    /* Onyx Props */
-
+type SearchPageProps = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
+    /** The report currently being looked at */
+    reports: OnyxEntry<OnyxTypes.Report>;
 
     /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
+    isSearchingForReports: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    betas: [],
-    personalDetails: {},
-    reports: {},
-    isSearchingForReports: false,
+type SearchOptions = {
+    recentReports: OnyxTypes.Report[];
+    personalDetails: OnyxTypes.PersonalDetails[];
+    userToInvite: [];
 };
 
-function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
+function SearchPage({betas, personalDetails, reports, isSearchingForReports}: SearchPageProps) {
     const [searchValue, setSearchValue] = useState('');
-    const [searchOptions, setSearchOptions] = useState({
-        recentReports: {},
-        personalDetails: {},
-        userToInvite: {},
+    const [searchOptions, setSearchOptions] = useState<SearchOptions>({
+        recentReports: [],
+        personalDetails: [],
+        userToInvite: [],
     });
 
     const {isOffline} = useNetwork();
@@ -57,9 +54,13 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
 
     const updateOptions = useCallback(() => {
         const {
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             recentReports: localRecentReports,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             personalDetails: localPersonalDetails,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             userToInvite: localUserToInvite,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
         } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
 
         setSearchOptions({
@@ -91,8 +92,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
 
     /**
      * Returns the sections needed for the OptionsSelector
-     *
-     * @returns {Array}
      */
     const getSections = () => {
         const sections = [];
@@ -139,20 +138,22 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
 
     /**
      * Reset the search value and redirect to the selected report
-     *
-     * @param {Object} option
      */
-    const selectReport = (option) => {
+    const selectReport = (option: OptionData) => {
         if (!option) {
             return;
         }
         if (option.reportID) {
             Navigation.dismissModal(option.reportID);
         } else {
+            if (!option.login) {
+                return;
+            }
             Report.navigateToAndOpenReport([option.login]);
         }
     };
 
+    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
@@ -171,6 +172,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
                     <HeaderWithBackButton title={translate('common.search')} />
                     <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
+                            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
                             sections={getSections()}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
@@ -194,10 +196,9 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     );
 }
 
-SearchPage.propTypes = propTypes;
-SearchPage.defaultProps = defaultProps;
 SearchPage.displayName = 'SearchPage';
-export default withOnyx({
+
+export default withOnyx<SearchPageProps, SearchPageProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
