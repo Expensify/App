@@ -530,10 +530,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
         lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText ?? '' : '';
     }
-    return lastMessageTextFromReport;
+
+    return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
 /**
