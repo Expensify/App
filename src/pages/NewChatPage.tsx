@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
@@ -20,16 +20,16 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Report as OnyxReport, PersonalDetails} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
-    reports: OnyxEntry<OnyxReport>;
+    reports: OnyxEntry<OnyxTypes.Report>;
 
     /** All of the personal details for everyone */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    betas: OnyxEntry<Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: OnyxEntry<boolean>;
@@ -41,7 +41,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 type NewChatSectionListData = {
     title?: string;
-    data: OnyxReport[] | PersonalDetails[];
+    data: OnyxTypes.Report[] | OnyxTypes.PersonalDetails[];
     shouldShow: boolean;
     indexOffset: number;
 };
@@ -51,9 +51,9 @@ const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== C
 function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports}: NewChatPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState<OnyxReport[]>([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<PersonalDetails[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredRecentReports, setFilteredRecentReports] = useState<OnyxTypes.Report[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<OnyxTypes.PersonalDetails[]>([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
@@ -116,7 +116,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     * @param option - Option selected from the list
      */
     const toggleOption = (option: OptionData) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
@@ -165,11 +164,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     /**
      * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
-     *
-     * @param option - Option choosen to create the chat
      */
     const createChat = (option: OptionData) => {
-        if (option.login === undefined || option.login === null) {
+        if (!option.login) {
             return;
         }
         Report.navigateToAndOpenReport([option.login]);
