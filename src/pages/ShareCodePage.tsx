@@ -103,7 +103,7 @@ function ShareCodePage({report, session, currentUserPersonalDetails}: ShareCodeP
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={Expensicons.Download}
-                            onPress={qrCodeRef.current?.download}
+                            onPress={() => qrCodeRef.current?.download()}
                         />
                     )}
 
