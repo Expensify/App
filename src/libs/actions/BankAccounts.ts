@@ -7,10 +7,13 @@ import type {
     ConnectBankAccountWithPlaidParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
+    UpdateCompanyInformationForBankAccountParams,
     UpdatePersonalInformationForBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
+import type UpdateBeneficialOwnersForBankAccountParams from '@libs/API/parameters/UpdateBeneficialOwnersForBankAccountParams';
+import type {BankAccountCompanyInformation} from '@libs/API/parameters/UpdateCompanyInformationForBankAccountParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -38,8 +41,6 @@ export {
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
-
-type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
 
 type ReimbursementAccountStep = BankAccountStep | '';
 
@@ -325,8 +326,6 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  * Updates the bank account in the database with the company step data
  */
 function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyInformation, policyID: string) {
-    type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {policyID: string};
-
     const parameters: UpdateCompanyInformationForBankAccountParams = {...bankAccount, policyID};
 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
@@ -335,7 +334,7 @@ function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyI
 /**
  * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  */
-function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
+function updateBeneficialOwnersForBankAccount(params: UpdateBeneficialOwnersForBankAccountParams) {
     API.write(WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT, params, getVBBADataForOnyx());
 }
 

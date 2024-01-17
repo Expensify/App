@@ -21,6 +21,7 @@ import type {
     UnlinkLoginParams,
     ValidateTwoFactorAuthParams,
 } from '@libs/API/parameters';
+import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';

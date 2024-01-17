@@ -821,9 +821,7 @@ function clearCustomStatus() {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.CLEAR_STATUS, {}, {
-        optimisticData,
-    });
+    API.write(WRITE_COMMANDS.CLEAR_STATUS, {}, {optimisticData});
 }
 
 /**

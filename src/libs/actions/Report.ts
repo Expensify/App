@@ -11,14 +11,33 @@ import type {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
+    AddCommentOrAttachementParams,
+    AddEmojiReactionParams,
+    AddWorkspaceRoomParams,
+    DeleteCommentParams,
     ExpandURLPreviewParams,
+    FlagCommentParams,
     GetNewerActionsParams,
     GetOlderActionsParams,
     GetReportPrivateNoteParams,
+    InviteToRoomParams,
+    LeaveRoomParams,
+    MarkAsUnreadParams,
     OpenReportParams,
     OpenRoomMembersPageParams,
+    ReadNewestActionParams,
+    ReconnectToReportParams,
+    RemoveEmojiReactionParams,
+    RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
+    TogglePinnedChatParams,
+    UpdateCommentParams,
+    UpdatePolicyRoomNameParams,
+    UpdateReportNotificationPreferenceParams,
+    UpdateReportPrivateNoteParams,
+    UpdateReportWriteCapabilityParams,
+    UpdateWelcomeMessageParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';

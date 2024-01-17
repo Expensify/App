@@ -2,7 +2,13 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {RequestPhysicalExpensifyCardParams} from '@libs/API/parameters';
+import type {
+    AcceptWalletTermsParams,
+    AnswerQuestionsForWalletParams,
+    RequestPhysicalExpensifyCardParams,
+    UpdatePersonalDetailsForWalletParams,
+    VerifyIdentityParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import type CONST from '@src/CONST';
@@ -10,30 +16,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-type WalletTerms = {
-    hasAcceptedTerms: boolean;
-    reportID: string;
-};
-
 type WalletQuestionAnswer = {
     question: string;
     answer: string;
-};
-
-type IdentityVerification = {
-    onfidoData: string;
-};
-
-type PersonalDetails = {
-    phoneNumber: string;
-    legalFirstName: string;
-    legalLastName: string;
-    addressStreet: string;
-    addressCity: string;
-    addressState: string;
-    addressZip: string;
-    dob: string;
-    ssn: string;
 };
 
 /**
@@ -90,7 +75,7 @@ function setKYCWallSource(source?: ValueOf<typeof CONST.KYC_WALL_SOURCE>, chatRe
 /**
  * Validates a user's provided details against a series of checks
  */
-function updatePersonalDetails(personalDetails: PersonalDetails) {
+function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -125,7 +110,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
  * The API will always return the updated userWallet in the response as a convenience so we can avoid an additional
  * API request to fetch the userWallet after we call VerifyIdentity
  */
-function verifyIdentity(parameters: IdentityVerification) {
+function verifyIdentity(parameters: VerifyIdentityParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -178,7 +163,7 @@ function verifyIdentity(parameters: IdentityVerification) {
  *
  * @param parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
-function acceptWalletTerms(parameters: WalletTerms) {
+function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -218,7 +203,7 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    const requestParams: WalletTerms = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.reportID};
+    const requestParams: AcceptWalletTermsParams = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.reportID};
 
     API.write(WRITE_COMMANDS.ACCEPT_WALLET_TERMS, requestParams, {optimisticData, successData, failureData});
 }
