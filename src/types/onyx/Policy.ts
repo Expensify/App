@@ -21,7 +21,7 @@ type CustomUnit = {
     name: string;
     customUnitID: string;
     attributes: Attributes;
-    rates: Record<string, Rate> | Rate;
+    rates: Record<string, Rate>;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
 };
