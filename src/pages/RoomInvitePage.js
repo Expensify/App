@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
@@ -11,11 +12,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
@@ -102,8 +105,9 @@ function RoomInvitePage(props) {
             filterSelectedOptions = _.filter(selectedOptions, (option) => {
                 const accountID = lodashGet(option, 'accountID', null);
                 const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
-
-                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchValue) || option.login.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
@@ -230,7 +234,7 @@ function RoomInvitePage(props) {
                             onSelectRow={toggleOption}
                             onConfirm={inviteUsers}
                             showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>
