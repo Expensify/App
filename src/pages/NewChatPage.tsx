@@ -223,7 +223,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
-
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
             setDidScreenTransitionEnd(true);
@@ -233,8 +232,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             if (!interactionTask) {
                 return;
             }
-            
-            (interactionTask as { cancel: () => void }).cancel();
+
+            (interactionTask as {cancel: () => void}).cancel();
         };
     }, []);
 
