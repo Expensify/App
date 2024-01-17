@@ -331,10 +331,6 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.VIEW]: {
-        reportID: string;
-        accountID: string;
-    };
     [SCREENS.PRIVATE_NOTES.LIST]: {
         reportID: string;
         accountID: string;
