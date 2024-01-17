@@ -102,14 +102,8 @@ function BaseListItem<TItem extends User | RadioItem>({
                     {isRadioItem ? (
                         <RadioListItem
                             item={item}
-                            textStyles={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isSelected ?? item.alternateText ? styles.sidebarLinkTextBold : null,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                            alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
+                            textStyles={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre, item.alternateText ? styles.mb1 : null]}
+                            alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             isDisabled={isDisabled}
                             onSelectRow={() => onSelectRow(item)}
                             showTooltip={showTooltip}
@@ -124,7 +118,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}
-                            alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
+                            alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             isDisabled={isDisabled}
                             onSelectRow={() => onSelectRow(item)}
                             showTooltip={showTooltip}
