@@ -199,16 +199,14 @@ function SettlementButton({
 
         // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
         // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-        const canUseBusinessBankAccount =
+        if (
             ReportUtils.isExpenseReport(iouReport) ||
-            (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
-
-        if (canUseBusinessBankAccount) {
+            (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)))
+        ) {
             buttonOptions.push(payWithBusinessBankAccountOption);
         }
 
-        const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || ReportUtils.isIOUReport(iouReport);
-        if (canUsePersonalBankAccount) {
+        if (shouldShowPersonalBankAccountOption || ReportUtils.isIOUReport(iouReport)) {
             buttonOptions.push(payWithPersonalBankAccountOption);
         }
 
@@ -219,7 +217,7 @@ function SettlementButton({
             buttonOptions.push(approveButtonOption);
         }
         return buttonOptions;
-    }, [iouReport, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
+    }, [session, iouReport, translate, shouldShowPersonalBankAccountOption, shouldHidePaymentOptions, shouldShowApproveButton]);
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
