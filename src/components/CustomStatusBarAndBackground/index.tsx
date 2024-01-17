@@ -3,6 +3,7 @@ import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDela
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
+import {StatusBarStyle} from '@styles/index';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -16,7 +17,7 @@ type CustomStatusBarAndBackgroundProps = {
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
-    const [statusBarStyle, setStatusBarStyle] = useState(theme.statusBarStyle);
+    const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
 
     const isDisabled = !isNested && isRootStatusBarDisabled;
 
@@ -34,6 +35,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         };
     }, [disableRootStatusBar, isNested]);
 
+    const didForceUpdateStatusBarRef = useRef(false);
+    const prevIsRootStatusBarDisabled = useRef(isRootStatusBarDisabled);
     const prevStatusBarBackgroundColor = useRef(theme.appBG);
     const statusBarBackgroundColor = useRef(theme.appBG);
     const statusBarAnimation = useSharedValue(0);
@@ -94,27 +97,40 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             }
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            if (newStatusBarStyle !== statusBarStyle) {
+            // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
+            if ((!didForceUpdateStatusBarRef.current && prevIsRootStatusBarDisabled.current && !isRootStatusBarDisabled) || newStatusBarStyle !== statusBarStyle) {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
+
+                if (prevIsRootStatusBarDisabled.current && !isRootStatusBarDisabled) {
+                    didForceUpdateStatusBarRef.current = true;
+                }
             }
         },
-        [statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
+        [isRootStatusBarDisabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
     );
 
-    // Add navigation state listeners to update the status bar every time the route changes
-    // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
+    useEffect(() => {
+        prevIsRootStatusBarDisabled.current = isRootStatusBarDisabled;
+        didForceUpdateStatusBarRef.current = false;
+    }, [isRootStatusBarDisabled]);
+
     useEffect(() => {
         if (isDisabled) {
             return;
         }
 
+        // Update status bar when theme changes
+        updateStatusBarStyle();
+
+        // Add navigation state listeners to update the status bar every time the route changes
+        // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
         const listenerId = ++listenerCount.current;
         const listener = () => updateStatusBarStyle(listenerId);
 
         navigationRef.addListener('state', listener);
         return () => navigationRef.removeListener('state', listener);
-    }, [isDisabled, theme.appBG, updateStatusBarStyle]);
+    }, [isDisabled, updateStatusBarStyle]);
 
     // Update the global background (on web) everytime the theme changes.
     // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
