@@ -647,7 +647,7 @@ function doesReportBelongToWorkspace(report: Report, policyID: string, policyMem
 }
 
 /**
- * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID, if provided.
+ * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID and policyMemberAccountIDs, if provided.
  */
 function sortReportsByLastRead(
     reports: OnyxCollection<Report>,
