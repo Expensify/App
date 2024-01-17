@@ -1,5 +1,6 @@
 import React from 'react';
 import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -35,7 +36,7 @@ type ShowContextMenu = (
 
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback: OnHideCallback) => void;
+    hideContextMenu: (callback?: OnHideCallback) => void;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
@@ -177,4 +178,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuAnchor};
+export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};
