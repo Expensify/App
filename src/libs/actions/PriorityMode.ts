@@ -6,6 +6,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import * as ReportUtils from '@libs/ReportUtils';
 
 /**
  * This actions file is used to automatically switch a user into #focus mode when they exceed a certain number of reports. We do this primarily for performance reasons.
@@ -120,7 +121,17 @@ function tryFocusModeUpdate() {
             return;
         }
 
-        const reportCount = Object.keys(allReports ?? {}).length;
+        const validReports =  [];
+        Object.keys(allReports ?? {}).forEach((key) => {
+            const report = allReports?.[key];
+            if (ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? 0, report)) {
+                return;
+            }
+
+            validReports.push(report);
+        });
+
+        const reportCount = validReports.length;
         if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
             Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
             return;

@@ -4317,6 +4317,29 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
     );
 }
 
+/**
+ * Assume any report without a reportID is unusable.
+ */
+function isValidReport(report?: OnyxEntry<Report>): boolean {
+    return Boolean(!report?.reportID);
+}
+
+/**
+ * Check to see if we are a participant of this report.
+ */
+function isReportParticipant(report?: OnyxEntry<Report>, accountID: number): boolean {
+    if (!accountID) {
+        return false;
+    }
+
+    // We are not the owner or the manager or a participant
+    if (report?.ownerAccountID !== accountID && report?.managerID !== accountID && !(report?.participantAccountIDs ?? []).includes(accountID)) {
+        return false;
+    }
+
+    return true;
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
@@ -4613,6 +4636,8 @@ export {
     shouldDisplayThreadReplies,
     shouldDisableThread,
     getChildReportNotificationPreference,
+    isReportParticipant,
+    isValidReport,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
