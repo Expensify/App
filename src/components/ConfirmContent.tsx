@@ -12,7 +12,7 @@ import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
 import Text from './Text';
-import ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
+import {ActionSheetAwareScrollViewContext, Actions} from './ActionSheetAwareScrollView';
 
 type ConfirmContentProps = {
     /** Title of the modal */
@@ -86,7 +86,7 @@ function ConfirmContent({
     contentStyles,
     iconAdditionalStyles,
 }: ConfirmContentProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -96,7 +96,7 @@ function ConfirmContent({
         const {height} = event.nativeEvent.layout;
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: ActionSheetAwareScrollView.Actions.MEASURE_CONFIRM_MODAL,
+            type: Actions.MEASURE_CONFIRM_MODAL,
             payload: {
                 popoverHeight: height,
             },
