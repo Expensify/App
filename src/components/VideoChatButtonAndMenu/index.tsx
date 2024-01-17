@@ -1,9 +1,9 @@
 import React from 'react';
 import CONST from '@src/CONST';
 import BaseVideoChatButtonAndMenu from './BaseVideoChatButtonAndMenu';
-import {defaultProps, propTypes} from './videoChatButtonAndMenuPropTypes';
+import type VideoChatButtonAndMenuProps from './types';
 
-function VideoChatButtonAndMenu(props) {
+function VideoChatButtonAndMenu(props: VideoChatButtonAndMenuProps) {
     return (
         <BaseVideoChatButtonAndMenu
             googleMeetURL={CONST.NEW_GOOGLE_MEET_MEETING_URL}
@@ -13,7 +13,6 @@ function VideoChatButtonAndMenu(props) {
     );
 }
 
-VideoChatButtonAndMenu.propTypes = propTypes;
-VideoChatButtonAndMenu.defaultProps = defaultProps;
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
+
 export default VideoChatButtonAndMenu;
