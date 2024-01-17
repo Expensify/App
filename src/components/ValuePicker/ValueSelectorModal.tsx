@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -7,45 +5,22 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {ValuePickerItem, ValueSelectorModalProps} from './types';
 
-const propTypes = {
-    /** Whether the modal is visible */
-    isVisible: PropTypes.bool.isRequired,
-
-    /** Items to pick from */
-    items: PropTypes.arrayOf(PropTypes.shape({value: PropTypes.string, label: PropTypes.string})),
-
-    /** The selected item */
-    selectedItem: PropTypes.shape({value: PropTypes.string, label: PropTypes.string}),
-
-    /** Label for values */
-    label: PropTypes.string,
-
-    /** Function to call when the user selects a item */
-    onItemSelected: PropTypes.func,
-
-    /** Function to call when the user closes the modal */
-    onClose: PropTypes.func,
-
-    /** Whether to show the toolip text */
-    shouldShowTooltips: PropTypes.bool,
-};
-
-const defaultProps = {
-    items: [],
-    selectedItem: {},
-    label: '',
-    onClose: () => {},
-    onItemSelected: () => {},
-    shouldShowTooltips: true,
-};
-
-function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected, shouldShowTooltips}) {
+function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
-    const [sectionsData, setSectionsData] = useState([]);
+    const [sectionsData, setSectionsData] = useState<ValuePickerItem[]>([]);
 
     useEffect(() => {
-        const itemsData = _.map(items, (item) => ({value: item.value, alternateText: item.description, keyForList: item.value, text: item.label, isSelected: item === selectedItem}));
+        const itemsData = items.map((item, index) => ({
+            value: item?.value,
+            alternateText: item?.description,
+            keyForList: item.value ?? '',
+            text: item?.label ?? '',
+            isSelected: item === selectedItem,
+            sectionIndex: 0,
+            index,
+        }));
         setSectionsData(itemsData);
     }, [items, selectedItem]);
 
@@ -71,7 +46,7 @@ function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onI
                 <SelectionList
                     sections={[{data: sectionsData}]}
                     onSelectRow={onItemSelected}
-                    initiallyFocusedOptionKey={selectedItem.value}
+                    initiallyFocusedOptionKey={selectedItem?.value}
                     shouldStopPropagation
                     shouldShowTooltips={shouldShowTooltips}
                 />
@@ -80,8 +55,6 @@ function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onI
     );
 }
 
-ValueSelectorModal.propTypes = propTypes;
-ValueSelectorModal.defaultProps = defaultProps;
 ValueSelectorModal.displayName = 'ValueSelectorModal';
 
 export default ValueSelectorModal;
