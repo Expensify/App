@@ -1,5 +1,6 @@
 import React from 'react';
 import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';

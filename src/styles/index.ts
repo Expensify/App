@@ -1467,12 +1467,6 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionProfile: (windowWidth: number) =>
-            ({
-                horizontal: windowWidth - 355,
-                ...getPopOverVerticalOffset(162),
-            } satisfies AnchorPosition),
-
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,

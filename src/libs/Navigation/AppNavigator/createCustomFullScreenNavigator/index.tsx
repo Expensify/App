@@ -2,7 +2,9 @@ import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@rea
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
@@ -42,6 +44,8 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const stateToRender = useMemo(() => {
         const result = reduceReportRoutes(state.routes);
 
@@ -51,6 +55,15 @@ function CustomFullScreenNavigator(props: FullScreenNavigatorProps) {
             routes: [...result],
         };
     }, [state]);
+
+    useEffect(() => {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+        // We need to separetly reset state of this navigator to trigger getRehydratedState.
+        navigation.reset(navigation.getState());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSmallScreenWidth]);
 
     return (
         <NavigationContent>
