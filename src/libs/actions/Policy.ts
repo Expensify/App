@@ -603,12 +603,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
-    type PersonalDetailsOnyxData = {
-        optimisticData: OnyxUpdate[];
-        finallyData: OnyxUpdate[];
-    };
-
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs) as PersonalDetailsOnyxData;
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
 
