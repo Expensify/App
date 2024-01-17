@@ -234,6 +234,7 @@ function getParticipantsOption(participant, personalDetails) {
         ],
         phoneNumber: lodashGet(detail, 'phoneNumber', ''),
         selected: participant.selected,
+        isSelected: participant.selected,
         searchText: participant.searchText,
     };
 }
@@ -419,7 +420,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -435,10 +436,9 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
-    return lastMessageTextFromReport;
+
+    return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
 }
 
 /**
@@ -607,6 +607,7 @@ function getPolicyExpenseReportOption(report) {
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
     option.selected = report.selected;
+    option.isSelected = report.selected;
     return option;
 }
 
@@ -1232,6 +1233,25 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
 }
 
 /**
+ * Checks if a report option is selected based on matching accountID or reportID.
+ *
+ * @param {Object} reportOption - The report option to be checked.
+ * @param {Object[]} selectedOptions - Array of selected options to compare with.
+ * @param {number} reportOption.accountID - The account ID of the report option.
+ * @param {number} reportOption.reportID - The report ID of the report option.
+ * @param {number} [selectedOptions[].accountID] - The account ID in the selected options.
+ * @param {number} [selectedOptions[].reportID] - The report ID in the selected options.
+ * @returns {boolean} True if the report option matches any of the selected options by accountID or reportID, false otherwise.
+ */
+function isReportSelected(reportOption, selectedOptions) {
+    if (!selectedOptions || selectedOptions.length === 0) {
+        return false;
+    }
+
+    return _.some(selectedOptions, (option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -1489,6 +1509,8 @@ function getOptions(
                     continue;
                 }
             }
+
+            reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
             recentReportOptions.push(reportOption);
 
