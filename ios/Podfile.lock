@@ -1180,7 +1180,7 @@ PODS:
     - React-Core
   - react-native-pager-view (6.2.2):
     - React-Core
-  - react-native-pdf (6.7.4):
+  - react-native-pdf (6.7.3):
     - React-Core
   - react-native-performance (5.1.0):
     - React-Core
@@ -1911,7 +1911,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
-  react-native-pdf: 79aa75e39a80c1d45ffe58aa500f3cf08f267a2e
+  react-native-pdf: b4ca3d37a9a86d9165287741c8b2ef4d8940c00e
   react-native-performance: cef2b618d47b277fb5c3280b81a3aad1e72f2886
   react-native-plaid-link-sdk: df1618a85a615d62ff34e34b76abb7a56497fbc1
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
