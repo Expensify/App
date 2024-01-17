@@ -29,14 +29,13 @@ type ReportActionItemCreatedOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type ReportActionItemCreatedProps = OnyxProps & {
+type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
     /** The id of the report */
     reportID: string;
 
     /** The id of the policy */
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
-
 };
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
@@ -95,7 +94,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
 
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx<ReportActionItemCreatedProps, OnyxProps>({
+export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOnyxProps>({
     report: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         selector: reportWithoutHasDraftSelector,
