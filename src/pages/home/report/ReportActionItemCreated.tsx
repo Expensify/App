@@ -37,14 +37,6 @@ type ReportActionItemCreatedProps = OnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
 
-    /** The policy object for the current route */
-    policy?: {
-        /** The name of the policy */
-        name?: string;
-
-        /** The URL for the policy avatar */
-        avatar?: string;
-    };
 };
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
