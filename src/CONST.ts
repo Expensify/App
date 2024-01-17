@@ -3051,13 +3051,6 @@ const CONST = {
     MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
 
     /**
-     * Performance test setup - run the same test multiple times to get a more accurate result
-     */
-    PERFORMANCE_TESTS: {
-        RUNS: 20,
-    },
-
-    /**
      * Bank account names
      */
     BANK_NAMES: {
