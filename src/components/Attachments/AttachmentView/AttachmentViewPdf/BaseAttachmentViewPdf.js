@@ -8,7 +8,7 @@ function BaseAttachmentViewPdf({
     encryptedSourceUrl,
     isFocused,
     isUsedInCarousel,
-    onPress,
+    onPress: onPressProp,
     onScaleChanged: onScaleChangedProp,
     onToggleKeyboard,
     onLoadComplete,
@@ -43,6 +43,18 @@ function BaseAttachmentViewPdf({
             }
         },
         [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp],
+    );
+
+    const onPress = useCallback(
+        (e) => {
+            if (onPressProp !== undefined) {
+                onPressProp(e);
+            }
+            if (attachmentCarouselPagerContext !== null && attachmentCarouselPagerContext.onTap !== null) {
+                attachmentCarouselPagerContext.onTap(e);
+            }
+        },
+        [attachmentCarouselPagerContext],
     );
 
     return (
