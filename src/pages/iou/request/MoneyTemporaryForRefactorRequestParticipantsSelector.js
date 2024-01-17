@@ -136,7 +136,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
-            return newSections;
+            return [newSections, {}];
         }
 
         newSections.push({
@@ -229,13 +229,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                _.get(newChatOptions, 'personalDetails.length', 0) + _.get(newChatOptions, 'recentReports.length', 0) !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
 
     // When search term updates we will fetch any reports
