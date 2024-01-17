@@ -265,7 +265,7 @@ function MoneyRequestView({
                     {canUseViolations && <ViolationMessages violations={getViolationsForField('comment')} />}
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
-                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.waypoints ?? transaction?.pendingAction}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
                             title={hasPendingWaypoints ? transactionMerchant?.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
@@ -276,9 +276,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 ) : (
-                    // Merchant can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.merchant || transaction?.pendingAction}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
                             title={isEmptyMerchant ? '' : transactionMerchant}
@@ -306,7 +304,7 @@ function MoneyRequestView({
                     {canUseViolations && <ViolationMessages violations={getViolationsForField('date')} />}
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
-                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.category ?? transaction?.pendingAction}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={transactionCategory}
@@ -320,7 +318,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && (
-                    <OfflineWithFeedback pendingAction={transaction?.pendingFields?.tag ?? transaction?.pendingAction}>
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('tag')}>
                         <MenuItemWithTopDescription
                             description={policyTag?.name ?? translate('common.tag')}
                             title={transactionTag}

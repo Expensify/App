@@ -82,7 +82,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     checkIfContextMenuActive?: () => void;
 
     /** Extra styles to pass to View wrapper */
-    containerStyles: StyleProp<ViewStyle>;
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** True if this is this IOU is a split instead of a 1:1 request */
     isBillSplit: boolean;
