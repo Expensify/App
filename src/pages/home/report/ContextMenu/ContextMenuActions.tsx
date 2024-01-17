@@ -1,6 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
