@@ -150,6 +150,40 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
+    const paymentButtonOptionsV2 = useMemo(() => {
+        const approveButtonOption = {
+            text: translate('iou.approve'),
+            icon: Expensicons.ThumbsUp,
+            value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+        };
+
+        // Only show the Approve button if the user cannot pay the request
+        if (shouldHidePaymentOptions && shouldShowApproveButton) {
+            return [approveButtonOption];
+        }
+
+        const payWithBusinessBankAccountOption = {
+            text: translate('iou.payWithBusinessBankAccount'),
+            icon: Expensicons.Bank,
+            value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+        };
+        const payWithPersonalBankAccountOption = {
+            text: translate('iou.payWithPersonalBankAccount'),
+            icon: Expensicons.Building,
+            value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+        };
+        const payWithDebitCardOption = {
+            text: translate('iou.payWithDebitCard'),
+            icon: Expensicons.CreditCard,
+            value: CONST.PAYMENT_METHODS.DEBIT_CARD,
+        };
+        const payElsewhereOption = {
+            text: translate('iou.payElsewhere'),
+            icon: Expensicons.Cash,
+            value: CONST.PAYMENT_METHODS.ELSEWHERE,
+        };
+    }, [translate, shouldHidePaymentOptions, shouldShowApproveButton]);
+
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -170,17 +204,17 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const approveButtonOption = {
-            text: translate('iou.approve'),
-            icon: Expensicons.ThumbsUp,
-            value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
-        };
+        // const approveButtonOption = {
+        //     text: translate('iou.approve'),
+        //     icon: Expensicons.ThumbsUp,
+        //     value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+        // };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
-        // Only show the Approve button if the user cannot pay the request
-        if (shouldHidePaymentOptions && shouldShowApproveButton) {
-            return [approveButtonOption];
-        }
+        // // Only show the Approve button if the user cannot pay the request
+        // if (shouldHidePaymentOptions && shouldShowApproveButton) {
+        //     return [approveButtonOption];
+        // }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.

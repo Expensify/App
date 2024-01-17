@@ -1167,6 +1167,7 @@ const CONST = {
         DEBIT_CARD: 'debitCard',
         PERSONAL_BANK_ACCOUNT: 'bankAccount',
         BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
+        ELSEWHERE: 'elsewhere',
     },
 
     PAYMENT_METHOD_ID_KEYS: {
