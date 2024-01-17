@@ -2838,6 +2838,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             value: {
                 [reportAction.reportActionID]: {
                     ...reportAction,
+                    pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
@@ -3536,7 +3537,6 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxEntry<On
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 iouReportID: expenseReport.reportID,
             },
@@ -3579,7 +3579,6 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxEntry<On
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingIOU: false,
                 hasOutstandingChildRequest: false,
                 iouReportID: '0',
             },

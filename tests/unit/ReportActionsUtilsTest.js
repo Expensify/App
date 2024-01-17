@@ -368,7 +368,7 @@ describe('ReportActionsUtils', () => {
                                     callback: () => {
                                         Onyx.disconnect(connectionID);
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
-                                        expect(res).toEqual(action2);
+                                        expect(res).toBe(action2);
                                         resolve();
                                     },
                                 });
