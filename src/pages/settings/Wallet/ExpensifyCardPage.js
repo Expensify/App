@@ -226,7 +226,7 @@ function ExpensifyCardPage({
                                         {details.pan ? (
                                             <CardDetails
                                                 pan={details.pan}
-                                                expiration={details.expiration}
+                                                expiration={CardUtils.formatCardExpiration(details.expiration)}
                                                 cvv={details.cvv}
                                                 privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
@@ -271,7 +271,7 @@ function ExpensifyCardPage({
                                             description={translate('cardPage.physicalCardNumber')}
                                             title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                             interactive={false}
-                                            titleStyle={styles.walletCardMenuItem}
+                                            titleStyle={styles.walletCardNumber}
                                         />
                                         <MenuItem
                                             title={translate('reportCardLostOrDamaged.report')}
