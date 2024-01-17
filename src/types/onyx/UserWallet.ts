@@ -8,13 +8,13 @@ type ErrorCode = 'ssnError' | 'kbaNeeded' | 'kycFailed';
 
 type UserWallet = {
     /** The user's available wallet balance */
-    availableBalance: number;
+    availableBalance?: number;
 
     /** The user's current wallet balance */
     currentBalance: number;
 
     /** What step in the activation flow are we on? */
-    currentStep: ValueOf<typeof CONST.WALLET.STEP>;
+    currentStep?: ValueOf<typeof CONST.WALLET.STEP>;
 
     /** If the user failed the Onfido verification check */
     hasFailedOnfido?: boolean;
@@ -23,7 +23,7 @@ type UserWallet = {
     shouldShowFailedKYC?: boolean;
 
     /** Status of wallet - e.g. SILVER or GOLD */
-    tierName: ValueOf<typeof CONST.WALLET.TIER_NAME>;
+    tierName?: ValueOf<typeof CONST.WALLET.TIER_NAME>;
 
     /** The user's wallet tier */
     tier?: number;
@@ -32,10 +32,10 @@ type UserWallet = {
     isPendingOnfidoResult?: boolean;
 
     /** The ID of the linked account */
-    walletLinkedAccountID: number;
+    walletLinkedAccountID?: number;
 
     /** The type of the linked account (debitCard or bankAccount) */
-    walletLinkedAccountType: WalletLinkedAccountType;
+    walletLinkedAccountType?: WalletLinkedAccountType;
 
     /** The wallet's programID, used to show the correct terms. */
     walletProgramID?: string;
