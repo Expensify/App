@@ -64,33 +64,35 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
                 marginBottom: -20,
             }}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
-                {_.map(menuItems, ({translationKey, icon}) => (
-                    <View
-                        key={translationKey}
-                        style={styles.w100}
-                    >
-                        <MenuItem
-                            title={translate(translationKey)}
-                            icon={icon}
-                            iconWidth={variables.avatarSizeMedium}
-                            iconHeight={variables.avatarSizeMedium}
-                            iconStyles={styles.mr2}
-                            interactive={false}
-                            displayInDefaultIconColor
-                            wrapperStyle={styles.p0}
-                            containerStyle={[styles.m0, styles.wAuto]}
-                        />
-                    </View>
-                ))}
+            <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
+                    {_.map(menuItems, ({translationKey, icon}) => (
+                        <View
+                            key={translationKey}
+                            style={styles.w100}
+                        >
+                            <MenuItem
+                                title={translate(translationKey)}
+                                icon={icon}
+                                iconWidth={variables.avatarSizeMedium}
+                                iconHeight={variables.avatarSizeMedium}
+                                iconStyles={styles.mr2}
+                                interactive={false}
+                                displayInDefaultIconColor
+                                wrapperStyle={styles.p0}
+                                containerStyle={[styles.m0, styles.wAuto]}
+                            />
+                        </View>
+                    ))}
+                </View>
+                <Button
+                    text={ctaText}
+                    onPress={onCtaPress}
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
+                    style={[styles.w100]}
+                    success
+                />
             </View>
-            <Button
-                text={ctaText}
-                onPress={onCtaPress}
-                accessibilityLabel={translate('workspace.new.newWorkspace')}
-                style={[styles.w100]}
-                success
-            />
         </Section>
     );
 }
