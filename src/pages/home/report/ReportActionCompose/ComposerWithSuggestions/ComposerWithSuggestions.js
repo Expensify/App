@@ -5,7 +5,6 @@ import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-nat
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Composer from '@components/Composer';
-import {PopoverContext} from '@components/PopoverProvider';
 import withKeyboardState from '@components/withKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -108,7 +107,6 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
-    const {isOpen: isPopoverOpen} = React.useContext(PopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -129,8 +127,8 @@ function ComposerWithSuggestions({
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentAction = ReportActionsUtils.getParentReportAction(report);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
+    const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -346,9 +344,6 @@ function ComposerWithSuggestions({
             const valueLength = valueRef.current.length;
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !ReportUtils.chatIncludesChronos(report)) {
                 e.preventDefault();
-
-                const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
-                const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
                 const lastReportAction = _.find(
                     [...reportActions, parentReportAction],
                     (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
@@ -358,7 +353,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isKeyboardShown, isSmallScreenWidth, parentReportAction, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
     const onChangeText = useCallback(
@@ -411,15 +406,9 @@ function ComposerWithSuggestions({
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
      * @memberof ReportActionCompose
      */
-    const focus = useCallback(
-        (shouldDelay = false) => {
-            if (isPopoverOpen) {
-                return;
-            }
-            focusComposerWithDelay(textInputRef.current)(shouldDelay);
-        },
-        [isPopoverOpen],
-    );
+    const focus = useCallback((shouldDelay = false) => {
+        focusComposerWithDelay(textInputRef.current)(shouldDelay);
+    }, []);
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
