@@ -9,7 +9,6 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,11 +25,7 @@ import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
-};
-
-function getFlavor() {
+function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
     if (bundleId.includes('dev')) {
         return ' Develop';
@@ -41,7 +36,13 @@ function getFlavor() {
     return '';
 }
 
-type MenuItem = {translationKey: TranslationPaths; icon: IconAsset; iconRight?: IconAsset; action: () => Promise<void>; link?: string};
+type MenuItem = {
+    translationKey: TranslationPaths;
+    icon: IconAsset;
+    iconRight?: IconAsset;
+    action: () => Promise<void>;
+    link?: string;
+};
 
 function AboutPage() {
     const {translate} = useLocalize();
@@ -88,6 +89,7 @@ function AboutPage() {
                 action: waitForNavigate(Report.navigateToConciergeChat),
             },
         ];
+
         return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
@@ -96,7 +98,7 @@ function AboutPage() {
             onPress: action,
             shouldShowRightIcon: true,
             onSecondaryInteraction: link
-                ? (e: GestureResponderEvent | MouseEvent) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor.current)
+                ? (event: GestureResponderEvent | MouseEvent) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current)
                 : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
@@ -129,7 +131,7 @@ function AboutPage() {
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>
-                <Text style={[styles.webViewStyles.baseFontStyle, styles.mb4]}>{translate('initialSettingsPage.aboutPage.description')}</Text>
+                <Text style={styles.mb4}>{translate('initialSettingsPage.aboutPage.description')}</Text>
             </View>
             <MenuItemList
                 menuItems={menuItems}
@@ -161,7 +163,6 @@ function AboutPage() {
     );
 }
 
-AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default withWindowDimensions(AboutPage);
+export default AboutPage;
