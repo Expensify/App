@@ -1,17 +1,19 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import refPropTypes from '@components/refPropTypes';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +23,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -58,6 +59,9 @@ const propTypes = {
 
         /** The role of the current user in the policy */
         role: PropTypes.string,
+
+        /** Whether Scheduled Submit is turned on for this policy */
+        isHarvestingEnabled: PropTypes.bool,
     }),
 
     /* Onyx Props */
@@ -101,6 +105,9 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** All the transactions, used to update ReportPreview label and status */
+    transactions: PropTypes.objectOf(transactionPropTypes),
+
     ...withLocalizePropTypes,
 };
 
@@ -114,7 +121,10 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
-    policy: {},
+    policy: {
+        isHarvestingEnabled: false,
+    },
+    transactions: {},
 };
 
 function ReportPreview(props) {
@@ -122,10 +132,17 @@ function ReportPreview(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
-    const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
-    const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
-    const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+        () => ({
+            hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
+            areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
+            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
+            hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
+        }),
+        // When transactions get updated these status may have changed, so that is a case where we also want to run this.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.transactions, props.iouReportID, props.action],
+    );
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
@@ -156,11 +173,17 @@ function ReportPreview(props) {
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {
-            count: numberOfRequests,
+            count: numberOfRequests - numberOfScanningReceipts,
             scanningReceipts: numberOfScanningReceipts,
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+
+    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => props.chatReport.isOwnPolicyExpenseChat && !props.policy.isHarvestingEnabled,
+        [props.chatReport.isOwnPolicyExpenseChat, props.policy.isHarvestingEnabled],
+    );
 
     const getDisplayAmount = () => {
         if (hasPendingWaypoints) {
@@ -206,32 +229,10 @@ function ReportPreview(props) {
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
-    useEffect(() => {
-        const unsubscribeOnyxTransaction = onyxSubscribe({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (allTransactions) => {
-                if (_.isEmpty(allTransactions)) {
-                    return;
-                }
-
-                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
-                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
-                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
-            },
-        });
-
-        return () => {
-            unsubscribeOnyxTransaction();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isGroupPolicy
-        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+    const isPayer = isPaidGroupPolicy
+        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
@@ -239,101 +240,103 @@ function ReportPreview(props) {
         [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
-        if (!isGroupPolicy) {
+        if (!isPaidGroupPolicy) {
             return false;
         }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
+    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
-            <PressableWithoutFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
-                }}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
-                role="button"
-                accessibilityLabel={props.translate('iou.viewDetails')}
-            >
-                <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                    {hasReceipts && (
-                        <ReportActionItemImages
-                            images={lastThreeReceipts}
-                            total={transactionsWithReceipts.length}
-                            isHovered={props.isHovered || isScanning}
-                            size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
-                        />
-                    )}
-                    <View style={styles.reportPreviewBoxBody}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+        <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>
+            <View style={[styles.chatItemMessage, ...props.containerStyles]}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
+                    }}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    role="button"
+                    accessibilityLabel={props.translate('iou.viewDetails')}
+                >
+                    <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                        {hasReceipts && (
+                            <ReportActionItemImages
+                                images={lastThreeReceipts}
+                                total={transactionsWithReceipts.length}
+                                isHovered={props.isHovered || isScanning}
+                                size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
+                            />
+                        )}
+                        <View style={styles.reportPreviewBoxBody}>
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+                                </View>
+                                {!iouSettled && hasErrors && (
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={theme.danger}
+                                    />
+                                )}
                             </View>
-                            {!iouSettled && hasErrors && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={theme.danger}
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
+                                    {ReportUtils.isSettled(props.iouReportID) && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={theme.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                            {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                    </View>
+                                </View>
+                            )}
+                            {shouldShowSettlementButton && (
+                                <SettlementButton
+                                    currency={props.iouReport.currency}
+                                    policyID={props.policyID}
+                                    chatReportID={props.chatReportID}
+                                    iouReport={props.iouReport}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                    addBankAccountRoute={bankAccountRoute}
+                                    shouldHidePaymentOptions={!shouldShowPayButton}
+                                    shouldShowApproveButton={shouldShowApproveButton}
+                                    style={[styles.mt3]}
+                                    kycWallAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                    paymentMethodDropdownAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                />
+                            )}
+                            {shouldShowSubmitButton && (
+                                <Button
+                                    medium
+                                    success={isWaitingForSubmissionFromCurrentUser}
+                                    text={translate('common.submit')}
+                                    style={styles.mt3}
+                                    onPress={() => IOU.submitReport(props.iouReport)}
                                 />
                             )}
                         </View>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                {ReportUtils.isSettled(props.iouReportID) && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={theme.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                        {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
-                                </View>
-                            </View>
-                        )}
-                        {shouldShowSettlementButton && (
-                            <SettlementButton
-                                currency={props.iouReport.currency}
-                                policyID={props.policyID}
-                                chatReportID={props.chatReportID}
-                                iouReport={props.iouReport}
-                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                addBankAccountRoute={bankAccountRoute}
-                                shouldHidePaymentOptions={!shouldShowPayButton}
-                                shouldShowApproveButton={shouldShowApproveButton}
-                                style={[styles.mt3]}
-                                kycWallAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                                paymentMethodDropdownAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                            />
-                        )}
-                        {shouldShowSubmitButton && (
-                            <Button
-                                medium
-                                success={props.chatReport.isOwnPolicyExpenseChat}
-                                text={translate('common.submit')}
-                                style={styles.mt3}
-                                onPress={() => IOU.submitReport(props.iouReport)}
-                            />
-                        )}
                     </View>
-                </View>
-            </PressableWithoutFeedback>
-        </View>
+                </PressableWithoutFeedback>
+            </View>
+        </OfflineWithFeedback>
     );
 }
 
@@ -355,6 +358,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
         },
     }),
 )(ReportPreview);

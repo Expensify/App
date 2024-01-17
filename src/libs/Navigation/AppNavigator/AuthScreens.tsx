@@ -1,6 +1,8 @@
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -29,12 +31,13 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
@@ -48,7 +51,7 @@ type AuthScreensProps = {
     isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
 
     /** The last Onyx update ID was applied to the client */
-    lastUpdateIDAppliedToClient: OnyxEntry<number>;
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
@@ -60,6 +63,7 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -109,6 +113,21 @@ Onyx.connect({
     },
 });
 
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value: OnyxEntry<number>) => {
+        lastUpdateIDAppliedToClient = value;
+    },
+});
+
+function handleNetworkReconnect() {
+    if (isLoadingApp) {
+        App.openApp();
+    } else {
+        App.reconnectApp(lastUpdateIDAppliedToClient);
+    }
+}
+
 const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -126,10 +145,11 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -152,13 +172,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => {
-            if (isLoadingApp) {
-                App.openApp();
-            } else {
-                App.reconnectApp(lastUpdateIDAppliedToClient);
-            }
-        });
+        NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -176,7 +190,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient);
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -296,6 +310,12 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    options={screenOptions.leftModalNavigator}
+                    component={LeftModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
@@ -319,7 +339,7 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     isUsingMemoryOnlyKeys: {
         key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
     },
-    lastUpdateIDAppliedToClient: {
+    initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
 })(AuthScreensMemoized);

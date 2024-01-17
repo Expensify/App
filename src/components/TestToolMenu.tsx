@@ -1,5 +1,6 @@
 import React from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
@@ -8,8 +9,8 @@ import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import NetworkOnyx from '@src/types/onyx/Network';
-import UserOnyx from '@src/types/onyx/User';
+import type NetworkOnyx from '@src/types/onyx/Network';
+import type UserOnyx from '@src/types/onyx/User';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';

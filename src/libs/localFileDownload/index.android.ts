@@ -1,13 +1,13 @@
 import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import LocalFileDownload from './types';
+import type LocalFileDownload from './types';
 
 /**
  * Writes a local file to the app's internal directory with the given fileName
  * and textContent, so we're able to copy it to the Android public download dir.
  * After the file is copied, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, successMessage) => {
     const newFileName = FileUtils.appendTimeToFileName(fileName);
     const dir = RNFetchBlob.fs.dirs.DocumentDir;
     const path = `${dir}/${newFileName}.txt`;
@@ -23,7 +23,7 @@ const localFileDownload: LocalFileDownload = (fileName, textContent) => {
             path,
         )
             .then(() => {
-                FileUtils.showSuccessAlert();
+                FileUtils.showSuccessAlert(successMessage);
             })
             .catch(() => {
                 FileUtils.showGeneralErrorAlert();

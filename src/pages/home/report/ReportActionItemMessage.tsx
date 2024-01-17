@@ -1,5 +1,8 @@
-import React, {ReactElement} from 'react';
-import {StyleProp, Text, View, ViewStyle} from 'react-native';
+import type {ReactElement} from 'react';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -38,13 +41,15 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const fragment = ReportActionsUtils.getMemberChangeMessageFragment(action);
 
         return (
-            <TextCommentFragment
-                fragment={fragment}
-                displayAsGroup={displayAsGroup}
-                style={style}
-                source=""
-                styleAsDeleted={false}
-            />
+            <View style={[styles.chatItemMessage, style]}>
+                <TextCommentFragment
+                    fragment={fragment}
+                    displayAsGroup={displayAsGroup}
+                    style={style}
+                    source=""
+                    styleAsDeleted={false}
+                />
+            </View>
         );
     }
 
@@ -53,7 +58,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), action);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action);
         }
     }
 
