@@ -535,7 +535,7 @@ function getReportParticipantsTitle(accountIDs: number[]): string {
 /**
  * Checks if a report is a chat report.
  */
-function isChatReport(report: OnyxEntry<Report>): boolean {
+function isChatReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
