@@ -1,5 +1,5 @@
 import type {TextInput} from 'react-native';
 
-type UpdateMultilineInputRange = (input: HTMLInputElement | TextInput, shouldAutoFocus?: boolean) => void;
+type UpdateMultilineInputRange = (input: HTMLInputElement | TextInput | null, shouldAutoFocus?: boolean) => void;
 
 export default UpdateMultilineInputRange;
