@@ -4321,13 +4321,13 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
  * Assume any report without a reportID is unusable.
  */
 function isValidReport(report?: OnyxEntry<Report>): boolean {
-    return Boolean(!report?.reportID);
+    return Boolean(report?.reportID);
 }
 
 /**
  * Check to see if we are a participant of this report.
  */
-function isReportParticipant(report?: OnyxEntry<Report>, accountID: number): boolean {
+function isReportParticipant(accountID: number, report?: OnyxEntry<Report>): boolean {
     if (!accountID) {
         return false;
     }
