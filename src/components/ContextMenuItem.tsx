@@ -104,3 +104,4 @@ function ContextMenuItem(
 ContextMenuItem.displayName = 'ContextMenuItem';
 
 export default forwardRef(ContextMenuItem);
+export type {ContextMenuItemHandle};

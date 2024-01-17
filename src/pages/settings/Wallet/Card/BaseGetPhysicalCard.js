@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
 import * as Wallet from '@libs/actions/Wallet';

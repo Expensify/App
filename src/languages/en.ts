@@ -1803,6 +1803,7 @@ export default {
         success: {
             title: 'Downloaded!',
             message: 'Attachment successfully downloaded!',
+            qrMessage: 'Check your photos or downloads folder for a copy of your QR code. Protip: Add it to a presentation for your audience to scan and connect with you directly.',
         },
         generalError: {
             title: 'Attachment Error',
@@ -2032,9 +2033,11 @@ export default {
         cardDamaged: 'My card was damaged',
         cardLostOrStolen: 'My card was lost or stolen',
         confirmAddressTitle: "Please confirm the address below is where you'd like us to send your new card.",
-        currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
+        cardDamagedInfo: 'Your new card will arrive in 2-3 business days, and your existing card will continue to work until you activate your new one.',
+        cardLostOrStolenInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
         address: 'Address',
         deactivateCardButton: 'Deactivate card',
+        shipNewCardButton: 'Ship new card',
         addressError: 'Address is required',
         reasonError: 'Reason is required',
     },

@@ -1829,6 +1829,8 @@ export default {
         success: {
             title: '!Descargado!',
             message: 'Archivo descargado correctamente',
+            qrMessage:
+                'Busca la copia de tu código QR en la carpeta de fotos o descargas. Consejo: Añádelo a una presentación para que el público pueda escanearlo y conectar contigo directamente.',
         },
         generalError: {
             title: 'Error en la descarga',
@@ -2519,9 +2521,11 @@ export default {
         cardDamaged: 'Mi tarjeta está dañada',
         cardLostOrStolen: 'He perdido o me han robado la tarjeta',
         confirmAddressTitle: 'Confirma que la dirección que aparece a continuación es a la que deseas que te enviemos tu nueva tarjeta.',
-        currentCardInfo: 'La tarjeta actual se desactivará permanentemente en cuanto se realice el pedido. La mayoría de las tarjetas llegan en unos pocos días laborables.',
+        cardDamagedInfo: 'La nueva tarjeta te llegará en 2-3 días laborables y la tarjeta actual seguirá funcionando hasta que actives la nueva.',
+        cardLostOrStolenInfo: 'La tarjeta actual se desactivará permanentemente en cuanto realices el pedido. La mayoría de las tarjetas llegan en pocos días laborables.',
         address: 'Dirección',
         deactivateCardButton: 'Desactivar tarjeta',
+        shipNewCardButton: 'Enviar tarjeta nueva',
         addressError: 'La dirección es obligatoria',
         reasonError: 'Se requiere justificación',
     },
