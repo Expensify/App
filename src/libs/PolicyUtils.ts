@@ -1,5 +1,4 @@
 import Str from 'expensify-common/lib/str';
-import {cloneDeep} from 'lodash';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -191,9 +190,8 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
     }
 
     const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-    const tags = policyTags?.[policyTagKey]?.tags ?? {};
 
-    return tags;
+    return policyTags?.[policyTagKey]?.tags ?? {};
 }
 
 // This is to remove unnecessary escaping backslash in tag name sent from backend for "Parent: Child" type of tags.
