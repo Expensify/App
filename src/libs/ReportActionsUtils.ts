@@ -810,6 +810,29 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
+function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
+    if (!lastReadTime) {
+        return Boolean(!isCreatedAction(reportAction));
+    }
+
+    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+}
+
+/**
+ * Check whether the report action of the report is unread or not
+ *
+ */
+function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
+    const lastReadTime = report.lastReadTime ?? '';
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
+    const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
+    if (currentActionIndex === -1) {
+        return false;
+    }
+    const nextReportAction = sortedReportActions[currentActionIndex + 1];
+    return isReportActionUnread(reportAction, lastReadTime) && (!nextReportAction || !isReportActionUnread(nextReportAction, lastReadTime));
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -860,6 +883,7 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
+    isCurrentActionUnread,
 };
 
 export type {LastVisibleMessage};

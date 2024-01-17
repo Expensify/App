@@ -367,6 +367,13 @@ type OnyxDataTaskAssigneeChat = {
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
 
+type Ancestor = {
+    report: Report;
+    reportAction: ReportAction;
+    shouldDisplayNewMarker: boolean;
+    shouldHideThreadDividerLine: boolean;
+};
+
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
@@ -4434,6 +4441,38 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
+function getAllAncestorReportActions(report: Report): Ancestor[] {
+    let parentReportID = report.parentReportID;
+    let parentReportActionID = report.parentReportActionID;
+    // Store the child of parent report
+    let currentReport = report;
+    let currentUnread = false;
+    const allAncestors: Ancestor[] = [];
+    while (parentReportID) {
+        const parentReport = getReport(parentReportID);
+        const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+            break;
+        }
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
+        allAncestors.push({
+            report: currentReport,
+            reportAction: parentReportAction,
+            shouldDisplayNewMarker: isParentReportActionUnread,
+            // We should hide the thread divider line if the previous ancestor action is unread
+            shouldHideThreadDividerLine: currentUnread,
+        });
+        parentReportID = parentReport?.parentReportID;
+        parentReportActionID = parentReport?.parentReportActionID;
+        if (!isEmptyObject(parentReport)) {
+            currentReport = parentReport;
+            currentUnread = isParentReportActionUnread;
+        }
+    }
+
+    return allAncestors.reverse();
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4613,6 +4652,7 @@ export {
     shouldDisplayThreadReplies,
     shouldDisableThread,
     getChildReportNotificationPreference,
+    getAllAncestorReportActions,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};

@@ -59,7 +59,6 @@ function ReportActionsListItemRenderer({
         <ReportActionItemParentAction
             shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
             reportID={report.reportID}
-            parentReportID={`${report.parentReportID}`}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             index={index}
         />
