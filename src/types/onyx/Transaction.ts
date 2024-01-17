@@ -38,11 +38,13 @@ type Geometry = {
     type?: GeometryType;
 };
 
+type ReceiptSource = string | number;
+
 type Receipt = {
     receiptID?: number;
     path?: string;
     name?: string;
-    source?: string;
+    source?: ReceiptSource;
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
@@ -200,4 +202,4 @@ type AdditionalTransactionChanges = {
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionChanges, TaxRate};
+export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionChanges, TaxRate, ReceiptSource};

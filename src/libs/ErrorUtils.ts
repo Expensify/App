@@ -54,7 +54,7 @@ type OnyxDataWithErrors = {
     errors?: Errors;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string | null {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string | number | null {
     const errors = onyxData.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
