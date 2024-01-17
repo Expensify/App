@@ -519,7 +519,7 @@ function ReportActionsList({
     return (
         <>
             <FloatingMessageCounter
-                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || !hasNewestReportAction}
+                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || (!isLoadingInitialReportActions && !hasNewestReportAction)}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
