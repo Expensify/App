@@ -46,7 +46,7 @@ Then, set the default currency for that workspace to match the currency in which
 
 For example, if you have employees in the US, France, Japan, and India, you’d want to create four separate workspaces, add the employees to each, and then set the corresponding currency for each workspace. 
 
-# FAQ
+{% include faq-begin.md %}
 
 ## I have expenses in several different currencies. How will this show up on a report?
 
@@ -60,5 +60,4 @@ Expenses entered in a foreign currency are automatically converted to the defaul
 
 If you want to bypass the exchange rate conversion, you can manually enter an expense in your default currency instead.
 
-
-
+{% include faq-end.md %}
