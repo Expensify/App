@@ -3,10 +3,9 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import type {WithLocalizeProps} from '@components/withLocalize';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,46 +14,36 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
 
 type ReportActionItemParentActionOnyxProps = {
-    /** ONYX PROPS */
-
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** The actions from the parent report */
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
-type ReportActionItemParentActionProps = WithLocalizeProps &
-    WindowDimensionsProps &
-    ReportActionItemParentActionOnyxProps & {
-        /** Flag to show, hide the thread divider line */
-        shouldHideThreadDividerLine: boolean;
 
-        /** Flag to display the new marker on top of the comment */
-        shouldDisplayNewMarker: boolean;
+type ReportActionItemParentActionProps = ReportActionItemParentActionOnyxProps & {
+    /** Flag to show, hide the thread divider line */
+    shouldHideThreadDividerLine?: boolean;
 
-        /** Position index of the report parent action in the overall report FlatList view */
-        index: number;
+    /** Flag to display the new marker on top of the comment */
+    shouldDisplayNewMarker: boolean;
 
-        /** The id of the report */
-        // eslint-disable-next-line react/no-unused-prop-types
-        reportID: string;
+    /** Position index of the report parent action in the overall report FlatList view */
+    index: number;
 
-        /** The id of the parent report */
-        // eslint-disable-next-line react/no-unused-prop-types
-        parentReportID: string;
-    };
+    /** The id of the report */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportID: string;
 
-function ReportActionItemParentAction({
-    report = {reportID: ''},
-    parentReportActions = {},
-    isSmallScreenWidth,
-    index = 0,
-    shouldHideThreadDividerLine = false,
-    shouldDisplayNewMarker,
-}: ReportActionItemParentActionProps) {
+    /** The id of the parent report */
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportID: string;
+};
+
+function ReportActionItemParentAction({report, parentReportActions = {}, index = 0, shouldHideThreadDividerLine = false, shouldDisplayNewMarker}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const parentReportAction = parentReportActions?.[`${report?.parentReportActionID ?? ''}`] ?? null;
 
     // In case of transaction threads, we do not want to render the parent report action.
