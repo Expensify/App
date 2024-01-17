@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
@@ -16,6 +16,7 @@ import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -358,7 +359,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
     const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
-        // do not change focus on the first render, as it should focus on the selected item
+        // do not change focus on the first render or when the textInputValue is the same
         if (isInitialSectionListRender || prevTextInputValue === textInputValue) {
             return;
         }
