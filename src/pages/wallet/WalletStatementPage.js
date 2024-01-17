@@ -11,6 +11,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemePreference from '@hooks/useThemePreference';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import fileDownload from '@libs/fileDownload';
@@ -53,6 +54,7 @@ const defaultProps = {
 };
 
 function WalletStatementPage(props) {
+    const themePreference = useThemePreference();
     const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
 
     useEffect(() => {
@@ -89,7 +91,7 @@ function WalletStatementPage(props) {
     const month = yearMonth.substring(4) || getMonth(new Date());
     const monthName = format(new Date(year, month - 1), CONST.DATE.MONTH_FORMAT);
     const title = props.translate('statementPage.title', year, monthName);
-    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
+    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     return (
         <ScreenWrapper

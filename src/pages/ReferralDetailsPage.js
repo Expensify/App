@@ -64,15 +64,15 @@ function ReferralDetailsPage({route, account}) {
             headerContent={
                 <Icon
                     src={PaymentHands}
-                    width={178}
+                    width={589}
                     height={232}
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
-            <Text style={[styles.textHeadline, styles.mb3, styles.mt3, styles.ph4]}>{contentHeader}</Text>
-            <Text style={[styles.inlineSystemMessage, styles.ml0, styles.mb6, styles.ph4]}>{contentBody}</Text>
+            <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
+            <Text style={[styles.webViewStyles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>
 
             {shouldShowClipboard && (
                 <ContextMenuItem

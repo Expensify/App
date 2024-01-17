@@ -27,7 +27,7 @@ Request.use(Middleware.Reauthentication);
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
 Request.use(Middleware.HandleUnusedOptimisticID);
 
-// SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
+// SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 Request.use(Middleware.SaveResponseInOnyx);
 
@@ -35,12 +35,13 @@ type OnyxData = {
     optimisticData?: OnyxUpdate[];
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
+    finallyData?: OnyxUpdate[];
 };
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 /**
- * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
+ * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  *
  * @param command - Name of API command to call.
@@ -51,6 +52,7 @@ type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
  * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 function write(command: string, apiCommandParameters: Record<string, unknown> = {}, onyxData: OnyxData = {}) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
@@ -105,6 +107,7 @@ function write(command: string, apiCommandParameters: Record<string, unknown> = 
  * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  * @param [apiRequestType] - Can be either 'read', 'write', or 'makeRequestWithSideEffects'. We use this to either return the chained
  *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
  * @returns
@@ -152,6 +155,7 @@ function makeRequestWithSideEffects(
  * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 function read(command: string, apiCommandParameters: Record<string, unknown>, onyxData: OnyxData = {}) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
