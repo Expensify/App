@@ -12,11 +12,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
-import type {ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
-
-type ContextMenuAnchorCallback = (x: number, y: number) => void;
-
-type ContextMenuAnchor = {measureInWindow: (callback: ContextMenuAnchorCallback) => void};
+import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
 type Location = {
     x: number;

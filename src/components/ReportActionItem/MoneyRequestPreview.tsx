@@ -177,7 +177,6 @@ function MoneyRequestPreview({
     };
 
     const showContextMenu = (event: GestureResponderEvent) => {
-        // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
         showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
     };
 
