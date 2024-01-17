@@ -207,7 +207,11 @@ function SettlementButton({
             buttonOptions.push(payWithBusinessBankAccountOption);
         }
 
-        buttonOptions.push(payWithPersonalBankAccountOption);
+        const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || ReportUtils.isIOUReport(iouReport);
+        if (canUsePersonalBankAccount) {
+            buttonOptions.push(payWithPersonalBankAccountOption);
+        }
+
         buttonOptions.push(payWithDebitCardOption);
         buttonOptions.push(payElsewhereOption);
 
