@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -114,16 +114,15 @@ const defaultProps = {
     loginList: {},
     isConfirmation: false,
     renderContent: (onSubmit, submitButtonText, styles, children = () => {}, onValidate = () => ({})) => (
-        <Form
+        <FormProvider
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}
             onSubmit={onSubmit}
-            style={styles.flex1}
-            submitButtonStyles={[styles.mh5]}
+            style={[styles.flex1, styles.mh5]}
             validate={onValidate}
         >
             {children}
-        </Form>
+        </FormProvider>
     ),
     onValidate: () => ({}),
 };

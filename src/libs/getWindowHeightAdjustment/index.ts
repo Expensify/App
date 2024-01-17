@@ -1,4 +1,4 @@
-import GetWindowHeightAdjustment from './types';
+import type GetWindowHeightAdjustment from './types';
 
 // Some platforms need to adjust the window height.
 const getWindowHeightAdjustment: GetWindowHeightAdjustment = () => 0;

@@ -8,6 +8,7 @@ import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Modal from '@components/Modal';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -44,7 +45,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** Image crop vector mask */
-    maskImage: PropTypes.func,
+    maskImage: sourcePropTypes,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -405,7 +406,7 @@ function AvatarCropModal(props) {
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
                                     src={Expensicons.Zoom}
-                                    fill={theme.icons}
+                                    fill={theme.icon}
                                 />
 
                                 <PressableWithoutFeedback

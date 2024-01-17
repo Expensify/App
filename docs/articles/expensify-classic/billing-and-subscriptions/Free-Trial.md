@@ -31,7 +31,7 @@ To access these extra free weeks, all you need to do is complete the tasks on yo
 
 - Establish a connection between Expensify and your accounting system from the outset. By doing this early, you can start testing Expensify comprehensively from end to end.
 
-# FAQ
+{% include faq-begin.md %}
 ## What happens when my Free Trial ends?
 If you’ve already added a billing card to Expensify, you will automatically start your organization’s Expensify subscription after your Free Trial ends. At the beginning of the following month, we'll bill the card you have on file for your subscription, adjusting the charge to exclude the Free Trial period.
 If your Free Trial concludes without a billing card on file, you will see a notification on your Home page saying, 'Your Free Trial has expired.' 
@@ -42,3 +42,5 @@ If you continue without adding a billing card, you will be granted a five-day gr
 If you’d like to downgrade to an individual account after your Free Trial has ended, you will need to delete any Group Workspace that you have created. This action will remove the Workspaces, subscription, and any amount owed. You can do this in one of two ways from the Expensify web app:
 - Select the “Downgrade” option on the billing card task on your Home page.
 - Go to **Settings > Workspaces > [Workspace name]**, then click the gear button next to the Workspace and select Delete.
+
+{% include faq-end.md %}

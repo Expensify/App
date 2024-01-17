@@ -4,7 +4,7 @@ import {Text, View} from 'react-native';
 import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import Tooltip from '@components/Tooltip';
-import UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
+import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -27,11 +27,11 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.
     if (delegateAccountID) {
-        const delegateUserDetails = personalDetails?.[delegateAccountID] ?? {};
+        const delegateUserDetails = personalDetails?.[delegateAccountID];
         const delegateUserDisplayName = ReportUtils.getDisplayNameForParticipant(delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
-        userLogin = delegateUserDetails.login ?? '';
-        userAvatar = delegateUserDetails.avatar;
+        userLogin = delegateUserDetails?.login ?? '';
+        userAvatar = delegateUserDetails?.avatar;
         userAccountID = delegateAccountID;
     }
 
@@ -46,9 +46,9 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={icon ? icon.source : UserUtils.getAvatar(userAvatar, userAccountID)}
-                        type={icon ? icon.type : CONST.ICON_TYPE_AVATAR}
-                        name={icon ? icon.name : userLogin}
+                        source={icon?.source ?? UserUtils.getAvatar(userAvatar, userAccountID)}
+                        type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
+                        name={icon?.name ?? userLogin}
                         fallbackIcon={icon?.fallbackIcon}
                     />
                 </View>

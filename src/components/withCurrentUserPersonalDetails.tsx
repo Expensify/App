@@ -1,5 +1,7 @@
-import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import CONST from '@src/CONST';

@@ -1,10 +1,12 @@
 import React, {Fragment, useCallback, useRef} from 'react';
-import {Text as RNText, View} from 'react-native';
+import type {Text as RNText} from 'react-native';
+import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
-import DisplayNamesProps from './types';
+import type DisplayNamesProps from './types';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
@@ -47,12 +49,12 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
-            style={[textStyles, styles.pRelative, numberOfLines === 1 ? styles.noWrap : {}]}
+            style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
         >
             {shouldUseFullTitle
-                ? fullTitle
+                ? ReportUtils.formatReportLastMessageText(fullTitle)
                 : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>

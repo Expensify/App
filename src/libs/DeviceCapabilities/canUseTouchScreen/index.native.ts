@@ -1,4 +1,4 @@
-import CanUseTouchScreen from './types';
+import type CanUseTouchScreen from './types';
 
 const canUseTouchScreen: CanUseTouchScreen = () => true;
 

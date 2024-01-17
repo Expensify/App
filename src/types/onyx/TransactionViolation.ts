@@ -1,46 +1,34 @@
+import type CONST from '@src/CONST';
+
 /**
- * Names of transaction violations
+ * Names of violations.
+ * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
  */
-type ViolationName =
-    | 'allTagLevelsRequired'
-    | 'autoReportedRejectedExpense'
-    | 'billableExpense'
-    | 'cashExpenseWithNoReceipt'
-    | 'categoryOutOfPolicy'
-    | 'conversionSurcharge'
-    | 'customUnitOutOfPolicy'
-    | 'duplicatedTransaction'
-    | 'fieldRequired'
-    | 'futureDate'
-    | 'invoiceMarkup'
-    | 'maxAge'
-    | 'missingCategory'
-    | 'missingComment'
-    | 'missingTag'
-    | 'modifiedAmount'
-    | 'modifiedDate'
-    | 'nonExpensiworksExpense'
-    | 'overAutoApprovalLimit'
-    | 'overCategoryLimit'
-    | 'overLimit'
-    | 'overLimitAttendee'
-    | 'perDayLimit'
-    | 'receiptNotSmartScanned'
-    | 'receiptRequired'
-    | 'rter'
-    | 'smartscanFailed'
-    | 'someTagLevelsRequired'
-    | 'tagOutOfPolicy'
-    | 'taxAmountChanged'
-    | 'taxOutOfPolicy'
-    | 'taxRateChanged'
-    | 'taxRequired';
+type ViolationName = (typeof CONST.VIOLATIONS)[keyof typeof CONST.VIOLATIONS];
 
 type TransactionViolation = {
     type: string;
     name: ViolationName;
     userMessage: string;
-    data?: Record<string, string>;
+    data?: {
+        rejectedBy?: string;
+        rejectReason?: string;
+        amount?: string;
+        surcharge?: number;
+        invoiceMarkup?: number;
+        maxAge?: number;
+        tagName?: string;
+        formattedLimitAmount?: string;
+        categoryLimit?: string;
+        limit?: string;
+        category?: string;
+        brokenBankConnection?: boolean;
+        isAdmin?: boolean;
+        email?: string;
+        isTransactionOlderThan7Days?: boolean;
+        member?: string;
+        taxName?: string;
+    };
 };
 
 export type {TransactionViolation, ViolationName};
