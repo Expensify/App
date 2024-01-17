@@ -3983,15 +3983,26 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;
 }
 
+/**
+ * Return true if the Money Request report is marked for deletion.
+ */
+function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report>): boolean {
+    if (!isMoneyRequestReport(report)) {
+        return false;
+    }
+
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+
     // If the Money Request report is marked for deletion, let us prevent any further write action.
-    if (isMoneyRequestReport(report)) {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-        if (parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return false;
-        }
+    if (isMoneyRequestReportPendingDeletion(report)) {
+        return false;
     }
+
     return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
 }
 
@@ -4567,6 +4578,7 @@ export {
     getParentReport,
     getRootParentReport,
     getReportPreviewMessage,
+    isMoneyRequestReportPendingDeletion,
     canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
