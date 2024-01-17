@@ -623,15 +623,15 @@ function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean 
 /**
  * Checks if the supplied report has a common policy member with the array passed in params.
  */
-function hasReportCommonPolicyMemberWithArray(report: Report, policyMembersAccountIDs: string[]) {
+function hasReportCommonPolicyMemberWithArray(report: Report, policyMemberAccountIDs: number[]) {
     if (!report.participantAccountIDs) {
         return false;
     }
 
-    const policyMembersAccountIDsSet = new Set(policyMembersAccountIDs);
+    const policyMemberAccountIDsSet = new Set(policyMemberAccountIDs);
 
     for (const reportParticipant of report.participantAccountIDs) {
-        if (policyMembersAccountIDsSet.has(reportParticipant.toString())) {
+        if (policyMemberAccountIDsSet.has(reportParticipant)) {
             return true;
         }
     }
@@ -839,10 +839,10 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report belongs to workspace based on the provided params.
  */
-function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
+function doesReportBelongToWorkspace(report: Report, policyID: string, policyMemberAccountIDs: number[]) {
     return (
         isConciergeChatReport(report) ||
-        (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID)
+        (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMemberAccountIDs) : report.policyID === policyID)
     );
 }
 
@@ -853,7 +853,7 @@ function sortReportsByLastRead(
     reports: OnyxCollection<Report>,
     reportMetadata: OnyxCollection<ReportMetadata>,
     policyID?: string,
-    policyMemberAccountIDs: string[] = [],
+    policyMemberAccountIDs: number[] = [],
 ): Array<OnyxEntry<Report>> {
     let reportsValues = Object.values(reports ?? {});
     if (policyID) {
@@ -941,7 +941,7 @@ function findLastAccessedReport(
     openOnAdminRoom = false,
     reportMetadata: OnyxCollection<ReportMetadata> = {},
     policyID?: string,
-    policyMemberAccountIDs?: string[],
+    policyMemberAccountIDs?: number[],
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
