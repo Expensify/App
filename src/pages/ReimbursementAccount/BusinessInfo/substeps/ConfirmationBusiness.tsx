@@ -143,17 +143,11 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         LabelComponent={() => (
                             <Text>
                                 {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
-                                <TextLink
-                                    // eslint-disable-next-line max-len
-                                    href={CONST.LIST_OF_RESTRICTED_BUSINESSES}
-                                >
-                                    {`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}
-                                </TextLink>
+                                <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
                             </Text>
                         )}
                         style={[styles.mt4]}
                         shouldSaveDraft
-                        onInputChange={() => {}}
                     />
                 </FormProvider>
                 <View style={[styles.ph5, styles.mtAuto]}>

@@ -31,21 +31,17 @@ type BeneficialOwnerInfoOnyxProps = {
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
-type BeneficialOwnersStepProps = {
+type BeneficialOwnersStepProps = BeneficialOwnerInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
     /** Exits flow and goes back to the workspace initial page */
     onCloseButtonPress: () => void;
-} & BeneficialOwnerInfoOnyxProps;
+};
 
-const BODY_CONTENT: Array<React.ComponentType<SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>> = [
-    LegalNameUBO,
-    DateOfBirthUBO,
-    SocialSecurityNumberUBO,
-    AddressUBO,
-    ConfirmationUBO,
-];
+type BeneficialOwnerSubStepProps = SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void};
+
+const BODY_CONTENT: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
@@ -119,7 +115,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
         moveTo,
         resetScreenIndex,
         goToTheLastStep,
-    } = useSubStep<SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void}>({
+    } = useSubStep<BeneficialOwnerSubStepProps>({
         bodyContent: BODY_CONTENT,
         startFrom: 0,
         onFinished: handleBeneficialOwnerDetailsFormSubmit,

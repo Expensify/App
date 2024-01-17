@@ -8,34 +8,34 @@ type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
-type ACHData = {
-    /** Step of the setup flow that we are on. Determines which view is presented. */
-    currentStep?: BankAccountStep;
-
-    /** Optional subStep we would like the user to start back on */
-    subStep?: BankAccountSubStep;
-
-    /** Bank account state */
-    state?: string;
-
-    /** Bank account ID of the VBA that we are validating is required */
-    bankAccountID?: number;
-
-    /** Bank account routing number */
-    routingNumber?: string;
-
-    /** Bank account number */
-    accountNumber?: string;
-
-    /** Bank account name */
-    bankName?: BankName;
-
-    /** Bank account owner name */
-    addressName?: string;
-} & BeneficialOwnersStepProps &
+type ACHData = BeneficialOwnersStepProps &
     CompanyStepProps &
     RequestorStepProps &
-    ACHContractStepProps;
+    ACHContractStepProps & {
+        /** Step of the setup flow that we are on. Determines which view is presented. */
+        currentStep?: BankAccountStep;
+
+        /** Optional subStep we would like the user to start back on */
+        subStep?: BankAccountSubStep;
+
+        /** Bank account state */
+        state?: string;
+
+        /** Bank account ID of the VBA that we are validating is required */
+        bankAccountID?: number;
+
+        /** Bank account routing number */
+        routingNumber?: string;
+
+        /** Bank account number */
+        accountNumber?: string;
+
+        /** Bank account name */
+        bankName?: BankName;
+
+        /** Bank account owner name */
+        addressName?: string;
+    };
 
 type ReimbursementAccount = {
     /** Whether we are loading the data via the API */

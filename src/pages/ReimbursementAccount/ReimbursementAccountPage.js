@@ -353,9 +353,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
      */
     const getDefaultStateForField = (fieldName, defaultValue = '') => lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
 
-    const goBackToWorkspace = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-    };
+    const goBackToWorkspace = () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
 
     const goBack = () => {
         const subStep = achData.subStep;
