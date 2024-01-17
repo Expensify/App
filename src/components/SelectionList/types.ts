@@ -69,8 +69,10 @@ type User = {
 
     invitedSecondaryLogin?: string;
 
+    /** Represents the index of the section it came from  */
     sectionIndex: number;
 
+    /** Represents the index of the option within the section it came from */
     index: number;
 };
 
@@ -109,8 +111,10 @@ type RadioItem = {
     /** The type of action that's pending  */
     pendingAction?: undefined;
 
+    /** Represents the index of the section it came from  */
     sectionIndex: number;
 
+    /** Represents the index of the option within the section it came from */
     index: number;
 };
 
