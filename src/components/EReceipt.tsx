@@ -51,7 +51,7 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : {};
 
     return (
-        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}]}>
+        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
             <View style={styles.fullScreen}>
                 <EReceiptThumbnail transactionID={transactionID} />
             </View>
