@@ -63,11 +63,14 @@ export default PropTypes.shape({
     stateNum: PropTypes.oneOf(_.values(CONST.REPORT.STATE_NUM)),
 
     /** The status of the current report */
-    statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+    statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS_NUM)),
 
     /** Which user role is capable of posting messages on the report */
     writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 
     /** Field-specific pending states for offline UI status */
     pendingFields: PropTypes.objectOf(PropTypes.string),
+
+    /** Custom fields attached to the report */
+    reportFields: PropTypes.objectOf(PropTypes.string),
 });
