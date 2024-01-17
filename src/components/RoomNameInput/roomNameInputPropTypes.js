@@ -17,6 +17,12 @@ const propTypes = {
     /** A ref forwarded to the TextInput */
     forwardedRef: refPropTypes,
 
+    /** On submit editing handler provided by the FormProvider */
+    onSubmitEditing: PropTypes.func,
+
+    /** Return key type provided to the TextInput  */
+    returnKeyType: PropTypes.string,
+
     /** The ID used to uniquely identify the input in a Form */
     inputID: PropTypes.string,
 
@@ -39,6 +45,8 @@ const defaultProps = {
     disabled: false,
     errorText: '',
     forwardedRef: () => {},
+    onSubmitEditing: () => {},
+    returnKeyType: undefined,
 
     inputID: undefined,
     onBlur: () => {},

@@ -63,6 +63,12 @@ type AddressSearchProps = {
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;
 
+    /** On submit editing handler provided by the FormProvider */
+    onSubmitEditing?: () => void;
+
+    /** Return key type provided to the TextInput  */
+    returnKeyType?: string;
+
     /** Customize the TextInput container */
     containerStyles?: StyleProp<ViewStyle>;
 
