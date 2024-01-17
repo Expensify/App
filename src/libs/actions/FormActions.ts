@@ -28,7 +28,7 @@ function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDee
  * @param formID
  */
 function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
-    Onyx.set(FormUtils.getDraftKey(formID), {});
+    Onyx.set(FormUtils.getDraftKey(formID), null);
 }
 
 export {setDraftValues, setErrorFields, setErrors, setIsLoading, clearDraftValues};

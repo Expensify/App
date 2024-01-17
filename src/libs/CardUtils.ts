@@ -77,7 +77,7 @@ function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
     // Check for domainName to filter out personal credit cards.
     const activeCards = Object.values(cardList ?? {}).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
 
-    return lodash.groupBy(activeCards, (card) => card.domainName as string);
+    return lodash.groupBy(activeCards, (card) => card.domainName);
 }
 
 /**
