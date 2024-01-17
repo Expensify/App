@@ -102,14 +102,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
         if (!didScreenTransitionEnd) {
-            return [
-                newSections, 
-                {
-                    recentReports: {},
-                    personalDetails: {},
-                    userToInvite: {},
-                }
-            ];
+            return [newSections, {}];
         }
         let indexOffset = 0;
 

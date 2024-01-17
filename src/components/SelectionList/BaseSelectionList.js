@@ -433,7 +433,7 @@ function BaseSelectionList({
                                 />
                             </View>
                         )}
-                        {Boolean(headerMessage) && (
+                        {!isLoadingNewOptions && Boolean(headerMessage) && (
                             <View style={[styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
