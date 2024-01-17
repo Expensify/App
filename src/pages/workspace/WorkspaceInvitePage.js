@@ -57,6 +57,7 @@ const propTypes = {
     }).isRequired,
 
     isLoadingReportData: PropTypes.bool,
+    invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
     ...policyPropTypes,
 };
 
@@ -64,6 +65,7 @@ const defaultProps = {
     personalDetails: {},
     betas: [],
     isLoadingReportData: true,
+    invitedEmailsToAccountIDsDraft: {},
     ...policyDefaultProps,
 };
 
@@ -81,7 +83,10 @@ function WorkspaceInvitePage(props) {
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
-    }, []);
+        return () => {
+            Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
+        };
+    }, [props.route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
@@ -105,6 +110,12 @@ function WorkspaceInvitePage(props) {
         _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
 
         const newSelectedOptions = [];
+        _.each(_.keys(props.invitedEmailsToAccountIDsDraft), (login) => {
+            if (!_.has(detailsMap, login)) {
+                return;
+            }
+            newSelectedOptions.push({...detailsMap[login], isSelected: true});
+        });
         _.each(selectedOptions, (option) => {
             newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
         });
@@ -322,6 +333,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        invitedEmailsToAccountIDsDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
         },
     }),
 )(WorkspaceInvitePage);
