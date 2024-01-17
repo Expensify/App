@@ -146,7 +146,7 @@ function WorkspaceSwitcherPage({policies}) {
         [policies, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
-    const filteredUserWorkspaces = useMemo(() => _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().startsWith(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
+    const filteredUserWorkspaces = useMemo(() => _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
 
     const usersWorkspacesSectionData = useMemo(
         () => ({
