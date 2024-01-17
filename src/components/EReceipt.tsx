@@ -45,7 +45,7 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
-    const amount = currency ? formattedAmount.replace(currency, '') : '';
+    const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
     const cardDescription = transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '';
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : {};
