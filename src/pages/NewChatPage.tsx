@@ -1,64 +1,61 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from './personalDetailsPropType';
-import reportPropTypes from './reportPropTypes';
+import type {Beta, Report as OnyxReport, PersonalDetails} from '@src/types/onyx';
 
-const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+type NewChatPageWithOnyxProps = {
+    /** All reports shared with the user */
+    reports: OnyxEntry<OnyxReport>;
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetails: OnyxCollection<PersonalDetails>;
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
+    betas: OnyxEntry<Beta[]>;
 
     /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
+    isSearchingForReports: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    betas: [],
-    personalDetails: {},
-    reports: {},
-    isSearchingForReports: false,
+type NewChatPageProps = NewChatPageWithOnyxProps & {
+    isGroupChat: boolean;
 };
 
-const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+type NewChatSectionListData = {
+    title?: string;
+    data: OnyxReport[] | PersonalDetails[];
+    shouldShow: boolean;
+    indexOffset: number;
+};
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
+const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
+
+function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports}: NewChatPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [filteredRecentReports, setFilteredRecentReports] = useState<OnyxReport[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<PersonalDetails[]>([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
-    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -69,16 +66,20 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         Boolean(filteredUserToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(selectedOptions, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+        selectedOptions.some((participant) => participant?.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
+
+    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo(() => {
-        const sectionsList = [];
+        const sectionsList: NewChatSectionListData[] = [];
         let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
         sectionsList.push(formatResults.section);
+        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
         indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
@@ -88,7 +89,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         sectionsList.push({
             title: translate('common.recents'),
             data: filteredRecentReports,
-            shouldShow: !_.isEmpty(filteredRecentReports),
+            shouldShow: filteredRecentReports.length > 0,
             indexOffset,
         });
         indexOffset += filteredRecentReports.length;
@@ -96,7 +97,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         sectionsList.push({
             title: translate('common.contacts'),
             data: filteredPersonalDetails,
-            shouldShow: !_.isEmpty(filteredPersonalDetails),
+            shouldShow: filteredPersonalDetails.length > 0,
             indexOffset,
         });
         indexOffset += filteredPersonalDetails.length;
@@ -115,24 +116,28 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     * @param {Object} option
+     * @param option - Option selected from the list
      */
-    const toggleOption = (option) => {
-        const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+    const toggleOption = (option: OptionData) => {
+        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
         } else {
             newSelectedOptions = [...selectedOptions, option];
         }
 
         const {
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             recentReports,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             personalDetails: newChatPersonalDetails,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             reports,
             personalDetails,
             betas,
@@ -161,9 +166,12 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * Creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      *
-     * @param {Object} option
+     * @param option - Option choosen to create the chat
      */
-    const createChat = (option) => {
+    const createChat = (option: OptionData) => {
+        if (option.login === undefined || option.login === null) {
+            return;
+        }
         Report.navigateToAndOpenReport([option.login]);
     };
 
@@ -172,19 +180,25 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * or navigates to the existing chat if one with those participants already exists.
      */
     const createGroup = () => {
-        const logins = _.pluck(selectedOptions, 'login');
+        const logins = selectedOptions.map((option) => option.login).filter((login): login is string => typeof login === 'string');
+
         if (logins.length < 1) {
             return;
         }
+
         Report.navigateToAndOpenReport(logins);
     };
 
     const updateOptions = useCallback(() => {
         const {
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             recentReports,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             personalDetails: newChatPersonalDetails,
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
+            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             reports,
             personalDetails,
             betas,
@@ -209,6 +223,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
 
+
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
             setDidScreenTransitionEnd(true);
@@ -218,7 +233,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             if (!interactionTask) {
                 return;
             }
-            interactionTask.cancel();
+            
+            (interactionTask as { cancel: () => void }).cancel();
         };
     }, []);
 
@@ -252,11 +268,12 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                    keyboardVerticalOffset={variables.contentHeaderHeight + insets.top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+                    keyboardVerticalOffset={variables.contentHeaderHeight + (insets?.top ?? 0) + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
                             ref={inputCallbackRef}
+                            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
@@ -288,26 +305,20 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     );
 }
 
-NewChatPage.propTypes = propTypes;
-NewChatPage.defaultProps = defaultProps;
 NewChatPage.displayName = 'NewChatPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
-    }),
-)(NewChatPage);
+export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(NewChatPage);
