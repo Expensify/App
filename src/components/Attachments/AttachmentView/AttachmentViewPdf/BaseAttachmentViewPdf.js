@@ -54,7 +54,7 @@ function BaseAttachmentViewPdf({
                 attachmentCarouselPagerContext.onTap(e);
             }
         },
-        [attachmentCarouselPagerContext],
+        [attachmentCarouselPagerContext, onPressProp],
     );
 
     return (
