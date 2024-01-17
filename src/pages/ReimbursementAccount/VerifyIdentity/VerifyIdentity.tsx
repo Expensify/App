@@ -1,20 +1,21 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+// @ts-expect-error TODO: Remove this once Onfido (https://github.com/Expensify/App/issues/25136) is migrated to TypeScript.
+import Onfido from '@components/Onfido';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Growl from '@libs/Growl';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type {OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
-import OnfidoInitialize from './substeps/OnfidoInitialize';
 
 type VerifyIdentityOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -22,6 +23,9 @@ type VerifyIdentityOnyxProps = {
 
     /** Onfido applicant ID from ONYX */
     onfidoApplicantID: OnyxEntry<string>;
+
+    /** The token required to initialize the Onfido SDK */
+    onfidoToken: OnyxEntry<string>;
 };
 
 type VerifyIdentityProps = VerifyIdentityOnyxProps & {
@@ -32,24 +36,31 @@ type VerifyIdentityProps = VerifyIdentityOnyxProps & {
     onCloseButtonPress: () => void;
 };
 
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [OnfidoInitialize];
+const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress, onfidoApplicantID}: VerifyIdentityProps) {
+function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress, onfidoApplicantID, onfidoToken}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const submit = useCallback(
-        (onfidoData?: OnfidoData) => {
-            if (!onfidoData) {
-                return;
-            }
 
+    const handleOnfidoSuccess = useCallback(
+        (onfidoData: OnfidoData) => {
             BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID});
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
         [reimbursementAccount, onfidoApplicantID],
     );
 
-    const {componentToRender: SubStep, isEditing, moveTo, nextScreen} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const handleOnfidoError = () => {
+        // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
+        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
+        BankAccounts.clearOnfidoToken();
+        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+    };
+
+    const handleOnfidoUserExit = () => {
+        BankAccounts.clearOnfidoToken();
+        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+    };
 
     return (
         <ScreenWrapper testID={VerifyIdentity.displayName}>
@@ -66,11 +77,16 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonP
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            <FullPageOfflineBlockingView>
+                <ScrollView contentContainerStyle={styles.flex1}>
+                    <Onfido
+                        sdkToken={onfidoToken}
+                        onUserExit={handleOnfidoUserExit}
+                        onError={handleOnfidoError}
+                        onSuccess={handleOnfidoSuccess}
+                    />
+                </ScrollView>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
@@ -83,5 +99,8 @@ export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
     },
     onfidoApplicantID: {
         key: ONYXKEYS.ONFIDO_APPLICANT_ID,
+    },
+    onfidoToken: {
+        key: ONYXKEYS.ONFIDO_TOKEN,
     },
 })(VerifyIdentity);
