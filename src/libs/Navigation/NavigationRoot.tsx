@@ -2,7 +2,6 @@ import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import useFlipper from '@hooks/useFlipper';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -39,7 +38,6 @@ function parseAndLogRoute(state: NavigationState) {
 }
 
 function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
-    useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const theme = useTheme();
 
