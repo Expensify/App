@@ -7,6 +7,7 @@ import {StatusBarStyle} from '@styles/index';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
+import usePrevious from '@hooks/usePrevious';
 
 type CustomStatusBarAndBackgroundProps = {
     /** Whether the CustomStatusBar is nested within another CustomStatusBar.
@@ -36,7 +37,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     }, [disableRootStatusBar, isNested]);
 
     const didForceUpdateStatusBarRef = useRef(false);
-    const prevIsRootStatusBarDisabled = useRef(isRootStatusBarDisabled);
+    const prevIsRootStatusBarDisabled = usePrevious(isRootStatusBarDisabled);
     const prevStatusBarBackgroundColor = useRef(theme.appBG);
     const statusBarBackgroundColor = useRef(theme.appBG);
     const statusBarAnimation = useSharedValue(0);
@@ -98,11 +99,11 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
             // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
-            if ((!didForceUpdateStatusBarRef.current && prevIsRootStatusBarDisabled.current && !isRootStatusBarDisabled) || newStatusBarStyle !== statusBarStyle) {
+            if ((!didForceUpdateStatusBarRef.current && prevIsRootStatusBarDisabled && !isRootStatusBarDisabled) || newStatusBarStyle !== statusBarStyle) {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
 
-                if (prevIsRootStatusBarDisabled.current && !isRootStatusBarDisabled) {
+                if (prevIsRootStatusBarDisabled && !isRootStatusBarDisabled) {
                     didForceUpdateStatusBarRef.current = true;
                 }
             }
@@ -111,7 +112,6 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     );
 
     useEffect(() => {
-        prevIsRootStatusBarDisabled.current = isRootStatusBarDisabled;
         didForceUpdateStatusBarRef.current = false;
     }, [isRootStatusBarDisabled]);
 
