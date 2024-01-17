@@ -79,7 +79,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     contentRef?: RefObject<View>;
 
     /** Callback to fire when a menu item is selected */
-    onItemSelected: (action: ContextMenuAction) => void;
+    onItemSelected?: (action: ContextMenuAction) => void;
 };
 
 type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;

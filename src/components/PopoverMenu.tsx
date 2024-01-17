@@ -52,7 +52,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     onClose: () => void;
 
     /** Callback method fired when the modal is shown */
-    onModalShow: () => void;
+    onModalShow?: () => void;
 
     /** Whether the modal should clear the focus record for the current business type. */
     shouldClearFocusWithType?: boolean;
@@ -103,7 +103,7 @@ function PopoverMenu({
     onClose,
     shouldClearFocusWithType,
     restoreFocusType,
-    onModalShow,
+    onModalShow = () => {},
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
