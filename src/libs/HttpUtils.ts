@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+import * as NetworkActions from './actions/Network';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 
@@ -26,16 +27,40 @@ Onyx.connect({
 let cancellationController = new AbortController();
 
 /**
+ * The API commands that require the skew calculation
+ */
+const addSkewList = ['OpenReport', 'ReconnectApp', 'OpenApp'];
+
+/**
+ * Regex to get API command from the command
+ */
+const APICommandRegex = /[?&]command=([^&]+)/;
+
+/**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
 function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
+    const startTime = new Date().valueOf();
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: canCancel ? cancellationController.signal : undefined,
         method,
         body,
     })
+        .then((response) => {
+            // We are calculating the skew to minimize the delay when posting the messages
+            const match = url.match(APICommandRegex)?.[1];
+            if (match && addSkewList.includes(match) && response.headers) {
+                const dateHeaderValue = response.headers.get('Date');
+                const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
+                const endTime = new Date().valueOf();
+                const latency = (endTime - startTime) / 2;
+                const skew = serverTime - startTime + latency;
+                NetworkActions.setTimeSkew(dateHeaderValue ? skew : 0);
+            }
+            return response;
+        })
         .then((response) => {
             // Test mode where all requests will succeed in the server, but fail to return a response
             if (shouldFailAllRequests || shouldForceOffline) {
