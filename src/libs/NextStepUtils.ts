@@ -149,6 +149,7 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
                 });
             }
 
+            // Self review and auto approval enabled
             if (isOwner && policy.isAutoApprovalEnabled) {
                 optimisticNextStep.message?.push({
                     text: ' This report may be selected at random for manual approval.',
