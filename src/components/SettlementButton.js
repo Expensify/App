@@ -162,6 +162,8 @@ function SettlementButton({
             return [approveButtonOption];
         }
 
+        const buttonOptions = [];
+
         const payWithBusinessBankAccountOption = {
             text: translate('iou.payWithBusinessBankAccount'),
             icon: Expensicons.Bank,
@@ -182,6 +184,16 @@ function SettlementButton({
             icon: Expensicons.Cash,
             value: CONST.PAYMENT_METHODS.ELSEWHERE,
         };
+
+        buttonOptions.push(payWithBusinessBankAccountOption);
+        buttonOptions.push(payWithPersonalBankAccountOption);
+        buttonOptions.push(payWithDebitCardOption);
+        buttonOptions.push(payElsewhereOption);
+
+        if (shouldShowApproveButton) {
+            buttonOptions.push(approveButtonOption);
+        }
+        return buttonOptions;
     }, [translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
     const paymentButtonOptions = useMemo(() => {
@@ -273,7 +285,7 @@ function SettlementButton({
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
-                    options={paymentButtonOptions}
+                    options={paymentButtonOptionsV2}
                     style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
