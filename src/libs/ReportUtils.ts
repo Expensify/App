@@ -643,7 +643,7 @@ function hasReportCommonPolicyMemberWithArray(report: Report, policyMembersAccou
  * Checks if the supplied report belongs to workspace based on the provided params.
  */
 function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
-    return report.policyID === '_FAKE_' ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
+    return report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
 }
 
 /**
