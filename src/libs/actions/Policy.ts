@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
@@ -430,7 +430,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
-    if (isNotEmptyObject(policy?.primaryLoginsInvited ?? {})) {
+    if (!isEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
         const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => Number(accountID));
         const remainingMemberAccountIDs = policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID));
@@ -641,7 +641,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
             // Remove the object, when it is a newly created account.
             value: accountIDs.reduce((accountIDsWithClearedPendingAction, accountID) => {
                 let value = null;
-                const accountAlreadyExists = isNotEmptyObject(allPersonalDetails?.[accountID]);
+                const accountAlreadyExists = !isEmptyObject(allPersonalDetails?.[accountID]);
 
                 if (accountAlreadyExists) {
                     value = {pendingAction: null, errors: null};
@@ -680,7 +680,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
         welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
-    if (isNotEmptyObject(membersChats.reportCreationData)) {
+    if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
     }
     API.write('AddMembersToWorkspace', params, {optimisticData, successData, failureData});

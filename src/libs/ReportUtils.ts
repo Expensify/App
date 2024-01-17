@@ -23,7 +23,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -479,7 +479,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     const parentReport = getReport(report?.parentReportID);
 
     // Runs recursion to iterate a parent report
-    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
+    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : null);
 }
 
 function getPolicy(policyID: string): Policy | EmptyObject {
@@ -566,11 +566,11 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * In this case, we have added the key to the report itself
  */
 function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
-    if (isNotEmptyObject(parentReportAction) && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
+    if (!isEmptyObject(parentReportAction) && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
         return true;
     }
 
-    if (isNotEmptyObject(report) && report?.isDeletedParentAction) {
+    if (!isEmptyObject(report) && report?.isDeletedParentAction) {
         return true;
     }
 
@@ -1034,7 +1034,7 @@ function isExpenseRequest(report: OnyxEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        return isExpenseReport(parentReport) && isNotEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
+        return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
 }
@@ -1047,7 +1047,7 @@ function isIOURequest(report: OnyxEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        return isIOUReport(parentReport) && isNotEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
+        return isIOUReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
 }
@@ -1115,7 +1115,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         // For now, users cannot delete split actions
         const isSplitAction = reportAction?.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
-        if (isSplitAction || isSettled(String(reportAction?.originalMessage?.IOUReportID)) || (isNotEmptyObject(report) && isReportApproved(report))) {
+        if (isSplitAction || isSettled(String(reportAction?.originalMessage?.IOUReportID)) || (!isEmptyObject(report) && isReportApproved(report))) {
             return false;
         }
 
@@ -1134,7 +1134,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     }
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && isNotEmptyObject(report) && !isDM(report);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
 
     return isActionOwner || isAdmin;
 }
@@ -1611,7 +1611,7 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID ?? '', actionsToMerge);
 
     // For Chat Report with deleted parent actions, let us fetch the correct message
-    if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && isNotEmptyObject(report) && isChatReport(report)) {
+    if (ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && !isEmptyObject(report) && isChatReport(report)) {
         const lastMessageText = getDeletedParentActionMessageForChatReport(lastVisibleAction);
         return {
             lastMessageText,
@@ -1832,7 +1832,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     const report = getReport(transaction?.reportID);
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
-        amount: TransactionUtils.getAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report)),
+        amount: TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
@@ -2023,7 +2023,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
     }
 
     const transaction = TransactionUtils.getLinkedTransaction(reportAction);
-    if (!isNotEmptyObject(transaction)) {
+    if (!!isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Request
         return Localize.translateLocal('iou.request');
     }
@@ -2064,14 +2064,14 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    if (isNotEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
+    if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
         // This covers group chats where the last action is a split bill action
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
 
-        if (isNotEmptyObject(linkedTransaction)) {
+        if (!isEmptyObject(linkedTransaction)) {
             if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
                 return Localize.translateLocal('iou.receiptScanning');
             }
@@ -2099,10 +2099,10 @@ function getReportPreviewMessage(
         });
     }
 
-    if (isNotEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
 
-        if (isNotEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
         }
     }
@@ -2208,11 +2208,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     let formattedName: string | undefined;
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
-        if (isNotEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
         }
 
-        const isAttachment = ReportActionsUtils.isReportActionAttachment(isNotEmptyObject(parentReportAction) ? parentReportAction : null);
+        const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
         const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
@@ -2477,11 +2477,11 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  */
 function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string, parentReportID = '', parentReportActionID = ''): OnyxUpdate | EmptyObject {
     const report = getReport(reportID);
-    if (!report || !isNotEmptyObject(report)) {
+    if (!report || !!isEmptyObject(report)) {
         return {};
     }
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (!parentReportAction || !isNotEmptyObject(parentReportAction)) {
+    if (!parentReportAction || !!isEmptyObject(parentReportAction)) {
         return {};
     }
 
@@ -2625,7 +2625,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(isNotEmptyObject(report) ? report : null), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(!isEmptyObject(report) ? report : null), currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -2919,7 +2919,7 @@ function buildOptimisticReportPreview(
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
-        childRecentReceiptTransactionIDs: hasReceipt && isNotEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
+        childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
         whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
     };
 }
@@ -3418,7 +3418,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
  */
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
-    const parentReport = getParentReport(isNotEmptyObject(currentReport) ? currentReport : null);
+    const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : null);
     const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
     const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
@@ -3592,7 +3592,7 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
             reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-            isNotEmptyObject(report) &&
+            !isEmptyObject(report) &&
             report &&
             isAllowedToComment(report),
     );
@@ -4215,7 +4215,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     }
 
     const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
-    const transactionDetails = getTransactionDetails(isNotEmptyObject(transaction) ? transaction : null);
+    const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
     const isRequestSettled = isSettled(originalMessage.IOUReportID);
     const isApproved = isReportApproved(iouReport);
