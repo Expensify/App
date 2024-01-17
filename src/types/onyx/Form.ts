@@ -1,9 +1,9 @@
 import type * as OnyxTypes from './index';
 import type * as OnyxCommon from './OnyxCommon';
 
-type Form = {
-    [key: string]: unknown;
+type FormValueType = string | boolean | Date;
 
+type BaseForm = {
     /** Controls the loading state of the form */
     isLoading?: boolean;
 
@@ -14,21 +14,31 @@ type Form = {
     errorFields?: OnyxCommon.ErrorFields | null;
 };
 
-type AddDebitCardForm = Form & {
-    /** Whether or not the form has been submitted */
-    setupComplete: boolean;
-};
+type Form<TFormValues extends Record<string, FormValueType> = Record<string, FormValueType>> = TFormValues & BaseForm;
 
-type DateOfBirthForm = Form & {
+type AddDebitCardForm = Form<{
+    /** Whether the form has been submitted */
+    setupComplete: boolean;
+}>;
+
+type DateOfBirthForm = Form<{
     /** Date of birth */
     dob?: string;
-};
+}>;
 
-type DisplayNameForm = OnyxTypes.Form & {
+type DisplayNameForm = Form<{
     firstName: string;
     lastName: string;
-};
+}>;
+
+type NewRoomForm = Form<{
+    roomName?: string;
+    welcomeMessage?: string;
+    policyID?: string;
+    writeCapability?: string;
+    visibility?: string;
+}>;
 
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm};
+export type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm};

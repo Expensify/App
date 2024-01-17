@@ -49,7 +49,5 @@ type ReimbursementAccount = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-type ReimbursementAccountForm = ReimbursementAccount & OnyxTypes.Form;
-
 export default ReimbursementAccount;
-export type {BankAccountStep, BankAccountSubStep, ReimbursementAccountForm};
+export type {BankAccountStep, BankAccountSubStep};

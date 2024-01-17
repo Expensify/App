@@ -10,11 +10,14 @@ import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form, Network} from '@src/types/onyx';
+import type {FormValueType} from '@src/types/onyx/Form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {FormProps, InputRef, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueType} from './types';
+import type {BaseInputProps, FormProps, InputRef, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
+
+// In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -23,7 +26,7 @@ const VALIDATE_DELAY = 200;
 
 type InitialDefaultValue = false | Date | '';
 
-function getInitialValueByType(valueType?: ValueType): InitialDefaultValue {
+function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     switch (valueType) {
         case 'string':
             return '';
@@ -151,7 +154,7 @@ function FormProvider(
 
     /** @param inputID - The inputID of the input being touched */
     const setTouchedInput = useCallback(
-        (inputID: string) => {
+        (inputID: keyof Form) => {
             touchedInputs.current[inputID] = true;
         },
         [touchedInputs],
@@ -183,13 +186,13 @@ function FormProvider(
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
 
     const resetForm = useCallback(
-        (optionalValue: Form) => {
+        (optionalValue: OnyxFormValuesFields) => {
             Object.keys(inputValues).forEach((inputID) => {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
 
                     touchedInputs.current[inputID] = false;
-                    copyPrevState[inputID] = optionalValue[inputID] || '';
+                    copyPrevState[inputID] = optionalValue[inputID as keyof OnyxFormValuesFields] || '';
 
                     return copyPrevState;
                 });
@@ -202,8 +205,8 @@ function FormProvider(
         resetForm,
     }));
 
-    const registerInput: RegisterInput = useCallback(
-        (inputID, inputProps) => {
+    const registerInput = useCallback<RegisterInput>(
+        <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps): TInputProps => {
             const newRef: MutableRefObject<InputRef> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
@@ -212,7 +215,7 @@ function FormProvider(
                 inputValues[inputID] = inputProps.value;
             } else if (inputProps.shouldSaveDraft && draftValues?.[inputID] !== undefined && inputValues[inputID] === undefined) {
                 inputValues[inputID] = draftValues[inputID];
-            } else if (inputProps.shouldUseDefaultValue && inputValues[inputID] === undefined) {
+            } else if (inputProps.shouldUseDefaultValue && inputProps.defaultValue !== undefined && inputValues[inputID] === undefined) {
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
                 inputValues[inputID] = inputProps.defaultValue;
             } else if (inputValues[inputID] === undefined) {
@@ -228,6 +231,7 @@ function FormProvider(
                     .at(-1) ?? '';
 
             const inputRef = inputProps.ref;
+
             return {
                 ...inputProps,
                 ref:
@@ -298,7 +302,7 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                 },
-                onInputChange: (value: unknown, key?: string) => {
+                onInputChange: (value: FormValueType, key?: string) => {
                     const inputKey = key ?? inputID;
                     setInputValues((prevState) => {
                         const newState = {
@@ -309,7 +313,7 @@ function FormProvider(
                         if (shouldValidateOnChange) {
                             onValidate(newState);
                         }
-                        return newState;
+                        return newState as Form;
                     });
 
                     if (inputProps.shouldSaveDraft && !(formID as string).includes('Draft')) {

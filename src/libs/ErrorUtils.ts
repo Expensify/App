@@ -98,7 +98,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
 
 /**
  * Method used to generate error message for given inputID
- * @param errorList - An object containing current errors in the form
+ * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
 function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {

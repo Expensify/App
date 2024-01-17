@@ -3,19 +3,18 @@ import type {KeyValueMapping, NullishDeep} from 'react-native-onyx/lib/types';
 import type {OnyxFormKeyWithoutDraft} from '@components/Form/types';
 import FormUtils from '@libs/FormUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Form} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
-    Onyx.merge(formID, {isLoading} satisfies Form);
+    Onyx.merge(formID, {isLoading});
 }
 
 function setErrors(formID: OnyxFormKey, errors?: OnyxCommon.Errors | null) {
-    Onyx.merge(formID, {errors} satisfies Form);
+    Onyx.merge(formID, {errors});
 }
 
 function setErrorFields(formID: OnyxFormKey, errorFields?: OnyxCommon.ErrorFields | null) {
-    Onyx.merge(formID, {errorFields} satisfies Form);
+    Onyx.merge(formID, {errorFields});
 }
 
 function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDeep<KeyValueMapping[`${OnyxFormKeyWithoutDraft}Draft`]>) {

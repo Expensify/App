@@ -2583,7 +2583,8 @@ function updateLastVisitTime(reportID: string) {
 function clearNewRoomFormError() {
     Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
-        errorFields: {},
+        errorFields: null,
+        errors: null,
     });
 }
 

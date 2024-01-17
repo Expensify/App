@@ -6,8 +6,10 @@ import {flushSync} from 'react-dom';
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -82,7 +84,7 @@ function Composer(
     const {windowWidth} = useWindowDimensions();
     const navigation = useNavigation();
     const textRef = useRef<HTMLElement & RNText>(null);
-    const textInput = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
+    const textInput = useRef<AnimatedTextInputRef | null>(null);
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
         | {
@@ -358,7 +360,7 @@ function Composer(
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
-                ref={(el: TextInput & HTMLTextAreaElement) => (textInput.current = el)}
+                ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
                 value={value}

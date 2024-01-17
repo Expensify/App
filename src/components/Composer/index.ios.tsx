@@ -2,6 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +28,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<TextInput | null>(null);
+    const textInput = useRef<AnimatedTextInputRef | null>(null);
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -35,7 +36,7 @@ function Composer(
     /**
      * Set the TextInput Ref
      */
-    const setTextInputRef = useCallback((el: TextInput) => {
+    const setTextInputRef = useCallback((el: AnimatedTextInputRef) => {
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;

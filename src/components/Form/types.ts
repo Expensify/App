@@ -1,32 +1,39 @@
-import type {ComponentProps, ElementType, FocusEvent, MutableRefObject, ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {ComponentProps, FocusEvent, ForwardedRef, FunctionComponent, Key, MutableRefObject, ReactNode, Ref, RefAttributes} from 'react';
+import {ComponentType} from 'react';
+import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
-import type {Form} from '@src/types/onyx';
+import type Form from '@src/types/onyx/Form';
+import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
 
-type ValueType = 'string' | 'boolean' | 'date';
+type ValueTypeKey = 'string' | 'boolean' | 'date';
 
-type ValidInput = ElementType;
-
-type InputProps<TInput extends ValidInput> = ComponentProps<TInput> & {
+type BaseInputProps = {
     shouldSetTouchedOnBlurOnly?: boolean;
     onValueChange?: (value: unknown, key: string) => void;
     onTouched?: (event: unknown) => void;
-    valueType?: ValueType;
-    onBlur: (event: FocusEvent | Parameters<NonNullable<ComponentProps<TInput>['onBlur']>>[0]) => void;
+    valueType?: ValueTypeKey;
+    value?: FormValueType;
+    defaultValue?: FormValueType;
+    onBlur?: (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onPressOut?: (event: unknown) => void;
+    onPress?: (event: unknown) => void;
+    shouldSaveDraft?: boolean;
+    shouldUseDefaultValue?: boolean;
+    key?: Key | null | undefined;
+    ref?: Ref<FunctionComponent<BaseInputProps>>;
+    isFocused?: boolean;
 };
 
-type InputWrapperProps<TInput extends ValidInput> = InputProps<TInput> & {
+type InputWrapperProps<TInput, TInputProps extends BaseInputProps> = TInputProps & {
     InputComponent: TInput;
     inputID: string;
-    valueType?: ValueType;
 };
 
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
 
 type OnyxFormValues<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = OnyxValues[TOnyxKey];
-type OnyxFormValuesFields<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = Omit<OnyxValues[TOnyxKey], keyof Form>;
+type OnyxFormValuesFields<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = Omit<OnyxFormValues<TOnyxKey>, keyof BaseForm>;
 
 type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** A unique Onyx key identifying the form */
@@ -57,9 +64,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     footerContent?: ReactNode;
 };
 
-type RegisterInput = <TInput extends ValidInput>(inputID: string, props: InputProps<TInput>) => InputProps<TInput>;
+type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps) => TInputProps;
 
-type InputRef = BaseTextInputRef;
+type InputRef = FunctionComponent<BaseInputProps>;
 type InputRefs = Record<string, MutableRefObject<InputRef>>;
 
-export type {InputWrapperProps, ValidInput, FormProps, RegisterInput, ValueType, OnyxFormValues, OnyxFormValuesFields, InputProps, InputRef, InputRefs, OnyxFormKeyWithoutDraft};
+export type {InputWrapperProps, FormProps, RegisterInput, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRef, InputRefs, OnyxFormKeyWithoutDraft};

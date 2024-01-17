@@ -21,6 +21,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 const updateDisplayName = (values: any) => {
     PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
@@ -38,13 +39,12 @@ function DisplayNamePage(props: any) {
      * @returns - An object containing the errors for each inputID
      */
     const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        const errors = {};
-
+        const errors: Errors = {};
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES as string[])) {
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES as unknown as string[])) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
@@ -117,7 +117,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
         isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP as any,
         },
     }),
 )(DisplayNamePage);

@@ -9,7 +9,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-import type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm} from './Form';
+import type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, NewRoomForm} from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -38,7 +38,6 @@ import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
-import type {ReimbursementAccountForm} from './ReimbursementAccount';
 import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import type {ReimbursementAccountFormDraft} from './ReimbursementAccountDraft';
 import type Report from './Report';
@@ -112,7 +111,6 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
-    ReimbursementAccountForm,
     ReimbursementAccountDraft,
     ReimbursementAccountFormDraft,
     Report,
@@ -144,4 +142,5 @@ export type {
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
+    NewRoomForm,
 };
