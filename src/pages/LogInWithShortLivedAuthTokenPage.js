@@ -13,8 +13,11 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short-lived token are in the URL */
@@ -71,7 +74,11 @@ function LogInWithShortLivedAuthTokenPage(props) {
         const exitTo = lodashGet(props, 'route.params.exitTo', '');
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(exitTo);
+                if (exitTo === '/request/new/scan') {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()));
+                } else {
+                    Navigation.navigate(exitTo);
+                }
             });
         }
         // The only dependencies of the effect are based on props.route

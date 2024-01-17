@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InitialUrlContext from '@libs/InitialUrlContext';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -70,7 +71,11 @@ function LogOutPreviousUserPage(props) {
                 Navigation.isNavigationReady().then(() => {
                     // remove this screen and navigate to exit route
                     Navigation.goBack();
-                    Navigation.navigate(exitTo);
+                    if (exitTo === '/request/new/scan') {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()))
+                    } else {
+                        Navigation.navigate(exitTo);
+                    }
                 });
             }
         });
