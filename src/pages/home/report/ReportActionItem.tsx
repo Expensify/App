@@ -59,9 +59,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {DecisionName, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {PolicyReportFields} from '@src/types/onyx/PolicyReportField';
-import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -101,7 +98,7 @@ type ReportActionItemOnyxProps = {
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** All policy report fields */
-    policyReportFields: OnyxEntry<PolicyReportFields>;
+    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
 };
 
 type ReportActionItemProps = {
@@ -132,7 +129,8 @@ type ReportActionItemProps = {
     linkedReportActionID?: string;
 } & ReportActionItemOnyxProps;
 
-const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is ReportActionBase & OriginalMessageIOU => actionObj?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
+    actionObj?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
 function ReportActionItem({
     action,
@@ -163,7 +161,7 @@ function ReportActionItem({
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
-    const [moderationDecision, setModerationDecision] = useState<DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+    const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput & HTMLTextAreaElement>();
@@ -185,7 +183,7 @@ function ReportActionItem({
     const updateHiddenState = useCallback(
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
-            const isAttachment = ReportUtils.isReportMessageAttachment(action.message?.[action.message?.length - 1]);
+            const isAttachment = ReportUtils.isReportMessageAttachment(action.message?.at(-1));
             if (!isAttachment) {
                 return;
             }
@@ -222,7 +220,7 @@ function ReportActionItem({
     }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
-        if (!!prevDraftMessage || !draftMessage) {
+        if (prevDraftMessage !== undefined || draftMessage === undefined) {
             return;
         }
 
@@ -235,10 +233,7 @@ function ReportActionItem({
         }
 
         const urls = ReportActionsUtils.extractLinksFromMessageHtml(action);
-        if (
-            (downloadedPreviews.current.length === urls.length && downloadedPreviews.current.every((value, arrIndex) => value === urls[arrIndex])) ||
-            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-        ) {
+        if (lodashIsEqual(downloadedPreviews.current, urls) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
@@ -247,7 +242,7 @@ function ReportActionItem({
     }, [action, report.reportID]);
 
     useEffect(() => {
-        if (!draftMessage || !ReportActionsUtils.isDeletedAction(action)) {
+        if (draftMessage === undefined || !ReportActionsUtils.isDeletedAction(action)) {
             return;
         }
         Report.deleteReportActionDraft(report.reportID, action);
@@ -288,7 +283,7 @@ function ReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (!!draftMessage || !isEmptyObject(action.errors)) {
+            if (draftMessage !== undefined || !isEmptyObject(action.errors)) {
                 return;
             }
 
@@ -355,12 +350,12 @@ function ReportActionItem({
      * @param hasErrors whether the report action has any errors
      * @returns child component(s)
      */
-    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false) => {
+    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
         let children;
 
         // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
         if (
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            isIOUReport(action) &&
             action.originalMessage &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
             (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
@@ -475,7 +470,7 @@ function ReportActionItem({
             children = (
                 // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 <ShowContextMenuContext.Provider value={contextValue}>
-                    {!draftMessage ? (
+                    {draftMessage === undefined ? (
                         <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             <ReportActionItemMessage
                                 reportID={report.reportID}
@@ -538,13 +533,13 @@ function ReportActionItem({
                 ?.split(',')
                 .map((accountID) => Number(accountID))
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
-        const draftMessageRightAlign = draftMessage ? styles.chatItemReactionsDraftRight : {};
+        const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
 
         return (
             <>
                 {children}
                 {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
-                    <View style={draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                    <View style={draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                     </View>
                 )}
@@ -592,10 +587,10 @@ function ReportActionItem({
      * @param hasErrors whether the report action has any errors
      * @returns report action item
      */
-    const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean) => {
+    const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive, isWhisper, hasErrors);
 
-        if (draftMessage) {
+        if (draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -603,7 +598,7 @@ function ReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={!draftMessage}
+                    showHeader={draftMessage === undefined}
                     wrapperStyle={isWhisper ? styles.pt1 : {}}
                     shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                     report={report}
@@ -641,7 +636,7 @@ function ReportActionItem({
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
-                                showHeader={!draftMessage}
+                                showHeader={draftMessage === undefined}
                                 report={report}
                             >
                                 <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
@@ -698,7 +693,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-send money flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !!report?.isWaitingOnBankAccount && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (isIOUReport(action) && !!report?.isWaitingOnBankAccount && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
 
@@ -720,14 +715,14 @@ function ReportActionItem({
             onPressIn={() => isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
-            preventDefaultContextMenu={!draftMessage && !hasErrors}
+            preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={translate('accessibilityHints.chatMessage')}
             accessible
         >
             <Hoverable
                 shouldHandleScroll
-                isDisabled={!!draftMessage}
+                isDisabled={draftMessage !== undefined}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
@@ -738,15 +733,17 @@ function ReportActionItem({
                             originalReportID={originalReportID ?? ''}
                             isArchivedRoom={ReportUtils.isArchivedRoom(report)}
                             displayAsGroup={displayAsGroup}
-                            isVisible={hovered && !draftMessage && !hasErrors}
+                            isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!draftMessage)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || draftMessage !== undefined)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                pendingAction={draftMessage ? undefined : action.pendingAction || (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)}
+                                pendingAction={
+                                    draftMessage !== undefined ? undefined : action.pendingAction || (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
+                                }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
                                 errors={action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
@@ -811,7 +808,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         key: ONYXKEYS.USER_WALLET,
     },
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? ''}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '0'}`,
         canEvict: false,
     },
 })(
@@ -841,6 +838,8 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID,
+            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+            lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
+            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields),
     ),
 );

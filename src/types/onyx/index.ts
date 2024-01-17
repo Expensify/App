@@ -22,6 +22,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -31,6 +32,7 @@ import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type PolicyReportField from './PolicyReportField';
+import type {PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
@@ -40,7 +42,7 @@ import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import type Report from './Report';
-import type {ReportActions} from './ReportAction';
+import type {ReportActionBase, ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
@@ -138,5 +140,9 @@ export type {
     WalletTransfer,
     ReportUserIsTyping,
     PolicyReportField,
+    PolicyReportFields,
     RecentlyUsedReportFields,
+    DecisionName,
+    OriginalMessageIOU,
+    ReportActionBase,
 };

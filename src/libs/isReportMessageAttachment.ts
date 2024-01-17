@@ -8,14 +8,14 @@ import type {Message} from '@src/types/onyx/ReportAction';
  * @param reportActionMessage report action's message as text, html and translationKey
  */
 export default function isReportMessageAttachment(message: Message | undefined): boolean {
-    if (!message?.text || !message?.html) {
+    if (!message?.text || !message.html) {
         return false;
     }
 
-    if (message?.translationKey && message?.text === CONST.ATTACHMENT_MESSAGE_TEXT) {
+    if (message.translationKey && message.text === CONST.ATTACHMENT_MESSAGE_TEXT) {
         return message?.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-    return message?.text === CONST.ATTACHMENT_MESSAGE_TEXT && (!!message?.html.match(regex) || message?.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
+    return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && (!!message.html.match(regex) || message.html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
 }
