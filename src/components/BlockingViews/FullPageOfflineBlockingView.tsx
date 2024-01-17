@@ -3,7 +3,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import BlockingView from './BlockingView';
 
 function FullPageOfflineBlockingView({children}: ChildrenProps) {

@@ -27,10 +27,11 @@ import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} fr
 import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {timezoneBackwardMap} from '@src/TIMEZONES';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 import Log from './Log';
@@ -68,6 +69,12 @@ Onyx.connect({
             automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
         };
     },
+});
+
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
 /**
@@ -356,6 +363,16 @@ function getMicroseconds(): number {
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(): string {
+    if (networkTimeSkew > 0) {
+        return getDBTime(new Date().valueOf() + networkTimeSkew);
+    }
+    return getDBTime();
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -697,6 +714,22 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
     return '';
 }
 
+/**
+ *
+ * @param timezone
+ * function format unsupported timezone to supported timezone
+ * @returns Timezone
+ */
+function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
+    if (!timezoneInput?.selected) {
+        return timezoneInput;
+    }
+    return {
+        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        automatic: timezoneInput.automatic,
+    };
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -711,6 +744,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
@@ -739,6 +773,7 @@ const DateUtils = {
     getWeekStartsOn,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
+    formatToSupportedTimezone,
 };
 
 export default DateUtils;

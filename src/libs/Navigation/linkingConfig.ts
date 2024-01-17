@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {LinkingOptions} from '@react-navigation/native';
+import type {LinkingOptions} from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from './types';
+import type {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
     prefixes: [
@@ -433,8 +433,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
                             [SCREENS.MONEY_REQUEST.TAG]: ROUTES.MONEY_REQUEST_TAG.route,
                             [SCREENS.MONEY_REQUEST.MERCHANT]: ROUTES.MONEY_REQUEST_MERCHANT.route,
-                            [SCREENS.MONEY_REQUEST.WAYPOINT]: ROUTES.MONEY_REQUEST_WAYPOINT.route,
-                            [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
                             [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
                             [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                             [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
@@ -490,6 +488,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.RIGHT_MODAL.REFERRAL]: {
                         screens: {
                             [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                        },
+                    },
+                    ProcessMoneyRequestHold: {
+                        screens: {
+                            ProcessMoneyRequestHold_Root: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
                         },
                     },
                 },

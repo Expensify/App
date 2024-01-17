@@ -1,9 +1,10 @@
 import throttle from 'lodash/throttle';
-import {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
-import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {Linking} from 'react-native';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import * as Authentication from '@libs/Authentication';
@@ -30,8 +31,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import Credentials from '@src/types/onyx/Credentials';
-import {AutoAuthState} from '@src/types/onyx/Session';
+import type Credentials from '@src/types/onyx/Credentials';
+import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 
 let sessionAuthTokenType: string | null = '';
@@ -199,16 +200,7 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -224,7 +216,7 @@ function resendValidateCode(login = credentials.login) {
 
     const params: RequestNewValidateCodeParams = {email: login};
 
-    API.write('RequestNewValidateCode', params, {optimisticData, successData, failureData});
+    API.write('RequestNewValidateCode', params, {optimisticData, finallyData});
 }
 
 type OnyxData = {
@@ -300,11 +292,11 @@ function beginSignIn(email: string) {
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
  */
-function beginAppleSignIn(idToken: string) {
+function beginAppleSignIn(idToken: string | undefined | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     type BeginAppleSignInParams = {
-        idToken: string;
+        idToken: typeof idToken;
         preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
     };
 
@@ -317,11 +309,11 @@ function beginAppleSignIn(idToken: string) {
  * Shows Google sign-in process, and if an auth token is successfully obtained,
  * passes the token on to the Expensify API to sign in with
  */
-function beginGoogleSignIn(token: string) {
+function beginGoogleSignIn(token: string | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     type BeginGoogleSignInParams = {
-        token: string;
+        token: string | null;
         preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
     };
 

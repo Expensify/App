@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
 
@@ -33,10 +33,10 @@ type FullPageNotFoundViewProps = {
     linkKey?: TranslationPaths;
 
     /** Method to trigger when pressing the back button of the header */
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
 
     /** Function to call when pressing the navigation link */
-    onLinkPress: () => void;
+    onLinkPress?: () => void;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
