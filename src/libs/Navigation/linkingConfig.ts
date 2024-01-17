@@ -278,7 +278,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                         screens: {
-                            [SCREENS.PRIVATE_NOTES.VIEW]: ROUTES.PRIVATE_NOTES_VIEW.route,
                             [SCREENS.PRIVATE_NOTES.LIST]: ROUTES.PRIVATE_NOTES_LIST.route,
                             [SCREENS.PRIVATE_NOTES.EDIT]: ROUTES.PRIVATE_NOTES_EDIT.route,
                         },
