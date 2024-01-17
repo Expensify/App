@@ -10,11 +10,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateLoginPageOnyxProps, ValidateLoginPageProps} from './types';
 
-function ValidateLoginPage({account, credentials, route, session}: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
+function ValidateLoginPage({
+    account,
+    credentials,
+    route: {
+        params: {accountID, validateCode},
+    },
+    session,
+}: ValidateLoginPageProps<ValidateLoginPageOnyxProps>) {
     const login = credentials?.login;
     const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
-    const accountID = Number(route?.params.accountID) ?? -1;
-    const validateCode = route.params.validateCode ?? '';
     const isSignedIn = !!session?.authToken;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
@@ -32,7 +37,7 @@ function ValidateLoginPage({account, credentials, route, session}: ValidateLogin
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(accountID, validateCode);
+        Session.signInWithValidateCode(Number(accountID), validateCode);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -52,7 +57,7 @@ function ValidateLoginPage({account, credentials, route, session}: ValidateLogin
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
                 <ValidateCodeModal
-                    accountID={accountID}
+                    accountID={Number(accountID)}
                     code={validateCode}
                 />
             )}

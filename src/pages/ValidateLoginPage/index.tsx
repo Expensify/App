@@ -8,7 +8,7 @@ import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './t
 
 function ValidateLoginPage({
     route: {
-        params: {accountID = '', validateCode = ''},
+        params: {accountID, validateCode},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
