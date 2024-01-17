@@ -97,7 +97,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if(!({...report.privateNotes, [route.params.accountID]: {note: editedNote}} as Note).note) {
+        if(!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
             ReportUtils.navigateToDetailsPage(report);
         } else {
             Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
