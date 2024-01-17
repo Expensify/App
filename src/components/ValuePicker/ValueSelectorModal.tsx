@@ -28,7 +28,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={onClose}
+            onClose={() => onClose?.()}
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
@@ -45,7 +45,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
                 />
                 <SelectionList
                     sections={[{data: sectionsData}]}
-                    onSelectRow={onItemSelected}
+                    onSelectRow={(item) => onItemSelected?.(item)}
                     initiallyFocusedOptionKey={selectedItem?.value}
                     shouldStopPropagation
                     shouldShowTooltips={shouldShowTooltips}

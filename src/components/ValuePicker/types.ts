@@ -20,10 +20,10 @@ type ValueSelectorModalProps = {
     label?: string;
 
     /** Function to call when the user selects a item */
-    onItemSelected: (item: ValuePickerItem) => void;
+    onItemSelected?: (item: ValuePickerItem) => void;
 
     /** Function to call when the user closes the modal */
-    onClose: () => void;
+    onClose?: () => void;
 
     /** Whether to show the toolip text */
     shouldShowTooltips?: boolean;
