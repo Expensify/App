@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';

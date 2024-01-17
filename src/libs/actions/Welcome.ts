@@ -132,7 +132,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
 
         const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
             if (report) {
-                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED;
+                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED;
             }
             return false;
         });
