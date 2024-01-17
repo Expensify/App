@@ -268,8 +268,8 @@ function OptionRow({
                                             <PressableWithFeedback
                                                 onPress={() => onSelectedStatePressed(option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ROLE.CHECKBOX}
-                                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                                role={CONST.ROLE.BUTTON}
+                                                accessibilityLabel={CONST.ROLE.BUTTON}
                                             >
                                                 <SelectCircle isChecked={isSelected} />
                                             </PressableWithFeedback>

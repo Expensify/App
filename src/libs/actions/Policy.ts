@@ -222,8 +222,8 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
             },
@@ -413,8 +413,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
             value: {
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 oldPolicyName: policy.name,
                 hasDraft: false,
             },
@@ -534,7 +534,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: R
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oldChat.reportID}`,
                 value: {
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 },
             });
             return;
