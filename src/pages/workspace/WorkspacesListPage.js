@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -9,7 +9,6 @@ import FeatureList from '@components/FeatureList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -228,7 +227,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             _.reduce(
                 reports,
                 (result, report) => {
-                    if (!report || !report.reportID) {
+                    if (!report || !report.reportID || !report.policyID) {
                         return result;
                     }
 
@@ -288,43 +287,40 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
     if (_.isEmpty(workspaces)) {
         return (
-            <IllustratedHeaderPageLayout
-                backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-                illustration={LottieAnimations.WorkspacePlanet}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                title={translate('common.workspaces')}
-                style={!isSmallScreenWidth && styles.alignItemsCenter}
-                shouldShowBackButton={isSmallScreenWidth}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+                testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                footer={
-                    isSmallScreenWidth && (
-                        <Button
-                            accessibilityLabel={translate('workspace.new.newWorkspace')}
-                            success
-                            text={translate('workspace.new.newWorkspace')}
-                            onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                        />
-                    )
-                }
             >
-                <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
-                    <FeatureList
-                        menuItems={workspaceFeatures}
-                        headline="workspace.emptyWorkspace.title"
-                        description="workspace.emptyWorkspace.subtitle"
-                    />
-                </View>
-
-                {!isSmallScreenWidth && (
+                <HeaderWithBackButton
+                    title={translate('common.workspaces')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.ALL_SETTINGS)}
+                >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        style={[styles.newWorkspaceButton, styles.alignSelfCenter]}
                         success
+                        medium
                         text={translate('workspace.new.newWorkspace')}
                         onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                     />
-                )}
-            </IllustratedHeaderPageLayout>
+                </HeaderWithBackButton>
+                <ScrollView contentContainerStyle={styles.pt3}>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <FeatureList
+                            menuItems={workspaceFeatures}
+                            title={translate('workspace.emptyWorkspace.title')}
+                            subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                            ctaText={translate('workspace.new.newWorkspace')}
+                            onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            illustration={LottieAnimations.WorkspacePlanet}
+                            illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                        />
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
         );
     }
 

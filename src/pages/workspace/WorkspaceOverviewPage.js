@@ -10,7 +10,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -43,7 +42,6 @@ const propTypes = {
     }).isRequired,
 
     ...policyPropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -51,7 +49,7 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
+function WorkspaceOverviewPage({policy, currencyList, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -91,8 +89,6 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
                         type={CONST.ICON_TYPE_WORKSPACE}
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                         style={[styles.mb3, styles.mt5]}
-                        anchorPosition={styles.createMenuPositionProfile(windowWidth)}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         isUsingDefaultAvatar={!lodashGet(policy, 'avatar', null)}
                         onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(policy, 'id', ''), file)}
                         onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(policy, 'id', ''))}
@@ -137,7 +133,6 @@ WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
 
 export default compose(
     withPolicy,
-    withWindowDimensions,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),

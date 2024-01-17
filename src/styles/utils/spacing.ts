@@ -564,4 +564,8 @@ export default {
     gap7: {
         gap: 28,
     },
+
+    rowGap4: {
+        rowGap: 16,
+    },
 } satisfies Record<string, ViewStyle>;

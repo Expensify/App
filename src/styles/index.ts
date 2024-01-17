@@ -1475,12 +1475,6 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionProfile: (windowWidth: number) =>
-            ({
-                horizontal: windowWidth - 355,
-                ...getPopOverVerticalOffset(162),
-            } satisfies AnchorPosition),
-
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
@@ -2969,14 +2963,6 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
-        workspaceFeatureList: {
-            width: 525,
-        },
-
-        newWorkspaceButton: {
-            width: 472,
-        },
-
         workspaceOwnerAvatarWrapper: {
             margin: 6,
         },
@@ -3319,13 +3305,23 @@ const styles = (theme: ThemeColors) =>
                 top: receiptImageTopPosition,
             } satisfies ViewStyle),
 
-        cardSection: {
+        cardSectionContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusCard,
-            marginBottom: 20,
-            marginHorizontal: 16,
             width: 'auto',
             textAlign: 'left',
+            overflow: 'hidden',
+            marginBottom: 20,
+            marginHorizontal: 16,
+        },
+
+        cardSectionIllustrationContainer: {
+            padding: 0,
+        },
+
+        cardSectionIllustration: {
+            width: 'auto',
+            height: variables.sectionIllustrationHeight,
         },
 
         cardSectionTitle: {

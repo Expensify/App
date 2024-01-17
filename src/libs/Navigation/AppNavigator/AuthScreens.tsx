@@ -263,7 +263,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
                     name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
-                    options={screenOptions.homeScreen}
+                    options={screenOptions.bottomTab}
                     component={BottomTabNavigator}
                 />
                 <RootStack.Screen
