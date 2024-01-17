@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
-import UseHtmlPaste from './types';
+import type UseHtmlPaste from './types';
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnmountedOnBlur = true) => {
     const navigation = useNavigation();
