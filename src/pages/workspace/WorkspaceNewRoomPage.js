@@ -165,6 +165,16 @@ function WorkspaceNewRoomPage(props) {
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     }, [isPolicyAdmin]);
 
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
+                label: policy.name,
+                key: policy.id,
+                value: policy.id,
+            })),
+        [props.policies],
+    );
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -187,23 +197,15 @@ function WorkspaceNewRoomPage(props) {
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
             }
 
-            if (!values.policyID) {
+            const isExistingWorkspaceOption = _.some(workspaceOptions, (option) => option.value === values.policyID);
+
+            if (!values.policyID || !isExistingWorkspaceOption) {
                 errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
             }
 
             return errors;
         },
-        [props.reports],
-    );
-
-    const workspaceOptions = useMemo(
-        () =>
-            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
-                label: policy.name,
-                key: policy.id,
-                value: policy.id,
-            })),
-        [props.policies],
+        [props.reports, workspaceOptions],
     );
 
     const writeCapabilityOptions = useMemo(
