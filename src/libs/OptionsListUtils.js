@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -24,7 +25,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-import Timing from './actions/Timing';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
