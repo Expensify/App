@@ -30,6 +30,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import Timing from '@libs/actions/Timing';
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
 
 const basePropTypes = {
@@ -125,6 +126,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
         }
 
         // Capture metric for opening the search page
+        Timing.start(CONST.TIMING.OPEN_SEARCH);
         Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
         Navigation.navigate(ROUTES.SEARCH);
