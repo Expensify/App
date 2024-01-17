@@ -250,8 +250,7 @@ function ReportActionItem(props) {
             return;
         }
         setIsHidden(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [latestDecision, props.action.actionName, latestDecision]);
+    }, [latestDecision, props.action]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));

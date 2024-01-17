@@ -372,8 +372,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    const isThreadParent = isThreadParentMessage(reportAction, '');
-    if (isPendingRemove(reportAction) && !isThreadParent) {
+    if (isPendingRemove(reportAction) && !isThreadParentMessage(reportAction, '')) {
         return false;
     }
 
