@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
-type OnyxProps = {
+type ReportActionItemCreatedOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
