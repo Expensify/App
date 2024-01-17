@@ -69,9 +69,9 @@ type User = {
 
     invitedSecondaryLogin?: string;
 
-    sectionIndex: number; // mb throw this out
+    sectionIndex: number;
 
-    index: number; // mb throw this out
+    index: number;
 };
 
 type UserListItemProps = CommonListItemProps<User> & {
