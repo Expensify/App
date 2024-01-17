@@ -62,7 +62,9 @@ function StatePicker({value, onInputChange, label, onBlur, errorText = ''}: Stat
                 ref={ref}
                 shouldShowRightIcon
                 title={title}
-                description={label ?? translate('common.state')}
+                // Label can be an empty string
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                description={label || translate('common.state')}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
             />
