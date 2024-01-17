@@ -1,3 +1,4 @@
+import {format, lastDayOfMonth} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +82,7 @@ describe('libs/NextStepUtils', () => {
                         type: 'strong',
                     },
                     {
-                        text: ' these expenses. This report may be selected at random for manual approval.',
+                        text: ' these expenses.',
                     },
                 ];
 
@@ -90,28 +91,187 @@ describe('libs/NextStepUtils', () => {
                 expect(result).toStrictEqual(optimisticNextStep);
             });
 
-            // TODO: Clarify date
-            test('scheduled submit enabled', () => {
+            describe('scheduled submit enabled', () => {
                 optimisticNextStep.title = 'Next Steps:';
-                optimisticNextStep.message = [
-                    {
-                        text: 'These expenses are scheduled to ',
-                    },
-                    {
-                        text: 'automatically submit!',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' No further action required!',
-                    },
-                ];
 
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    isHarvestingEnabled: true,
-                }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report);
+                test('daily', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: 'automatically submit later today!',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
 
-                    expect(result).toStrictEqual(optimisticNextStep);
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'immediate',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
+                });
+
+                test('weekly', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: 'automatically submit on Sunday!',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
+
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'weekly',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
+                });
+
+                test('twice a month', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: 'automatically submit on the 1st and 16th of each month!',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
+
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'semimonthly',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
+                });
+
+                test('monthly on the 2nd', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: 'automatically submit on the 2nd of each month!',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
+
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'monthly',
+                        autoReportingOffset: '2',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
+                });
+
+                test('monthly on the last day', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: `automatically submit on the ${format(lastDayOfMonth(new Date()), 'do')} of each month!`,
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
+
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'monthly',
+                        autoReportingOffset: 'lastDayOfMonth',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
+                });
+
+                test('trip', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: 'automatically submit at the end of your trip!',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
+
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'trip',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
+                });
+
+                test('manual', () => {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: 'you',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'submit',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' these expenses.',
+                        },
+                        {
+                            text: ' This report may be selected at random for manual approval.',
+                        },
+                    ];
+
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'manual',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report);
+
+                        expect(result).toStrictEqual(optimisticNextStep);
+                    });
                 });
             });
 

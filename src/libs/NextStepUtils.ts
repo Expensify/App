@@ -1,3 +1,4 @@
+import {format, lastDayOfMonth} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -90,27 +91,65 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
                         type: 'strong',
                     },
                     {
-                        text: ' these expenses. This report may be selected at random for manual approval.',
+                        text: ' these expenses.',
                     },
                 ],
             };
 
-            // TODO: Clarify date
             // Scheduled submit enabled
             if (policy.isHarvestingEnabled) {
                 optimisticNextStep.message = [
                     {
                         text: 'These expenses are scheduled to ',
                     },
-                    {
-                        text: 'automatically submit!',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' No further action required!',
-                    },
                 ];
+
+                if (policy.autoReportingFrequency) {
+                    const currentDate = new Date();
+
+                    let autoSubmissionDate: string;
+
+                    if (policy.autoReportingOffset === 'lastDayOfMonth') {
+                        const currentDateWithLastDayOfMonth = lastDayOfMonth(currentDate);
+
+                        autoSubmissionDate = format(currentDateWithLastDayOfMonth, 'do');
+                    } else if (policy.autoReportingOffset === 'lastBusinessDayOfMonth') {
+                        // TODO: Get from the backend
+                        // const currentLastBusinessDayOfMonth =
+                        autoSubmissionDate = '';
+                    } else if (Number.isNaN(Number(policy.autoReportingOffset))) {
+                        autoSubmissionDate = '';
+                    } else {
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        autoSubmissionDate = format(currentDate.setDate(+policy.autoReportingOffset!), 'do');
+                    }
+
+                    const harvestingSuffixes = {
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: `on the ${autoSubmissionDate} of each month`,
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of your trip',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
+                    };
+
+                    optimisticNextStep.message.push({
+                        text: `automatically submit ${harvestingSuffixes[policy.autoReportingFrequency]}!`,
+                        type: 'strong',
+                    });
+                } else {
+                    optimisticNextStep.message.push({
+                        text: `automatically submit!`,
+                        type: 'strong',
+                    });
+                }
+
+                optimisticNextStep.message.push({
+                    text: ' No further action required!',
+                });
             }
+
+            // TODO add "This report may be selected at random for manual approval."
 
             // Prevented self submitting
             if (isPreventSelfApprovalEnabled && isSelfApproval) {
