@@ -14,9 +14,9 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, OriginalMessageReimbursementDequeued, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -643,7 +643,7 @@ function hasReportCommonPolicyMemberWithArray(report: Report, policyMembersAccou
  * Checks if the supplied report belongs to workspace based on the provided params.
  */
 function doesReportBelongToWorkspace(report: Report, policyID: string, policyMembersAccountIDs: string[]) {
-    return report.policyID === '_FAKE_' ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
+    return report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasReportCommonPolicyMemberWithArray(report, policyMembersAccountIDs) : report.policyID === policyID;
 }
 
 /**
@@ -1138,11 +1138,23 @@ function getReportNotificationPreference(report: OnyxEntry<Report>): string | nu
 }
 
 /**
- * Returns whether or not the author of the action is this user
- *
+ * Checks if the current user is the action's author
  */
-function isActionCreator(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionCreator(reportAction: OnyxEntry<ReportAction> | Partial<ReportAction>): boolean {
     return reportAction?.actorAccountID === currentUserAccountID;
+}
+
+/**
+ * Returns the notification preference of the action's child report if it exists.
+ * Otherwise, calculates it based on the action's authorship.
+ */
+function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportAction> | Partial<ReportAction>): NotificationPreference {
+    const childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
+    if (childReportNotificationPreference) {
+        return childReportNotificationPreference;
+    }
+
+    return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
 /**
@@ -1635,7 +1647,7 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): string {
+function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
     const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
@@ -3625,7 +3637,7 @@ function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: 
             if (!report?.participantAccountIDs) {
                 return false;
             }
-            const sortedParticipanctsAccountIDs = report.parentReportActionIDs?.sort();
+            const sortedParticipanctsAccountIDs = report.participantAccountIDs?.sort();
             // Only return the room if it has all the participants and is not a policy room
             return report.policyID === policyID && lodashIsEqual(newParticipantList, sortedParticipanctsAccountIDs);
         }) ?? null
@@ -4411,11 +4423,30 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
+ * Given a report field and a report, get the title of the field.
+ * This is specially useful when we have a report field of type formula.
+ */
+function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
+    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
+
+    if (reportField.type !== 'formula') {
+        return value;
+    }
+
+    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
+        if (report && property in report) {
+            return report[property as keyof Report]?.toString() ?? match;
+        }
+        return match;
+    });
+}
+
+/**
  * Checks if thread replies should be displayed
  */
-function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
-    const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
+function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
+    const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
 }
 
 /**
@@ -4427,7 +4458,7 @@ function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: ReportAction, reportID: string) {
+function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string) {
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
@@ -4435,9 +4466,9 @@ function shouldDisableThread(reportAction: ReportAction, reportID: string) {
     const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
 
     return (
-        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction.actionName) ||
+        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName) ||
         isSplitBillAction ||
-        (isDeletedAction && !reportAction.childVisibleActionCount) ||
+        (isDeletedAction && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );
@@ -4618,9 +4649,11 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    getReportFieldTitle,
     shouldDisplayThreadReplies,
     shouldDisableThread,
     doesReportBelongToWorkspace,
+    getChildReportNotificationPreference,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
