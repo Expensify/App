@@ -378,7 +378,7 @@ function ReportActionsList({
         if (linkedReportActionID) {
             return getInitialNumToRender(numToRender);
         }
-        return numToRender;
+        return numToRender || undefined;
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
 
     /**
