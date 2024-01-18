@@ -5,6 +5,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import stylePropTypes from '@styles/stylePropTypes';
 import Button from './Button';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
@@ -20,6 +21,9 @@ const propTypes = {
     /** Text of the call to action button */
     ctaText: PropTypes.string,
 
+    /** Accessibility label for the call to action button */
+    ctaAccessibilityLabel: PropTypes.string,
+
     /** Action to call on cta button press */
     onCtaPress: PropTypes.func,
 
@@ -33,19 +37,24 @@ const propTypes = {
         h: PropTypes.number.isRequired,
     }),
 
+    /** The style passed to the illustration */
+    illustrationStyle: stylePropTypes,
+
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor: PropTypes.string,
 };
 
 const defaultProps = {
-    ctaText: undefined,
-    subtitle: undefined,
-    onCtaPress: undefined,
-    illustration: undefined,
-    illustrationBackgroundColor: undefined,
+    ctaText: '',
+    ctaAccessibilityLabel: '',
+    subtitle: '',
+    onCtaPress: () => {},
+    illustration: null,
+    illustrationBackgroundColor: '',
+    illustrationStyle: [],
 };
 
-function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustration, illustrationBackgroundColor}) {
+function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPress, menuItems, illustration, illustrationStyle, illustrationBackgroundColor}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -57,8 +66,7 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
             subtitleMuted
             illustration={illustration}
             illustrationBackgroundColor={illustrationBackgroundColor}
-            // Pixel perfect vertical alignment for this particular animation. Other lottie files might not need it.
-            illustrationStyle={styles.featureListIllustrationStyle}
+            illustrationStyle={illustrationStyle}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
@@ -84,7 +92,7 @@ function FeatureList({title, subtitle, ctaText, onCtaPress, menuItems, illustrat
                 <Button
                     text={ctaText}
                     onPress={onCtaPress}
-                    accessibilityLabel={translate('workspace.new.newWorkspace')}
+                    accessibilityLabel={ctaAccessibilityLabel}
                     style={[styles.w100]}
                     success
                 />

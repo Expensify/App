@@ -1660,7 +1660,7 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        featureListIllustrationStyle: {
+        emptyWorkspaceIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
         },

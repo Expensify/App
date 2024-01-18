@@ -309,9 +309,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             title={translate('workspace.emptyWorkspace.title')}
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
+                            ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                             illustration={LottieAnimations.WorkspacePlanet}
                             illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                            // We use this style to vertically center the illustration, as the original illustration is not centered
+                            illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
                         />
                     </View>
                 </ScrollView>
