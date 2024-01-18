@@ -15,7 +15,6 @@ const defaultProps = {
 const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
-    onLoadEnd: PropTypes.func,
     ...defaultPropTypes,
 };
 
