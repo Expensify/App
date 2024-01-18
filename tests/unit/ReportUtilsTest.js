@@ -588,15 +588,15 @@ describe('ReportUtils', () => {
 
     describe('sortReportsByLastRead', () => {
         it('should filter out report without reportID & lastReadTime and sort lastReadTime in ascending order', () => {
-            const reports = {
-                1: {reportID: 1, lastReadTime: '2023-07-08 07:15:44.030'},
-                2: {reportID: 2, lastReadTime: null},
-                3: {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
-                4: {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
-                5: {lastReadTime: '2023-07-09 07:15:44.030'},
-                6: {reportID: 6},
-                7: {},
-            };
+            const reports = [
+                {reportID: 1, lastReadTime: '2023-07-08 07:15:44.030'},
+                {reportID: 2, lastReadTime: null},
+                {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
+                {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
+                {lastReadTime: '2023-07-09 07:15:44.030'},
+                {reportID: 6},
+                {},
+            ];
             const sortedReports = [
                 {reportID: 3, lastReadTime: '2023-07-06 07:15:44.030'},
                 {reportID: 4, lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
