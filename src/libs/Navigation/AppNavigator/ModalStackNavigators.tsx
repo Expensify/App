@@ -64,7 +64,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
                         getComponent={(screens as Required<Screens>)[name as Screen]}
                     />
                 ))}
-        </ModalStackNavigator.Navigator>
+            </ModalStackNavigator.Navigator>
         );
     }
 
