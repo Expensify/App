@@ -36,7 +36,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
 
             // Sidebar
             [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-                path: '',
+                path: ROUTES.HOME,
                 initialRouteName: SCREENS.HOME,
                 screens: {
                     [SCREENS.HOME]: ROUTES.HOME,
