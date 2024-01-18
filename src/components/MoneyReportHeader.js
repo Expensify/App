@@ -1,6 +1,10 @@
+<<<<<<< HEAD:src/components/MoneyReportHeader.js
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
+=======
+import React, {useMemo} from 'react';
+>>>>>>> c2eb57e (Merge pull request #34697 from Expensify/vit-cancelPaymentRevert):src/components/MoneyReportHeader.tsx
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -24,9 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
@@ -96,6 +98,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+<<<<<<< HEAD:src/components/MoneyReportHeader.js
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {
@@ -103,6 +106,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
 
+=======
+>>>>>>> c2eb57e (Merge pull request #34697 from Expensify/vit-cancelPaymentRevert):src/components/MoneyReportHeader.tsx
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
@@ -129,13 +134,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('iou.cancelPayment'),
-            onSelected: () => setIsConfirmModalVisible(true),
-        });
-    }
     if (!ReportUtils.isArchivedRoom(chatReport)) {
         threeDotsMenuItems.push({
             icon: ZoomIcon,
@@ -233,16 +231,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </View>
-            <ConfirmModal
-                title={translate('iou.cancelPayment')}
-                isVisible={isConfirmModalVisible}
-                onConfirm={cancelPayment}
-                onCancel={() => setIsConfirmModalVisible(false)}
-                prompt={translate('iou.cancelPaymentConfirmation')}
-                confirmText={translate('iou.cancelPayment')}
-                cancelText={translate('common.dismiss')}
-                danger
-            />
         </View>
     );
 }
