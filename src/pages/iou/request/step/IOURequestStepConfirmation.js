@@ -121,6 +121,9 @@ function IOURequestStepConfirmation({
         '',
     );
     useEffect(() => {
+        if (!_.isEmpty(transaction.category)) {
+            return;
+        }
         IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
     }, [transactionID, defaultCategory]);
 
