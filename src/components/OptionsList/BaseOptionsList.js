@@ -72,6 +72,7 @@ function BaseOptionsList({
     nestedScrollEnabled,
     bounces,
     renderFooterContent,
+    shouldUnescapeColon,
 }) {
     const styles = useThemeStyles();
     const flattenedData = useRef();
@@ -218,6 +219,7 @@ function BaseOptionsList({
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 isMultilineSupported={isRowMultilineSupported}
+                shouldUnescapeColon={shouldUnescapeColon}
             />
         );
     };

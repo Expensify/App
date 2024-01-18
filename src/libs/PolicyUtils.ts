@@ -195,7 +195,7 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
 }
 
 // This is to remove unnecessary escaping backslash in tag name sent from backend for "Parent: Child" type of tags.
-const unescapeColon = (tag?: string) => tag?.replace(/\\{1,2}:/g, ':');
+const unescapeColon = (tag: string) => tag?.replace(/\\{1,2}:/g, ':');
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;

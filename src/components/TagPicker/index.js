@@ -76,6 +76,7 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            shouldUnescapeColon
         />
     );
 }
