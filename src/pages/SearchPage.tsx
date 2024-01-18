@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -9,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -17,9 +19,10 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type SearchPageProps = {
+type SearchPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
@@ -33,10 +36,12 @@ type SearchPageProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
+type SearchPageProps = SearchPageOnyxProps & StackScreenProps<SearchNavigatorParamList, typeof SCREENS.SEARCH_ROOT>;
+
 type SearchOptions = {
-    recentReports: OnyxTypes.Report[];
-    personalDetails: OnyxTypes.PersonalDetails[];
-    userToInvite: [];
+    recentReports: ReportUtils.OptionData[];
+    personalDetails: ReportUtils.OptionData[];
+    userToInvite: ReportUtils.OptionData | null;
 };
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}: SearchPageProps) {
@@ -44,7 +49,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
     const [searchOptions, setSearchOptions] = useState<SearchOptions>({
         recentReports: [],
         personalDetails: [],
-        userToInvite: [],
+        userToInvite: null,
     });
 
     const {isOffline} = useNetwork();
@@ -146,10 +151,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
         if (option.reportID) {
             Navigation.dismissModal(option.reportID);
         } else {
-            if (!option.login) {
-                return;
-            }
-            Report.navigateToAndOpenReport([option.login]);
+            Report.navigateToAndOpenReport(option.login ? [option.login] : []);
         }
     };
 
@@ -198,7 +200,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
 
 SearchPage.displayName = 'SearchPage';
 
-export default withOnyx<SearchPageProps, SearchPageProps>({
+export default withOnyx<SearchPageProps, SearchPageOnyxProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
