@@ -178,13 +178,23 @@ function clearMoneyRequest(transactionID) {
  *
  * @param {Object[]} routes
  * @param {String} newIouType
+ * @param {String} tab
  */
-function updateMoneyRequestTypeParams(routes, newIouType) {
+function updateMoneyRequestTypeParams(routes, newIouType, tab) {
     routes.forEach((route) => {
-        if (!route.name.startsWith('Money_Request_')) {
+        if (!route.name.startsWith('Money_Request_') && ![CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN].includes(route.name)) {
             return;
         }
-        Navigation.setParams({iouType: newIouType}, route.key);
+        const newParams = {iouType: newIouType};
+        if (route.name === 'Money_Request_Create') {
+            // Both screen and nested params are needed to properly update the nested tab navigator
+            newParams.params = {...newParams};
+            newParams.screen = tab;
+        }
+        Navigation.setParams(newParams, route.key);
+
+        // Recursively update nested money request tab params
+        updateMoneyRequestTypeParams(lodashGet(route, 'state.routes', []), newIouType, tab);
     });
 }
 

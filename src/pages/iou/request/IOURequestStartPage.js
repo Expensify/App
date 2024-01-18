@@ -114,7 +114,7 @@ function IOURequestStartPage({
                 return;
             }
             if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST);
+                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
             }
             IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
