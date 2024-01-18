@@ -10,6 +10,7 @@ import Reanimated, {
     withTiming,
     useSharedValue,
     withDelay,
+    interpolate,
 } from 'react-native-reanimated';
 
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -24,6 +25,7 @@ import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetA
 const useAnimatedKeyboard2 = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
+    const progress = useSharedValue(0);
     const heightWhenOpened = useSharedValue(0);
 
     useKeyboardHandler({
@@ -48,6 +50,7 @@ const useAnimatedKeyboard2 = () => {
 
             // console.log("onMove", e, new Date().getTime());
 
+            progress.value = e.progress;
             height.value = e.height;
         },
         onEnd: (e) => {
@@ -62,10 +65,11 @@ const useAnimatedKeyboard2 = () => {
             }
 
             height.value = e.height;
+            progress.value = e.progress;
         },
     }, []);
 
-    return { state, height, heightWhenOpened };
+    return { state, height, heightWhenOpened, progress };
 };
 
 const useSafeAreaPaddings = () => {
@@ -253,7 +257,10 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 return nextOffset;
             }
 
-            case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN:
+            case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED:
+            case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: {
+                return interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]);
+            }
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN:
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
