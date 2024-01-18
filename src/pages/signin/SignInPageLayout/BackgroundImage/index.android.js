@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {
-    isSmallScreen: false,
     onLoadEnd: () => {},
 };
 
