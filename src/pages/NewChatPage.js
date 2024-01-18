@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -60,6 +61,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [selectedOptions, setSelectedOptions] = useState([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -115,7 +117,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    function toggleOption(option) {
+    const toggleOption = (option) => {
         const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
@@ -153,7 +155,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
-    }
+    };
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -161,9 +163,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      *
      * @param {Object} option
      */
-    function createChat(option) {
+    const createChat = (option) => {
         Report.navigateToAndOpenReport([option.login]);
-    }
+    };
 
     /**
      * Creates a new group chat with all the selected options and the current user,
@@ -177,7 +179,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         Report.navigateToAndOpenReport(logins);
     };
 
-    useEffect(() => {
+    const updateOptions = useCallback(() => {
         const {
             recentReports,
             personalDetails: newChatPersonalDetails,
@@ -206,6 +208,26 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports, personalDetails, searchTerm]);
+
+    useEffect(() => {
+        const interactionTask = doInteractionTask(() => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!didScreenTransitionEnd) {
+            return;
+        }
+        updateOptions();
+    }, [didScreenTransitionEnd, updateOptions]);
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
@@ -238,15 +260,15 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
-                            onAddToSelection={(option) => toggleOption(option)}
+                            onAddToSelection={toggleOption}
                             sections={sections}
                             selectedOptions={selectedOptions}
-                            onSelectRow={(option) => createChat(option)}
+                            onSelectRow={createChat}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}

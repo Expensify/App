@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -15,8 +16,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -55,6 +58,7 @@ const propTypes = {
     }).isRequired,
 
     isLoadingReportData: PropTypes.bool,
+    invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
     ...policyPropTypes,
 };
 
@@ -62,6 +66,7 @@ const defaultProps = {
     personalDetails: {},
     betas: [],
     isLoadingReportData: true,
+    invitedEmailsToAccountIDsDraft: {},
     ...policyDefaultProps,
 };
 
@@ -79,7 +84,10 @@ function WorkspaceInvitePage(props) {
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
-    }, []);
+        return () => {
+            Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
+        };
+    }, [props.route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
@@ -103,6 +111,12 @@ function WorkspaceInvitePage(props) {
         _.each(inviteOptions.personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail)));
 
         const newSelectedOptions = [];
+        _.each(_.keys(props.invitedEmailsToAccountIDsDraft), (login) => {
+            if (!_.has(detailsMap, login)) {
+                return;
+            }
+            newSelectedOptions.push({...detailsMap[login], isSelected: true});
+        });
         _.each(selectedOptions, (option) => {
             newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
         });
@@ -142,8 +156,10 @@ function WorkspaceInvitePage(props) {
             filterSelectedOptions = _.filter(selectedOptions, (option) => {
                 const accountID = lodashGet(option, 'accountID', null);
                 const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
 
-                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchValue) || option.login.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
@@ -318,6 +334,9 @@ export default compose(
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        invitedEmailsToAccountIDsDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
         },
     }),
 )(WorkspaceInvitePage);
