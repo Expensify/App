@@ -27,13 +27,11 @@ import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyCategories} from './PolicyCategory';
-import type PolicyCategory from './PolicyCategory';
+import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
 import type PolicyReportField from './PolicyReportField';
-import type {PolicyTags} from './PolicyTag';
-import type PolicyTag from './PolicyTag';
+import type {PolicyTag, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -62,6 +60,7 @@ import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
+import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
@@ -132,6 +131,7 @@ export type {
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
+    WalletAdditionalQuestionDetails,
     WalletOnfido,
     WalletStatement,
     WalletTerms,

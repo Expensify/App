@@ -1,9 +1,13 @@
 import type {RefObject} from 'react';
 import {createContext} from 'react';
-import type {FlatList, GestureResponderEvent} from 'react-native';
+import type {FlatList, GestureResponderEvent, View} from 'react-native';
+
+type ReactionListAnchor = View | HTMLDivElement | null;
+
+type ReactionListEvent = GestureResponderEvent | MouseEvent;
 
 type ReactionListRef = {
-    showReactionList: (event: GestureResponderEvent | undefined, reactionListAnchor: Element, emojiName: string, reportActionID: string) => void;
+    showReactionList: (event: ReactionListEvent | undefined, reactionListAnchor: ReactionListAnchor, emojiName: string, reportActionID: string) => void;
     hideReactionList: () => void;
     isActiveReportAction: (actionID: number | string) => boolean;
 };
@@ -21,4 +25,4 @@ const ActionListContext = createContext<ActionListContextType>({flatListRef: nul
 const ReactionListContext = createContext<ReactionListContextType>(null);
 
 export {ActionListContext, ReactionListContext};
-export type {ReactionListRef, ActionListContextType, ReactionListContextType, FlatListRefType};
+export type {ReactionListRef, ActionListContextType, ReactionListContextType, FlatListRefType, ReactionListAnchor, ReactionListEvent};

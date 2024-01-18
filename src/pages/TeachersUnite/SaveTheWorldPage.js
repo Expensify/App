@@ -1,8 +1,5 @@
-import _ from 'lodash';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
@@ -11,28 +8,13 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-const propTypes = {
-    /** The list of this user's policies */
-    policy: PropTypes.shape({
-        /** The user's role in the policy */
-        role: PropTypes.string,
-    }),
-};
-
-const defaultProps = {
-    policy: {},
-};
-
-function SaveTheWorldPage(props) {
+function SaveTheWorldPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isTeacherAlreadyInvited = !_.isUndefined(props.policy) && props.policy.role === CONST.POLICY.ROLE.USER;
 
     return (
         <IllustratedHeaderPageLayout
@@ -53,23 +35,14 @@ function SaveTheWorldPage(props) {
                 onPress={() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)}
             />
 
-            {!isTeacherAlreadyInvited && (
-                <MenuItem
-                    shouldShowRightIcon
-                    title={translate('teachersUnitePage.iAmATeacher')}
-                    onPress={() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)}
-                />
-            )}
+            <MenuItem
+                shouldShowRightIcon
+                title={translate('teachersUnitePage.iAmATeacher')}
+                onPress={() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)}
+            />
         </IllustratedHeaderPageLayout>
     );
 }
 
-SaveTheWorldPage.propTypes = propTypes;
-SaveTheWorldPage.defaultProps = defaultProps;
 SaveTheWorldPage.displayName = 'SaveTheWorldPage';
-
-export default withOnyx({
-    policy: {
-        key: () => `${ONYXKEYS.COLLECTION.POLICY}${CONST.TEACHERS_UNITE.POLICY_ID}`,
-    },
-})(SaveTheWorldPage);
+export default SaveTheWorldPage;
