@@ -420,7 +420,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -436,10 +436,9 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
-    return lastMessageTextFromReport;
+
+    return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
 }
 
 /**
