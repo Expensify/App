@@ -45,6 +45,7 @@ function BaseSelectionList({
     inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
     initiallyFocusedOptionKey = '',
+    isLoadingNewOptions = false,
     onScroll,
     onScrollBeginDrag,
     headerMessage = '',
@@ -428,10 +429,11 @@ function BaseSelectionList({
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}
-                        {Boolean(headerMessage) && (
+                        {!isLoadingNewOptions && !!headerMessage && (
                             <View style={[styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
