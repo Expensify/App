@@ -9,6 +9,7 @@ import defaultPropTypes from './propTypes';
 
 const defaultProps = {
     isSmallScreen: false,
+    transitionDuration: 1000,
 };
 
 const propTypes = {
@@ -21,11 +22,12 @@ function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
-
+console.log('[wildebug] props.transitionDuration', props.transitionDuration)
     return (
         <Image
             source={src}
             style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width)]}
+            transition={props.transitionDuration}
         />
     );
 }

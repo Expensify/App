@@ -4,9 +4,11 @@ import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg'
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
+import * as Animatable from 'react-native-animatable';
 
 const defaultProps = {
     isSmallScreen: false,
+    transitionDuration: 1000,
 };
 
 const propTypes = {
@@ -17,17 +19,30 @@ const propTypes = {
 };
 function BackgroundImage(props) {
     const styles = useThemeStyles();
-    return props.isSmallScreen ? (
-        <MobileBackgroundImage
-            width={props.width}
-            style={styles.signInBackground}
-        />
-    ) : (
-        <DesktopBackgroundImage
-            width={props.width}
-            style={styles.signInBackground}
-        />
-    );
+    const fadeIn = {
+        from: {
+            opacity: 0,
+        },
+        to: {
+            opacity: 1,
+        },
+    };
+
+    return <Animatable.View
+        style={styles.signInBackground}
+        animation={fadeIn} duration={props.transitionDuration}>
+        {props.isSmallScreen ? (
+            <MobileBackgroundImage
+                width={props.width}
+                style={styles.signInBackground}
+
+            />
+        ) : (
+            <DesktopBackgroundImage
+                width={props.width}
+                style={styles.signInBackground}
+            />
+        )}</Animatable.View>;
 }
 
 BackgroundImage.displayName = 'BackgroundImage';
