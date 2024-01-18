@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -112,7 +112,7 @@ function Avatar({
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
                     <Image
                         source={{uri: avatarSource}}
-                        style={imageStyle}
+                        style={imageStyle as StyleProp<ImageStyle>}
                         onError={() => setImageError(true)}
                     />
                 </View>
