@@ -78,6 +78,8 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     /** Content Ref */
     contentRef?: RefObject<View>;
 
+    checkIfContextMenuActive?: () => void;
+
     /** Callback to fire when a menu item is selected */
     onItemSelected?: (action: ContextMenuAction) => void;
 };
@@ -100,6 +102,7 @@ function BaseReportActionContextMenu({
     reportID,
     betas,
     reportActions,
+    checkIfContextMenuActive,
     onItemSelected = () => {},
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
@@ -118,9 +121,13 @@ function BaseReportActionContextMenu({
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
-    const filteredContextMenuActions = ContextMenuActions.filter((contextAction) =>
-        contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline),
+    let filteredContextMenuActions = ContextMenuActions.filter((contextAction) =>
+        contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline, isMini),
     );
+    filteredContextMenuActions =
+        isMini && filteredContextMenuActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS
+            ? ([...filteredContextMenuActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1), filteredContextMenuActions.at(-1)] as typeof filteredContextMenuActions)
+            : filteredContextMenuActions;
 
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
     const nonMenuItemActionIndexes = filteredContextMenuActions.map((contextAction, index) =>
@@ -185,6 +192,8 @@ function BaseReportActionContextMenu({
                         close: () => setShouldKeepOpen(false),
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
+                        anchor,
+                        checkIfContextMenuActive,
                     };
 
                     if ('renderContent' in contextAction) {
@@ -209,9 +218,16 @@ function BaseReportActionContextMenu({
                             successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={() => {
+                            onPress={(event) => {
                                 onItemSelected(contextAction);
-                                interceptAnonymousUser(() => contextAction.onPress?.(closePopup, payload), contextAction.isAnonymousAction);
+                                interceptAnonymousUser(
+                                    () =>
+                                        contextAction.onPress?.(closePopup, {
+                                            ...payload,
+                                            event,
+                                        }),
+                                    contextAction.isAnonymousAction,
+                                );
                             }}
                             description={contextAction.getDescription?.(selection) ?? ''}
                             isAnonymousAction={contextAction.isAnonymousAction}
