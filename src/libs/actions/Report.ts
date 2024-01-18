@@ -23,6 +23,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
@@ -294,8 +295,8 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  */
 function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
-    let reportCommentAction: Partial<ReportAction> | undefined;
-    let attachmentAction: Partial<ReportAction> | undefined;
+    let reportCommentAction: OptimisticAddCommentReportAction | undefined;
+    let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName = 'AddComment';
 
     if (text) {
@@ -334,7 +335,7 @@ function addActions(reportID: string, text = '', file?: File) {
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     if (text && reportCommentAction?.reportActionID) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
@@ -377,7 +378,7 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportActions,
+            value: optimisticReportActions as ReportActions,
         },
     ];
 
@@ -413,11 +414,12 @@ function addActions(reportID: string, text = '', file?: File) {
         };
     }
 
-    const failureReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
         failureReportActions[actionKey] = {
-            ...action,
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            ...(action as OptimisticAddCommentReportAction),
             errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
         };
     });
@@ -431,7 +433,7 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: failureReportActions,
+            value: failureReportActions as ReportActions,
         },
     ];
 
