@@ -143,8 +143,8 @@ function BaseVideoPlayer({
                                     style={[styles.flex1]}
                                 />
                                 {/* We are adding transaprent absolute View between appended video component and conttrol buttons to enable
-                      catching onMosue events from Attachment Carousel. Due to late appending React doesn't handle
-                       element's events properly.  */}
+                                    catching onMosue events from Attachment Carousel. Due to late appending React doesn't handle
+                                    element's events properly. */}
                                 <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
                             </>
                         ) : (
