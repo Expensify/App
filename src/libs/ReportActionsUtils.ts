@@ -6,7 +6,7 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionName, ChangeLog, OriginalMessageReimbursementDequeued, OriginalMessageActionableMentionWhisper} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, ChangeLog, OriginalMessageActionableMentionWhisper, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -821,11 +821,11 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
         const handleText = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
-        return  `<mention-user accountID=${accountID}>@${handleText}</mention-user>`
+        return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
-    const preMentionsText = 'Heads up, '
+    const preMentionsText = 'Heads up, ';
     const mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
-    const postMentionsText = ` ${mentionElements.length > 1 ? 'aren\'t members' : 'isn\'t a member'} of this room.`
+    const postMentionsText = ` ${mentionElements.length > 1 ? "aren't members" : "isn't a member"} of this room.`;
 
     return `${preMentionsText}${mentions}${postMentionsText}`;
 }

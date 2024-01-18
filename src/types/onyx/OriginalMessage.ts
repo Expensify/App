@@ -283,5 +283,5 @@ export type {
     OriginalMessageCreated,
     OriginalMessageAddComment,
     OriginalMessageActionableMentionWhisper,
-    OriginalMessageReimbursementDequeued
+    OriginalMessageReimbursementDequeued,
 };
