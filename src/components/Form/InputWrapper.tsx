@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ComponentProps, ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountTextInput from '@components/AmountTextInput';
@@ -15,7 +15,7 @@ import type {BaseInputProps, InputWrapperProps} from './types';
 type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
 
 function InputWrapper<TInput extends ValidInputs, TInputProps extends BaseInputProps>(
-    {InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput, TInputProps>,
+    {InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput, TInputProps & ComponentProps<TInput>>,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {registerInput} = useContext(FormContext);

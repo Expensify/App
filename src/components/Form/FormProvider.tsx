@@ -18,8 +18,6 @@ import FormWrapper from './FormWrapper';
 import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
-
-// In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
@@ -350,7 +348,7 @@ export default withOnyx<FormProviderProps, FormProviderOnyxProps>({
     network: {
         key: ONYXKEYS.NETWORK,
     },
-    // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we had to cast the keys to any
+    // withOnyx typings are not able to handle such generic cases like this one, since it's a generic component we need to cast the keys to any
     formState: {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
         key: ({formID}) => formID as any,
