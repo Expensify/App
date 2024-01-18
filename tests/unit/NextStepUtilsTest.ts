@@ -353,7 +353,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'approve',
                         type: 'strong',
                     },
                     {
@@ -380,7 +380,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'approve',
                         type: 'strong',
                     },
                     {
@@ -416,7 +416,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'approve',
                         type: 'strong',
                     },
                     {

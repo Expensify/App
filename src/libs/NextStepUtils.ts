@@ -200,7 +200,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'approve',
                         type: 'strong',
                     },
                     {
@@ -227,7 +227,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'approve',
                         type: 'strong',
                     },
                     {
