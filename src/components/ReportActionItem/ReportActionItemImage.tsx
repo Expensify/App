@@ -29,7 +29,7 @@ type ReportActionItemImageProps = {
     transaction?: Transaction;
 
     /** whether thumbnail is refer the local file or not */
-    isLocalFile: boolean;
+    isLocalFile?: boolean;
 
     /** whether the receipt can be replaced */
     canEditReceipt?: boolean;
