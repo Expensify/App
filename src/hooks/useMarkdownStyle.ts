@@ -18,7 +18,7 @@ function useMarkdownStyle(): MarkdownStyle {
             h1: {
                 fontSize: variables.fontSizeh1,
             },
-            quote: {
+            blockquote: {
                 borderColor: theme.border,
                 borderWidth: 4,
                 marginLeft: 0,
