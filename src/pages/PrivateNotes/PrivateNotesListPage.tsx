@@ -80,7 +80,6 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
 
     /**
      * Returns a list of private notes on the given chat report
-     * @returns {Array} the menu item list
      */
     const privateNotes = useMemo(() => {
         const privateNoteBrickRoadIndicator = (accountID: number) => report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
