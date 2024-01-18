@@ -1,10 +1,6 @@
-<<<<<<< HEAD:src/components/MoneyReportHeader.js
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
-=======
 import React, {useMemo} from 'react';
->>>>>>> c2eb57e (Merge pull request #34697 from Expensify/vit-cancelPaymentRevert):src/components/MoneyReportHeader.tsx
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -98,16 +94,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
-<<<<<<< HEAD:src/components/MoneyReportHeader.js
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-
-    const cancelPayment = useCallback(() => {
-        IOU.cancelPayment(moneyRequestReport, chatReport);
-        setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
-
-=======
->>>>>>> c2eb57e (Merge pull request #34697 from Expensify/vit-cancelPaymentRevert):src/components/MoneyReportHeader.tsx
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
