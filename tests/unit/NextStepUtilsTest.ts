@@ -31,13 +31,12 @@ describe('libs/NextStepUtils', () => {
             areChatRoomsEnabled: true,
             isPolicyExpenseChatEnabled: true,
         };
-        const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
-
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',
             title: '',
             message: [],
         };
+        const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
             // @ts-expect-error Preset necessary values
@@ -61,10 +60,6 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
-            beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
-            });
-
             test('self review', () => {
                 optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
@@ -87,7 +82,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });
@@ -120,7 +115,7 @@ describe('libs/NextStepUtils', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     isAutoApprovalEnabled: true,
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report);
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                     expect(result).toStrictEqual(optimisticNextStep);
                 });
@@ -147,7 +142,7 @@ describe('libs/NextStepUtils', () => {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'immediate',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -171,7 +166,7 @@ describe('libs/NextStepUtils', () => {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'weekly',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -195,7 +190,7 @@ describe('libs/NextStepUtils', () => {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'semimonthly',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -220,7 +215,7 @@ describe('libs/NextStepUtils', () => {
                         autoReportingFrequency: 'monthly',
                         autoReportingOffset: '2',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -245,7 +240,7 @@ describe('libs/NextStepUtils', () => {
                         autoReportingFrequency: 'monthly',
                         autoReportingOffset: 'lastDayOfMonth',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -269,7 +264,7 @@ describe('libs/NextStepUtils', () => {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'trip',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -303,7 +298,7 @@ describe('libs/NextStepUtils', () => {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'manual',
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report);
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toStrictEqual(optimisticNextStep);
                     });
@@ -336,7 +331,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     submitsTo: currentUserAccountID,
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report);
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                     expect(result).toStrictEqual(optimisticNextStep);
                 });
@@ -344,10 +339,6 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been submitted', () => {
-            beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-            });
-
             test('self review', () => {
                 optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
@@ -370,7 +361,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });
@@ -400,7 +391,7 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     submitsTo: strangeAccountID,
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report);
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toStrictEqual(optimisticNextStep);
                 });
@@ -433,17 +424,13 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
-            beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-            });
-
             test('self review', () => {
                 optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
@@ -466,7 +453,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });
@@ -480,17 +467,13 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report);
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });
         });
 
         describe('it generates an optimistic nextStep once a report has been paid', () => {
-            beforeEach(() => {
-                report.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
-            });
-
             test('paid with wallet', () => {
                 optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
@@ -510,7 +493,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, {isPaidWithWallet: true});
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: true});
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });
@@ -537,7 +520,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, {isPaidWithWallet: false});
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: false});
 
                 expect(result).toStrictEqual(optimisticNextStep);
             });

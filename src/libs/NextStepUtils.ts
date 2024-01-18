@@ -1,6 +1,7 @@
 import {format, lastDayOfMonth} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNextStep} from '@src/types/onyx';
@@ -54,12 +55,12 @@ type BuildNextStepParameters = {
  * Generates an optimistic nextStep based on a current report status and other properties.
  *
  * @param report
- * @param parameters
+ * @param predictedNextStatus - a next expected status of the report
  * @param parameters.isPaidWithWallet - Whether a report has been paid with wallet or outside of Expensify
  * @returns nextStep
  */
-function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
-    const {statusNum = CONST.REPORT.STATUS_NUM.OPEN, isPreventSelfApprovalEnabled = false, ownerAccountID = -1} = report;
+function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
+    const {isPreventSelfApprovalEnabled = false, ownerAccountID = -1} = report;
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
     const isOwner = currentUserAccountID === ownerAccountID;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
@@ -68,7 +69,7 @@ function buildNextStep(report: Report, {isPaidWithWallet}: BuildNextStepParamete
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
-    switch (statusNum) {
+    switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
             // Self review
