@@ -133,6 +133,9 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    if (TransactionUtils.isPartialMerchant(formattedMerchant)) {
+        formattedMerchant = null;
+    }
     const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && transactionsWithReceipts.every((transaction) => transaction.pendingFields?.waypoints);
     if (formattedMerchant && hasPendingWaypoints) {
         formattedMerchant = formattedMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
@@ -268,7 +271,7 @@ function ReportPreview({
                                     )}
                                 </View>
                             </View>
-                            {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
+                            {!isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant)) && (
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
