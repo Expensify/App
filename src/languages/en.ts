@@ -800,7 +800,7 @@ export default {
             phrase3: 'and',
             phrase4: 'Privacy',
         },
-        returnToClassic: 'Return to Expensify Classic',
+        returnToClassic: 'Switch to Expensify Classic',
         help: 'Help',
     },
     closeAccountPage: {

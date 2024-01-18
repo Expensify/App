@@ -70,12 +70,9 @@ function LogOutPreviousUserPage(props) {
             if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     // remove this screen and navigate to exit route
+                    const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo
                     Navigation.goBack();
-                    if (exitTo === '/request/new/scan') {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()))
-                    } else {
-                        Navigation.navigate(exitTo);
-                    }
+                    Navigation.navigate(exitUrl);
                 });
             }
         });

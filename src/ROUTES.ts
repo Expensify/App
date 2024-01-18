@@ -474,7 +474,16 @@ const ROUTES = {
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 } as const;
 
-export {getUrlWithBackToParam};
+/**
+ * Proxy routes can be used to generate a correct url with dynamic values
+ *
+ * It will be used by HybridApp, that has no access to methods generating dynamic routes in NewDot
+ */
+const HYBRID_APP_ROUTES = {
+    MONEY_REQUEST_CREATE: '/request/new/scan',
+}
+
+export {getUrlWithBackToParam, HYBRID_APP_ROUTES};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -494,4 +503,8 @@ type RouteIsPlainString = IsEqual<AllRoutes, string>;
  */
 type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
-export type {Route};
+type HybridAppRoute = {
+    [K in keyof typeof HYBRID_APP_ROUTES]: ExtractRouteName<(typeof HYBRID_APP_ROUTES)[K]>;
+}[keyof typeof HYBRID_APP_ROUTES];
+
+export type {Route, HybridAppRoute};

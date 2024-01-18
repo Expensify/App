@@ -2,10 +2,11 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
+import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import originalDismissModal from './dismissModal';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
@@ -65,6 +66,18 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
     }
 
     return index;
+}
+
+/**
+ * Function that generates dynamic urls from paths passed from OldDot
+ */
+function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
+    switch (url) {
+        case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+        default:
+            return url as Route;
+    }
 }
 
 /**
@@ -134,6 +147,7 @@ function isActiveRoute(routePath: Route): boolean {
  * @param [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route: Route = ROUTES.HOME, type?: string) {
+    console.log('route', route);
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -313,6 +327,7 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
+    parseHybridAppUrl,
 };
 
 export {navigationRef};
