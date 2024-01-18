@@ -1488,6 +1488,9 @@ function openWorkspaceReimburseView(policyID: string) {
     API.read('OpenWorkspaceReimburseView', params, {successData, failureData});
 }
 
+/**
+ * Returns the accountIDs of the members of the policy whose data is passed in the parameters
+ */
 function openWorkspace(policyID: string, clientMemberAccountIDs: number[]) {
     if (!policyID || !clientMemberAccountIDs) {
         Log.warn('openWorkspace invalid params', {policyID, clientMemberAccountIDs});
