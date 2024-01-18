@@ -1,8 +1,8 @@
 import React from 'react';
 import BaseKYCWall from './BaseKYCWall';
-import {defaultProps, propTypes} from './kycWallPropTypes';
+import type {KYCWallProps} from './types';
 
-function KYCWall(props) {
+function KYCWall(props: KYCWallProps) {
     return (
         <BaseKYCWall
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -12,8 +12,6 @@ function KYCWall(props) {
     );
 }
 
-KYCWall.propTypes = propTypes;
-KYCWall.defaultProps = defaultProps;
 KYCWall.displayName = 'KYCWall';
 
 export default KYCWall;
