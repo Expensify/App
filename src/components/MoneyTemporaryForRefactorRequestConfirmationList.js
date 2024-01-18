@@ -799,7 +799,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouTag}
+                            title={PolicyUtils.unescapeColon(iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() =>
