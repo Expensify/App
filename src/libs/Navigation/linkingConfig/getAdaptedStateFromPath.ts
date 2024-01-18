@@ -2,14 +2,15 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
+import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
+import config from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
-import getTopmostNestedRHPRoute from './getTopmostNestedRHPRoute';
-import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from './types';
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]) => ({routes, index: routes.length - 1});
@@ -52,6 +53,33 @@ function createFullScreenNavigator(route: NavigationPartialRoute<FullScreenName>
 
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
 function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<typeof NAVIGATORS.CENTRAL_PANE_NAVIGATOR | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
+    // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
+    if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
+        const stateForBackTo = getStateFromPath(route.params.backTo, config);
+        if (stateForBackTo) {
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            const rhpNavigator = stateForBackTo.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+            const centralPaneOrFullScreenNavigator = stateForBackTo.routes.find(
+                // eslint-disable-next-line @typescript-eslint/no-shadow
+                (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR,
+            );
+
+            // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
+            if (rhpNavigator && rhpNavigator.state) {
+                const topmostNestedRHPRoute = getTopmostNestedRHPRoute(stateForBackTo);
+                if (topmostNestedRHPRoute) {
+                    return getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
+                }
+            }
+
+            // If we know that backTo targets the root route (central pane or full screen) we want to use it.
+            if (centralPaneOrFullScreenNavigator && centralPaneOrFullScreenNavigator.state) {
+                return centralPaneOrFullScreenNavigator as NavigationPartialRoute<typeof NAVIGATORS.CENTRAL_PANE_NAVIGATOR | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+            }
+        }
+    }
+
     // Check for CentralPaneNavigator
     for (const [centralPaneName, RHPNames] of Object.entries(CENTRAL_PANE_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
