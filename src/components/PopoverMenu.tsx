@@ -152,10 +152,9 @@ function PopoverMenu({
             disableAnimation={disableAnimation}
             fromSidebarMediumScreen={fromSidebarMediumScreen}
             withoutOverlay={withoutOverlay}
-            onLayout={onLayout}
             shouldSetModalVisibility={shouldSetModalVisibility}
         >
-            <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+            <View onLayout={onLayout} style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {menuItems.map((item, menuIndex) => (
                     <MenuItem
