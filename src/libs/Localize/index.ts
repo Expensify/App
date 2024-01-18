@@ -182,5 +182,5 @@ function getDevicePreferredLocale(): string {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
-export type {PhraseParameters, Phrase, MaybePhraseKey, translatableTextPropTypes};
+export {translatableTextPropTypes, translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
+export type {PhraseParameters, Phrase, MaybePhraseKey};
