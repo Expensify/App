@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, OriginalMessageReimbursementDequeued, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -177,11 +177,6 @@ type OptimisticApprovedReportAction = Pick<
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
->;
-
-type OptimisticCancelPaymentReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
@@ -1609,13 +1604,9 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
-    const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
-    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        return Localize.translateLocal('iou.adminCanceledRequest', {amount});
-    }
+function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
+    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
 
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
 }
@@ -2896,40 +2887,6 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
 }
 
 /**
- * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
- *
- */
-function buildOptimisticCancelPaymentReportAction(expenseReportID: string): OptimisticCancelPaymentReportAction {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-                expenseReportID,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: '',
-            },
-        ],
-        originalMessage: {
-            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-            expenseReportID,
-        },
-        person: [
-            {
-                style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: NumberUtils.rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
-/**
  * Builds an optimistic report preview action with a randomly generated reportActionID.
  *
  * @param chatReport
@@ -3611,7 +3568,7 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxEntry<Report>): boolean {
+function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
     return Boolean(report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.CHRONOS));
 }
 
@@ -4262,22 +4219,17 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
 
-        // If the payment was cancelled, show the "Owes" message
-        if (!isSettled(IOUReportID)) {
-            translationKey = 'iou.payerOwesAmount';
-        } else {
-            switch (originalMessage.paymentType) {
-                case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                    translationKey = 'iou.paidElsewhereWithAmount';
-                    break;
-                case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-                case CONST.IOU.PAYMENT_TYPE.VBBA:
-                    translationKey = 'iou.paidWithExpensifyWithAmount';
-                    break;
-                default:
-                    translationKey = 'iou.payerPaidAmount';
-                    break;
-            }
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidWithExpensifyWithAmount';
+                break;
+            default:
+                translationKey = 'iou.payerPaidAmount';
+                break;
         }
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName ?? ''});
     }
@@ -4523,7 +4475,6 @@ export {
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
     buildOptimisticModifiedExpenseReportAction,
-    buildOptimisticCancelPaymentReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
