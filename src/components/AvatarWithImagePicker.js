@@ -305,7 +305,10 @@ function AvatarWithImagePicker({
                     errorRowStyles={errorRowStyles}
                     onClose={onErrorClose}
                 >
-                    <Tooltip shouldRender={!disabled} text={translate('avatarWithImagePicker.editImage')}>
+                    <Tooltip
+                        shouldRender={!disabled}
+                        text={translate('avatarWithImagePicker.editImage')}
+                    >
                         <PressableWithoutFeedback
                             onPress={() => setIsMenuVisible((prev) => !prev)}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
@@ -327,14 +330,16 @@ function AvatarWithImagePicker({
                                     <DefaultAvatar />
                                 )}
                             </View>
-                            {!disabled && <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                <Icon
-                                    src={Expensicons.Pencil}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
-                                    fill={theme.icon}
-                                />
-                            </View>}
+                            {!disabled && (
+                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                    <Icon
+                                        src={Expensicons.Pencil}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                        fill={theme.icon}
+                                    />
+                                </View>
+                            )}
                         </PressableWithoutFeedback>
                     </Tooltip>
                 </OfflineWithFeedback>

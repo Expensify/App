@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';

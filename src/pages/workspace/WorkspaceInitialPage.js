@@ -144,8 +144,8 @@ function WorkspaceInitialPage(props) {
                     ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRouteWithoutParams())))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
-        }, 
-    ]
+        },
+    ];
 
     const menuItems = [
         {
@@ -155,7 +155,7 @@ function WorkspaceInitialPage(props) {
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             routeName: SCREENS.WORKSPACE.OVERVIEW,
         },
-    ].concat(shouldShowProtectedItems ? protectedMenuItems : [])
+    ].concat(shouldShowProtectedItems ? protectedMenuItems : []);
 
     const prevPolicy = usePrevious(policy);
 

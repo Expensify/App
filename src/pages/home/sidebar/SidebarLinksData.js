@@ -75,6 +75,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
 
     const policyMemberAccountIDs = _.map(_.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`]), (accountID) => Number(accountID));
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
     const reportIDsRef = useRef(null);

@@ -131,7 +131,7 @@ function WorkspacePageWithSections({
         fetchData(shouldSkipVBBACall);
     }, [shouldSkipVBBACall]);
 
-    const shouldShow = isOverview && !PolicyUtils.isPendingDeletePolicy(policy) && !_.isEmpty(policy) ? false : !PolicyUtils.isPolicyAdmin(policy)
+    const shouldShow = isOverview && !PolicyUtils.isPendingDeletePolicy(policy) && !_.isEmpty(policy) ? false : !PolicyUtils.isPolicyAdmin(policy);
 
     return (
         <ScreenWrapper
