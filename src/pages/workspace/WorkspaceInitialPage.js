@@ -94,14 +94,10 @@ function WorkspaceInitialPage(props) {
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
-    const menuItems = [
-        {
-            translationKey: 'workspace.common.overview',
-            icon: Expensicons.Home,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
-            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
-            routeName: SCREENS.WORKSPACE.OVERVIEW,
-        },
+
+    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
+
+    const protectedMenuItems = [
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
@@ -148,15 +144,24 @@ function WorkspaceInitialPage(props) {
                     ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRouteWithoutParams())))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+        }, 
+    ]
+
+    const menuItems = [
+        {
+            translationKey: 'workspace.common.overview',
+            icon: Expensicons.Home,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
+            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            routeName: SCREENS.WORKSPACE.OVERVIEW,
         },
-    ];
+    ].concat(shouldShowProtectedItems ? protectedMenuItems : [])
 
     const prevPolicy = usePrevious(policy);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         _.isEmpty(policy) ||
-        !PolicyUtils.isPolicyAdmin(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 

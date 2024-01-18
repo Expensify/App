@@ -85,6 +85,9 @@ const propTypes = {
 
     /** Style applied to the avatar */
     avatarStyle: stylePropTypes.isRequired,
+
+    /** Indicates if picker feature should be disabled */
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -105,6 +108,7 @@ const defaultProps = {
     headerTitle: '',
     previewSource: '',
     originalFileName: '',
+    disabled: false,
 };
 
 function AvatarWithImagePicker({
@@ -127,6 +131,7 @@ function AvatarWithImagePicker({
     onImageSelected,
     editorMaskImage,
     avatarStyle,
+    disabled,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -300,12 +305,12 @@ function AvatarWithImagePicker({
                     errorRowStyles={errorRowStyles}
                     onClose={onErrorClose}
                 >
-                    <Tooltip text={translate('avatarWithImagePicker.editImage')}>
+                    <Tooltip shouldRender={!disabled} text={translate('avatarWithImagePicker.editImage')}>
                         <PressableWithoutFeedback
                             onPress={() => setIsMenuVisible((prev) => !prev)}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                            disabled={isAvatarCropModalOpen}
+                            disabled={isAvatarCropModalOpen || disabled}
                             ref={anchorRef}
                         >
                             <View>
@@ -322,14 +327,14 @@ function AvatarWithImagePicker({
                                     <DefaultAvatar />
                                 )}
                             </View>
-                            <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                            {!disabled && <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                 <Icon
                                     src={Expensicons.Pencil}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}
                                 />
-                            </View>
+                            </View>}
                         </PressableWithoutFeedback>
                     </Tooltip>
                 </OfflineWithFeedback>
