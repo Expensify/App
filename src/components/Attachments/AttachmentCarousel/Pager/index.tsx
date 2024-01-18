@@ -27,6 +27,7 @@ type PagerItem = {
 
 type AttachmentCarouselPagerProps = {
     items: PagerItem[];
+    scale: number;
     scrollEnabled?: boolean;
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
@@ -36,13 +37,12 @@ type AttachmentCarouselPagerProps = {
 };
 
 function AttachmentCarouselPager(
-    {items, scrollEnabled = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
+    {items, scale, scrollEnabled = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
-    const isPdfZooming = useSharedValue(false);
     const isPagerSwiping = useSharedValue(false);
     const activePage = useSharedValue(initialIndex);
     const [activePageState, setActivePageState] = useState(initialIndex);
@@ -68,11 +68,11 @@ function AttachmentCarouselPager(
         () => ({
             pagerRef,
             isPagerSwiping,
-            isPdfZooming,
+            scale,
             onTap,
             onScaleChanged,
         }),
-        [isPagerSwiping, isPdfZooming, onTap, onScaleChanged],
+        [isPagerSwiping, scale, onTap, onScaleChanged],
     );
 
     useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
@@ -90,7 +90,7 @@ function AttachmentCarouselPager(
             <AnimatedPagerView
                 pageMargin={40}
                 offscreenPageLimit={1}
-                scrollEnabled={scrollEnabled && !isPdfZooming.value}
+                scrollEnabled={scrollEnabled}
                 onPageScroll={pageScrollHandler}
                 onPageSelected={onPageSelected}
                 ref={pagerRef}

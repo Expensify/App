@@ -23,6 +23,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
+    const [scale, setScale] = useState(1);
     const [isZoomedOut, setIsZoomedOut] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [activeSource, setActiveSource] = useState(source);
@@ -108,6 +109,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     const handleScaleChange = useCallback(
         (newScale) => {
+            if (newScale === scale) {
+                return;
+            }
+
+            setScale(newScale);
+
             const newIsZoomedOut = newScale === 1;
 
             if (isZoomedOut === newIsZoomedOut) {
@@ -117,7 +124,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             setIsZoomedOut(newIsZoomedOut);
             setShouldShowArrows(newIsZoomedOut);
         },
-        [isZoomedOut, setShouldShowArrows],
+        [isZoomedOut, scale, setShouldShowArrows],
     );
 
     return (
@@ -147,6 +154,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
                             <AttachmentCarouselPager
                                 items={attachments}
+                                scale={scale}
                                 scrollEnabled={isZoomedOut}
                                 renderItem={renderItem}
                                 initialIndex={page}

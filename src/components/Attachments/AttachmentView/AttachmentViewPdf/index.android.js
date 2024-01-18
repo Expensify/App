@@ -22,7 +22,7 @@ function AttachmentViewPdf(props) {
     // frozen, which combined with Reanimated using strict mode since 3.6.0 was resulting in errors.
     // Without strict mode, it would just silently fail.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#description
-    const isPdfZooming = attachmentCarouselPagerContext !== null ? attachmentCarouselPagerContext.shouldPagerScroll : undefined;
+    const isPdfZooming = attachmentCarouselPagerContext !== null ? attachmentCarouselPagerContext.scale !== 1 : undefined;
 
     const Pan = Gesture.Pan()
         .manualActivation(true)
