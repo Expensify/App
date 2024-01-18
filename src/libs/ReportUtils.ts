@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -177,11 +177,6 @@ type OptimisticApprovedReportAction = Pick<
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
->;
-
-type OptimisticCancelPaymentReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
@@ -535,7 +530,7 @@ function getReportParticipantsTitle(accountIDs: number[]): string {
 /**
  * Checks if a report is a chat report.
  */
-function isChatReport(report: OnyxEntry<Report>): boolean {
+function isChatReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
@@ -1609,13 +1604,9 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): string {
-    const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
-    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        return Localize.translateLocal('iou.adminCanceledRequest', {amount});
-    }
+function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
+    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
 
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
 }
@@ -1664,9 +1655,9 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
 
 /**
  * Determines if the option requires action from the current user. This can happen when it:
-    - is unread and the user was mentioned in one of the unread comments
-    - is for an outstanding task waiting on the user
-    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ - is unread and the user was mentioned in one of the unread comments
+ - is for an outstanding task waiting on the user
+ - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
@@ -2896,40 +2887,6 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
 }
 
 /**
- * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
- *
- */
-function buildOptimisticCancelPaymentReportAction(expenseReportID: string): OptimisticCancelPaymentReportAction {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-                expenseReportID,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: '',
-            },
-        ],
-        originalMessage: {
-            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-            expenseReportID,
-        },
-        person: [
-            {
-                style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: NumberUtils.rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
-/**
  * Builds an optimistic report preview action with a randomly generated reportActionID.
  *
  * @param chatReport
@@ -3611,7 +3568,7 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxEntry<Report>): boolean {
+function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
     return Boolean(report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.CHRONOS));
 }
 
@@ -3983,15 +3940,26 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Recor
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;
 }
 
+/**
+ * Return true if the Money Request report is marked for deletion.
+ */
+function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report>): boolean {
+    if (!isMoneyRequestReport(report)) {
+        return false;
+    }
+
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+
     // If the Money Request report is marked for deletion, let us prevent any further write action.
-    if (isMoneyRequestReport(report)) {
-        const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-        if (parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return false;
-        }
+    if (isMoneyRequestReportPendingDeletion(report)) {
+        return false;
     }
+
     return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
 }
 
@@ -4251,22 +4219,17 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
 
-        // If the payment was cancelled, show the "Owes" message
-        if (!isSettled(IOUReportID)) {
-            translationKey = 'iou.payerOwesAmount';
-        } else {
-            switch (originalMessage.paymentType) {
-                case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                    translationKey = 'iou.paidElsewhereWithAmount';
-                    break;
-                case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-                case CONST.IOU.PAYMENT_TYPE.VBBA:
-                    translationKey = 'iou.paidWithExpensifyWithAmount';
-                    break;
-                default:
-                    translationKey = 'iou.payerPaidAmount';
-                    break;
-            }
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidWithExpensifyWithAmount';
+                break;
+            default:
+                translationKey = 'iou.payerPaidAmount';
+                break;
         }
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName ?? ''});
     }
@@ -4404,9 +4367,9 @@ function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyRepor
 /**
  * Checks if thread replies should be displayed
  */
-function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
-    const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
-    return hasReplies && !!reportAction.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
+function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
+    const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return hasReplies && !!reportAction?.childCommenterCount && !isThreadFirstChat(reportAction, reportID);
 }
 
 /**
@@ -4418,7 +4381,7 @@ function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: ReportAction, reportID: string) {
+function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string) {
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
@@ -4426,9 +4389,9 @@ function shouldDisableThread(reportAction: ReportAction, reportID: string) {
     const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
 
     return (
-        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction.actionName) ||
+        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName) ||
         isSplitBillAction ||
-        (isDeletedAction && !reportAction.childVisibleActionCount) ||
+        (isDeletedAction && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );
@@ -4512,7 +4475,6 @@ export {
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
     buildOptimisticModifiedExpenseReportAction,
-    buildOptimisticCancelPaymentReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
@@ -4567,6 +4529,7 @@ export {
     getParentReport,
     getRootParentReport,
     getReportPreviewMessage,
+    isMoneyRequestReportPendingDeletion,
     canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
@@ -4615,4 +4578,4 @@ export {
     getChildReportNotificationPreference,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticClosedReportAction, OptimisticCreatedReportAction};
