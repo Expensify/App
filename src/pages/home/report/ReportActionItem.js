@@ -730,7 +730,6 @@ function ReportActionItem(props) {
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(props.action, props.report.reportID)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
-                                // shouldDisableOpacity={props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
                                 shouldDisableStrikeThrough
                             >
