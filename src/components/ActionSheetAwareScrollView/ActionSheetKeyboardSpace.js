@@ -188,7 +188,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     // });
                     console.log("TRANSITION #3 -> withTiming(elementOffset + invertedKeyboardHeight, {", { elementOffset, invertedKeyboardHeight, popoverHeight, composerHeight, keyboard: keyboard.height.value });
                     // return 374;
-                    return 72; // elementOffset - 10;
+                    return Math.max(elementOffset, 0);
                     return withSequence(
                         withTiming(elementOffset + invertedKeyboardHeight, {
                             duration: 0,
@@ -338,7 +338,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
                     console.log("TRANSITION #19 -> ", invertedKeyboardHeight);
-                    return invertedKeyboardHeight;
+                    return 0;
                 }
 
                 if (keyboard.state.value === KeyboardState.CLOSED) {
