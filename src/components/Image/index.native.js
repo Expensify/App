@@ -1,6 +1,6 @@
+import {Image as ImageComponent} from 'expo-image';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import RNFastImage from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,15 +34,15 @@ function Image(props) {
     }
 
     return (
-        <RNFastImage
+        <ImageComponent
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             source={imageSource}
             onLoad={(evt) => {
-                const {width, height} = evt.nativeEvent;
-                dimensionsCache.set(source.uri, {width, height});
+                const {width, height, url} = evt.source;
+                dimensionsCache.set(url, {width, height});
                 if (props.onLoad) {
-                    props.onLoad(evt);
+                    props.onLoad({nativeEvent: {width, height}});
                 }
             }}
         />

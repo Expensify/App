@@ -1,4 +1,4 @@
-import Falsy from './Falsy';
+import type Falsy from './Falsy';
 
 type EmptyObject = Record<string, never>;
 

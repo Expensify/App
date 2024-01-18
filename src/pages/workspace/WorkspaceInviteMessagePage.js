@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
@@ -226,7 +225,6 @@ export default compose(
         },
         workspaceInviteMessageDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-            selector: (draft) => (isEmpty(draft) ? '' : draft),
         },
     }),
     withNavigationFocus,

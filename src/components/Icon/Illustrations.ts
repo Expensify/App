@@ -25,20 +25,26 @@ import SafeBlue from '@assets/images/product-illustrations/safe.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
 import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
+import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
+import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
+import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
+import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
+import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
@@ -46,8 +52,10 @@ import MoneyWings from '@assets/images/simple-illustrations/simple-illustration_
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
+import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
+import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 
 export {
@@ -55,12 +63,14 @@ export {
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
+    BigRocket,
     ChatBubbles,
     CoffeeMug,
     ConciergeBlue,
     ConciergeExclamation,
     CreditCardsBlue,
     EmailAddress,
+    HandCard,
     HotDogStand,
     InvoiceOrange,
     JewelBoxBlue,
@@ -69,6 +79,7 @@ export {
     JewelBoxPink,
     JewelBoxYellow,
     MagicCode,
+    Mailbox,
     MoneyEnvelopeBlue,
     MoneyMousePink,
     ReceiptsSearchYellow,
@@ -77,6 +88,7 @@ export {
     RocketOrange,
     SanFrancisco,
     SafeBlue,
+    SmallRocket,
     TadaYellow,
     TadaBlue,
     ToddBehindCloud,
@@ -102,4 +114,8 @@ export {
     Hands,
     HandEarth,
     SmartScan,
+    Hourglass,
+    CommentBubbles,
+    TrashCan,
+    TeleScope,
 };

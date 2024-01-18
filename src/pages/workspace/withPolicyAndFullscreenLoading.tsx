@@ -1,10 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {ComponentType, ForwardedRef, forwardRef, RefAttributes} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {forwardRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withPolicy, {policyDefaultProps, WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
+import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
+import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {
     /** Indicated whether the report data is loading */

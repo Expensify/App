@@ -2,12 +2,10 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TimePicker from '@components/TimePicker/TimePicker';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
 import compose from '@libs/compose';
@@ -20,9 +18,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function SetTimePage({translate, privatePersonalDetails, customStatus}) {
-    usePrivatePersonalDetails();
-
+function SetTimePage({translate, customStatus}) {
     const styles = useThemeStyles();
     const clearAfter = lodashGet(customStatus, 'clearAfter', '');
 
@@ -33,9 +29,6 @@ function SetTimePage({translate, privatePersonalDetails, customStatus}) {
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -63,9 +56,6 @@ SetTimePage.displayName = 'SetTimePage';
 export default compose(
     withLocalize,
     withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
         customStatus: {
             key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
         },

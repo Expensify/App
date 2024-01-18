@@ -1,5 +1,5 @@
 import {fireEvent, render, within} from '@testing-library/react-native';
-import {addMonths, addYears, subYears} from 'date-fns';
+import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import CalendarPicker from '../../src/components/DatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -73,7 +73,7 @@ describe('CalendarPicker', () => {
 
         fireEvent.press(getByTestId('prev-month-arrow'));
 
-        const prevMonth = new Date().getMonth() - 1;
+        const prevMonth = subMonths(new Date(), 1).getMonth();
         expect(getByText(monthNames[prevMonth])).toBeTruthy();
     });
 
