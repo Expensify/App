@@ -599,7 +599,7 @@ const CONST = {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     JOIN_ROOM: 'JOINROOM',
-                    LEAVE_ROOM: "LEAVEROOM",
+                    LEAVE_ROOM: 'LEAVEROOM',
                 },
             },
             THREAD_DISABLED: ['CREATED'],
