@@ -73,18 +73,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
                     onPress={() => {
-                        // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID, source);
+                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', source);
                         Navigation.navigate(route);
                     }}
                     onLongPress={(event) =>
                         showContextMenuForReport(
-                            // Imitate the web event for native renderers
-                            {nativeEvent: {...(event.nativeEvent || {}), target: {tagName: 'IMG'}}},
-                            // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
+                            event,
                             anchor,
-                            // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
-                            report?.reportID,
+                            report?.reportID ?? '',
                             action,
                             checkIfContextMenuActive,
                             ReportUtils.isArchivedRoom(report),
