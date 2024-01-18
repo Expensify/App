@@ -481,7 +481,7 @@ const ROUTES = {
  */
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
-}
+};
 
 export {getUrlWithBackToParam, HYBRID_APP_ROUTES};
 export default ROUTES;

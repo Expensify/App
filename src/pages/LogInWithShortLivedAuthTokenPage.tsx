@@ -50,7 +50,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                 Navigation.navigate(url);
             });
         }
