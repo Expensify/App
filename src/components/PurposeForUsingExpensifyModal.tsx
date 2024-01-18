@@ -83,8 +83,7 @@ function PurposeForUsingExpensifyModal() {
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
-        const currentRouteName: string = currentRoute.name;
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRouteName && currentRouteName !== SCREENS.HOME) {
+        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name && currentRoute.name !== SCREENS.HOME) {
             return;
         }
 
