@@ -1,5 +1,6 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useMemo} from 'react';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
@@ -24,10 +25,12 @@ function useMarkdownStyle(): MarkdownStyle {
                 paddingLeft: 6,
             },
             code: {
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 color: theme.text,
                 backgroundColor: theme.textBackground,
             },
             pre: {
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 color: theme.text,
                 backgroundColor: theme.textBackground,
             },
