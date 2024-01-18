@@ -133,7 +133,7 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
-    if (TransactionUtils.isPartialMerchant(formattedMerchant)) {
+    if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
     const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && transactionsWithReceipts.every((transaction) => transaction.pendingFields?.waypoints);
