@@ -61,7 +61,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
-    anchor?: MutableRefObject<HTMLElement | null>;
+    anchor?: MutableRefObject<HTMLDivElement | View | null>;
 
     /** Flag to check if the chat participant is Chronos */
     isChronosReport?: boolean;

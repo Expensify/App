@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, Text, View} from 'react-native';
 import {Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,9 +15,9 @@ import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
-type ContextMenuAnchorCallback = (x: number, y: number) => void;
+// type ContextMenuAnchorCallback = (x: number, y: number) => void;
 
-type ContextMenuAnchor = {measureInWindow: (callback: ContextMenuAnchorCallback) => void};
+// type ContextMenuAnchor = {measureInWindow: (callback: ContextMenuAnchorCallback) => void};
 
 type Location = {
     x: number;
@@ -66,8 +67,8 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
-    const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
-    const contextMenuTargetNode = useRef<HTMLElement | null>(null);
+    const contextMenuAnchorRef = useRef<View | Text | null>(null);
+    const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
@@ -163,8 +164,9 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isUnreadChat = false,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
-        contextMenuAnchorRef.current = contextMenuAnchor;
-        contextMenuTargetNode.current = event.target as HTMLElement;
+
+        contextMenuAnchorRef.current = contextMenuAnchor && 'measureInWindow' in contextMenuAnchor ? contextMenuAnchor : null;
+        contextMenuTargetNode.current = event.target as HTMLDivElement;
 
         setInstanceID(Math.random().toString(36).substr(2, 5));
 

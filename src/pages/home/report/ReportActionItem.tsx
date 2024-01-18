@@ -165,7 +165,7 @@ function ReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput & HTMLTextAreaElement>();
-    const popoverAnchorRef = useRef<View>(null);
+    const popoverAnchorRef = useRef<View | HTMLDivElement>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
@@ -435,24 +435,26 @@ function ReportActionItem({
                             />
                         )}
 
-                        <KYCWall
-                            onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
-                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                            addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
-                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                            chatReportID={report.reportID}
-                            iouReport={iouReport}
-                        >
-                            {(triggerKYCFlow, buttonRef) => (
-                                <Button
-                                    ref={buttonRef}
-                                    success
-                                    style={[styles.w100, styles.requestPreviewBox]}
-                                    text={translate('iou.enableWallet')}
-                                    onPress={triggerKYCFlow}
-                                />
-                            )}
-                        </KYCWall>
+                        {shouldShowEnableWalletButton && (
+                            <KYCWall
+                                onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
+                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                chatReportID={report.reportID}
+                                iouReport={iouReport}
+                            >
+                                {(triggerKYCFlow, buttonRef) => (
+                                    <Button
+                                        ref={buttonRef}
+                                        success
+                                        style={[styles.w100, styles.requestPreviewBox]}
+                                        text={translate('iou.enableWallet')}
+                                        onPress={triggerKYCFlow}
+                                    />
+                                )}
+                            </KYCWall>
+                        )}
                     </>
                 </ReportActionItemBasicMessage>
             );

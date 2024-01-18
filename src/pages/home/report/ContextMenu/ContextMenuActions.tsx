@@ -2,7 +2,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
+import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -53,7 +53,7 @@ type ShouldShow = (
     reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
     betas: OnyxEntry<Beta[]>,
-    menuTarget: MutableRefObject<HTMLElement | null> | undefined,
+    menuTarget: MutableRefObject<HTMLElement | View | null> | undefined,
     isChronosReport: boolean,
     reportID: string,
     isPinnedChat: boolean,
@@ -70,7 +70,7 @@ type ContextMenuActionPayload = {
     close: () => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: MutableRefObject<HTMLElement | View | Text | null>;
+    anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
     checkIfContextMenuActive?: () => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
 };
@@ -416,7 +416,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
-            const isAttachmentTarget = menuTarget?.current?.tagName === 'IMG' && isAttachment;
+            const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
@@ -509,7 +509,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event as GestureResponderEvent | MouseEvent,
                 selection,
-                anchor?.current as View | RNText | null,
+                anchor?.current,
                 reportID,
                 reportAction.reportActionID,
                 originalReportID,

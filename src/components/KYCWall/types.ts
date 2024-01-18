@@ -1,5 +1,5 @@
-import type {ForwardedRef, SyntheticEvent} from 'react';
-import type {NativeTouchEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -67,7 +67,7 @@ type KYCWallProps = {
     onSuccessfulKYC: (currentSource?: Source, iouPaymentType?: TransferMethod) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: SyntheticEvent<NativeTouchEvent>, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
+    children: (continueAction: (event?: GestureResponderEvent | KeyboardEvent, method?: TransferMethod) => void, anchorRef: ForwardedRef<HTMLDivElement | View>) => void;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect};

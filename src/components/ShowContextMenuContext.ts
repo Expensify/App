@@ -36,7 +36,7 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
-    anchor: RNText | View | null,
+    anchor: HTMLDivElement | View | null,
     reportID: string,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,

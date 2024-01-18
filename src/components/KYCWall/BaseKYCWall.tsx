@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
 import {Dimensions} from 'react-native';
-import type {EmitterSubscription, NativeTouchEvent} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -260,7 +260,7 @@ function KYCWall({
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />
-            {children(continueAction, anchorRef)}
+            {children(continueAction as (event?: GestureResponderEvent | KeyboardEvent, method?: TransferMethod) => void, anchorRef)}
         </>
     );
 }

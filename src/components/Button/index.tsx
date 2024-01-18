@@ -198,7 +198,7 @@ function Button(
         accessibilityLabel = '',
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View>,
+    ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
