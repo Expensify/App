@@ -441,15 +441,12 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-<<<<<<< HEAD
     } else if (ReportActionUtils.isMemberChangeAction(lastReportAction)) {
         const htmlWithoutMutedTags = lodashGet(lastReportAction, 'message[0].html', '').replace(/<[/]?muted-text>/g, '');
         const htmlWithoutAccountIDBasedMentions = ReportActionUtils.convertAccountIDBasedMentionsToDisplayNames(htmlWithoutMutedTags, allPersonalDetails);
         lastMessageTextFromReport = htmlWithoutAccountIDBasedMentions.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1');
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-=======
->>>>>>> 599c005849cd065a53d35e015991b637c768f2da
     }
 
     return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
