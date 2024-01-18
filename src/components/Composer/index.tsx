@@ -3,6 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
+// eslint-disable-next-line no-restricted-imports
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
