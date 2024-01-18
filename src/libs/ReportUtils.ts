@@ -833,7 +833,7 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 
 /**
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
- * In this case report and workspace members must be compared to deteremine whether the report belongs to the workspace.
+ * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
 function doesReportBelongToWorkspace(report: Report, policyID: string, policyMemberAccountIDs: number[]) {
     return (
@@ -842,14 +842,14 @@ function doesReportBelongToWorkspace(report: Report, policyID: string, policyMem
 }
 
 /**
- * Given a collection of reports, return them filtered by a policyID and policyMemberAccountIDs.
+ * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
 function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyID = '', policyMemberAccountIDs: number[] = []) {
     return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
 }
 
 /**
- * Given a collection of reports, return them sorted by the last read timestamp.
+ * Given an array of reports, return them sorted by the last read timestamp.
  */
 function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return reports

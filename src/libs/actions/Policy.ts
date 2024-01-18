@@ -1496,12 +1496,12 @@ function openWorkspace(policyID: string, clientMemberAccountIDs: number[]) {
 
     type OpenWorkspaceParams = {
         policyID: string;
-        clientMemberEmails: string;
+        clientMemberAccountIDs: string;
     };
 
     const params: OpenWorkspaceParams = {
         policyID,
-        clientMemberEmails: JSON.stringify(clientMemberAccountIDs),
+        clientMemberAccountIDs: JSON.stringify(clientMemberAccountIDs),
     };
 
     API.read('OpenWorkspace', params);
