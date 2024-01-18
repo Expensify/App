@@ -3,9 +3,9 @@ import React, {useEffect, useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +32,14 @@ type PrivateNotesListPageProps = PrivateNotesListPageOnyxProps & {
     report: Report;
 };
 
+type NoteListItem = {
+    title: string;
+    action: () => void;
+    brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+    note: string;
+    disabled: boolean;
+};
+
 function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -53,28 +61,19 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
     /**
      * Gets the menu item for each workspace
      */
-    function getMenuItem(item, index: number) {
-        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+    function getMenuItem(item: NoteListItem) {
         return (
-            <OfflineWithFeedback
-                key={`${keyTitle}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={styles.ph5}
-                onClose={item.dismissError}
-                errors={item.errors}
-            >
-                <MenuItemWithTopDescription
-                    description={item.title}
-                    title={item.note}
-                    onPress={item.action}
-                    shouldShowRightIcon={!item.disabled}
-                    numberOfLinesTitle={0}
-                    shouldRenderAsHTML
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    disabled={item.disabled}
-                    shouldGreyOutWhenDisabled={false}
-                />
-            </OfflineWithFeedback>
+            <MenuItemWithTopDescription
+                description={item.title}
+                title={item.note}
+                onPress={item.action}
+                shouldShowRightIcon={!item.disabled}
+                numberOfLinesTitle={0}
+                shouldRenderAsHTML
+                brickRoadIndicator={item.brickRoadIndicator}
+                disabled={item.disabled}
+                shouldGreyOutWhenDisabled={false}
+            />
         );
     }
 
@@ -82,7 +81,7 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
      * Returns a list of private notes on the given chat report
      */
     const privateNotes = useMemo(() => {
-        const privateNoteBrickRoadIndicator = (accountID: number) => (report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '');
+        const privateNoteBrickRoadIndicator = (accountID: number) => (report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
         return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
             const privateNote = report.privateNotes?.[Number(accountID)];
             return {
@@ -106,7 +105,7 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
-            <ScrollView contentContainerStyle={styles.flexGrow1}>{privateNotes.map((item, index) => getMenuItem(item, index))}</ScrollView>
+            <ScrollView contentContainerStyle={styles.flexGrow1}>{privateNotes.map((item) => getMenuItem(item))}</ScrollView>
         </ScreenWrapper>
     );
 }

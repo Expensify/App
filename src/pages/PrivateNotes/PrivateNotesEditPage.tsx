@@ -5,6 +5,7 @@ import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
+import type {TextInput as TextInputRN} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -54,7 +55,6 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     /**
      * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the private note and still have it in edit mode.
-     * @param {String} newDraft
      */
     const debouncedSavePrivateNote = useMemo(
         () =>
@@ -65,8 +65,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
     );
 
     // To focus on the input field when the page loads
-    const privateNotesInput = useRef(null);
-    const focusTimeoutRef = useRef(null);
+    const privateNotesInput = useRef<HTMLInputElement | TextInputRN | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -115,6 +115,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
+            {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
@@ -137,6 +138,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                     style={[styles.mb3]}
                 >
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
                         inputID="privateNotes"
