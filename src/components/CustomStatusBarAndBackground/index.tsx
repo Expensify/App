@@ -1,8 +1,10 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
+import getPlatform from '@libs/getPlatform';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
+import CONST from '@src/CONST';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -33,9 +35,10 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             setRootStatusBarEnabled(true);
         };
     }, [isNested, setRootStatusBarEnabled]);
-
-    const prevStatusBarBackgroundColor = useRef(theme.splashScreen);
-    const statusBarBackgroundColor = useRef(theme.splashScreen);
+    const os = getPlatform();
+    const initialBgColor = os === CONST.PLATFORM.WEB ? theme.splashScreen : theme.splashBG
+    const prevStatusBarBackgroundColor = useRef(initialBgColor);
+    const statusBarBackgroundColor = useRef(initialBgColor);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
@@ -88,11 +91,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
             statusBarBackgroundColor.current = currentScreenBackgroundColor;
 
-            // if (isFirstRender.current) {
-            //     isFirstRender.current = false;
-            //     updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
-            //     return;
-            // }
+            console.log('updateStatusBarStyle', {currentScreenBackgroundColor, prevStatusBarBackgroundColor: prevStatusBarBackgroundColor.current});
 
             if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
                 statusBarAnimation.value = 0;
