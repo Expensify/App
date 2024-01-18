@@ -434,33 +434,30 @@ function ReportActionItem({
                                 pressOnEnter
                             />
                         )}
-                        {shouldShowEnableWalletButton && (
-                            // @ts-expect-error TODO: Remove this once KYCWall (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-                            <KYCWall
-                                onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
-                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
-                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={report.reportID}
-                                iouReport={iouReport}
-                            >
-                                {/* @ts-expect-error TODO: Remove this once KYCWall (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript. */}
-                                {(triggerKYCFlow, buttonRef) => (
-                                    <Button
-                                        ref={buttonRef}
-                                        success
-                                        style={[styles.w100, styles.requestPreviewBox]}
-                                        text={translate('iou.enableWallet')}
-                                        onPress={triggerKYCFlow}
-                                    />
-                                )}
-                            </KYCWall>
-                        )}
+
+                        <KYCWall
+                            onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                            chatReportID={report.reportID}
+                            iouReport={iouReport}
+                        >
+                            {(triggerKYCFlow, buttonRef) => (
+                                <Button
+                                    ref={buttonRef}
+                                    success
+                                    style={[styles.w100, styles.requestPreviewBox]}
+                                    text={translate('iou.enableWallet')}
+                                    onPress={triggerKYCFlow}
+                                />
+                            )}
+                        </KYCWall>
                     </>
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID]);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
             const amount = CurrencyUtils.convertToDisplayString(report.total, report.currency);
 
             children = <ReportActionItemBasicMessage message={translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
