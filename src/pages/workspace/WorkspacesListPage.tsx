@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -28,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, UserWallet} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
@@ -91,16 +91,10 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const {isOffline} = useNetwork();
 
     /**
-     Get the user's wallet balance
-     */
-    const getWalletBalance = (isPaymentItem: boolean) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet?.currentBalance) : undefined);
-
-    /**
      * Gets the menu item for each workspace
      */
     const getMenuItem = (item: WorkspaceItem, index: number) => {
         const keyTitle = item.title;
-
         return (
             <OfflineWithFeedback
                 key={`${keyTitle}_${index}`}
@@ -117,7 +111,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     iconStyles={item.iconStyles}
                     iconFill={item.iconFill}
                     shouldShowRightIcon
-                    badgeText={getWalletBalance(false)}
                     fallbackIcon={item.fallbackIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     disabled={item.disabled}
@@ -131,9 +124,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      */
     const workspaces: WorkspaceItem[] = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = reimbursementAccount?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-        return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
-            .map((policy) => ({
+        if (isEmptyObject(policies)) {
+            return [];
+        }
+        return Object.values(policies)
+            ?.filter((policy: OnyxEntry<PolicyType>) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            ?.map((policy: OnyxEntry<PolicyType>) => ({
                 title: policy?.name,
                 icon: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
                 iconType: CONST.ICON_TYPE_WORKSPACE,
@@ -157,8 +153,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 children: null,
             }))
-            .sortBy((policy) => policy?.title?.toLowerCase())
-            .value();
+            .sort((a: {title?: string}, b: {title?: string}) => (a?.title?.toLowerCase() ?? '').localeCompare(b?.title?.toLowerCase() ?? ''));
     }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
@@ -176,7 +171,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 />
             }
         >
-            {_.isEmpty(workspaces) ? (
+            {isEmptyObject(workspaces) ? (
                 <FeatureList
                     menuItems={workspaceFeatures}
                     headline="workspace.emptyWorkspace.title"
