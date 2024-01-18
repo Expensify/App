@@ -409,18 +409,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     };
 
-    if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
-        return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                />
-            </ScreenWrapper>
-        );
-    }
-
     const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline &&
@@ -441,6 +429,18 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
+    }
+
+    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
+        return (
+            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <FullPageNotFoundView
+                    shouldShow
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                />
+            </ScreenWrapper>
+        );
     }
 
     let errorText;

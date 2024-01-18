@@ -67,6 +67,8 @@ const propTypes = {
     errors: errorsPropType.isRequired,
 
     inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
+
+    shouldHideFixErrorsAlert: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -80,6 +82,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     submitButtonStyles: [],
+    shouldHideFixErrorsAlert: false,
 };
 
 function FormWrapper(props) {
@@ -97,6 +100,7 @@ function FormWrapper(props) {
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
+        shouldHideFixErrorsAlert,
         submitButtonStyles,
     } = props;
     const formRef = useRef(null);
@@ -118,7 +122,7 @@ function FormWrapper(props) {
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
-                        isAlertVisible={_.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
+                        isAlertVisible={((_.size(errors) > 0 || !_.isEmpty(formState.errorFields)) && !shouldHideFixErrorsAlert) || Boolean(errorMessage)}
                         isLoading={formState.isLoading}
                         message={_.isEmpty(formState.errorFields) ? errorMessage : null}
                         onSubmit={onSubmit}
@@ -154,6 +158,7 @@ function FormWrapper(props) {
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter
+                        shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                     />
                 )}
             </FormSubmit>
@@ -177,6 +182,7 @@ function FormWrapper(props) {
             styles.mt5,
             submitButtonStyles,
             submitButtonText,
+            shouldHideFixErrorsAlert,
         ],
     );
 
