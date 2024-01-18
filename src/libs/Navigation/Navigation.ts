@@ -147,7 +147,6 @@ function isActiveRoute(routePath: Route): boolean {
  * @param [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route: Route = ROUTES.HOME, type?: string) {
-    console.log('route', route);
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
