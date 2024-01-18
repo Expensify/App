@@ -239,7 +239,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     translationPath: 'common.error.enterAmount',
                 },
                 merchant: {
-                    isError: isEmptyMerchant,
+                    isError: isPolicyExpenseChat && isEmptyMerchant,
                     translationPath: 'common.error.enterMerchant',
                 },
                 date: {

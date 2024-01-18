@@ -38,6 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -440,7 +441,10 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, props.report.ownerAccountID));
+            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
+
+            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
@@ -646,6 +650,7 @@ function ReportActionItem(props) {
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
+                        policyReportFields={_.values(props.policyReportFields)}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>
@@ -711,12 +716,14 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportActionID={props.action.reportActionID}
+                            anchor={popoverAnchorRef}
                             originalReportID={originalReportID}
                             isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && _.isUndefined(props.draftMessage) && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
+                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !_.isUndefined(props.draftMessage))}>
                             <OfflineWithFeedback
@@ -794,6 +801,10 @@ export default compose(
             },
             initialValue: {},
         },
+        policyReportFields: {
+            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
+            initialValue: [],
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
@@ -835,6 +846,8 @@ export default compose(
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID,
+            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+            _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields),
     ),
 );

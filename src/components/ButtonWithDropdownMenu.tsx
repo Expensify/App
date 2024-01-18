@@ -1,89 +1,89 @@
-import PropTypes from 'prop-types';
+import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import _ from 'underscore';
+import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import sourcePropTypes from './Image/sourcePropTypes';
+import type {AnchorAlignment} from './Popover/types';
 import PopoverMenu from './PopoverMenu';
 
-const propTypes = {
+type DropdownOption = {
+    value: string;
+    text: string;
+    icon: IconAsset;
+    iconWidth?: number;
+    iconHeight?: number;
+    iconDescription?: string;
+};
+
+type ButtonWithDropdownMenuProps = {
     /** Text to display for the menu header */
-    menuHeaderText: PropTypes.string,
+    menuHeaderText?: string;
 
     /** Callback to execute when the main button is pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: string) => void;
 
     /** Call the onPress function on main button when Enter key is pressed */
-    pressOnEnter: PropTypes.bool,
+    pressOnEnter?: boolean;
 
     /** Whether we should show a loading state for the main button */
-    isLoading: PropTypes.bool,
+    isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
+    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
-    isDisabled: PropTypes.bool,
+    isDisabled?: boolean;
 
     /** Additional styles to add to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style?: StyleProp<ViewStyle>;
 
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
-    options: PropTypes.arrayOf(
-        PropTypes.shape({
-            value: PropTypes.string.isRequired,
-            text: PropTypes.string.isRequired,
-            icon: sourcePropTypes,
-            iconWidth: PropTypes.number,
-            iconHeight: PropTypes.number,
-            iconDescription: PropTypes.string,
-        }),
-    ).isRequired,
+    options: DropdownOption[];
 
     /** The anchor alignment of the popover menu */
-    anchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
+    anchorAlignment?: AnchorAlignment;
 
     /* ref for the button */
-    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    buttonRef: RefObject<View>;
 };
 
-const defaultProps = {
-    isLoading: false,
-    isDisabled: false,
-    pressOnEnter: false,
-    menuHeaderText: '',
-    style: [],
-    buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    anchorAlignment: {
+function ButtonWithDropdownMenu({
+    isLoading = false,
+    isDisabled = false,
+    pressOnEnter = false,
+    menuHeaderText = '',
+    style,
+    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    buttonRef: () => {},
-};
-
-function ButtonWithDropdownMenu(props) {
+    buttonRef,
+    onPress,
+    options,
+}: ButtonWithDropdownMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const caretButton = useRef(null);
-    const selectedItem = props.options[selectedItemIndex] || _.first(props.options);
-    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonSize);
-    const isButtonSizeLarge = props.buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const caretButton = useRef<View & HTMLDivElement>(null);
+    const selectedItem = options[selectedItemIndex] || options[0];
+    const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
+    const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
     useEffect(() => {
         if (!caretButton.current) {
@@ -92,29 +92,31 @@ function ButtonWithDropdownMenu(props) {
         if (!isMenuVisible) {
             return;
         }
-        caretButton.current.measureInWindow((x, y, w, h) => {
-            setPopoverAnchorPosition({
-                horizontal: x + w,
-                vertical:
-                    props.anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
-                        ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
-                        : y - CONST.MODAL.POPOVER_MENU_PADDING, // if it is BOTTOM, menu will open above the button so NO need to add height but DO subtract padding
+        if ('measureInWindow' in caretButton.current) {
+            caretButton.current.measureInWindow((x, y, w, h) => {
+                setPopoverAnchorPosition({
+                    horizontal: x + w,
+                    vertical:
+                        anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
+                            ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
+                            : y - CONST.MODAL.POPOVER_MENU_PADDING, // if it is BOTTOM, menu will open above the button so NO need to add height but DO subtract padding
+                });
             });
-        });
-    }, [windowWidth, windowHeight, isMenuVisible, props.anchorAlignment.vertical]);
+        }
+    }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
     return (
         <View>
-            {props.options.length > 1 ? (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
+            {options.length > 1 ? (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
                         success
-                        pressOnEnter={props.pressOnEnter}
-                        ref={props.buttonRef}
-                        onPress={(event) => props.onPress(event, selectedItem.value)}
+                        pressOnEnter={pressOnEnter}
+                        ref={buttonRef}
+                        onPress={(event) => onPress(event, selectedItem.value)}
                         text={selectedItem.text}
-                        isDisabled={props.isDisabled}
-                        isLoading={props.isLoading}
+                        isDisabled={isDisabled}
+                        isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
                         large={isButtonSizeLarge}
@@ -125,7 +127,7 @@ function ButtonWithDropdownMenu(props) {
                     <Button
                         ref={caretButton}
                         success
-                        isDisabled={props.isDisabled}
+                        isDisabled={isDisabled}
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(!isMenuVisible)}
                         shouldRemoveLeftBorderRadius
@@ -147,19 +149,19 @@ function ButtonWithDropdownMenu(props) {
             ) : (
                 <Button
                     success
-                    ref={props.buttonRef}
-                    pressOnEnter={props.pressOnEnter}
-                    isDisabled={props.isDisabled}
-                    style={[styles.w100, ...props.style]}
-                    isLoading={props.isLoading}
+                    ref={buttonRef}
+                    pressOnEnter={pressOnEnter}
+                    isDisabled={isDisabled}
+                    style={[styles.w100, style]}
+                    isLoading={isLoading}
                     text={selectedItem.text}
-                    onPress={(event) => props.onPress(event, props.options[0].value)}
+                    onPress={(event) => onPress(event, options[0].value)}
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}
                 />
             )}
-            {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (
+            {options.length > 1 && popoverAnchorPosition && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}
@@ -167,9 +169,9 @@ function ButtonWithDropdownMenu(props) {
                     anchorPosition={popoverAnchorPosition}
                     anchorRef={caretButton}
                     withoutOverlay
-                    anchorAlignment={props.anchorAlignment}
-                    headerText={props.menuHeaderText}
-                    menuItems={_.map(props.options, (item, index) => ({
+                    anchorAlignment={anchorAlignment}
+                    headerText={menuHeaderText}
+                    menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: () => {
                             setSelectedItemIndex(index);
@@ -181,8 +183,6 @@ function ButtonWithDropdownMenu(props) {
     );
 }
 
-ButtonWithDropdownMenu.propTypes = propTypes;
-ButtonWithDropdownMenu.defaultProps = defaultProps;
 ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
 
 export default React.memo(ButtonWithDropdownMenu);
