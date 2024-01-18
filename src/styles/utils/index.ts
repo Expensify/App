@@ -1012,7 +1012,7 @@ function getOpacityStyle(opacity: number) {
     return {opacity};
 }
 
-function getMultiGestureCanvasStyle(canvasWidth: number): ViewStyle {
+function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
     return {
         width: canvasWidth,
         overflow: 'hidden',
@@ -1083,7 +1083,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getOpacityStyle,
-    getMultiGestureCanvasStyle,
+    getMultiGestureCanvasContainerStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

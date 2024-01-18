@@ -236,10 +236,12 @@ function MultiGestureCanvas({
         };
     });
 
+    const containerStyle = useMemo(() => StyleUtils.getMultiGestureCanvasContainerStyle(canvasSize.width), [StyleUtils, canvasSize.width]);
+
     return (
         <View
             collapsable={false}
-            style={[styles.flex1, StyleUtils.getMultiGestureCanvasStyle(canvasSize.width)]}
+            style={[styles.flex1, containerStyle]}
         >
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
                 <View
