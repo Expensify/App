@@ -1,7 +1,8 @@
 import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -57,7 +58,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action);
+            iouMessage = ReportUtils.getReportPreviewMessage(ReportUtils.getReport(iouReportID), action);
         }
     }
 

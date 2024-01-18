@@ -2,7 +2,7 @@ import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import isEmpty from 'lodash/isEmpty';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {NullishDeep} from 'react-native-onyx/lib/types';
@@ -38,7 +38,7 @@ import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -126,6 +126,14 @@ Onyx.connect({
 const allReports: OnyxCollection<Report> = {};
 let conciergeChatReportID: string | undefined;
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
+
+let reportIDDeeplinkedFromOldDot: string | undefined;
+Linking.getInitialURL().then((url) => {
+    const params = new URLSearchParams(url ?? '');
+    const exitToRoute = params.get('exitTo') ?? '';
+    const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
+    reportIDDeeplinkedFromOldDot = reportID;
+});
 
 /** Get the private pusher channel name for a Report. */
 function getReportChannelName(reportID: string): string {
@@ -321,7 +329,7 @@ function addActions(reportID: string, text = '', file?: File) {
 
     const report = ReportUtils.getReport(reportID);
 
-    if (isNotEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
@@ -343,6 +351,7 @@ function addActions(reportID: string, text = '', file?: File) {
         timezone?: string;
         shouldAllowActionableMentionWhispers?: boolean;
         clientCreatedTime?: string;
+        isOldDotConciergeChat?: boolean;
     };
 
     const parameters: AddCommentOrAttachementParameters = {
@@ -354,6 +363,10 @@ function addActions(reportID: string, text = '', file?: File) {
         shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
+
+    if (reportIDDeeplinkedFromOldDot === reportID && report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE) {
+        parameters.isOldDotConciergeChat = true;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -424,7 +437,7 @@ function addActions(reportID: string, text = '', file?: File) {
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (isNotEmptyObject(optimisticParentReportData)) {
+    if (!isEmptyObject(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
     }
 
@@ -574,7 +587,7 @@ function openReport(
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    if (isNotEmptyObject(newReportObject)) {
+    if (!isEmptyObject(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = Onyx.METHOD.SET;
@@ -741,7 +754,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
             '',
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            ReportUtils.getChildReportNotificationPreference(parentReportAction),
             parentReportAction.reportActionID,
             parentReportID,
         );
@@ -1192,7 +1205,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        if (isNotEmptyObject(optimisticParentReportData)) {
+        if (!isEmptyObject(optimisticParentReportData)) {
             optimisticData.push(optimisticParentReportData);
         }
     }
@@ -1392,7 +1405,7 @@ function updateNotificationPreference(
     report: OnyxEntry<Report> | EmptyObject = {},
 ) {
     if (previousValue === newValue) {
-        if (navigate && isNotEmptyObject(report) && report.reportID) {
+        if (navigate && !isEmptyObject(report) && report.reportID) {
             ReportUtils.goBackToDetailsPage(report);
         }
         return;
@@ -1435,7 +1448,7 @@ function updateNotificationPreference(
     const parameters: UpdateReportNotificationPreferenceParameters = {reportID, notificationPreference: newValue};
 
     API.write('UpdateReportNotificationPreference', parameters, {optimisticData, failureData});
-    if (navigate && isNotEmptyObject(report)) {
+    if (navigate && !isEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
 }
@@ -1988,7 +2001,7 @@ function toggleEmojiReaction(
     reportID: string,
     reportAction: ReportAction,
     reactionObject: Emoji,
-    existingReactions: ReportActionReactions | undefined,
+    existingReactions: OnyxEntry<ReportActionReactions>,
     paramSkinTone: number = preferredSkinTone,
 ) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -2095,8 +2108,8 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                   }
                 : {
                       reportID: null,
-                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                      statusNum: CONST.REPORT.STATUS.CLOSED,
+                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                   },
         },
@@ -2179,14 +2192,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         (accountID): accountID is number => typeof accountID === 'number',
     );
 
-    type PersonalDetailsOnyxData = {
-        optimisticData: OnyxUpdate[];
-        successData: OnyxUpdate[];
-        failureData: OnyxUpdate[];
-    };
-
     const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs) as PersonalDetailsOnyxData;
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2200,7 +2207,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.successData;
+    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2211,7 +2218,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
             },
         },
-        ...newPersonalDetailsOnyxData.failureData,
+        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     type InviteToRoomParameters = {
