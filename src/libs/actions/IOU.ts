@@ -41,12 +41,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-// TODO: Remove this once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-type OptimisticPolicyRecentlyUsedCategories = string[];
-
-// TODO: Remove this once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-type OptimisticPolicyRecentlyUsedTags = Record<string, string[]>;
-
 type MoneyRequestRoute = StackScreenProps<
     MoneyRequestNavigatorParamList,
     typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG | typeof SCREENS.MONEY_REQUEST.CONFIRMATION
@@ -373,8 +367,8 @@ function buildOnyxDataForMoneyRequest(
     iouAction: OptimisticIOUReportAction,
     optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList,
     reportPreviewAction: ReportAction,
-    optimisticPolicyRecentlyUsedCategories: OptimisticPolicyRecentlyUsedCategories,
-    optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags,
+    optimisticPolicyRecentlyUsedCategories: string[],
+    optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
     isNewChatReport: boolean,
     isNewIOUReport: boolean,
     policy?: OnyxTypes.Policy | EmptyObject,
@@ -773,11 +767,9 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category) as OptimisticPolicyRecentlyUsedCategories;
+    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
 
-    // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag) as OptimisticPolicyRecentlyUsedTags;
+    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -1110,11 +1102,7 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
-        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(
-            iouReport?.policyID,
-            transactionChanges.category,
-        ) as OptimisticPolicyRecentlyUsedCategories;
+        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -1126,8 +1114,7 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
-        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag) as OptimisticPolicyRecentlyUsedTags;
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1647,16 +1634,10 @@ function createSplitsAndOnyxData(
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat
-            ? // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-              (Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) as OptimisticPolicyRecentlyUsedCategories)
-            : [];
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
-            ? // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-              (Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) as OptimisticPolicyRecentlyUsedTags)
-            : {};
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -2448,11 +2429,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
-        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(
-            iouReport?.policyID,
-            transactionChanges.category,
-        ) as OptimisticPolicyRecentlyUsedCategories;
+        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -2464,8 +2441,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
 
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
-        // TODO: Remove assertion once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag) as OptimisticPolicyRecentlyUsedTags;
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
