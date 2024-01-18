@@ -36,7 +36,7 @@ const useTapGestures = ({
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
     const zoomToCoordinates = useWorkletCallback(
-        (focalX: number, focalY: number, callbackProp: () => void) => {
+        (focalX: number, focalY: number, callback: () => void) => {
             'worklet';
 
             stopAnimation();
@@ -99,8 +99,6 @@ const useTapGestures = ({
             if (zoomedContentSize.height < canvasSize.height) {
                 offsetAfterZooming.y = 0;
             }
-
-            const callback = callbackProp || (() => {});
 
             offsetX.value = withSpring(offsetAfterZooming.x, SPRING_CONFIG);
             offsetY.value = withSpring(offsetAfterZooming.y, SPRING_CONFIG);

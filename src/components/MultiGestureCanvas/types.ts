@@ -42,7 +42,7 @@ type MultiGestureCanvasVariables = {
     pinchTranslateX: SharedValue<number>;
     pinchTranslateY: SharedValue<number>;
     stopAnimation: () => void;
-    reset: (animated: boolean, callbackProp: () => void) => void;
+    reset: (animated: boolean, callback: () => void) => void;
     onTap: OnTapCallback | undefined;
     onScaleChanged?: OnScaleChangedCallback;
 };
