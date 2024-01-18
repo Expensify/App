@@ -324,7 +324,7 @@ type OptionData = {
     text: string;
     alternateText?: string | null;
     allReportErrors?: Errors | null;
-    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
+    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | typeof CONST.BRICK_ROAD_INDICATOR_STATUS.INFO | '' | null;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -3490,6 +3490,8 @@ function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
+    // Optionally exclude reports that do not belong to currently active workspace
+
     if (
         !report?.reportID ||
         !report?.type ||

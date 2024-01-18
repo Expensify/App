@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -133,6 +134,17 @@ Linking.getInitialURL().then((url) => {
     const exitToRoute = params.get('exitTo') ?? '';
     const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
     reportIDDeeplinkedFromOldDot = reportID;
+});
+
+let lastVisitedPath: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.LAST_VISITED_PATH,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        lastVisitedPath = value;
+    },
 });
 
 /** Get the private pusher channel name for a Report. */
@@ -1868,7 +1880,14 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    const onClick = () => {
+        const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+        const pathPrefix = `w/${policyID === report.policyID ? policyID : 'global'}/`;
+
+        // TO DO: Unify workspace-related navigation and extended definition of report that belongs to workspace
+        Navigation.navigate(`${pathPrefix}${ROUTES.HOME}` as Route);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    };
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);

@@ -111,6 +111,7 @@ function WorkspacePageWithSections({
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
     const isLoading = lodashGet(reimbursementAccount, 'isLoading', true);
+    const isOverview = lodashGet(route, 'name');
     const achState = lodashGet(reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const isUsingECard = lodashGet(user, 'isUsingExpensifyCard', false);
@@ -130,6 +131,8 @@ function WorkspacePageWithSections({
         fetchData(shouldSkipVBBACall);
     }, [shouldSkipVBBACall]);
 
+    const shouldShow = isOverview && !PolicyUtils.isPendingDeletePolicy(policy) && !_.isEmpty(policy) ? false : !PolicyUtils.isPolicyAdmin(policy);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -141,7 +144,7 @@ function WorkspacePageWithSections({
             <FullPageNotFoundView
                 onBackButtonPress={goBack}
                 onLinkPress={goBack}
-                shouldShow={_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                shouldShow={shouldShow}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 shouldForceFullScreen
             >

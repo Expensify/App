@@ -534,6 +534,7 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                iconLeft={this.props.textIconLeft}
                 testID="options-selector-input"
             />
         );
@@ -544,6 +545,7 @@ class BaseOptionsSelector extends Component {
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
+                disableFocusOptions={this.props.disableFocusOptions}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}

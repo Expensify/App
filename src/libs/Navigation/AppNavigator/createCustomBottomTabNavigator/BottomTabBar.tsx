@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +23,8 @@ function BottomTabBar() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
@@ -52,7 +55,11 @@ function BottomTabBar() {
             <BottomTabBarFloatingActionButton />
             <Tooltip text={translate('common.settings')}>
                 <PressableWithFeedback
-                    onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.ALL_SETTINGS))}
+                    onPress={() =>
+                        interceptAnonymousUser(() =>
+                            activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
+                        )
+                    }
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.settings')}
                     wrapperStyle={styles.flexGrow1}

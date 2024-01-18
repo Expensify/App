@@ -85,6 +85,10 @@ const SCREENS = {
     },
     LEFT_MODAL: {
         SEARCH: 'Search',
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
+    },
+    WORKSPACE_SWITCHER: {
+        ROOT: 'WorkspaceSwitcher_Root',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',

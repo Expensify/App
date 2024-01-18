@@ -3,10 +3,12 @@ import type {LinkingOptions} from '@react-navigation/native';
 import type {RootStackParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import config from './config';
+import customGetPathFromState from './customGetPathFromState';
 import getAdaptedStateFromPath from './getAdaptedStateFromPath';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
     getStateFromPath: getAdaptedStateFromPath,
+    getPathFromState: customGetPathFromState,
     prefixes: [
         'app://-/',
         'new-expensify://',

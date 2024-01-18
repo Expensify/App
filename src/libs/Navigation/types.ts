@@ -76,6 +76,10 @@ type CentralPaneNavigatorParamList = {
     };
 };
 
+type WorkspaceSwitcherNavigatorParamList = {
+    [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
@@ -357,6 +361,7 @@ type PrivateNotesNavigatorParamList = {
 
 type LeftModalNavigatorParamList = {
     [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
 type RightModalNavigatorParamList = {
@@ -504,4 +509,5 @@ export type {
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     State,
+    WorkspaceSwitcherNavigatorParamList,
 };

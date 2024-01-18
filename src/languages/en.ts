@@ -1556,6 +1556,11 @@ export default {
             notFound: 'No workspace found',
             description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
         },
+        switcher: {
+            headerTitle: 'Choose a workspace',
+            everythingSection: 'Everything',
+            placeholder: 'Find a workspace',
+        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',

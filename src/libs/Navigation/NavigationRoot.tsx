@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
+import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useTheme from '@hooks/useTheme';
@@ -10,9 +11,12 @@ import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
-import getStateFromPath from './getStateFromPath';
+import getPolicyIdFromState from './getPolicyIdFromState';
 import linkingConfig from './linkingConfig';
+import customGetPathFromState from './linkingConfig/customGetPathFromState';
+import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
+import {RootStackParamList} from './types';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -36,7 +40,7 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    const currentPath = getPathFromState(state, linkingConfig.config);
+    const currentPath = customGetPathFromState(state, linkingConfig.config);
     updateLastVisitedPath(currentPath);
 
     // Don't log the route transitions from OldDot because they contain authTokens
@@ -56,6 +60,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {setActiveWorkspaceID} = useActiveWorkspace();
 
     const initialState = useMemo(
         () => {
@@ -70,7 +75,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 return;
             }
 
-            return getStateFromPath(lastVisitedPath);
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
@@ -106,10 +111,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
-
+        const activeWorkspaceID = getPolicyIdFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             currentReportIDValue?.updateCurrentReportID(state);
+            setActiveWorkspaceID(activeWorkspaceID);
         }, 0);
         parseAndLogRoute(state);
     };

@@ -22,7 +22,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-            path: '',
+            path: ROUTES.ROOT,
             initialRouteName: SCREENS.HOME,
             screens: {
                 [SCREENS.HOME]: ROUTES.HOME,
@@ -66,6 +66,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.LEFT_MODAL.SEARCH]: {
                     screens: {
                         [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                    },
+                },
+                [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
+                    screens: {
+                        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+                            path: ROUTES.WORKSPACE_SWITCHER,
+                        },
                     },
                 },
             },

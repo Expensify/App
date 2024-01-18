@@ -12,6 +12,8 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 }
 
 const ROUTES = {
+    ROOT: '',
+
     HOME: 'home',
 
     ALL_SETTINGS: 'all-settings',
@@ -57,7 +59,7 @@ const ROUTES = {
         route: 'bank-account/:stepToOpen?',
         getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
     },
-
+    WORKSPACE_SWITCHER: 'workspaceSwitcher',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_SHARE_CODE: 'settings/shareCode',

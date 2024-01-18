@@ -29,6 +29,7 @@ import type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
@@ -193,6 +194,9 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
     },
     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
 );
+const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
+    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
+});
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
@@ -299,6 +303,7 @@ export {
     PrivateNotesModalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    WorkspaceSwitcherModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,

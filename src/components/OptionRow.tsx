@@ -254,6 +254,14 @@ function OptionRow({
                                         />
                                     </View>
                                 )}
+                                {option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={theme.iconSuccessFill}
+                                        />
+                                    </View>
+                                )}
                                 {showSelectedState && (
                                     <>
                                         {shouldShowSelectedStateAsButton && !isSelected ? (
