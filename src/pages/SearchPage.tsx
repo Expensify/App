@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,8 +29,8 @@ type SearchPageOnyxProps = {
     /** All of the personal details for everyone */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    /** The report currently being looked at */
-    reports: OnyxEntry<OnyxTypes.Report>;
+    /** All reports shared with the user */
+    reports: OnyxCollection<OnyxTypes.Report>;
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: OnyxEntry<boolean>;
