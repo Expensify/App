@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form, Network} from '@src/types/onyx';
 import type {FormValueType} from '@src/types/onyx/Form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import type {BaseInputProps, FormProps, InputRefs, OnyxFormKeyWithoutDraft, OnyxFormValues, OnyxFormValuesFields, RegisterInput, ValueTypeKey} from './types';
@@ -173,7 +173,7 @@ function FormProvider(
         Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (isNotEmptyObject(onValidate(trimmedStringValues))) {
+        if (!isEmptyObject(onValidate(trimmedStringValues))) {
             return;
         }
 
@@ -280,7 +280,7 @@ function FormProvider(
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
-                        const relatedTarget = 'nativeEvent' in event && 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;
+                        const relatedTarget = 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;
                         const relatedTargetId = relatedTarget && 'id' in relatedTarget && typeof relatedTarget.id === 'string' && relatedTarget.id;
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
@@ -316,7 +316,7 @@ function FormProvider(
                         return newState as Form;
                     });
 
-                    if (inputProps.shouldSaveDraft && !(formID as string).includes('Draft')) {
+                    if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
                         FormActions.setDraftValues(formID as OnyxFormKeyWithoutDraft, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);

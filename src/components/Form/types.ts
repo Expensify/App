@@ -1,5 +1,5 @@
 import type {FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type Form from '@src/types/onyx/Form';
 import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
@@ -11,13 +11,13 @@ type MeasureLayoutOnSuccessCallback = (left: number, top: number, width: number,
 type BaseInputProps = {
     shouldSetTouchedOnBlurOnly?: boolean;
     onValueChange?: (value: unknown, key: string) => void;
-    onTouched?: (event: unknown) => void;
+    onTouched?: (event: GestureResponderEvent) => void;
     valueType?: ValueTypeKey;
     value?: FormValueType;
     defaultValue?: FormValueType;
     onBlur?: (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>) => void;
-    onPressOut?: (event: unknown) => void;
-    onPress?: (event: unknown) => void;
+    onPressOut?: (event: GestureResponderEvent) => void;
+    onPress?: (event: GestureResponderEvent) => void;
     shouldSaveDraft?: boolean;
     shouldUseDefaultValue?: boolean;
     key?: Key | null | undefined;

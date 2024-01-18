@@ -21,11 +21,8 @@ function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDee
     Onyx.merge(FormUtils.getDraftKey(formID), draftValues);
 }
 
-/**
- * @param formID
- */
 function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
-    Onyx.merge(FormUtils.getDraftKey(formID), {});
+    Onyx.set(FormUtils.getDraftKey(formID), {});
 }
 
 export {setDraftValues, setErrorFields, setErrors, setIsLoading, clearDraftValues};

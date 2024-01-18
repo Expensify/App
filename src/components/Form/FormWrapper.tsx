@@ -42,7 +42,7 @@ function FormWrapper({
     errors,
     inputRefs,
     submitButtonText,
-    footerContent = null,
+    footerContent,
     isSubmitButtonVisible = true,
     style,
     submitButtonStyles,
