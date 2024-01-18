@@ -38,6 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -459,7 +460,10 @@ function ReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID]);
+            const amount = CurrencyUtils.convertToDisplayString(report.total, report.currency);
+
+            children = <ReportActionItemBasicMessage message={translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
@@ -729,12 +733,14 @@ function ReportActionItem({
                         <MiniReportActionContextMenu
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}
+                            anchor={popoverAnchorRef}
                             originalReportID={originalReportID ?? ''}
                             isArchivedRoom={ReportUtils.isArchivedRoom(report)}
                             displayAsGroup={displayAsGroup}
                             isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
+                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || draftMessage !== undefined)}>
                             <OfflineWithFeedback
