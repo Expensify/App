@@ -120,11 +120,22 @@ function getOrderedReportIDs(
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportAction[]>,
+    currentPolicyID = '',
+    policyMemberAccountIDs: number[] = [],
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [
+            currentReportId,
+            allReports,
+            betas,
+            policies,
+            priorityMode,
+            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length ?? 1,
+            currentPolicyID,
+            policyMemberAccountIDs,
+        ],
         (key, value: unknown) => {
             /**
              *  Exclude some properties not to overwhelm a cached key value with huge data,
@@ -151,7 +162,7 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+    let reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -175,6 +186,9 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
+    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, currentPolicyID, policyMemberAccountIDs));
+    }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.

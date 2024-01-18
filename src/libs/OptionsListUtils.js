@@ -436,10 +436,9 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
-    return lastMessageTextFromReport;
+
+    return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
 }
 
 /**
