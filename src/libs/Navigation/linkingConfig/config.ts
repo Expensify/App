@@ -22,7 +22,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-            path: '',
+            path: ROUTES.ROOT,
             initialRouteName: SCREENS.HOME,
             screens: {
                 [SCREENS.HOME]: ROUTES.HOME,
