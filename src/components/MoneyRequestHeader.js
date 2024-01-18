@@ -100,7 +100,16 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             threeDotsMenuItems.push({
                 icon: Expensicons.Receipt,
                 text: translate('receipt.addReceipt'),
-                onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                onSelected: () =>
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            transaction.transactionID,
+                            report.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    ),
             });
         }
         threeDotsMenuItems.push({

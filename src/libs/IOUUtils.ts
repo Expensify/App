@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as FileUtils from './fileDownload/FileUtils';
 import Navigation from './Navigation/Navigation';
@@ -38,7 +39,14 @@ function navigateToStartStepIfScanFileCannotBeRead(
         return;
     }
 
-    const onFailure = () => navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    const onFailure = () => {
+        IOU.setMoneyRequestReceipt(transactionID, '', '', true);
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            return;
+        }
+        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
@@ -82,19 +90,20 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
     // Make a copy so we don't mutate the original object
     const iouReportUpdate: Report = {...iouReport};
 
-    if (iouReportUpdate.total) {
-        if (actorAccountID === iouReport.ownerAccountID) {
-            iouReportUpdate.total += isDeleting ? -amount : amount;
-        } else {
-            iouReportUpdate.total += isDeleting ? amount : -amount;
-        }
+    // Let us ensure a valid value before updating the total amount.
+    iouReportUpdate.total = iouReportUpdate.total ?? 0;
 
-        if (iouReportUpdate.total < 0) {
-            // The total sign has changed and hence we need to flip the manager and owner of the report.
-            iouReportUpdate.ownerAccountID = iouReport.managerID;
-            iouReportUpdate.managerID = iouReport.ownerAccountID;
-            iouReportUpdate.total = -iouReportUpdate.total;
-        }
+    if (actorAccountID === iouReport.ownerAccountID) {
+        iouReportUpdate.total += isDeleting ? -amount : amount;
+    } else {
+        iouReportUpdate.total += isDeleting ? amount : -amount;
+    }
+
+    if (iouReportUpdate.total < 0) {
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
+        iouReportUpdate.total = -iouReportUpdate.total;
     }
 
     return iouReportUpdate;

@@ -9,9 +9,9 @@ type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
  */
 export default function useSingleExecution() {
     const singleExecution = useCallback(
-        <T extends unknown[]>(action: Action<T>) =>
+        <T extends unknown[]>(action?: Action<T>) =>
             (...params: T) => {
-                action(...params);
+                action?.(...params);
             },
         [],
     );

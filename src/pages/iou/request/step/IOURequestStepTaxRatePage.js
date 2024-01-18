@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -16,21 +15,13 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
@@ -52,16 +43,16 @@ const getTaxAmount = (taxRates, selectedTaxRate, amount) => {
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {iouType, reportID},
+        params: {backTo},
     },
     policyTaxRates,
     transaction,
 }) {
     const {translate} = useLocalize();
 
-    function navigateBack() {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
-    }
+    const navigateBack = () => {
+        Navigation.goBack(backTo || ROUTES.HOME);
+    };
 
     const defaultTaxKey = policyTaxRates.defaultExternalID;
     const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
@@ -73,7 +64,7 @@ function IOURequestStepTaxRatePage({
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
 
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     return (
