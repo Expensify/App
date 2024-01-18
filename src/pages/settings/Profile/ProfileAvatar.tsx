@@ -1,13 +1,15 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 type ProfileAvatarOnyxProps = {
@@ -15,9 +17,7 @@ type ProfileAvatarOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type ProfileAvatarProps = ProfileAvatarOnyxProps & {
-    route: RouteProp<{params: {accountID: string}}>;
-};
+type ProfileAvatarProps = ProfileAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.PROFILE_AVATAR>;
 
 function ProfileAvatar({route, personalDetails, isLoadingApp = true}: ProfileAvatarProps) {
     const personalDetail = personalDetails?.[route.params.accountID];
@@ -33,6 +33,9 @@ function ProfileAvatar({route, personalDetails, isLoadingApp = true}: ProfileAva
     }, [accountID, avatarURL]);
 
     return (
+        /**
+         * @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
+         */
         <AttachmentModal
             headerTitle={personalDetail?.displayName ?? ''}
             defaultOpen

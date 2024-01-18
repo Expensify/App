@@ -1,13 +1,16 @@
 import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Report} from '@src/types/onyx';
 
 type ReportRoute = RouteProp<{params: {reportID: string}}>;
@@ -18,10 +21,7 @@ type ReportAvatarOnyxProps = {
     policies: OnyxCollection<Policy>;
 };
 
-type ReportAvatarProps = ReportAvatarOnyxProps & {
-    // eslint-disable-next-line react/no-unused-prop-types
-    route: ReportRoute;
-};
+type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function getReportIDFromRoute(route: ReportRoute) {
     return route.params.reportID ?? '';
@@ -34,6 +34,9 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
     const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policyName);
 
     return (
+        /**
+         * @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
+         */
         <AttachmentModal
             headerTitle={policyName}
             defaultOpen
