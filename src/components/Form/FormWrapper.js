@@ -58,8 +58,7 @@ const propTypes = {
     style: stylePropTypes,
 
     /** Submit button container styles */
-    // eslint-disable-next-line react/forbid-prop-types
-    submitButtonStyles: PropTypes.arrayOf(PropTypes.object),
+    submitButtonStyles: stylePropTypes,
 
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
