@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
@@ -26,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type {BankAccountList, FundList, UserWallet, WalletTransfer} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TransferBalancePageOnyxProps = {
     /** User's wallet information */
@@ -43,11 +43,13 @@ type TransferBalancePageOnyxProps = {
 
 type TransferBalancePageProps = TransferBalancePageOnyxProps;
 
+const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
+
 function TransferBalancePage({bankAccountList, fundList, userWallet, walletTransfer}: TransferBalancePageProps) {
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const paymentCardList = fundList || {};
+    const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
         {
@@ -75,9 +77,9 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     function getSelectedPaymentMethodAccount(): PaymentMethod | undefined {
         const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
 
-        const defaultAccount = _.find(paymentMethods, (method) => method.isDefault ?? false);
-        const selectedAccount = _.find(paymentMethods, (method) => method.accountType === walletTransfer?.selectedAccountType && method.methodID === walletTransfer?.selectedAccountID);
-        return selectedAccount || defaultAccount;
+        const defaultAccount = paymentMethods.find((method) => method.isDefault);
+        const selectedAccount = paymentMethods.find((method) => method.accountType === walletTransfer?.selectedAccountType && method.methodID === walletTransfer?.selectedAccountID);
+        return selectedAccount ?? defaultAccount;
     }
 
     function navigateToChooseTransferAccount(filterPaymentMethodType: FilterMethodPaymentType) {
@@ -86,9 +88,9 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
         const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
 
-        const filteredMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
+        const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
-            const account = _.first(filteredMethods);
+            const account = filteredMethods[0];
             PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '');
             return;
         }
@@ -139,10 +141,9 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     const transferAmount = userWallet?.currentBalance ?? 0 - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
-    const errorMessage = !_.isEmpty(walletTransfer?.errors) ? _.chain(walletTransfer?.errors).values().first().value() : '';
+    const errorMessage = Object.values(walletTransfer?.errors ?? {})[0] ?? '';
 
-    const shouldShowTransferView =
-        PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], userWallet?.tierName);
+    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
 
     return (
         <ScreenWrapper testID={TransferBalancePage.displayName}>
@@ -166,7 +167,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                     contentContainerStyle={styles.pv5}
                 >
                     <View style={styles.ph5}>
-                        {_.map(paymentTypes, (paymentType) => (
+                        {paymentTypes.map((paymentType) => (
                             <MenuItem
                                 key={paymentType.key}
                                 title={paymentType.title}
@@ -212,7 +213,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                         onSubmit={() => selectedAccount && PaymentMethods.transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
-                        isAlertVisible={!_.isEmpty(errorMessage)}
+                        isAlertVisible={!isEmptyObject(errorMessage)}
                     />
                 </View>
             </FullPageNotFoundView>

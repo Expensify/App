@@ -151,7 +151,7 @@ function ReportCardLostPage({
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
-    const isDamaged = reason && reason?.key === OPTIONS_KEYS.DAMAGED;
+    const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
 
     return (
         <ScreenWrapper
@@ -194,7 +194,7 @@ function ReportCardLostPage({
                             <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                             <SingleOptionSelector
                                 options={OPTIONS}
-                                selectedOptionKey={reason && reason.key}
+                                selectedOptionKey={reason?.key}
                                 onSelectOption={handleOptionSelect}
                             />
                         </View>
