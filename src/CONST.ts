@@ -603,11 +603,9 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
-        CANCEL_PAYMENT_REASONS: {
-            ADMIN: 'CANCEL_REASON_ADMIN',
-        },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            NOTHING: 'nothing',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -1292,10 +1290,15 @@ const CONST = {
             TRIP: 'trip',
             MANUAL: 'manual',
         },
+        AUTO_REPORTING_OFFSET: {
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        ID_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
@@ -3121,6 +3124,8 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
