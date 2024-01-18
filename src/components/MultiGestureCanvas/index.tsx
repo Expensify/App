@@ -239,13 +239,7 @@ function MultiGestureCanvas({
     return (
         <View
             collapsable={false}
-            style={[
-                styles.flex1,
-                {
-                    width: canvasSize.width,
-                    overflow: 'hidden',
-                },
-            ]}
+            style={[styles.flex1, StyleUtils.getMultiGestureCanvasStyle(canvasSize.width)]}
         >
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
                 <View
