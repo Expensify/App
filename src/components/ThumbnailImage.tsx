@@ -1,6 +1,7 @@
 import lodashClamp from 'lodash/clamp';
 import React, {useCallback, useState} from 'react';
-import {Dimensions, StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';

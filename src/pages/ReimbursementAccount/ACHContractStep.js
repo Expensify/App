@@ -219,7 +219,7 @@ function ACHContractStep(props) {
                                         key={index}
                                         style={[styles.p5, styles.border, styles.mb2]}
                                     >
-                                        <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>{props.translate('beneficialOwnersStep.additionalOwner')}</Text>
+                                        <Text style={[styles.headerText, styles.mb2]}>{props.translate('beneficialOwnersStep.additionalOwner')}</Text>
                                         <IdentityForm
                                             translate={props.translate}
                                             style={[styles.mb2]}

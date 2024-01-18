@@ -1,4 +1,4 @@
-import Report from './Report';
+import type Report from './Report';
 
 type Task = {
     /** Title of the Task */

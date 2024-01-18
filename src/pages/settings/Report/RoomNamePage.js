@@ -4,7 +4,8 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,13 +43,8 @@ const defaultProps = {
     policy: {},
 };
 
-function RoomNamePage(props) {
+function RoomNamePage({policy, report, reports, translate}) {
     const styles = useThemeStyles();
-    const policy = props.policy;
-    const report = props.report;
-    const reports = props.reports;
-    const translate = props.translate;
-
     const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
 
@@ -91,7 +87,7 @@ function RoomNamePage(props) {
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
@@ -100,14 +96,15 @@ function RoomNamePage(props) {
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
-                        <RoomNameInput
-                            ref={(ref) => (roomNameInputRef.current = ref)}
+                        <InputWrapper
+                            InputComponent={RoomNameInput}
+                            ref={roomNameInputRef}
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

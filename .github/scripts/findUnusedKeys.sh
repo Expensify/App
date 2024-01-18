@@ -8,6 +8,7 @@ readonly SRC_DIR="${LIB_PATH}/src"
 readonly STYLES_DIR="${LIB_PATH}/src/styles"
 readonly STYLES_FILE="${LIB_PATH}/src/styles/index.ts"
 readonly UTILS_STYLES_FILE="${LIB_PATH}/src/styles/utils"
+readonly UTILS_STYLES_GENERATORS_FILE="${LIB_PATH}/src/styles/utils/generators"
 readonly STYLES_KEYS_FILE="${LIB_PATH}/scripts/style_keys_list_temp.txt"
 readonly UTIL_STYLES_KEYS_FILE="${LIB_PATH}/scripts/util_keys_list_temp.txt"
 readonly REMOVAL_KEYS_FILE="${LIB_PATH}/scripts/removal_keys_list_temp.txt"
@@ -325,7 +326,8 @@ find_util_usage_as_styles() {
     fi
 
     find_theme_style_and_store_keys "${file}" 0 "${root_key}"
-  done < <(find "${UTILS_STYLES_FILE}" -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find "${UTILS_STYLES_FILE}" -type f \( -path "${UTILS_STYLES_GENERATORS_FILE}" -prune -o -name "${FILE_EXTENSIONS[@]}" \) -print)
+
 }
 
 lookfor_unused_utils() {

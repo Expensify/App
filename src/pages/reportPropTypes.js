@@ -28,7 +28,7 @@ export default PropTypes.shape({
     /** The time of the last message on the report */
     lastVisibleActionCreated: PropTypes.string,
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime: PropTypes.string,
 
     /** The current user's notification preference for this report */
@@ -47,6 +47,9 @@ export default PropTypes.shape({
     /** List of accountIDs of participants of the report */
     participantAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
+    /** List of accountIDs of visible members of the report */
+    visibleChatMemberAccountIDs: PropTypes.arrayOf(PropTypes.number),
+
     /** Linked policy's ID */
     policyID: PropTypes.string,
 
@@ -60,11 +63,14 @@ export default PropTypes.shape({
     stateNum: PropTypes.oneOf(_.values(CONST.REPORT.STATE_NUM)),
 
     /** The status of the current report */
-    statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+    statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS_NUM)),
 
     /** Which user role is capable of posting messages on the report */
     writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 
     /** Field-specific pending states for offline UI status */
     pendingFields: PropTypes.objectOf(PropTypes.string),
+
+    /** Custom fields attached to the report */
+    reportFields: PropTypes.objectOf(PropTypes.string),
 });

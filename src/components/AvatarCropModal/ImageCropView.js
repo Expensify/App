@@ -88,6 +88,8 @@ function ImageCropView(props) {
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
                         src={props.maskImage}
+                        // TODO uncomment the line once the tint color issue for android(https://github.com/expo/expo/issues/21530#issuecomment-1836283564) is fixed
+                        // fill={theme.iconReversed}
                         width={props.containerSize}
                         height={props.containerSize}
                     />

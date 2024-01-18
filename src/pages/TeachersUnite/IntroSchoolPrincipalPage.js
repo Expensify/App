@@ -11,9 +11,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
@@ -36,6 +38,7 @@ const defaultProps = {
 function IntroSchoolPrincipalPage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
 
     /**
      * @param {Object} values
@@ -44,7 +47,8 @@ function IntroSchoolPrincipalPage(props) {
      * @param {String} values.lastName
      */
     const onSubmit = (values) => {
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim());
+        const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
 
     /**
@@ -75,6 +79,9 @@ function IntroSchoolPrincipalPage(props) {
             }
             if (!_.isEmpty(values.partnerUserID) && !Str.isValidEmail(values.partnerUserID)) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
+            }
+            if (!_.isEmpty(values.partnerUserID) && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
             }
 
             return errors;

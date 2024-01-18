@@ -11,6 +11,8 @@ export default function createRandomPolicy(index: number): Policy {
         autoReporting: randBoolean(),
         isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES)),
+        isHarvestingEnabled: randBoolean(),
+        submitsTo: index,
         outputCurrency: randCurrencyCode(),
         role: rand(Object.values(CONST.POLICY.ROLE)),
         owner: randEmail(),

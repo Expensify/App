@@ -1,11 +1,14 @@
-import React, {ForwardedRef} from 'react';
-import {PressableStateCallbackType, View} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React from 'react';
+import type {PressableStateCallbackType} from 'react-native';
+import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
@@ -64,6 +67,7 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
                     event.preventDefault();
                 }}
                 accessibilityLabel={tooltipText}
+                role={CONST.ROLE.BUTTON}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete)),

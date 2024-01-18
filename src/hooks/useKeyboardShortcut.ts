@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
-import {GestureResponderEvent} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {GestureResponderEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
@@ -26,7 +26,7 @@ type KeyboardShortcutConfig = {
  * Register a keyboard shortcut handler.
  * Recommendation: To ensure stability, wrap the `callback` function with the useCallback hook before using it with this hook.
  */
-export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: GestureResponderEvent | KeyboardEvent) => void, config: KeyboardShortcutConfig | Record<string, never> = {}) {
+export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: GestureResponderEvent | KeyboardEvent) => void, config: KeyboardShortcutConfig = {}) {
     const {
         captureOnInputs = true,
         shouldBubble = false,

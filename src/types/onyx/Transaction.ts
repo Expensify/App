@@ -1,7 +1,7 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
-import RecentWaypoint from './RecentWaypoint';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
+import type RecentWaypoint from './RecentWaypoint';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
