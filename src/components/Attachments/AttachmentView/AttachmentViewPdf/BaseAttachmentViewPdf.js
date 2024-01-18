@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useContext, useEffect} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
@@ -16,6 +16,7 @@ function BaseAttachmentViewPdf({
     style,
 }) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const [scale, setScale] = useState();
 
     useEffect(() => {
         if (!attachmentCarouselPagerContext) {
@@ -26,12 +27,13 @@ function BaseAttachmentViewPdf({
     }, []);
 
     const onScaleChanged = useCallback(
-        (scale) => {
-            onScaleChangedProp(scale);
+        (newScale) => {
+            onScaleChangedProp(newScale);
+            setScale(newScale);
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
             if (isUsedInCarousel && attachmentCarouselPagerContext) {
-                const isPdfZooming = scale === 1;
+                const isPdfZooming = newScale === 1;
 
                 attachmentCarouselPagerContext.onScaleChanged(1);
 
@@ -50,11 +52,11 @@ function BaseAttachmentViewPdf({
             if (onPressProp !== undefined) {
                 onPressProp(e);
             }
-            if (attachmentCarouselPagerContext !== null && attachmentCarouselPagerContext.onTap !== null) {
+            if (attachmentCarouselPagerContext !== null && attachmentCarouselPagerContext.onTap !== null && scale === 1) {
                 attachmentCarouselPagerContext.onTap(e);
             }
         },
-        [attachmentCarouselPagerContext, onPressProp],
+        [attachmentCarouselPagerContext, onPressProp, scale],
     );
 
     return (
