@@ -79,6 +79,13 @@ function IOURequestStepParticipants({
                 newIouType.current = CONST.IOU.TYPE.REQUEST;
             }
 
+            // If the Onyx participants has the same items as the selected participants (val), Onyx won't update it
+            // thus this component won't rerender, so we can immediately update the route params.
+            if (newIouType.current && _.isEqual(participants, val)) {
+                updateRouteParams();
+                newIouType.current = null;
+            }
+
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
             numberOfParticipants.current = val.length;
 
