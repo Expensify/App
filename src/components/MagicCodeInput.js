@@ -7,6 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import {translatableTextPropTypes} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
@@ -14,7 +15,6 @@ import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 import Text from './Text';
 import TextInput from './TextInput';
-import translatableTextPropTypes from './translatableTextPropTypes';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 

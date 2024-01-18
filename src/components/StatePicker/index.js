@@ -6,9 +6,9 @@ import _ from 'underscore';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
-import translatableTextPropTypes from '@components/translatableTextPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {translatableTextPropTypes} from '@libs/Localize';
 import StateSelectorModal from './StateSelectorModal';
 
 const propTypes = {

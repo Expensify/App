@@ -5,9 +5,9 @@ import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
-import translatableTextPropTypes from '@components/translatableTextPropTypes';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {translatableTextPropTypes} from '@libs/Localize';
 import variables from '@styles/variables';
 import ValueSelectorModal from './ValueSelectorModal';
 

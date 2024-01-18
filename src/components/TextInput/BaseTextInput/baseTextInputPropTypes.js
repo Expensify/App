@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
-import translatableTextPropTypes from '@components/translatableTextPropTypes';
+import {translatableTextPropTypes} from '@libs/Localize';
 
 const propTypes = {
     /** Input label */

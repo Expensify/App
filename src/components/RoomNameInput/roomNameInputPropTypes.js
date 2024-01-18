@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import refPropTypes from '@components/refPropTypes';
-import translatableTextPropTypes from '@components/translatableTextPropTypes';
+import {translatableTextPropTypes} from '@libs/Localize';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */

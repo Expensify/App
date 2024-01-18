@@ -3,12 +3,12 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import refPropTypes from './refPropTypes';
-import translatableTextPropTypes from './translatableTextPropTypes';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
