@@ -20,9 +20,9 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 import type UserOnyx from '@src/types/onyx/User';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PolicyRoute} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-import type { PolicyRoute } from './withPolicy';
 
 type WorkspacePageWithSectionsOnyxProps = {
     /** From Onyx */
@@ -33,10 +33,9 @@ type WorkspacePageWithSectionsOnyxProps = {
     user: OnyxEntry<UserOnyx>;
 };
 
-
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     WorkspacePageWithSectionsOnyxProps & {
-        shouldSkipVBBACall: boolean;
+        shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
         headerText: string;
@@ -48,19 +47,19 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
 
         /** Content to be added as fixed footer */
-        footer: ReactNode;
+        footer?: ReactNode;
 
         /** The guides call task ID to associate with the workspace page being shown */
         guidesCallTaskID: string;
 
         /** The route where we navigate when the user press the back button */
-        backButtonRoute: Route;
+        backButtonRoute?: Route;
 
         /** Option to use the default scroll view  */
-        shouldUseScrollView: boolean;
+        shouldUseScrollView?: boolean;
 
         /** Option to show the loading page while the API is calling */
-        shouldShowLoading: boolean;
+        shouldShowLoading?: boolean;
 
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
@@ -134,7 +133,7 @@ function WorkspacePageWithSections({
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
