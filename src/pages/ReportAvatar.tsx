@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -13,8 +12,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report} from '@src/types/onyx';
 
-type ReportRoute = RouteProp<{params: {reportID: string}}>;
-
 type ReportAvatarOnyxProps = {
     report: OnyxEntry<Report>;
     isLoadingApp: OnyxEntry<boolean>;
@@ -22,10 +19,6 @@ type ReportAvatarOnyxProps = {
 };
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
-
-function getReportIDFromRoute(route: ReportRoute) {
-    return route.params.reportID ?? '';
-}
 
 function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
@@ -54,7 +47,7 @@ ReportAvatar.displayName = 'ReportAvatar';
 
 export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportIDFromRoute(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? ''}`,
     },
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,

@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +12,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<{params: {policyID: string}}>;
 
 type WorkspaceAvatarOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -21,10 +19,6 @@ type WorkspaceAvatarOnyxProps = {
 };
 
 type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
-
-function getPolicyIDFromRoute(route: PolicyRoute) {
-    return route.params.policyID ?? '';
-}
 
 function WorkspaceAvatar({route, policy, isLoadingApp = true}: WorkspaceAvatarProps) {
     const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
@@ -36,7 +30,7 @@ function WorkspaceAvatar({route, policy, isLoadingApp = true}: WorkspaceAvatarPr
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={() => {
-                Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(getPolicyIDFromRoute(route)));
+                Navigation.goBack(ROUTES.WORKSPACE_SETTINGS.getRoute(route.params.policyID ?? ''));
             }}
             isWorkspaceAvatar
             originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
@@ -50,7 +44,7 @@ WorkspaceAvatar.displayName = 'WorkspaceAvatar';
 
 export default withOnyx<WorkspaceAvatarProps, WorkspaceAvatarOnyxProps>({
     policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(route)}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
     },
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,
