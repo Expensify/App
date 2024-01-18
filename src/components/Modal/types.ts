@@ -59,6 +59,9 @@ type BaseModalProps = Partial<ModalProps> & {
      * See: https://github.com/react-native-modal/react-native-modal/pull/116
      * */
     hideModalContentWhileAnimating?: boolean;
+
+    /** Whether the modal is popover or not */
+    isPopover?: boolean;
 };
 
 export default BaseModalProps;

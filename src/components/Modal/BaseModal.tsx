@@ -38,6 +38,7 @@ function BaseModal(
         onLayout,
         avoidKeyboard = false,
         children,
+        isPopover = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -57,7 +58,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            Modal.willAlertModalBecomeVisible(false);
+            Modal.willAlertModalBecomeVisible(false, isPopover);
             if (shouldSetModalVisibility) {
                 Modal.setModalVisibility(false);
             }
@@ -69,14 +70,14 @@ function BaseModal(
                 ComposerFocusManager.setReadyToFocus();
             }
         },
-        [shouldSetModalVisibility, onModalHide, fullscreen],
+        [shouldSetModalVisibility, onModalHide, fullscreen, isPopover],
     );
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
-            Modal.willAlertModalBecomeVisible(true);
+            Modal.willAlertModalBecomeVisible(true, isPopover);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             removeOnCloseListener = Modal.setCloseModal(onClose);
         }
@@ -87,7 +88,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose]);
+    }, [isVisible, wasVisible, onClose, isPopover]);
 
     useEffect(
         () => () => {

@@ -54,8 +54,8 @@ function setModalVisibility(isVisible: boolean) {
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
  */
-function willAlertModalBecomeVisible(isVisible: boolean) {
-    Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible});
+function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
+    Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 
 export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible};

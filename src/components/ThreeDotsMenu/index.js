@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
 const propTypes = {
@@ -57,6 +59,13 @@ const propTypes = {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
+
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        isVisible: PropTypes.bool,
+        willAlertModalBecomeVisible: PropTypes.bool,
+        isPopover: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -72,14 +81,16 @@ const defaultProps = {
     },
     shouldOverlay: false,
     shouldSetModalVisibility: true,
+    modal: {},
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled, modal}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
+    const isBehindModal = modal.willAlertModalBecomeVisible && !modal.isPopover && !shouldOverlay;
 
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -88,6 +99,13 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
     const hidePopoverMenu = () => {
         setPopupMenuVisible(false);
     };
+
+    useEffect(() => {
+        if (!isBehindModal || !isPopupMenuVisible) {
+            return;
+        }
+        hidePopoverMenu();
+    }, [isBehindModal, isPopupMenuVisible]);
 
     return (
         <>
@@ -126,7 +144,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                isVisible={isPopupMenuVisible}
+                isVisible={isPopupMenuVisible && !isBehindModal}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
@@ -143,6 +161,10 @@ ThreeDotsMenu.propTypes = propTypes;
 ThreeDotsMenu.defaultProps = defaultProps;
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
-export default ThreeDotsMenu;
+export default withOnyx({
+    modal: {
+        key: ONYXKEYS.MODAL,
+    },
+})(ThreeDotsMenu);
 
 export {ThreeDotsMenuItemPropTypes};
