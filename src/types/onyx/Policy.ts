@@ -5,18 +5,25 @@ import type * as OnyxCommon from './OnyxCommon';
 type Unit = 'mi' | 'km';
 
 type Rate = {
-    name: string;
-    rate: number;
-    currency: string;
+    name?: string;
+    rate?: number;
+    currency?: string;
+    customUnitRateID?: string;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: string;
+};
+
+type Attributes = {
+    unit: Unit;
 };
 
 type CustomUnit = {
-    customUnitID?: string;
-    name?: string;
-    attributes: {
-        unit: Unit;
-    };
-    rates?: Record<string, Rate>;
+    name: string;
+    customUnitID: string;
+    attributes: Attributes;
+    rates: Record<string, Rate>;
+    pendingAction?: string;
+    errors?: OnyxCommon.Errors;
 };
 
 type Policy = {
@@ -62,6 +69,9 @@ type Policy = {
     /** The custom units data for this policy */
     customUnits?: Record<string, CustomUnit>;
 
+    /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
+    areChatRoomsEnabled: boolean;
+
     /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     isPolicyExpenseChatEnabled: boolean;
 
@@ -79,8 +89,23 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** Whether to leave the calling account as an admin on the policy */
+    makeMeAdmin?: boolean;
+
+    /** Pending fields for the policy */
+    pendingFields?: Record<string, unknown>;
+
+    /** Original file name which is used for the policy avatar */
+    originalFileName?: string;
+
+    /** Alert message for the policy */
+    alertMessage?: string;
+
+    /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
+    primaryLoginsInvited?: Record<string, string>;
 };
 
 export default Policy;
 
-export type {Unit};
+export type {Unit, CustomUnit};

@@ -71,6 +71,12 @@ Onyx.connect({
     },
 });
 
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
+});
+
 /**
  * Get the day of the week that the week starts on
  */
@@ -357,6 +363,16 @@ function getMicroseconds(): number {
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(): string {
+    if (networkTimeSkew > 0) {
+        return getDBTime(new Date().valueOf() + networkTimeSkew);
+    }
+    return getDBTime();
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -728,6 +744,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
