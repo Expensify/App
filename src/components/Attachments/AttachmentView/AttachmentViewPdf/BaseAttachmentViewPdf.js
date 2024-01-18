@@ -52,7 +52,7 @@ function BaseAttachmentViewPdf({
             if (onPressProp !== undefined) {
                 onPressProp(e);
             }
-            if (attachmentCarouselPagerContext !== null && attachmentCarouselPagerContext.onTap !== null && scale === 1) {
+            if (attachmentCarouselPagerContext !== undefined && attachmentCarouselPagerContext.onTap !== undefined && scale === 1) {
                 attachmentCarouselPagerContext.onTap(e);
             }
         },
