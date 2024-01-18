@@ -18,10 +18,11 @@ import type {AccountData as FundAccountData} from '@src/types/onyx/Fund';
 import PaymentMethodList from './PaymentMethodList';
 
 type ChooseTransferAccountPageOnyxProps = {
+    /** Wallet transfer propTypes */
     walletTransfer: OnyxEntry<WalletTransfer>;
 };
 
-type ChooseTransferAccountPageProps = ChooseTransferAccountPageOnyxProps & {};
+type ChooseTransferAccountPageProps = ChooseTransferAccountPageOnyxProps;
 
 function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountPageProps) {
     const styles = useThemeStyles();
@@ -37,9 +38,6 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
-    /**
-     * @param {String} paymentType
-     */
     const navigateToAddPaymentMethodPage = () => {
         if (walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
