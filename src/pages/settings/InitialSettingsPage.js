@@ -177,8 +177,6 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                     },
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
                     link: Link.buildOldDotURL(CONST.OLDDOT_URLS.INBOX),
                 },
                 {
@@ -307,8 +305,6 @@ function InitialSettingsPage(props) {
                                     source={UserUtils.getAvatar(avatarURL, accountID)}
                                     onImageSelected={PersonalDetails.updateAvatar}
                                     onImageRemoved={PersonalDetails.deleteAvatar}
-                                    anchorPosition={styles.createAccountMenuPositionProfile(props.windowWidth)}
-                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                     size={CONST.AVATAR_SIZE.XLARGE}
                                     avatarStyle={styles.avatarXLarge}
                                     pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}

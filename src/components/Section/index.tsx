@@ -57,7 +57,7 @@ type SectionProps = ChildrenProps & {
     isCentralPane?: boolean;
 
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation;
+    illustration?: DotLottieAnimation;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
@@ -88,20 +88,23 @@ function Section({
     const theme = useTheme();
     const {isSmallScreenWidth} = useWindowDimensions();
 
+    const illustrationContainerStyle: StyleProp<ViewStyle> = {backgroundColor: illustrationBackgroundColor ?? theme.appBG};
+
     return (
         <>
-            <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, illustration && styles.cardSectionIllustrationContainer]}>
+            <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, illustration && styles.p0]}>
                 {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                     <IconSection
                         icon={icon}
                         iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                     />
                 )}
-                {illustration && (
-                    <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, {backgroundColor: illustrationBackgroundColor ?? theme.appBG}]}>
+                {!!illustration && (
+                    <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
                         <View style={[styles.cardSectionIllustration, illustrationStyle]}>
                             <Lottie
                                 source={illustration}
+                                style={styles.h100}
                                 autoPlay
                                 loop
                             />

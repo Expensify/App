@@ -12,7 +12,7 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 }
 
 const ROUTES = {
-    HOME: '',
+    HOME: 'home',
 
     ALL_SETTINGS: 'all-settings',
 

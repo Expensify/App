@@ -165,7 +165,7 @@ function WorkspaceInitialPage(props) {
             testID={WorkspaceInitialPage.displayName}
             includePaddingTop={false}
             includeSafeAreaPaddingBottom={false}
-            shouldDisableSafeAreaPaddingBottom
+            style={[styles.pb0]}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}

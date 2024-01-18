@@ -692,8 +692,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         loadingVBAAnimation: {
-            width: 140,
-            height: 140,
+            width: '100%',
+        },
+
+        loadingVBAAnimationWeb: {
+            width: '100%',
         },
 
         pickerSmall: (backgroundColor = theme.highlightBG) =>
@@ -1467,12 +1470,6 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionProfile: (windowWidth: number) =>
-            ({
-                horizontal: windowWidth - 355,
-                ...getPopOverVerticalOffset(162),
-            } satisfies AnchorPosition),
-
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
@@ -1661,6 +1658,11 @@ const styles = (theme: ThemeColors) =>
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
+        },
+
+        emptyWorkspaceIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
         },
 
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
@@ -3311,10 +3313,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             marginBottom: 20,
             marginHorizontal: 16,
-        },
-
-        cardSectionIllustrationContainer: {
-            padding: 0,
         },
 
         cardSectionIllustration: {

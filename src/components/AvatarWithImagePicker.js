@@ -6,6 +6,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
@@ -45,16 +46,8 @@ const propTypes = {
     /** Whether we are using the default avatar */
     isUsingDefaultAvatar: PropTypes.bool,
 
-    /** The anchor position of the menu */
-    anchorPosition: PropTypes.shape({
-        top: PropTypes.number,
-        right: PropTypes.number,
-        bottom: PropTypes.number,
-        left: PropTypes.number,
-    }).isRequired,
-
     /** Size of Indicator */
-    size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
+    size: PropTypes.oneOf([CONST.AVATAR_SIZE.XLARGE, CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: sourcePropTypes,
@@ -90,12 +83,6 @@ const propTypes = {
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
 
-    /** Where the popover should be positioned relative to the anchor points. */
-    anchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
-
     /** Style applied to the avatar */
     avatarStyle: stylePropTypes.isRequired,
 };
@@ -118,10 +105,6 @@ const defaultProps = {
     headerTitle: '',
     previewSource: '',
     originalFileName: '',
-    anchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
 };
 
 function AvatarWithImagePicker({
@@ -141,14 +124,14 @@ function AvatarWithImagePicker({
     originalFileName,
     isUsingDefaultAvatar,
     onImageRemoved,
-    anchorPosition,
-    anchorAlignment,
     onImageSelected,
     editorMaskImage,
     avatarStyle,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
+    const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
         validationError: null,
@@ -290,6 +273,24 @@ function AvatarWithImagePicker({
         return menuItems;
     };
 
+    useEffect(() => {
+        if (!anchorRef.current) {
+            return;
+        }
+
+        if (!isMenuVisible) {
+            return;
+        }
+
+        anchorRef.current.measureInWindow((x, y, width, height) => {
+            setPopoverPosition({
+                horizontal: x + (width - variables.photoUploadPopoverWidth) / 2,
+                vertical: y + height + variables.spacing2,
+            });
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isMenuVisible, windowWidth]);
+
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
             <View style={[styles.pRelative, avatarStyle]}>
@@ -368,10 +369,10 @@ function AvatarWithImagePicker({
                                             }
                                         }}
                                         menuItems={menuItems}
-                                        anchorPosition={anchorPosition}
+                                        anchorPosition={popoverPosition}
+                                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                         withoutOverlay
                                         anchorRef={anchorRef}
-                                        anchorAlignment={anchorAlignment}
                                     />
                                 );
                             }}

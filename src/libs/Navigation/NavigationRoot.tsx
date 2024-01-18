@@ -6,13 +6,23 @@ import useFlipper from '@hooks/useFlipper';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
+import {getPathFromURL} from '@libs/Url';
+import {updateLastVisitedPath} from '@userActions/App';
+import type {Route} from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
+import getStateFromPath from './getStateFromPath';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
     authenticated: boolean;
+
+    /** Stores path of last visited page */
+    lastVisitedPath: Route;
+
+    /** Initial url */
+    initialUrl: string | null;
 
     /** Fired when react-navigation is ready */
     onReady: () => void;
@@ -27,6 +37,7 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     const currentPath = getPathFromState(state, linkingConfig.config);
+    updateLastVisitedPath(currentPath);
 
     // Don't log the route transitions from OldDot because they contain authTokens
     if (currentPath.includes('/transition')) {
@@ -38,13 +49,32 @@ function parseAndLogRoute(state: NavigationState) {
     Navigation.setIsNavigationReady();
 }
 
-function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
+function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     useFlipper(navigationRef);
     const firstRenderRef = useRef(true);
     const theme = useTheme();
 
     const currentReportIDValue = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const initialState = useMemo(
+        () => {
+            if (!lastVisitedPath) {
+                return undefined;
+            }
+
+            const path = initialUrl ? getPathFromURL(initialUrl) : null;
+
+            // For non-nullable paths we don't want to set initial state
+            if (path) {
+                return;
+            }
+
+            return getStateFromPath(lastVisitedPath);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(
@@ -86,6 +116,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
 
     return (
         <NavigationContainer
+            initialState={initialState}
             onStateChange={handleStateChange}
             onReady={onReady}
             theme={navigationTheme}

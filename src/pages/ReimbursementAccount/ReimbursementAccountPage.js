@@ -350,7 +350,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
-        const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -361,7 +360,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     BankAccounts.setBankAccountSubStep(null);
                     BankAccounts.setPlaidEvent(null);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
@@ -388,12 +387,12 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 } else if (!isOffline && achData.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
             default:
-                Navigation.goBack(backTo);
+                Navigation.goBack();
         }
     };
 
@@ -462,7 +461,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 continue={continueFunction}
                 policyName={policyName}
                 onBackButtonPress={() => {
-                    Navigation.goBack(lodashGet(route.params, 'backTo', ROUTES.HOME));
+                    Navigation.goBack();
                 }}
             />
         );
