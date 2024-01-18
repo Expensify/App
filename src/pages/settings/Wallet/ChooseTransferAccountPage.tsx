@@ -1,6 +1,8 @@
 import React from 'react';
-import {GestureResponderEvent, View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
