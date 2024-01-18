@@ -20,7 +20,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {Participant} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -28,6 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentType} from '@src/types/onyx/OriginalMessage';
 import type {MileageRate} from '@src/types/onyx/Policy';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -552,7 +552,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_, value) => confirm(value)}
+                onPress={(_, value) => confirm(value as PaymentType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />

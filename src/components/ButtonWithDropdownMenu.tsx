@@ -19,7 +19,7 @@ import PopoverMenu from './PopoverMenu';
 type DropdownOption = {
     value: string;
     text: string;
-    icon: IconAsset;
+    icon?: IconAsset;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
@@ -55,7 +55,7 @@ type ButtonWithDropdownMenuProps = {
     anchorAlignment?: AnchorAlignment;
 
     /* ref for the button */
-    buttonRef: RefObject<View>;
+    buttonRef?: RefObject<View>;
 };
 
 function ButtonWithDropdownMenu({

@@ -19,7 +19,7 @@ type Attributes = {
 
 type MileageRate = {
     unit: Unit;
-    rate: number;
+    rate?: number;
     currency: string;
 };
 
