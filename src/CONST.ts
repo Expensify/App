@@ -603,11 +603,9 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
-        CANCEL_PAYMENT_REASONS: {
-            ADMIN: 'CANCEL_REASON_ADMIN',
-        },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            NOTHING: 'nothing',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -639,18 +637,13 @@ const CONST = {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
-        STATE: {
-            OPEN: 'OPEN',
-            SUBMITTED: 'SUBMITTED',
-            PROCESSING: 'PROCESSING',
-        },
         STATE_NUM: {
             OPEN: 0,
-            PROCESSING: 1,
-            SUBMITTED: 2,
+            SUBMITTED: 1,
+            APPROVED: 2,
             BILLING: 3,
         },
-        STATUS: {
+        STATUS_NUM: {
             OPEN: 0,
             SUBMITTED: 1,
             CLOSED: 2,
@@ -1449,6 +1442,8 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
 
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+
+        REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
     },
 
     PRONOUNS: {
@@ -3124,6 +3119,8 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 } as const;
 
 export default CONST;

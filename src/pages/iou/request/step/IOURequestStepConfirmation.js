@@ -212,7 +212,6 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
                 IOU.startSplitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
@@ -221,7 +220,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     receiptFile,
-                    existingSplitChatReportID,
+                    report.reportID,
                 );
                 return;
             }
@@ -272,7 +271,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**
