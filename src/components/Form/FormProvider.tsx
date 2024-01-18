@@ -278,7 +278,7 @@ function FormProvider(
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
-                        const relatedTarget = 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;
+                        const relatedTarget = event && 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;
                         const relatedTargetId = relatedTarget && 'id' in relatedTarget && typeof relatedTarget.id === 'string' && relatedTarget.id;
                         // We delay the validation in order to prevent Checkbox loss of focus when
                         // the user is focusing a TextInput and proceeds to toggle a CheckBox in
