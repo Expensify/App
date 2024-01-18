@@ -1,5 +1,5 @@
+import type {BottomTabName, CentralPaneName} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
-import type {BottomTabName, CentralPaneName} from './types';
 
 const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {
     [SCREENS.HOME]: [SCREENS.REPORT],

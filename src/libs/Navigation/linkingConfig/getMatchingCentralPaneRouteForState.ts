@@ -1,8 +1,8 @@
+import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import type {CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';
-import type {CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from './types';
 
 /**
  * @param state - react-navigation state
