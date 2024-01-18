@@ -139,7 +139,7 @@ const propTypes = {
     nestedScrollEnabled: PropTypes.bool,
 
     /** Left icon to display in TextInput */
-    textIconLeft: PropTypes.elementType, 
+    textIconLeft: PropTypes.elementType,
 };
 
 const defaultProps = {

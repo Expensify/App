@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
-import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import React, {useMemo} from 'react';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import {getPolicy, getDefaultWorkspaceAvatar} from "@libs/ReportUtils"
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import {getDefaultWorkspaceAvatar, getPolicy} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import SubscriptAvatar from './SubscriptAvatar';
@@ -13,11 +13,9 @@ function WorkspaceSwitcherButton() {
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-
     const {source, name, type} = useMemo(() => {
-
-        if(!activeWorkspaceID) {
-            return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}
+        if (!activeWorkspaceID) {
+            return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
         const policy = getPolicy(activeWorkspaceID);
@@ -26,9 +24,8 @@ function WorkspaceSwitcherButton() {
             source: avatar,
             name: policy?.name,
             type: CONST.ICON_TYPE_WORKSPACE,
-        }
+        };
     }, [activeWorkspaceID]);
-
 
     return (
         <PressableWithFeedback

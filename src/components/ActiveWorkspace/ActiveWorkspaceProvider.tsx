@@ -8,8 +8,9 @@ function ActiveWorkspaceContextProvider({children}: React.PropsWithChildren) {
         () => ({
             activeWorkspaceID,
             setActiveWorkspaceID,
-        }), [activeWorkspaceID]
-    )
+        }),
+        [activeWorkspaceID],
+    );
 
     return <ActiveWorkspaceContext.Provider value={value}>{children}</ActiveWorkspaceContext.Provider>;
 }
