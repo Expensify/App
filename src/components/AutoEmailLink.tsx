@@ -1,18 +1,13 @@
 import {CONST} from 'expensify-common/lib/CONST';
-import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
+import type {StyleProp, TextStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
 import TextLink from './TextLink';
 
-const propTypes = {
-    text: PropTypes.string.isRequired,
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-};
-
-const defaultProps = {
-    style: [],
+type AutoEmailLinkProps = {
+    text: string;
+    style?: StyleProp<TextStyle>;
 };
 
 /*
@@ -21,14 +16,15 @@ const defaultProps = {
  *     - Else just render it inside `Text` component
  */
 
-function AutoEmailLink(props) {
+function AutoEmailLink({text, style}: AutoEmailLinkProps) {
     const styles = useThemeStyles();
     return (
-        <Text style={props.style}>
-            {_.map(props.text.split(CONST.REG_EXP.EXTRACT_EMAIL), (str, index) => {
+        <Text style={style}>
+            {text.split(CONST.REG_EXP.EXTRACT_EMAIL).map((str, index) => {
                 if (CONST.REG_EXP.EMAIL.test(str)) {
                     return (
                         <TextLink
+                            // eslint-disable-next-line react/no-array-index-key
                             key={`${index}-${str}`}
                             href={`mailto:${str}`}
                             style={styles.link}
@@ -40,7 +36,8 @@ function AutoEmailLink(props) {
 
                 return (
                     <Text
-                        style={props.style}
+                        style={style}
+                        // eslint-disable-next-line react/no-array-index-key
                         key={`${index}-${str}`}
                     >
                         {str}
@@ -52,6 +49,5 @@ function AutoEmailLink(props) {
 }
 
 AutoEmailLink.displayName = 'AutoEmailLink';
-AutoEmailLink.propTypes = propTypes;
-AutoEmailLink.defaultProps = defaultProps;
+
 export default AutoEmailLink;
