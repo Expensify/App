@@ -2,10 +2,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import type {OnyxCollection} from 'react-native-onyx';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,23 +24,22 @@ import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type { PersonalDetails, Report } from '@src/types/onyx';
-import type { Note } from '@src/types/onyx/Report';
+import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageOnyxProps = {
     /* Onyx Props */
 
     /** All of the personal details for everyone */
-    personalDetailsList: OnyxCollection<PersonalDetails>,
-}
+    personalDetailsList: OnyxCollection<PersonalDetails>;
+};
 
 type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps & {
-
     /** The report currently being looked at */
-    report: Report,
+    report: Report;
 
     route: RouteProp<{params: {reportID: string; accountID: string}}>;
-}
+};
 
 function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotesEditPageProps) {
     const styles = useThemeStyles();
@@ -97,7 +96,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if(!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
+        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
             ReportUtils.navigateToDetailsPage(report);
         } else {
             Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
@@ -132,7 +131,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                 </Text>
                 <OfflineWithFeedback
                     errors={{
-                        ...report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? '',
+                        ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
                     }}
                     onClose={() => ReportActions.clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}
@@ -175,5 +174,5 @@ export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-    })(PrivateNotesEditPage)
+    })(PrivateNotesEditPage),
 );

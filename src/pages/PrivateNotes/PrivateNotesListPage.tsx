@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,23 +15,22 @@ import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type { PersonalDetails, Report, Session } from '@src/types/onyx';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import type {PersonalDetails, Report, Session} from '@src/types/onyx';
 
 type PrivateNotesListPageOnyxProps = {
     /* Onyx Props */
 
     /** All of the personal details for everyone */
-    personalDetailsList: OnyxCollection<PersonalDetails>,
+    personalDetailsList: OnyxCollection<PersonalDetails>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
-}
+};
 
 type PrivateNotesListPageProps = PrivateNotesListPageOnyxProps & {
     /** The report currently being looked at */
     report: Report;
-}
+};
 
 function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
     const styles = useThemeStyles();
@@ -42,13 +42,13 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
             if (Object.values(report.privateNotes ?? {}).some((item) => item.note) || !isFocused) {
                 return;
             }
-            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session?.accountID ?? ''));
         }, CONST.ANIMATED_TRANSITION);
 
         return () => {
             clearTimeout(navigateToEditPageTimeout);
         };
-    }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
+    }, [report.privateNotes, report.reportID, session?.accountID, isFocused]);
 
     /**
      * Gets the menu item for each workspace
@@ -82,18 +82,17 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
      * Returns a list of private notes on the given chat report
      */
     const privateNotes = useMemo(() => {
-        const privateNoteBrickRoadIndicator = (accountID: number) => report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        return Object.keys(report.privateNotes ?? {})
-            .map((accountID: string) => {
-                const privateNote = report.privateNotes?.[Number(accountID)];
-                return {
-                    title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
-                    action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
-                    brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),
-                    note: privateNote?.note ?? '',
-                    disabled: Number(session?.accountID) !== Number(accountID),
-                }
-            })
+        const privateNoteBrickRoadIndicator = (accountID: number) => (report.privateNotes?.[accountID].errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '');
+        return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
+            const privateNote = report.privateNotes?.[Number(accountID)];
+            return {
+                title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
+                brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),
+                note: privateNote?.note ?? '',
+                disabled: Number(session?.accountID) !== Number(accountID),
+            };
+        });
     }, [report, personalDetailsList, session, translate]);
 
     return (
@@ -122,5 +121,5 @@ export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
         session: {
             key: ONYXKEYS.SESSION,
         },
-    })(PrivateNotesListPage)
+    })(PrivateNotesListPage),
 );
