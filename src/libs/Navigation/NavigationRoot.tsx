@@ -10,11 +10,11 @@ import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
-import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import AppNavigator from './AppNavigator';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import linkingConfig from './linkingConfig';
 import customGetPathFromState from './linkingConfig/customGetPathFromState';
+import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
 
 type NavigationRootProps = {
