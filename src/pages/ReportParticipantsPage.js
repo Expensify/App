@@ -99,6 +99,7 @@ function ReportParticipantsPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
                         title={props.translate(
                             ReportUtils.isChatRoom(props.report) ||
                                 ReportUtils.isPolicyExpenseChat(props.report) ||
@@ -121,12 +122,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(
-                                        ROUTES.PROFILE.getRoute(
-                                            option.accountID, 
-                                            ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID)
-                                        )
-                                    );
+                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID)));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
