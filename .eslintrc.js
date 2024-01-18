@@ -1,18 +1,24 @@
 const restrictedImportPaths = [
     {
         name: 'react-native',
-        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable'],
+        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text'],
         message: [
             '',
             "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
             "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
             "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
+            "For 'Text', please use '@components/Text' instead.",
         ].join('\n'),
     },
     {
         name: 'react-native-gesture-handler',
         importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
+    },
+    {
+        name: 'awesome-phonenumber',
+        importNames: ['parsePhoneNumber'],
+        message: "Please use '@libs/PhoneNumber' instead.",
     },
     {
         name: 'react-native-safe-area-context',

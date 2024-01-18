@@ -131,7 +131,7 @@ function IOURequestStepConfirmation({
     }, [transaction, iouType, requestType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
     }, [iouType, transactionID, reportID]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -217,7 +217,6 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
                 IOU.startSplitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
@@ -226,7 +225,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     receiptFile,
-                    existingSplitChatReportID,
+                    report.reportID,
                 );
                 return;
             }
@@ -277,7 +276,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**

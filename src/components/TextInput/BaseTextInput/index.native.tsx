@@ -37,6 +37,7 @@ function BaseTextInput(
         errorText = '',
         icon = null,
         textInputContainerStyles,
+        touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
         forceActiveLabel = false,
@@ -262,7 +263,7 @@ function BaseTextInput(
     return (
         <>
             <View
-                style={styles.pointerEventsNone}
+                style={[styles.pointerEventsNone, containerStyles]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
@@ -273,7 +274,7 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
-                        containerStyles,
+                        touchableInputWrapperStyle,
                     ]}
                 >
                     <View
