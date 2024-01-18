@@ -58,6 +58,8 @@ describe('libs/NextStepUtils', () => {
             report.managerID = currentUserAccountID;
             optimisticNextStep.title = '';
             optimisticNextStep.message = [];
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {

@@ -151,13 +151,6 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                 });
             }
 
-            // Self review and auto approval enabled
-            if (isOwner && policy.isAutoApprovalEnabled) {
-                optimisticNextStep.message?.push({
-                    text: ' This report may be selected at random for manual approval.',
-                });
-            }
-
             // Prevented self submitting
             if (isPreventSelfApprovalEnabled && isSelfApproval) {
                 optimisticNextStep.message = [
@@ -179,6 +172,13 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
                     },
                 ];
+            }
+
+            // Self review and auto approval enabled
+            if (isOwner && policy.isAutoApprovalEnabled) {
+                optimisticNextStep.message?.push({
+                    text: ' This report may be selected at random for manual approval.',
+                });
             }
 
             break;
