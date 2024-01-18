@@ -55,6 +55,7 @@ describe('libs/NextStepUtils', () => {
 
         beforeEach(() => {
             report.ownerAccountID = currentUserAccountID;
+            report.managerID = currentUserAccountID;
             optimisticNextStep.title = '';
             optimisticNextStep.message = [];
         });
@@ -353,7 +354,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'approve',
+                        text: 'review',
                         type: 'strong',
                     },
                     {
@@ -367,6 +368,7 @@ describe('libs/NextStepUtils', () => {
             });
 
             test('another reviewer', () => {
+                report.managerID = strangeAccountID;
                 optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
                     {
@@ -416,7 +418,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'approve',
+                        text: 'review',
                         type: 'strong',
                     },
                     {

@@ -60,8 +60,9 @@ type BuildNextStepParameters = {
  * @returns nextStep
  */
 function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
-    const {isPreventSelfApprovalEnabled = false, ownerAccountID = -1} = report;
+    const {isPreventSelfApprovalEnabled = false, ownerAccountID = -1, managerID} = report;
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
+    const isManager = currentUserAccountID === managerID;
     const isOwner = currentUserAccountID === ownerAccountID;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
     const isSelfApproval = currentUserAccountID === policy.submitsTo;
@@ -183,7 +184,9 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             break;
 
         // Generates an optimistic nextStep once a report has been submitted
-        case CONST.REPORT.STATUS_NUM.SUBMITTED:
+        case CONST.REPORT.STATUS_NUM.SUBMITTED: {
+            const verb = isManager ? 'review' : 'approve';
+
             // Self review & another reviewer
             optimisticNextStep = {
                 type,
@@ -200,7 +203,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: ' to ',
                     },
                     {
-                        text: 'approve',
+                        text: verb,
                         type: 'strong',
                     },
                     {
@@ -227,7 +230,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: ' to ',
                     },
                     {
-                        text: 'approve',
+                        text: verb,
                         type: 'strong',
                     },
                     {
@@ -237,6 +240,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             }
 
             break;
+        }
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
