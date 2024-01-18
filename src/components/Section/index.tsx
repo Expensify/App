@@ -104,6 +104,7 @@ function Section({
                         <View style={[styles.cardSectionIllustration, illustrationStyle]}>
                             <Lottie
                                 source={illustration}
+                                style={styles.h100}
                                 autoPlay
                                 loop
                             />

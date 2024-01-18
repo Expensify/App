@@ -32,7 +32,7 @@ const propTypes = {
 
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
     illustration: PropTypes.shape({
-        file: PropTypes.string.isRequired,
+        file: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         w: PropTypes.number.isRequired,
         h: PropTypes.number.isRequired,
     }),
@@ -83,7 +83,7 @@ function FeatureList({title, subtitle, ctaText, ctaAccessibilityLabel, onCtaPres
                                 iconStyles={styles.mr2}
                                 interactive={false}
                                 displayInDefaultIconColor
-                                wrapperStyle={styles.p0}
+                                wrapperStyle={[styles.p0, styles.cursorAuto]}
                                 containerStyle={[styles.m0, styles.wAuto]}
                             />
                         </View>
