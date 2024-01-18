@@ -1,6 +1,7 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef} from 'react';
+import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -37,7 +38,7 @@ function IOURequestStepParticipants({
     transaction: {participants = []},
 }) {
     const {translate} = useLocalize();
-    const routes = useNavigationState((state) => state.routes);
+    const navigation = useNavigation();
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -55,17 +56,18 @@ function IOURequestStepParticipants({
     }, [receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
     const updateRouteParams = useCallback(() => {
-        IOU.updateMoneyRequestTypeParams(routes, newIouType.current);
-    }, [routes]);
+        IOU.updateMoneyRequestTypeParams(navigation.getState().routes, newIouType.current);
+    }, [navigation]);
 
     useEffect(() => {
-        if (newIouType.current) {
-            // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-            // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
-            updateRouteParams();
-            newIouType.current = null;
+        if (!newIouType.current) {
+            return;
         }
-    }, [participants, routes, updateRouteParams]);
+        // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
+        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
+        updateRouteParams();
+        newIouType.current = null;
+    }, [participants, updateRouteParams]);
 
     const addParticipant = useCallback(
         (val, isSplit) => {
@@ -99,7 +101,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
         },
-        [reportID, transactionID, iouType, routes],
+        [reportID, transactionID, iouType, participants, updateRouteParams],
     );
 
     const goToNextStep = useCallback(

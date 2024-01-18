@@ -1,4 +1,4 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -70,7 +70,7 @@ function IOURequestStartPage({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const routes = useNavigationState((state) => state.routes);
+    const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -114,12 +114,12 @@ function IOURequestStartPage({
                 return;
             }
             if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.updateMoneyRequestTypeParams(routes, CONST.IOU.TYPE.REQUEST);
+                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST);
             }
             IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, routes],
+        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation],
     );
 
     if (!transaction.transactionID) {
@@ -151,10 +151,10 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
                                 onTabSelected={resetIOUTypeIfChanged}
-                                tabBar={({state, navigation, position}) => (
+                                tabBar={({state, navigation: tabNavigation, position}) => (
                                     <TabSelector
                                         state={state}
-                                        navigation={navigation}
+                                        navigation={tabNavigation}
                                         position={position}
                                     />
                                 )}
