@@ -100,48 +100,46 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.letsStart')}
             >
-                <>
-                    <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
-                    <View>
-                        <InputWrapper
-                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
-                            InputComponent={TextInput}
-                            inputID="firstName"
-                            name="firstName"
-                            label={translate('teachersUnitePage.principalFirstName')}
-                            accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            autoCapitalize="words"
-                        />
-                    </View>
-                    <View style={styles.mv4}>
-                        <InputWrapper
-                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
-                            InputComponent={TextInput}
-                            inputID="lastName"
-                            name="lastName"
-                            label={translate('teachersUnitePage.principalLastName')}
-                            accessibilityLabel={translate('teachersUnitePage.principalLastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
-                            autoCapitalize="words"
-                        />
-                    </View>
-                    <View>
-                        <InputWrapper
-                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
-                            InputComponent={TextInput}
-                            inputID="partnerUserID"
-                            name="partnerUserID"
-                            label={translate('teachersUnitePage.principalWorkEmail')}
-                            accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputMode={CONST.INPUT_MODE.EMAIL}
-                            autoCapitalize="none"
-                        />
-                    </View>
-                </>
+                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
+                <View>
+                    <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+                        InputComponent={TextInput}
+                        inputID="firstName"
+                        name="firstName"
+                        label={translate('teachersUnitePage.principalFirstName')}
+                        accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        autoCapitalize="words"
+                    />
+                </View>
+                <View style={styles.mv4}>
+                    <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+                        InputComponent={TextInput}
+                        inputID="lastName"
+                        name="lastName"
+                        label={translate('teachersUnitePage.principalLastName')}
+                        accessibilityLabel={translate('teachersUnitePage.principalLastName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        autoCapitalize="words"
+                    />
+                </View>
+                <View>
+                    <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+                        InputComponent={TextInput}
+                        inputID="partnerUserID"
+                        name="partnerUserID"
+                        label={translate('teachersUnitePage.principalWorkEmail')}
+                        accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
+                        autoCapitalize="none"
+                    />
+                </View>
             </FormProvider>
         </ScreenWrapper>
     );
