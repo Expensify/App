@@ -388,33 +388,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         [hasCachedActions],
     );
 
-    useEffect(() => {
-        // Temporary solution for handling REPORTPREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
-        // This code should be removed once REPORTPREVIEW is no longer repositioned.
-        // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
-
-        const shouldOpenReport =
-            !hasCreatedAction &&
-            props.isReadyForCommentLinking &&
-            reportActions.length < 24 &&
-            !props.isLoadingInitialReportAction &&
-            !props.isLoadingOlderReportActions &&
-            !props.isLoadingNewerReportActions;
-
-        if (shouldOpenReport) {
-            Report.openReport(reportID, reportActionID);
-        }
-    }, [
-        hasCreatedAction,
-        reportID,
-        reportActions,
-        reportActionID,
-        props.isReadyForCommentLinking,
-        props.isLoadingOlderReportActions,
-        props.isLoadingNewerReportActions,
-        props.isLoadingInitialReportAction,
-    ]);
-
     // Comments have not loaded at all yet do nothing
     if (!_.size(reportActions)) {
         return null;
