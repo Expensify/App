@@ -6,7 +6,7 @@ import SCREENS from '@src/SCREENS';
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
     const path = getPathFromState(state, options);
-    const policyIDFromState = getPolicyIdFromState(state);
+    const policyIDFromState = getPolicyIdFromState(state as State<RootStackParamList>);
     const isWorkspaceSettingsOpened = getTopmostBottomTabRoute(state as State<RootStackParamList>)?.name === SCREENS.WORKSPACE.INITIAL && path.includes('workspace');
     return `${policyIDFromState && !isWorkspaceSettingsOpened ? `/w/${policyIDFromState}` : ''}${path}`;
 };

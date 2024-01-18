@@ -16,6 +16,7 @@ import linkingConfig from './linkingConfig';
 import customGetPathFromState from './linkingConfig/customGetPathFromState';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
+import {RootStackParamList} from './types';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -110,7 +111,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
-        const activeWorkspaceID = getPolicyIdFromState(state);
+        const activeWorkspaceID = getPolicyIdFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             currentReportIDValue?.updateCurrentReportID(state);

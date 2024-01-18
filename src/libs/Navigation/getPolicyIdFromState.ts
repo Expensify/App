@@ -1,7 +1,7 @@
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
-import type {State} from './types';
+import type {RootStackParamList, State} from './types';
 
-const getPolicyIdFromState = (state: State) => {
+const getPolicyIdFromState = (state: State<RootStackParamList>) => {
     const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
 
     const shouldAddPolicyIdToUrl = !!topmostBottomTabRoute && !!topmostBottomTabRoute.params && 'policyID' in topmostBottomTabRoute.params && !!topmostBottomTabRoute.params?.policyID;
