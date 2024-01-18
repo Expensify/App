@@ -38,7 +38,6 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
-    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
@@ -49,10 +48,6 @@ type IOUMessage = {
     cancellationReason?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
-};
-
-type ReimbursementDeQueuedMessage = {
-    cancellationReason: string;
 };
 
 type OriginalMessageIOU = {
@@ -283,7 +278,6 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
-    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
