@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AddDebitCardForm} from '@src/types/onyx';
-import {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type DebitCardPageOnyxProps = {
     /** Form data propTypes */
