@@ -9,6 +9,7 @@ import InvertedFlatList from '@components/InvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useCallbackRef from '@hooks/useCallbackRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -167,7 +168,6 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedVisibleReportActions.length);
 
     const previousLastIndex = useRef(lastActionIndex);
-    const visibilityCallback = useRef(() => {});
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
 
@@ -387,7 +387,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    const calculateUnreadMarker = () => {
+    const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -405,15 +405,13 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    };
+    }, [sortedVisibleReportActions, shouldDisplayNewMarker, currentUnreadMarker, report.reportID]);
 
     useEffect(() => {
         calculateUnreadMarker();
+    }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
-        /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
-
-    visibilityCallback.current = () => {
+    const visibilityCallback = useCallbackRef(() => {
         if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report) || messageManuallyMarkedUnread) {
             return;
         }
@@ -423,10 +421,10 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
-    };
+    });
 
     useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => visibilityCallback.current());
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(visibilityCallback);
 
         return unsubscribeVisibilityListener;
 
