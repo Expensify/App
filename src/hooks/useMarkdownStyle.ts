@@ -27,12 +27,12 @@ function useMarkdownStyle(): MarkdownStyle {
             code: {
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 color: theme.text,
-                backgroundColor: theme.textBackground,
+                backgroundColor: 'transparent',
             },
             pre: {
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 color: theme.text,
-                backgroundColor: theme.textBackground,
+                backgroundColor: 'transparent',
             },
             mentionHere: {
                 backgroundColor: theme.ourMentionBG,
