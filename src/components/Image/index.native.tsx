@@ -12,7 +12,8 @@ function Image(props: ImageProps) {
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
     let imageSource: ExpoImageSource = source;
-    if (source && typeof source === 'object' && 'uri' in source && typeof source.uri === 'number') {
+
+    if (typeof source === 'object' && 'uri' in source && typeof source.uri === 'number') {
         imageSource = source.uri;
     }
     if (typeof imageSource !== 'number' && isAuthTokenRequired && typeof source === 'object') {

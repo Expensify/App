@@ -15,7 +15,7 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
         // On native the authToken IS passed in the image request headers
         const authToken = session?.encryptedAuthToken ?? null;
 
-        if (isAuthTokenRequired && authToken && typeof propsSource === 'object' && propsSource && 'uri' in propsSource) {
+        if (isAuthTokenRequired && authToken && typeof propsSource === 'object' && 'uri' in propsSource) {
             return {uri: `${propsSource.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return propsSource;
@@ -30,7 +30,7 @@ function Image({source: propsSource, isAuthTokenRequired, onLoad, session, ...fo
     useEffect(() => {
         // If an onLoad callback was specified then manually call it and pass
         // the natural image dimensions to match the native API
-        if (typeof onLoad !== 'function' || !source || typeof source !== 'object' || !('uri' in source) || !source?.uri) {
+        if (typeof onLoad !== 'function' || typeof source !== 'object' || !('uri' in source) || !source?.uri) {
             return;
         }
 
