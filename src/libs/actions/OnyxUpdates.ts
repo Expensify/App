@@ -45,6 +45,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
+            if (request.finallyData) {
+                return updateHandler(request.finallyData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
@@ -71,6 +77,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
  */
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
+function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 

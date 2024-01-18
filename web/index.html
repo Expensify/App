@@ -70,6 +70,11 @@
             display: none;
         }
 
+        /* Customize Plaid iframe */
+        [id^="plaid-link-iframe"] {
+            color-scheme: dark !important;
+        }
+
         /* Prevent autofill from overlapping with the input label in Chrome */
         div:has(input:-webkit-autofill, input[chrome-autofilled]) > label {
             transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
