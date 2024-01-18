@@ -1,17 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -21,30 +21,46 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const updateDisplayName = (values: any) => {
+const propTypes = {
+    ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
+    isLoadingApp: PropTypes.bool,
+};
+
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
+    isLoadingApp: true,
+};
+
+/**
+ * Submit form to update user's first and last name (and display name)
+ * @param {Object} values
+ * @param {String} values.firstName
+ * @param {String} values.lastName
+ */
+const updateDisplayName = (values) => {
     PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 
-function DisplayNamePage(props: any) {
+function DisplayNamePage(props) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const currentUserDetails = props.currentUserPersonalDetails || {};
 
     /**
-     * @param values
-     * @param values.firstName
-     * @param values.lastName
-     * @returns - An object containing the errors for each inputID
+     * @param {Object} values
+     * @param {String} values.firstName
+     * @param {String} values.lastName
+     * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        const errors: Errors = {};
+    const validate = (values) => {
+        const errors = {};
+
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES as unknown as string[])) {
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
@@ -62,7 +78,7 @@ function DisplayNamePage(props: any) {
             testID={DisplayNamePage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('displayNamePage.headerTitle')}
+                title={props.translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             {props.isLoadingApp ? (
@@ -73,21 +89,21 @@ function DisplayNamePage(props: any) {
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
                     onSubmit={updateDisplayName}
-                    submitButtonText={translate('common.save')}
+                    submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
-                    <Text style={[styles.mb6]}>{translate('displayNamePage.isShownOnProfile')}</Text>
+                    <Text style={[styles.mb6]}>{props.translate('displayNamePage.isShownOnProfile')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID="firstName"
                             name="fname"
-                            label={translate('common.firstName')}
-                            aria-label={translate('common.firstName')}
+                            label={props.translate('common.firstName')}
+                            aria-label={props.translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails?.firstName ?? ''}
+                            defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
@@ -97,10 +113,10 @@ function DisplayNamePage(props: any) {
                             InputComponent={TextInput}
                             inputID="lastName"
                             name="lname"
-                            label={translate('common.lastName')}
-                            aria-label={translate('common.lastName')}
+                            label={props.translate('common.lastName')}
+                            aria-label={props.translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails?.lastName ?? ''}
+                            defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
@@ -111,13 +127,16 @@ function DisplayNamePage(props: any) {
     );
 }
 
+DisplayNamePage.propTypes = propTypes;
+DisplayNamePage.defaultProps = defaultProps;
 DisplayNamePage.displayName = 'DisplayNamePage';
 
 export default compose(
+    withLocalize,
     withCurrentUserPersonalDetails,
     withOnyx({
         isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP as any,
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     }),
 )(DisplayNamePage);
