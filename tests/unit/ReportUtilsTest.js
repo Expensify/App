@@ -149,8 +149,8 @@ describe('ReportUtils', () => {
             test('Archived', () => {
                 const archivedAdminsRoom = {
                     ...baseAdminsRoom,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 expect(ReportUtils.getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
@@ -172,8 +172,8 @@ describe('ReportUtils', () => {
             test('Archived', () => {
                 const archivedPolicyRoom = {
                     ...baseUserCreatedRoom,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 expect(ReportUtils.getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
@@ -213,8 +213,8 @@ describe('ReportUtils', () => {
                     ownerAccountID: 1,
                     policyID: policy.policyID,
                     oldPolicyName: policy.name,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 test('as member', () => {
@@ -307,7 +307,7 @@ describe('ReportUtils', () => {
                 managerID: currentUserAccountID,
                 isUnreadWithMention: false,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
@@ -368,7 +368,7 @@ describe('ReportUtils', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
-                    statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID]);
                 expect(moneyRequestOptions.length).toBe(0);
@@ -378,8 +378,8 @@ describe('ReportUtils', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS.APPROVED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID]);
                 expect(moneyRequestOptions.length).toBe(0);
@@ -389,7 +389,7 @@ describe('ReportUtils', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
-                    statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID]);
                 expect(moneyRequestOptions.length).toBe(0);
@@ -419,8 +419,8 @@ describe('ReportUtils', () => {
                     const report = {
                         ...LHNTestUtils.getFakeReport(),
                         type: CONST.REPORT.TYPE.EXPENSE,
-                        stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                        statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                         parentReportID: '101',
                     };
                     const paidPolicy = {
@@ -508,7 +508,7 @@ describe('ReportUtils', () => {
                         ...LHNTestUtils.getFakeReport(),
                         type: CONST.REPORT.TYPE.EXPENSE,
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATUS.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         parentReportID: '103',
                     };
                     const paidPolicy = {
@@ -523,9 +523,8 @@ describe('ReportUtils', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
-                    state: CONST.REPORT.STATE.SUBMITTED,
-                    stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                    statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
@@ -536,9 +535,8 @@ describe('ReportUtils', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
-                    state: CONST.REPORT.STATE.SUBMITTED,
-                    stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                    statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);

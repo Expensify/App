@@ -286,10 +286,6 @@ const ROUTES = {
         route: ':iouType/new/merchant/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
     },
-    MONEY_REQUEST_WAYPOINT: {
-        route: ':iouType/new/waypoint/:waypointIndex',
-        getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}` as const,
-    },
     MONEY_REQUEST_RECEIPT: {
         route: ':iouType/new/receipt/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
@@ -297,10 +293,6 @@ const ROUTES = {
     MONEY_REQUEST_DISTANCE: {
         route: ':iouType/new/address/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
-    },
-    MONEY_REQUEST_EDIT_WAYPOINT: {
-        route: 'r/:threadReportID/edit/distance/:transactionID/waypoint/:waypointIndex',
-        getRoute: (threadReportID: number, transactionID: string, waypointIndex: number) => `r/${threadReportID}/edit/distance/${transactionID}/waypoint/${waypointIndex}` as const,
     },
     MONEY_REQUEST_DISTANCE_TAB: {
         route: ':iouType/new/:reportID?/distance',
@@ -368,9 +360,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
-        route: 'create/:iouType/scan/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/scan/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/scan/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
         route: 'create/:iouType/tag/:transactionID/:reportID',
@@ -378,9 +370,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
-        route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
     // straight to those flows without needing to have optimistic transaction and report IDs.

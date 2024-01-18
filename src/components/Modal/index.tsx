@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import FocusTrapView from '@components/FocusTrapView';
-import withWindowDimensions from '@components/withWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,4 +63,4 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 }
 
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default Modal;

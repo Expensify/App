@@ -46,7 +46,7 @@ To ensure the dispute process goes smoothly, please:
 - If you recognize the merchant but not the charge, and you've transacted with them before, contact the merchant directly, as it may be a non-fraudulent error.
 - Include supporting documentation like receipts or cancellation confirmations when submitting your dispute to enhance the likelihood of a favorable resolution.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## **How am I protected from fraud using the Expensify Card?**
 Real-time push notifications alert you of every card charge upfront, helping identify potential issues immediately. Expensify also leverages sophisticated algorithms to detect and/or block unusual card activity.
@@ -59,3 +59,4 @@ The dispute process can take a few days to a few months. It depends on the type 
 ## **Can I cancel a dispute?**
 Contact Concierge if you've filed a dispute and want to cancel it. You might do this if you recognize a previously reported unauthorized charge or if the merchant has already resolved the issue.
 
+{% include faq-end.md %}
