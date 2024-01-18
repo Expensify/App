@@ -92,7 +92,15 @@ function Avatar({
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
-            {typeof avatarSource === 'function' || typeof avatarSource === 'number' ? (
+            {typeof avatarSource === 'string' ? (
+                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    <Image
+                        source={{uri: avatarSource}}
+                        style={imageStyle as StyleProp<ImageStyle>}
+                        onError={() => setImageError(true)}
+                    />
+                </View>
+            ) : (
                 <View style={iconStyle}>
                     <Icon
                         testID={fallbackAvatarTestID}
@@ -106,14 +114,6 @@ function Avatar({
                             imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
                             iconAdditionalStyles,
                         ]}
-                    />
-                </View>
-            ) : (
-                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
-                    <Image
-                        source={{uri: avatarSource}}
-                        style={imageStyle as StyleProp<ImageStyle>}
-                        onError={() => setImageError(true)}
                     />
                 </View>
             )}
