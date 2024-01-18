@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import lodashGet from 'lodash/get';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
+import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -13,60 +13,69 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
+import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 
-function BaseSelectionList<TItem extends User | RadioItem>(
-    {
-        sections,
-        canSelectMultiple = false,
-        onSelectRow,
-        onSelectAll,
-        onDismissError,
-        textInputLabel = '',
-        textInputPlaceholder = '',
-        textInputValue = '',
-        textInputHint,
-        textInputMaxLength,
-        inputMode = CONST.INPUT_MODE.TEXT,
-        onChangeText,
-        initiallyFocusedOptionKey = '',
-        onScroll,
-        onScrollBeginDrag,
-        headerMessage = '',
-        confirmButtonText = '',
-        onConfirm = () => {},
-        headerContent,
-        footerContent,
-        showScrollIndicator = false,
-        showLoadingPlaceholder = false,
-        showConfirmButton = false,
-        shouldPreventDefaultFocusOnSelectRow = false,
-        containerStyle,
-        isKeyboardShown = false,
-        disableKeyboardShortcuts = false,
-        children,
-        shouldStopPropagation = false,
-        shouldShowTooltips = true,
-        shouldUseDynamicMaxToRenderPerBatch = false,
-        rightHandSideComponent,
-    }: BaseSelectionListProps<TItem>,
-    inputRef: ForwardedRef<RNTextInput>,
-) {
+const propTypes = {
+    ...keyboardStatePropTypes,
+    ...selectionListPropTypes,
+};
+
+function BaseSelectionList({
+    sections,
+    canSelectMultiple = false,
+    onSelectRow,
+    onSelectAll,
+    onDismissError,
+    textInputLabel = '',
+    textInputPlaceholder = '',
+    textInputValue = '',
+    textInputHint = '',
+    textInputMaxLength,
+    inputMode = CONST.INPUT_MODE.TEXT,
+    onChangeText,
+    initiallyFocusedOptionKey = '',
+    onScroll,
+    onScrollBeginDrag,
+    headerMessage = '',
+    confirmButtonText = '',
+    onConfirm,
+    headerContent,
+    footerContent,
+    showScrollIndicator = false,
+    showLoadingPlaceholder = false,
+    showConfirmButton = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
+    isKeyboardShown = false,
+    containerStyle = [],
+    disableInitialFocusOptionStyle = false,
+    inputRef = null,
+    disableKeyboardShortcuts = false,
+    children,
+    shouldStopPropagation = false,
+    shouldShowTooltips = true,
+    shouldUseDynamicMaxToRenderPerBatch = false,
+    rightHandSideComponent,
+}) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
-    const textInputRef = useRef<RNTextInput | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const shouldShowTextInput = !!textInputLabel;
-    const shouldShowSelectAll = !!onSelectAll;
+    const listRef = useRef(null);
+    const textInputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
+    const shouldShowTextInput = Boolean(textInputLabel);
+    const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
@@ -78,24 +87,26 @@ function BaseSelectionList<TItem extends User | RadioItem>(
      * - `disabledOptionsIndexes`: Contains the indexes of all the disabled items in the list, to be used by the ArrowKeyFocusManager
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
+     *
+     * @return {{itemLayouts: [{offset: number, length: number}], disabledOptionsIndexes: *[], allOptions: *[]}}
      */
-    const flattenedSections = useMemo<FlattenedSectionsReturn<TItem>>(() => {
-        const allOptions: TItem[] = [];
+    const flattenedSections = useMemo(() => {
+        const allOptions = [];
 
-        const disabledOptionsIndexes: number[] = [];
+        const disabledOptionsIndexes = [];
         let disabledIndex = 0;
 
         let offset = 0;
         const itemLayouts = [{length: 0, offset}];
 
-        const selectedOptions: TItem[] = [];
+        const selectedOptions = [];
 
-        sections.forEach((section, sectionIndex) => {
+        _.each(sections, (section, sectionIndex) => {
             const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            section.data.forEach((item, optionIndex) => {
+            _.each(section.data, (item, optionIndex) => {
                 // Add item to the general flattened array
                 allOptions.push({
                     ...item,
@@ -104,7 +115,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                if (!!section.isDisabled || item.isDisabled) {
+                if (section.isDisabled || item.isDisabled) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -144,19 +155,19 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     }, [canSelectMultiple, sections]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
+    const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole);
 
     /**
      * Scrolls to the desired item index in the section list
      *
-     * @param index - the index of the item to scroll to
-     * @param animated - whether to animate the scroll
+     * @param {Number} index - the index of the item to scroll to
+     * @param {Boolean} animated - whether to animate the scroll
      */
     const scrollToIndex = useCallback(
-        (index: number, animated = true) => {
+        (index, animated = true) => {
             const item = flattenedSections.allOptions[index];
 
             if (!listRef.current || !item) {
@@ -171,7 +182,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             // Otherwise, it will cause an index-out-of-bounds error and crash the app.
             let adjustedSectionIndex = sectionIndex;
             for (let i = 0; i < sectionIndex; i++) {
-                if (sections[i].data) {
+                if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
                     adjustedSectionIndex--;
                 }
             }
@@ -186,10 +197,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
-     * @param item - the list item
-     * @param shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
+     * @param {Object} item - the list item
+     * @param {Boolean} shouldUnfocusRow - flag to decide if we should unfocus all rows. True when selecting a row with click or press (not keyboard)
      */
-    const selectRow = (item: TItem, shouldUnfocusRow = false) => {
+    const selectRow = (item, shouldUnfocusRow = false) => {
         // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
         if (canSelectMultiple) {
             if (sections.length > 1) {
@@ -222,15 +233,15 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     };
 
     const selectAllRow = () => {
-        onSelectAll?.();
-
+        onSelectAll();
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && textInputRef.current) {
             textInputRef.current.focus();
         }
     };
 
-    const selectFocusedOption = () => {
-        const focusedOption = flattenedSections.allOptions[focusedIndex];
+    const selectFocusedOption = (e) => {
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
+        const focusedOption = focusedItemKey ? _.find(flattenedSections.allOptions, (option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {
             return;
@@ -243,8 +254,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
-     * @param data - This is the same as the data we pass into the component
-     * @param flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
+     * @param {Array} data - This is the same as the data we pass into the component
+     * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
      *
      *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
      *     2. Each section includes a header, even if we don't provide/render one.
@@ -252,8 +263,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
      *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
+     *
+     * @returns {Object}
      */
-    const getItemLayout = (data: Array<SectionListDataType<TItem>> | null, flatDataArrayIndex: number) => {
+    const getItemLayout = (data, flatDataArrayIndex) => {
         const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
 
         if (!targetItem) {
@@ -271,8 +284,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         };
     };
 
-    const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
-        if (!section.title || !section.data) {
+    const renderSectionHeader = ({section}) => {
+        if (!section.title || _.isEmpty(section.data)) {
             return null;
         }
 
@@ -287,10 +300,9 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
-        const indexOffset = section.indexOffset ? section.indexOffset : 0;
-        const normalizedIndex = index + indexOffset;
-        const isDisabled = !!section.isDisabled || item.isDisabled;
+    const renderItem = ({item, index, section}) => {
+        const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
+        const isDisabled = section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
@@ -300,9 +312,11 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
+                isHide={!maxToRenderPerBatch}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
+                disableIsFocusStyle={disableInitialFocusOptionStyle}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
@@ -312,10 +326,11 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     };
 
     const scrollToFocusedIndexOnFirstRender = useCallback(
-        (nativeEvent: LayoutChangeEvent) => {
+        ({nativeEvent}) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
-                const listHeight = nativeEvent.nativeEvent.layout.height;
-                const itemHeight = nativeEvent.nativeEvent.layout.y;
+                const listHeight = lodashGet(nativeEvent, 'layout.height', 0);
+                const itemHeight = lodashGet(nativeEvent, 'layout.y', 0);
+
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
@@ -329,7 +344,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
-        (newFocusedIndex: number) => {
+        (newFocusedIndex) => {
             setFocusedIndex(newFocusedIndex);
             scrollToIndex(newFocusedIndex, true);
         },
@@ -340,12 +355,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     useFocusEffect(
         useCallback(() => {
             if (shouldShowTextInput) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    if (!textInputRef.current) {
-                        return;
-                    }
-                    textInputRef.current.focus();
-                }, CONST.ANIMATED_TRANSITION);
+                focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
             }
             return () => {
                 if (!focusTimeoutRef.current) {
@@ -372,7 +382,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions[focusedIndex],
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
     });
@@ -380,8 +390,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && !!onConfirm && isFocused,
+        shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        isActive: !disableKeyboardShortcuts && Boolean(onConfirm) && isFocused,
     });
 
     return (
@@ -391,22 +401,19 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             maxIndex={flattenedSections.allOptions.length - 1}
             onFocusedIndexChanged={updateAndScrollToFocusedIndex}
         >
+            {/* <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyle]}> */}
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, StyleUtils.parseStyleAsArray(containerStyle)]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
-                                    ref={(element) => {
-                                        textInputRef.current = element as RNTextInput;
-
-                                        if (!inputRef) {
-                                            return;
+                                    ref={(el) => {
+                                        if (inputRef) {
+                                            // eslint-disable-next-line no-param-reassign
+                                            inputRef.current = el;
                                         }
-
-                                        if (typeof inputRef === 'function') {
-                                            inputRef(element as RNTextInput);
-                                        }
+                                        textInputRef.current = el;
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
@@ -420,16 +427,16 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     selectTextOnFocus
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
-                                    blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
                                 />
                             </View>
                         )}
-                        {!!headerMessage && (
+                        {Boolean(headerMessage) && (
                             <View style={[styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
-                        {!!headerContent && headerContent}
+                        {Boolean(headerContent) && headerContent}
                         {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
                             <OptionsListSkeletonView shouldAnimate />
                         ) : (
@@ -465,9 +472,9 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item: TItem) => item.keyForList}
+                                    keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle="white"
+                                    indicatorStyle={theme.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
@@ -493,7 +500,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                 />
                             </FixedFooter>
                         )}
-                        {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+                        {Boolean(footerContent) && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
                     </View>
                 )}
             </SafeAreaConsumer>
@@ -502,5 +509,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 }
 
 BaseSelectionList.displayName = 'BaseSelectionList';
+BaseSelectionList.propTypes = propTypes;
 
-export default forwardRef(BaseSelectionList);
+export default withKeyboardState(BaseSelectionList);
