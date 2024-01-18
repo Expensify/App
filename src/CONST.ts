@@ -1290,6 +1290,10 @@ const CONST = {
             TRIP: 'trip',
             MANUAL: 'manual',
         },
+        AUTO_REPORTING_OFFSET: {
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
