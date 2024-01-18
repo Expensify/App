@@ -2089,7 +2089,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: isWorkspaceMemberLeavingWorkspaceRoom
+            value: isWorkspaceMemberLeavingWorkspaceRoom ||  ReportUtils.isChatThread(report)
                 ? {
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                   }
