@@ -51,11 +51,7 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
     }, []);
 
     const submitForm = useCallback(() => {
-        if (!report?.reportID) {
-            return;
-        }
-
-        Report.updateWelcomeMessage(report.reportID, report.welcomeMessage ?? '', welcomeMessage.trim());
+        Report.updateWelcomeMessage(report?.reportID ?? '', report?.welcomeMessage ?? '', welcomeMessage.trim());
     }, [report?.reportID, report?.welcomeMessage, welcomeMessage]);
 
     useFocusEffect(
