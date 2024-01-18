@@ -66,14 +66,7 @@ function IOURequestStepParticipants({
                 newIouType = CONST.IOU.TYPE.REQUEST;
             }
 
-            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val).then(() => {
-                if (!newIouType) {
-                    return;
-                }
-                // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-                // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
-                IOU.updateMoneyRequestTypeParams(routes, newIouType);
-            });
+            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
