@@ -1,5 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
-import isEmpty from 'lodash/isEmpty';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -14,30 +13,28 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PublicScreensParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Form, Card as OnyxCard} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportVirtualCardFraudPageOnyxProps = {
+    /** Form data propTypes */
     formData: OnyxEntry<Form>;
+
+    /** Card list propTypes */
     cardList: OnyxEntry<Record<string, OnyxCard>>;
 };
 
-type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & {
-    /**
-     * The parameters needed to authenticate with a short-lived token are in the URL
-     * Each parameter passed via the URL
-     * Domain string
-     */
-    route: RouteProp<{params: {domain: Route}}>;
-};
+type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function ReportVirtualCardFraudPage({
     route: {
-        params: {domain},
+        params: {domain = ''},
     },
     cardList = {},
     formData = {},
@@ -55,14 +52,14 @@ function ReportVirtualCardFraudPage({
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
-        if (!isEmpty(virtualCard?.errors)) {
+        if (!isEmptyObject(virtualCard?.errors)) {
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
     }, [domain, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
-    if (isEmpty(virtualCard)) {
+    if (isEmptyObject(virtualCard)) {
         return <NotFoundPage />;
     }
 
