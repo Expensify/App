@@ -30,8 +30,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type WorkspaceItem = MenuItemProps &
-    OfflineWithFeedbackProps & {
+type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'icon' | 'disabled'>> &
+    Pick<MenuItemProps, 'brickRoadIndicator'> &
+    Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> & {
         action: () => void;
         dismissError: () => void;
     };
@@ -89,31 +90,27 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: 
     /**
      * Gets the menu item for each workspace
      */
-    const getMenuItem = (item: WorkspaceItem, index: number) => {
-        const keyTitle = item.title;
-        return (
-            <OfflineWithFeedback
-                key={`${keyTitle}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={styles.ph5}
-                onClose={item.dismissError}
-                errors={item.errors}
-            >
-                <MenuItem
-                    title={keyTitle}
-                    icon={item.icon ?? ''}
-                    iconType={CONST.ICON_TYPE_WORKSPACE}
-                    onPress={item.action}
-                    iconStyles={item.iconStyles}
-                    iconFill={item.iconFill}
-                    shouldShowRightIcon
-                    fallbackIcon={item.fallbackIcon}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    disabled={item.disabled}
-                />
-            </OfflineWithFeedback>
-        );
-    };
+    const getMenuItem = (item: WorkspaceItem, index: number) => (
+        <OfflineWithFeedback
+            key={`${item.title}_${index}`}
+            pendingAction={item.pendingAction}
+            errorRowStyles={styles.ph5}
+            onClose={item.dismissError}
+            errors={item.errors}
+        >
+            <MenuItem
+                title={item.title}
+                icon={item.icon}
+                iconType={CONST.ICON_TYPE_WORKSPACE}
+                onPress={item.action}
+                iconFill={theme.textLight}
+                shouldShowRightIcon
+                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                brickRoadIndicator={item.brickRoadIndicator}
+                disabled={item.disabled}
+            />
+        </OfflineWithFeedback>
+    );
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
@@ -124,33 +121,26 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: 
             return [];
         }
         return Object.values(policies)
-            ?.filter((policy: OnyxEntry<PolicyType>) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
-            ?.map((policy: OnyxEntry<PolicyType>) => ({
-                title: policy?.name,
-                icon: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
-                iconType: CONST.ICON_TYPE_WORKSPACE,
-                action: () => {
-                    if (!policy) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
-                },
-                iconFill: theme.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                pendingAction: policy?.pendingAction,
-                errors: policy?.errors,
-                dismissError: () => {
-                    if (!policy?.id || !policy?.pendingAction) {
-                        return;
-                    }
-                    dismissWorkspaceError(policy.id, policy.pendingAction);
-                },
-                disabled: policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                children: null,
-            }))
-            .sort((a: {title?: string}, b: {title?: string}) => (a?.title?.toLowerCase() ?? '').localeCompare(b?.title?.toLowerCase() ?? ''));
-    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
+            .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            .map(
+                (policy): WorkspaceItem => ({
+                    title: policy.name,
+                    icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                    action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                    brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                    pendingAction: policy.pendingAction,
+                    errors: policy.errors,
+                    dismissError: () => {
+                        if (!policy.pendingAction) {
+                            return;
+                        }
+                        dismissWorkspaceError(policy.id, policy.pendingAction);
+                    },
+                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                }),
+            )
+            .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+    }, [reimbursementAccount?.errors, policies, isOffline, allPolicyMembers]);
 
     return (
         <IllustratedHeaderPageLayout
