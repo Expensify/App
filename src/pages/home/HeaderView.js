@@ -109,9 +109,7 @@ function HeaderView(props) {
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
@@ -153,7 +151,7 @@ function HeaderView(props) {
         ),
     );
 
-    const canJoinOrLeave = (isChatThread && !isEmptyChat) || isUserCreatedPolicyRoom || canLeaveRoom;
+    const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom;
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
@@ -163,7 +161,7 @@ function HeaderView(props) {
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
