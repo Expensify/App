@@ -149,7 +149,7 @@ function SignInPageLayout(props) {
                                         customHeadline={props.customHeadline}
                                         customHeroBody={props.customHeroBody}
                                     />
-                                    <Footer scrollPageToTop={scrollPageToTop} />
+                                    <Footer navigateFocus={props.navigateFocus} />
                                 </View>
                             </View>
                         </View>
@@ -179,7 +179,7 @@ function SignInPageLayout(props) {
                     </View>
                     <View style={[styles.flex0]}>
                         <Footer
-                            scrollPageToTop={scrollPageToTop}
+                            navigateFocus={props.navigateFocus}
                             shouldShowSmallScreen
                         />
                     </View>

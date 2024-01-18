@@ -6,7 +6,7 @@ import MapView from '@components/MapView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DistanceMapViewProps from './types';
+import type DistanceMapViewProps from './types';
 
 function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
     const styles = useThemeStyles();

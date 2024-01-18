@@ -1,4 +1,4 @@
-import ReportActionsDraft from './ReportActionsDraft';
+import type ReportActionsDraft from './ReportActionsDraft';
 
 type ReportActionsDrafts = Record<string, ReportActionsDraft>;
 

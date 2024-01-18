@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type NAVIGATORS from '@src/NAVIGATORS';
+import type {Route as Routes} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -241,12 +242,6 @@ type MoneyRequestNavigatorParamList = {
         waypointIndex: string;
         threadReportID: number;
     };
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: number;
-    };
     [SCREENS.MONEY_REQUEST.DISTANCE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
@@ -331,6 +326,10 @@ type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: undefined;
 };
 
+type ProcessMoneyRequestHoldNavigatorParamList = {
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+};
+
 type PrivateNotesNavigatorParamList = {
     [SCREENS.PRIVATE_NOTES.VIEW]: {
         reportID: string;
@@ -372,6 +371,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: NavigatorScreenParams<FlagCommentNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: NavigatorScreenParams<EditRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SIGN_IN]: NavigatorScreenParams<SignInNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
@@ -379,10 +379,11 @@ type RightModalNavigatorParamList = {
 type PublicScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
+        email?: string;
+        error?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
+        exitTo?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

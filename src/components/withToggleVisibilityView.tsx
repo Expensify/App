@@ -1,6 +1,7 @@
-import React, {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
+import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {SetOptional} from 'type-fest';
+import type {SetOptional} from 'type-fest';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 

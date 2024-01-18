@@ -2,7 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-import DeepValueOf from './types/utils/DeepValueOf';
+import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
@@ -108,6 +108,7 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
+        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -231,6 +232,7 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
+    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',

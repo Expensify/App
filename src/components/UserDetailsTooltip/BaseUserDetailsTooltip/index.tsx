@@ -1,10 +1,11 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
+import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';

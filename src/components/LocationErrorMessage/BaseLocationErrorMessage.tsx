@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import LocationErrorMessageProps from './types';
+import type LocationErrorMessageProps from './types';
 
 type BaseLocationErrorMessageProps = LocationErrorMessageProps & {
     /** A callback that runs when 'allow location permission' link is pressed */

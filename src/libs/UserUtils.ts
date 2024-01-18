@@ -1,14 +1,15 @@
 import Str from 'expensify-common/lib/str';
 import _ from 'lodash';
-import Onyx, {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList} from '@src/types/onyx';
-import Login from '@src/types/onyx/Login';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type Login from '@src/types/onyx/Login';
+import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -105,7 +106,7 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
     let accountIDHashBucket: AvatarRange;
     if (avatarURL) {
-        const match = avatarURL.match(/(default-avatar_)(\d+)(?=\.)/);
+        const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
     } else {

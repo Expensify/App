@@ -1,4 +1,4 @@
-import SetCursorPosition from './types';
+import type SetCursorPosition from './types';
 
 const setCursorPosition: SetCursorPosition = (position, ref, setSelection) => {
     const selection = {

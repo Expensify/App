@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {UseAppFocusEvent, UseAppFocusEventCallback} from './types';
+import type {UseAppFocusEvent, UseAppFocusEventCallback} from './types';
 
 /**
  * Runs the given callback when the app is focused (eg: after re-opening the app, switching tabs, or focusing the window)

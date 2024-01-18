@@ -1,20 +1,21 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
-import {MenuItemProps} from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */

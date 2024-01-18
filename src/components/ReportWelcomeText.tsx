@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,6 +44,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -111,7 +113,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && <Text>{translate('reportActionsView.usePlusButton')}</Text>}
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
+                    <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
+                )}
             </Text>
         </>
     );

@@ -1,5 +1,5 @@
-import {ReactNode} from 'react';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ReactNode} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -7,7 +7,7 @@ import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ThreeDotsMenuItems = {
+type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
     icon?: IconAsset;
 
@@ -62,7 +62,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldDisableThreeDotsButton?: boolean;
 
     /** List of menu items for more(three dots) menu */
-    threeDotsMenuItems?: ThreeDotsMenuItems[];
+    threeDotsMenuItems?: ThreeDotsMenuItem[];
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
@@ -110,4 +110,5 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldEnableDetailPageNavigation?: boolean;
 };
 
+export type {ThreeDotsMenuItem};
 export default HeaderWithBackButtonProps;

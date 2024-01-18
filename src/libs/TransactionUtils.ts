@@ -1,12 +1,14 @@
 import lodashHas from 'lodash/has';
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
-import PolicyTaxRate, {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
+import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
+import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
@@ -143,6 +145,13 @@ function isMerchantMissing(transaction: Transaction) {
     const isModifiedMerchantEmpty = !transaction.modifiedMerchant || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === '';
 
     return isMerchantEmpty && isModifiedMerchantEmpty;
+}
+
+/**
+ * Check if the merchant is partial i.e. `(none)`
+ */
+function isPartialMerchant(merchant: string): boolean {
+    return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
 function isAmountMissing(transaction: Transaction) {
@@ -571,6 +580,7 @@ export {
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
+    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,

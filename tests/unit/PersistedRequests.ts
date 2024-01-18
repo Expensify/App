@@ -1,5 +1,5 @@
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import Request from '../../src/types/onyx/Request';
+import type Request from '../../src/types/onyx/Request';
 
 const request: Request = {
     command: 'OpenReport',

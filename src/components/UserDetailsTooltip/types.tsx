@@ -1,6 +1,6 @@
-import {AvatarSource} from '@libs/UserUtils';
-import {AvatarType} from '@src/types/onyx/OnyxCommon';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type FallbackUserDetails = {
     /** The name to display in bold */

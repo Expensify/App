@@ -1,22 +1,11 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OnyxReport from '@src/types/onyx/Report';
-import IconAsset from '@src/types/utils/IconAsset';
+import type OnyxReport from '@src/types/onyx/Report';
 import * as Report from './actions/Report';
 import * as Session from './actions/Session';
 import * as Localize from './Localize';
 
-type MenuItem = {
-    icon: string | IconAsset;
-    text: string;
-    onSelected: () => void;
-};
-
-function getPinMenuItem(report: OnyxEntry<OnyxReport>): MenuItem | undefined {
-    if (!report) {
-        return;
-    }
-
+function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     const isPinned = !!report.isPinned;
 
     return {

@@ -1,4 +1,4 @@
-import HasPassiveEventListenerSupport from './types';
+import type HasPassiveEventListenerSupport from './types';
 
 /**
  * Allows us to identify whether the browser supports passive event listener.

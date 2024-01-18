@@ -322,7 +322,7 @@ function AvatarWithImagePicker({
                                     src={Expensicons.Camera}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
-                                    fill={theme.textLight}
+                                    fill={theme.icon}
                                 />
                             </View>
                         </PressableWithoutFeedback>

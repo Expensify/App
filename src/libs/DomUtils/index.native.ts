@@ -1,4 +1,4 @@
-import GetActiveElement from './types';
+import type GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => null;
 

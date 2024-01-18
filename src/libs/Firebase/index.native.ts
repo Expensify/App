@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import perf from '@react-native-firebase/perf';
 import * as Environment from '@libs/Environment/Environment';
-import {StartTrace, StopTrace, TraceMap} from './types';
+import type {StartTrace, StopTrace, TraceMap} from './types';
 
 const traceMap: TraceMap = {};
 

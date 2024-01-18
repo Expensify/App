@@ -1,4 +1,5 @@
-import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
@@ -6,8 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
+import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
+import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 

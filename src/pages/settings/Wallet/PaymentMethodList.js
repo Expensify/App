@@ -337,7 +337,7 @@ function PaymentMethodList({
 
     return (
         <>
-            <View style={[style, {minHeight: variables.optionRowHeight}]}>
+            <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount && 1)) * variables.optionRowHeight}]}>
                 <FlashList
                     estimatedItemSize={variables.optionRowHeight}
                     data={filteredPaymentMethods}

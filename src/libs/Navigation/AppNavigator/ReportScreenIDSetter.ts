@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
