@@ -130,7 +130,7 @@ function AvatarWithImagePicker({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
@@ -289,7 +289,7 @@ function AvatarWithImagePicker({
             });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMenuVisible, isSmallScreenWidth]);
+    }, [isMenuVisible, windowWidth]);
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
