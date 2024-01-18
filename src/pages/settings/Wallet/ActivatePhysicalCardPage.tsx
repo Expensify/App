@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Card} from '@src/types/onyx';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ActivatePhysicalCardPageOnyxProps = {
     /** Card list propTypes */

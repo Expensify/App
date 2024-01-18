@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
+import type {TextInput as RNTextInput} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -21,25 +22,22 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {AddDebitCardForm} from '@src/types/onyx';
+import {Errors} from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
-    /* Onyx Props */
-    formData: PropTypes.shape({
-        setupComplete: PropTypes.bool,
-    }),
+type DebitCardPageOnyxProps = {
+    /** Form data propTypes */
+    formData: OnyxEntry<AddDebitCardForm>;
 };
 
-const defaultProps = {
-    formData: {
-        setupComplete: false,
-    },
-};
+type DebitCardPageProps = DebitCardPageOnyxProps;
 
-function DebitCardPage(props) {
+function DebitCardPage({formData}: DebitCardPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
-    const nameOnCardRef = useRef(null);
+    const setupComplete = formData?.setupComplete ?? false;
+    const prevFormDataSetupComplete = usePrevious(setupComplete);
+    const nameOnCardRef = useRef<RNTextInput>(null);
 
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
@@ -53,18 +51,14 @@ function DebitCardPage(props) {
     }, []);
 
     useEffect(() => {
-        if (prevFormDataSetupComplete || !props.formData.setupComplete) {
+        if (prevFormDataSetupComplete || !setupComplete) {
             return;
         }
 
         PaymentMethods.continueSetup();
-    }, [prevFormDataSetupComplete, props.formData.setupComplete]);
+    }, [prevFormDataSetupComplete, setupComplete]);
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
-     */
-    const validate = (values) => {
+    const validate = (values: Errors) => {
         const requiredFields = ['nameOnCard', 'cardNumber', 'expirationDate', 'securityCode', 'addressStreet', 'addressZipCode', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
@@ -101,7 +95,7 @@ function DebitCardPage(props) {
 
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
+            onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
             includeSafeAreaPaddingBottom={false}
             testID={DebitCardPage.displayName}
         >
@@ -109,6 +103,7 @@ function DebitCardPage(props) {
                 title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
+            {/** @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
@@ -118,6 +113,7 @@ function DebitCardPage(props) {
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                     InputComponent={TextInput}
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
@@ -127,6 +123,7 @@ function DebitCardPage(props) {
                     spellCheck={false}
                 />
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                     InputComponent={TextInput}
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
@@ -138,6 +135,7 @@ function DebitCardPage(props) {
                 <View style={[styles.flexRow, styles.mt4]}>
                     <View style={[styles.flex1, styles.mr2]}>
                         <InputWrapper
+                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                             InputComponent={TextInput}
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
@@ -150,6 +148,7 @@ function DebitCardPage(props) {
                     </View>
                     <View style={[styles.flex1]}>
                         <InputWrapper
+                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                             InputComponent={TextInput}
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
@@ -162,6 +161,7 @@ function DebitCardPage(props) {
                 </View>
                 <View>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={AddressSearch}
                         inputID="addressStreet"
                         label={translate('addDebitCardPage.billingAddress')}
@@ -172,6 +172,7 @@ function DebitCardPage(props) {
                     />
                 </View>
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                     InputComponent={TextInput}
                     inputID="addressZipCode"
                     label={translate('common.zip')}
@@ -184,11 +185,13 @@ function DebitCardPage(props) {
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={StatePicker}
                         inputID="addressState"
                     />
                 </View>
                 <InputWrapper
+                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
@@ -206,11 +209,9 @@ function DebitCardPage(props) {
     );
 }
 
-DebitCardPage.propTypes = propTypes;
-DebitCardPage.defaultProps = defaultProps;
 DebitCardPage.displayName = 'DebitCardPage';
 
-export default withOnyx({
+export default withOnyx<DebitCardPageProps, DebitCardPageOnyxProps>({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
     },
