@@ -11,12 +11,14 @@ import Reanimated, {
     useSharedValue,
     withDelay,
 } from 'react-native-reanimated';
+
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import { useKeyboardHandler } from 'react-native-keyboard-controller';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
 
 const useAnimatedKeyboard2 = () => {
@@ -66,6 +68,14 @@ const useAnimatedKeyboard2 = () => {
     return { state, height, heightWhenOpened };
 };
 
+const useSafeAreaPaddings = () => {
+    const StyleUtils = useStyleUtils();
+    const insets = useSafeAreaInsets();
+    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+
+    return { top: paddingTop, bottom: paddingBottom };
+};
+
 const config = {
     mass: 3,
     stiffness: 1000,
@@ -74,7 +84,7 @@ const config = {
 
 function ActionSheetKeyboardSpace(props) {
     const styles = useThemeStyles();
-    const safeArea = useSafeAreaInsets();
+    const safeArea = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard2();
 
     // similar to using `global` in worklet but it's just a local object
@@ -137,7 +147,7 @@ function ActionSheetKeyboardSpace(props) {
         // it will always return 0 for idle state
         if (current.state === States.IDLE) {
             console.log("TRANSITION #21", 0);
-            return 0;
+            return withSpring(0, config);
         }
 
         const keyboardHeight = keyboard.height.value === 0 ? 0 : keyboard.height.value - safeArea.bottom;
@@ -172,8 +182,9 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     //         type: Actions.END_TRANSITION,
                     //     });
                     // });
-                    console.log("TRANSITION #3 -> withTiming(elementOffset + invertedKeyboardHeight, {", { elementOffset, invertedKeyboardHeight });
+                    console.log("TRANSITION #3 -> withTiming(elementOffset + invertedKeyboardHeight, {", { elementOffset, invertedKeyboardHeight, popoverHeight, composerHeight, keyboard: keyboard.height.value });
                     // return 374;
+                    return 72; // elementOffset - 10;
                     return withSequence(
                         withTiming(elementOffset + invertedKeyboardHeight, {
                             duration: 0,
@@ -185,8 +196,8 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 }
 
                 console.log("TRANSITION #4 -> withSpring(0, config)")
+                // return withTiming(0, {duration: 5000});
                 return withSpring(0, config);
-                // return 0;
             }
 
             case States.POPOVER_CLOSED: {
@@ -246,7 +257,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN:
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
-                    console.log("TRANSITION #14 -> ", lastKeyboardHeight, popoverHeight, composerHeight, new Date().getTime());
+                    console.log("TRANSITION #14 -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
                     return popoverHeight - composerHeight;
                     // return 451;
                     // return withTiming(lastKeyboardHeight, {duration: 250});
@@ -260,29 +271,29 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                         }),
                     );
                     // return lastKeyboardHeight;
-                    /*console.log("TRANSITION #13 ->", 0);
-                    return 0;*/
+                    /* console.log("TRANSITION #13 ->", 0);
+                    return 0; */
                 }
 
-                /*console.log("TRANSITION #14 -> ", lastKeyboardHeight);
-                return lastKeyboardHeight;*/
+                /* console.log("TRANSITION #14 -> ", lastKeyboardHeight);
+                return lastKeyboardHeight; */
                 console.log("TRANSITION #13 ->", 0);
                 return 0;
             }
 
             case States.KEYBOARD_POPOVER_CLOSED: {
                 // transition({type: Actions.END_TRANSITION});
-                console.log("TRANSITION #15 -> ", lastKeyboardHeight, {keyboard: keyboard.height.value, lastKeyboardHeight});
                 if (keyboard.heightWhenOpened.value === keyboard.height.value) {
+                    console.log("TRANSITION #15 (1) -> ", 0, {keyboard: keyboard.height.value, lastKeyboardHeight, heightWhenOpened: keyboard.heightWhenOpened.value});
                     return 0;
-                    /*return withSequence(
+                    /* return withSequence(
                         // artificial delay for one frame, because `paddingBottom` in KAV is updated only in next frame
                         withTiming(popoverHeight - keyboard.height.value - safeArea.bottom, {
                             duration: 0,
                         }),
                         withSpring(0, config)
-                    );*/
-                    /*return withSequence(
+                    ); */
+                    /* return withSequence(
                         // artificial delay for one frame, because `paddingBottom` in KAV is updated only in next frame
                         withTiming(keyboard.heightWhenOpened.value - safeArea.bottom, {
                             duration: 8,
@@ -290,9 +301,10 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                         withTiming(0, {
                             duration: 0,
                         }),
-                    );*/
+                    ); */
                 }
 
+                console.log("TRANSITION #15 (2) -> ", popoverHeight - composerHeight, {popoverHeight, composerHeight, keyboard: keyboard.height.value, lastKeyboardHeight, heightWhenOpened: keyboard.heightWhenOpened.value});
                 return popoverHeight - composerHeight;
             }
 
@@ -327,6 +339,12 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     return elementOffset + lastKeyboardHeight;
                 }
 
+                if (keyboard.height.value === keyboard.heightWhenOpened.value) {
+                    console.log("TRANSITION #2 (1) -> ", elementOffset, {keyboardHeight, lastKeyboardHeight, elementOffset});
+
+                    return elementOffset;
+                }
+
                 console.log("TRANSITION #2 -> ", {keyboardHeight, lastKeyboardHeight, elementOffset});
                 // return elementOffset;
                 // return 374;
@@ -334,7 +352,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     withTiming(elementOffset + lastKeyboardHeight, {
                         duration: 0,
                     }),
-                    /*withTiming(
+                    /* withTiming(
                         elementOffset,
                         {
                             duration: 0,
@@ -342,7 +360,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                         () => {
                             transition({type: Actions.END_TRANSITION});
                         },
-                    ),*/
+                    ), */
                 );
             }
 
