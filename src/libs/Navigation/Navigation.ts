@@ -76,7 +76,7 @@ function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
             return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
         default:
-            return url as Route;
+            return url;
     }
 }
 
