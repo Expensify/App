@@ -14,6 +14,7 @@ import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import * as NextStepUtils from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
@@ -330,6 +331,7 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
  * @param {Array} policyTags
  * @param {Array} policyCategories
  * @param {Boolean} hasOutstandingChildRequest
+ * @param {Object} [optimisticNextStep]
  * @returns {Array} - An array containing the optimistic data, success data, and failure data.
  */
 function buildOnyxDataForMoneyRequest(
@@ -349,6 +351,7 @@ function buildOnyxDataForMoneyRequest(
     policyTags,
     policyCategories,
     hasOutstandingChildRequest = false,
+    optimisticNextStep,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const optimisticData = [
@@ -428,6 +431,14 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetailListAction,
+        });
+    }
+
+    if (!_.isEmpty(optimisticNextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStep,
         });
     }
 
@@ -810,6 +821,10 @@ function getMoneyRequestInformation(
     // so the employee has to submit to their manager manually.
     const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
 
+    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
+    // eslint-disable-next-line no-console
+    console.log('optimisticNextStep', optimisticNextStep);
+
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
@@ -828,6 +843,7 @@ function getMoneyRequestInformation(
         policyTags,
         policyCategories,
         hasOutstandingChildRequest,
+        optimisticNextStep,
     );
 
     return {
@@ -3024,6 +3040,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     }
 
     const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`, null);
+    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY});
 
     const optimisticData = [
         {
@@ -3065,6 +3082,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStep,
+        },
     ];
 
     const successData = [
@@ -3099,20 +3121,12 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: chatReport,
         },
-    ];
-
-    if (!_.isNull(currentNextStep)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: null,
-        });
-        failureData.push({
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
             value: currentNextStep,
-        });
-    }
+        },
+    ];
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
@@ -3184,9 +3198,9 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
 }
 
 function approveMoneyRequest(expenseReport) {
-    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
-
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
+    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
 
     const optimisticReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -3209,7 +3223,15 @@ function approveMoneyRequest(expenseReport) {
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         },
     };
-    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
+    const optimisticData = [
+        optimisticIOUReportData,
+        optimisticReportActionsData,
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStep,
+        },
+    ];
 
     const successData = [
         {
@@ -3233,20 +3255,12 @@ function approveMoneyRequest(expenseReport) {
                 },
             },
         },
-    ];
-
-    if (!_.isNull(currentNextStep)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: null,
-        });
-        failureData.push({
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
-        });
-    }
+        },
+    ];
 
     API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
@@ -3255,11 +3269,11 @@ function approveMoneyRequest(expenseReport) {
  * @param {Object} expenseReport
  */
 function submitReport(expenseReport) {
-    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
-
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
+    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     const optimisticData = [
         {
@@ -3282,6 +3296,11 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStep,
         },
         ...(parentReport.reportID
             ? [
@@ -3330,6 +3349,11 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        },
         ...(parentReport.reportID
             ? [
                   {
@@ -3343,19 +3367,6 @@ function submitReport(expenseReport) {
               ]
             : []),
     ];
-
-    if (!_.isNull(currentNextStep)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: null,
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: currentNextStep,
-        });
-    }
 
     API.write(
         'SubmitReport',
@@ -3376,6 +3387,10 @@ function cancelPayment(expenseReport, chatReport) {
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID);
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
+    const statusNum = isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN;
+    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, statusNum);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3395,8 +3410,13 @@ function cancelPayment(expenseReport, chatReport) {
                 lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
                 stateNum: isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN,
+                statusNum,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStep,
         },
         ...(chatReport.reportID
             ? [
@@ -3441,6 +3461,11 @@ function cancelPayment(expenseReport, chatReport) {
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
         },
         ...(chatReport.reportID
             ? [
