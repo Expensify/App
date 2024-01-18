@@ -49,7 +49,7 @@ In order to have more consistent builds, we use a strict `node` and `npm` versio
 ## Configuring HTTPS
 The webpack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
 
-If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `new.expesify.com.dev` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
+If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`

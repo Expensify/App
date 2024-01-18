@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type React from 'react';
-import {useCallback, useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {PopoverContext} from '@components/PopoverProvider';
 
@@ -30,6 +30,8 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = useContext(PopoverContext);
+
+    const enterTarget = useRef<EventTarget | null>(null);
 
     useEffect(() => {
         if (isFocused && !isDisabled) {
@@ -76,6 +78,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     break;
                 case DRAG_ENTER_EVENT:
                     handleDragEvent(event);
+                    enterTarget.current = event.target;
                     if (isDraggingOver) {
                         return;
                     }
@@ -86,7 +89,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                         return;
                     }
                     // This is necessary because dragging over children will cause dragleave to execute on the parent.
-                    if ((event.currentTarget as HTMLElement | null)?.contains(event.relatedTarget as HTMLElement | null)) {
+                    if (enterTarget.current !== event.target) {
                         return;
                     }
 

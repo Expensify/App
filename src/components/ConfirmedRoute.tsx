@@ -37,7 +37,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction.routes ?? {};
     const waypoints = transaction.comment?.waypoints ?? {};
-    const coordinates = route.geometry?.coordinates ?? [];
+    const coordinates = route?.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
 
