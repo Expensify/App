@@ -1,9 +1,10 @@
 import CONST from '@src/CONST';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
+import type {MaybePhraseKey} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
@@ -101,7 +102,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
  * @param errorList - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
+function addErrorMessage(errors: ErrorsList, inputID?: string, message?: MaybePhraseKey) {
     if (!message || !inputID) {
         return;
     }
