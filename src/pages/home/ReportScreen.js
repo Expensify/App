@@ -6,8 +6,10 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -33,6 +35,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -502,6 +505,25 @@ function ReportScreen({
             setLinkingToMessage(false);
         }
     }, [reportMetadata.isLoadingInitialReportActions]);
+
+    const onLinkPress = () => {
+        Navigation.setParams({reportActionID: ''});
+        fetchReport();
+    };
+
+    if (!shouldShowSkeleton && reportActionIDFromRoute && _.isEmpty(reportActions) && !isLinkingToMessage) {
+        return (
+            <BlockingView
+                icon={Illustrations.ToddBehindCloud}
+                iconWidth={variables.modalTopIconWidth}
+                iconHeight={variables.modalTopIconHeight}
+                title={translate('notFound.notHere')}
+                shouldShowLink
+                linkKey="notFound.noAccess"
+                onLinkPress={onLinkPress}
+            />
+        );
+    }
 
     return (
         <ActionListContext.Provider value={actionListValue}>
