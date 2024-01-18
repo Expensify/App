@@ -1,5 +1,5 @@
+import type {CentralPaneName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
-import type {CentralPaneName} from './types';
 
 const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<CentralPaneName, string[]>> = {
     [SCREENS.WORKSPACE.OVERVIEW]: [SCREENS.WORKSPACE.NAME, SCREENS.WORKSPACE.CURRENCY],
