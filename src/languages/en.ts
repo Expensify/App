@@ -3,7 +3,6 @@ import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -113,7 +112,6 @@ type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 export default {
     common: {
         cancel: 'Cancel',
-        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -457,9 +455,10 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
-        subscribeToThread: 'Subscribe to thread',
-        unsubscribeFromThread: 'Unsubscribe from thread',
+        joinThread: 'Join thread',
+        leaveThread: 'Leave thread',
         flagAsOffensive: 'Flag as offensive',
+        menu: 'Menu',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -576,8 +575,6 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
-        cancelPayment: 'Cancel payment',
-        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
@@ -615,7 +612,6 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `The ${amount} payment has been cancelled by the admin.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1803,6 +1799,7 @@ export default {
         success: {
             title: 'Downloaded!',
             message: 'Attachment successfully downloaded!',
+            qrMessage: 'Check your photos or downloads folder for a copy of your QR code. Protip: Add it to a presentation for your audience to scan and connect with you directly.',
         },
         generalError: {
             title: 'Attachment Error',
@@ -2032,9 +2029,11 @@ export default {
         cardDamaged: 'My card was damaged',
         cardLostOrStolen: 'My card was lost or stolen',
         confirmAddressTitle: "Please confirm the address below is where you'd like us to send your new card.",
-        currentCardInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
+        cardDamagedInfo: 'Your new card will arrive in 2-3 business days, and your existing card will continue to work until you activate your new one.',
+        cardLostOrStolenInfo: 'Your current card will be permanently deactivated as soon as your order is placed. Most cards arrive in a few business days.',
         address: 'Address',
         deactivateCardButton: 'Deactivate card',
+        shipNewCardButton: 'Ship new card',
         addressError: 'Address is required',
         reasonError: 'Reason is required',
     },
