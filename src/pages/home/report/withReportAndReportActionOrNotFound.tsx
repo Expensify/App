@@ -37,12 +37,14 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps &
+type WithReportAndReportActionOrNotFoundProps = OnyxProps &
     WindowDimensionsProps & {
         route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
     };
 
-export default function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): ComponentType<TProps & RefAttributes<TRef>> {
+export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
+    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
             let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
@@ -118,3 +120,5 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         withWindowDimensions,
     )(React.forwardRef(WithReportOrNotFound));
 }
+
+export type {WithReportAndReportActionOrNotFoundProps};
