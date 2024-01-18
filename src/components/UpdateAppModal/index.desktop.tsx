@@ -5,9 +5,7 @@ import type UpdateAppModalProps from './types';
 
 function UpdateAppModal({onSubmit}: UpdateAppModalProps) {
     const updateApp = () => {
-        if (onSubmit) {
-            onSubmit();
-        }
+        onSubmit?.();
         window.electron.send(ELECTRON_EVENTS.START_UPDATE);
     };
     return <BaseUpdateAppModal onSubmit={updateApp} />;
