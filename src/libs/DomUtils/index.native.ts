@@ -2,7 +2,7 @@ import type GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => null;
 
-const addCSS = () => null;
+const addCSS = () => {};
 
 const getAutofilledInputStyle = () => null;
 
