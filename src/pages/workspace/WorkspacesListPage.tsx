@@ -84,14 +84,7 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({
-    policies = {},
-    allPolicyMembers = {},
-    reimbursementAccount = {},
-    userWallet = {
-        currentBalance: 0,
-    },
-}: WorkspaceListPageProps) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
