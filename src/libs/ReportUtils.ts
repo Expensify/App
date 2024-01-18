@@ -842,20 +842,17 @@ function doesReportBelongToWorkspace(report: Report, policyID: string, policyMem
 }
 
 /**
- * Given a collection of reports, return them sorted by the last read timestamp. Filters the sorted reports by a policy ID and policyMemberAccountIDs, if provided.
+ * Given a collection of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
-function sortReportsByLastRead(
-    reports: OnyxCollection<Report>,
-    reportMetadata: OnyxCollection<ReportMetadata>,
-    policyID?: string,
-    policyMemberAccountIDs: number[] = [],
-): Array<OnyxEntry<Report>> {
-    let reportsValues = Object.values(reports ?? {});
-    if (policyID) {
-        reportsValues = reportsValues.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
-    }
+function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyID = '', policyMemberAccountIDs: number[] = []) {
+    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
+}
 
-    return reportsValues
+/**
+ * Given a collection of reports, return them sorted by the last read timestamp.
+ */
+function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
+    return reports
         .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {
             const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
@@ -936,14 +933,21 @@ function findLastAccessedReport(
     openOnAdminRoom = false,
     reportMetadata: OnyxCollection<ReportMetadata> = {},
     policyID?: string,
-    policyMemberAccountIDs?: number[],
+    policyMemberAccountIDs: number[] = [],
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports, reportMetadata, policyID, policyMemberAccountIDs);
+
+    let reportsValues = Object.values(reports ?? {}) as Report[];
+
+    if (!!policyID || policyMemberAccountIDs.length > 0) {
+        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyID, policyMemberAccountIDs);
+    }
+
+    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {
