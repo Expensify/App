@@ -1,4 +1,4 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,13 +13,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
 type GetAssistanceOnyxProps = {
