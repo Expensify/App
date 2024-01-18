@@ -1,6 +1,7 @@
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
+import EmojiRenderer from './EmojiRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
@@ -22,5 +23,6 @@ export default {
     pre: PreRenderer,
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
+    'emoji': EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
 };
