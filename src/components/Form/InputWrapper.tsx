@@ -1,23 +1,11 @@
-import type {ComponentProps, ForwardedRef} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
-import type AddressSearch from '@components/AddressSearch';
-import type AmountTextInput from '@components/AmountTextInput';
-import type CheckboxWithLabel from '@components/CheckboxWithLabel';
-import type Picker from '@components/Picker';
-import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import FormContext from './FormContext';
-import type {BaseInputProps, InputWrapperProps} from './types';
+import type {InputWrapperProps, ValidInputs} from './types';
 
-// TODO: Add remaining inputs here once these components are migrated to Typescript:
-// CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
-type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
-
-function InputWrapper<TInput extends ValidInputs, TInputProps extends BaseInputProps>(
-    {InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput, TInputProps & ComponentProps<TInput>>,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function InputWrapper<TInput extends ValidInputs>({InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput>, ref: ForwardedRef<BaseTextInputRef>) {
     const {registerInput} = useContext(FormContext);
     // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to
     // use different methods like onPress. This introduced a problem that inputs that have the onBlur method were

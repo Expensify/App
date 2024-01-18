@@ -1,8 +1,23 @@
-import type {FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {ComponentProps, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type AddressSearch from '@components/AddressSearch';
+import type AmountTextInput from '@components/AmountTextInput';
+import type CheckboxWithLabel from '@components/CheckboxWithLabel';
+import type Picker from '@components/Picker';
+import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
+import type TextInput from '@components/TextInput';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type Form from '@src/types/onyx/Form';
 import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
+
+/**
+ * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
+ * when adding new inputs or removing old ones.
+ *
+ * TODO: Add remaining inputs here once these components are migrated to Typescript:
+ * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
+ */
+type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 
@@ -27,10 +42,11 @@ type BaseInputProps = {
     focus?: () => void;
 };
 
-type InputWrapperProps<TInput, TInputProps extends BaseInputProps> = TInputProps & {
-    InputComponent: TInput;
-    inputID: string;
-};
+type InputWrapperProps<TInput extends ValidInputs> = BaseInputProps &
+    ComponentProps<TInput> & {
+        InputComponent: TInput;
+        inputID: string;
+    };
 
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
@@ -74,4 +90,4 @@ type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, i
 
 type InputRefs = Record<string, MutableRefObject<BaseInputProps>>;
 
-export type {InputWrapperProps, FormProps, RegisterInput, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRefs, OnyxFormKeyWithoutDraft};
+export type {InputWrapperProps, FormProps, RegisterInput, ValidInputs, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRefs, OnyxFormKeyWithoutDraft};
