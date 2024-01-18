@@ -3,11 +3,10 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {RadioListItemProps} from './types';
+import {radioListItemPropTypes} from './selectionListPropTypes';
 
-function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: RadioListItemProps) {
+function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}) {
     const styles = useThemeStyles();
-
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
             <Tooltip
@@ -22,7 +21,7 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Rad
                 </Text>
             </Tooltip>
 
-            {!!item.alternateText && (
+            {Boolean(item.alternateText) && (
                 <Tooltip
                     shouldRender={showTooltip}
                     text={item.alternateText}
@@ -40,5 +39,6 @@ function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: Rad
 }
 
 RadioListItem.displayName = 'RadioListItem';
+RadioListItem.propTypes = radioListItemPropTypes;
 
 export default RadioListItem;
