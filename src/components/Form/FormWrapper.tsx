@@ -50,6 +50,7 @@ function FormWrapper({
     isSubmitActionDangerous = false,
     formID,
     scrollContextEnabled = false,
+    shouldHideFixErrorsAlert = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<ScrollView>(null);
@@ -99,7 +100,7 @@ function FormWrapper({
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
-                        isAlertVisible={!isEmptyObject(errors) || !!errorMessage || !isEmptyObject(formState?.errorFields)}
+                        isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
                         message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
@@ -114,24 +115,25 @@ function FormWrapper({
             </FormSubmit>
         ),
         [
-            children,
-            enabledWhenOffline,
-            errorMessage,
-            errors,
-            footerContent,
             formID,
+            style,
+            onSubmit,
+            children,
+            isSubmitButtonVisible,
+            submitButtonText,
+            errors,
             formState?.errorFields,
             formState?.isLoading,
-            isSubmitActionDangerous,
-            isSubmitButtonVisible,
-            onSubmit,
-            style,
-            styles.flex1,
+            shouldHideFixErrorsAlert,
+            errorMessage,
+            footerContent,
+            onFixTheErrorsLinkPressed,
             styles.mh0,
             styles.mt5,
+            styles.flex1,
             submitButtonStyles,
-            submitButtonText,
-            onFixTheErrorsLinkPressed,
+            enabledWhenOffline,
+            isSubmitActionDangerous,
         ],
     );
 

@@ -57,6 +57,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous?: boolean;
 
+    /** Should fix the errors alert be displayed when there is an error in the form */
+    shouldHideFixErrorsAlert?: boolean;
+
     /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
     scrollContextEnabled?: boolean;
 
