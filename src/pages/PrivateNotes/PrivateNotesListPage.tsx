@@ -64,6 +64,7 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
     function getMenuItem(item: NoteListItem) {
         return (
             <MenuItemWithTopDescription
+                key={item.title}
                 description={item.title}
                 title={item.note}
                 onPress={item.action}
