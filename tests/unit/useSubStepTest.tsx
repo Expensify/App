@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {Text} from 'react-native';
+import Text from '@components/Text';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 
