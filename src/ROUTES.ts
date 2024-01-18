@@ -481,7 +481,7 @@ const ROUTES = {
  */
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
-};
+} as const;
 
 export {getUrlWithBackToParam, HYBRID_APP_ROUTES};
 export default ROUTES;
@@ -503,8 +503,6 @@ type RouteIsPlainString = IsEqual<AllRoutes, string>;
  */
 type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
-type HybridAppRoute = {
-    [K in keyof typeof HYBRID_APP_ROUTES]: ExtractRouteName<(typeof HYBRID_APP_ROUTES)[K]>;
-}[keyof typeof HYBRID_APP_ROUTES];
+type HybridAppRoute = typeof HYBRID_APP_ROUTES[keyof typeof HYBRID_APP_ROUTES];
 
 export type {Route, HybridAppRoute};

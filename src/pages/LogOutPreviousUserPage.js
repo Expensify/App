@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InitialUrlContext from '@libs/InitialUrlContext';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';

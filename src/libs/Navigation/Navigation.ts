@@ -71,7 +71,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 /**
  * Function that generates dynamic urls from paths passed from OldDot
  */
-function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
+function parseHybridAppUrl(url: HybridAppRoute & Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
             return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
