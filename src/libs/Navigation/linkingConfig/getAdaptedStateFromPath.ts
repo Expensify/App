@@ -27,7 +27,7 @@ const addPolicyIdToRoute = (route: NavigationPartialRoute, policyID?: string) =>
         return routeWithPolicyID;
     }
 
-    routeWithPolicyID.params.policyID = policyID;
+    routeWithPolicyID.params = {policyID};
 
     return routeWithPolicyID;
 };

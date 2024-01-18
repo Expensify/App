@@ -13,6 +13,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import switchPolicyID from './switchPolicyID';
 import type {State, StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
@@ -309,6 +310,10 @@ function waitForProtectedRoutes() {
     });
 }
 
+function navigateWithSwitchPolicyID(policyID: string) {
+    return switchPolicyID(navigationRef.current, policyID);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -325,6 +330,7 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     closeFullScreen,
+    navigateWithSwitchPolicyID,
 };
 
 export {navigationRef};
