@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorOnyxProps = {
     selectedTab: OnyxEntry<string>;
@@ -51,6 +52,7 @@ function OnyxTabNavigator({id, selectedTab = '', children, onTabSelected = () =>
                 },
                 ...(screenListeners ?? {}),
             }}
+            screenOptions={defaultScreenOptions}
         >
             {children}
         </TopTab.Navigator>
