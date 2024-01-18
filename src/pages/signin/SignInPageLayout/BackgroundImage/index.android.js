@@ -1,8 +1,19 @@
 import {Image} from 'expo-image';
+import PropTypes from 'prop-types';
 import React from 'react';
 import AndroidBackgroundImage from '@assets/images/home-background--android.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
+
+const defaultProps = {
+    isSmallScreen: false,
+    onLoadEnd: () => {},
+};
+
+const propTypes = {
+    onLoadEnd: PropTypes.func,
+    ...defaultPropTypes,
+};
 
 function BackgroundImage(props) {
     const styles = useThemeStyles();
@@ -11,11 +22,13 @@ function BackgroundImage(props) {
             source={AndroidBackgroundImage}
             pointerEvents={props.pointerEvents}
             style={[styles.signInBackground, {width: props.width}]}
+            onLoadEnd={props.onLoadEnd}
         />
     );
 }
 
 BackgroundImage.displayName = 'BackgroundImage';
-BackgroundImage.propTypes = defaultPropTypes;
+BackgroundImage.propTypes = propTypes;
+BackgroundImage.defaultProps = defaultProps;
 
 export default BackgroundImage;

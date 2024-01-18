@@ -35,6 +35,7 @@ export default function () {
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: {isOffline: false},
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.IS_BOOT_SPLASH_AUTO_HIDE]: true,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,

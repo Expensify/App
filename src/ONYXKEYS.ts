@@ -27,6 +27,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Boolean flag set whenever the sidebar has loaded */
+    IS_BOOT_SPLASH_AUTO_HIDE: 'isBootSplashAutoHide',
+
     /** Boolean flag set whenever we are searching for reports in the server */
     IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -365,6 +368,7 @@ type OnyxValues = {
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
+    [ONYXKEYS.IS_BOOT_SPLASH_AUTO_HIDE]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;

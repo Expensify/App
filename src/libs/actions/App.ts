@@ -48,6 +48,14 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
+let isBootSplashAutoHide: boolean | null;
+Onyx.connect({
+    key: ONYXKEYS.IS_BOOT_SPLASH_AUTO_HIDE,
+    callback: (val) => (isBootSplashAutoHide = val),
+    initWithStoredValues: true,
+});
+
+
 let preferredLocale: string | null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -128,6 +136,23 @@ function setSidebarLoaded() {
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
+
+function preventBootSplashAutoHide() {
+    if (!isBootSplashAutoHide) {
+        return;
+    }
+
+    Onyx.set(ONYXKEYS.IS_BOOT_SPLASH_AUTO_HIDE, false);
+}
+
+function resetBootSplashAutoHide() {
+    if (isBootSplashAutoHide) {
+        return;
+    }
+
+    Onyx.set(ONYXKEYS.IS_BOOT_SPLASH_AUTO_HIDE, true);
+}
+
 
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
@@ -531,6 +556,8 @@ export {
     setLocale,
     setLocaleAndNavigate,
     setSidebarLoaded,
+    preventBootSplashAutoHide,
+    resetBootSplashAutoHide,
     setUpPoliciesAndNavigate,
     openProfile,
     redirectThirdPartyDesktopSignIn,

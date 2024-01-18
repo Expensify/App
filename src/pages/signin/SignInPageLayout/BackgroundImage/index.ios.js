@@ -9,14 +9,16 @@ import defaultPropTypes from './propTypes';
 
 const defaultProps = {
     isSmallScreen: false,
+    onLoadEnd: () => {},
 };
 
 const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
-
+    onLoadEnd: PropTypes.func,
     ...defaultPropTypes,
 };
+
 function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
