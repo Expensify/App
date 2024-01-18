@@ -350,7 +350,6 @@ function addActions(reportID: string, text = '', file?: File) {
         reportComment?: string;
         file?: File;
         timezone?: string;
-        shouldAllowActionableMentionWhispers?: boolean;
         clientCreatedTime?: string;
         isOldDotConciergeChat?: boolean;
     };
@@ -361,7 +360,6 @@ function addActions(reportID: string, text = '', file?: File) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
-        shouldAllowActionableMentionWhispers: true,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
