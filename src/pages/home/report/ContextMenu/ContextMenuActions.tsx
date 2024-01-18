@@ -401,7 +401,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (content) {
                     setClipboardMessage(content);
                 } else if (messageText) {
-                    Clipboard.setString(messageText)
+                    Clipboard.setString(messageText);
                 }
             }
 
