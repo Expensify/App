@@ -34,10 +34,8 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
     const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policyName);
 
     return (
-        /**
-         * @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
-         */
         <AttachmentModal
+            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             headerTitle={policyName}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
