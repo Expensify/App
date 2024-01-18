@@ -2,6 +2,7 @@ import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import * as Metrics from '@libs/Metrics';
+import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import * as Device from '@userActions/Device';
 import exposeGlobalMemoryOnlyKeysMethods from '@userActions/MemoryOnlyKeys/exposeGlobalMemoryOnlyKeysMethods';
 import CONST from '@src/CONST';
