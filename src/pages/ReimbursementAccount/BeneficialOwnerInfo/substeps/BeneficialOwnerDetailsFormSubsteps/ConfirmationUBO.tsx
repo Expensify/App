@@ -20,6 +20,7 @@ import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/o
 type ConfirmationUBOOnyxProps = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };

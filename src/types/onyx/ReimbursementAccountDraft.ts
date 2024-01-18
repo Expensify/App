@@ -60,7 +60,8 @@ type ReimbursementAccountProps = {
 };
 
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
-type BeneficialOwnerDraftData = Record<`beneficialOwner_${string}_${string}`, string>;
+type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
+type BeneficialOwnerDraftData = Record<BeneficialOwnerDataKey, string>;
 
 type ReimbursementAccountDraft = BankAccountStepProps &
     CompanyStepProps &

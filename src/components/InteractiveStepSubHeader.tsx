@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle, useState} from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -31,6 +32,7 @@ const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
     const styles = useThemeStyles();
+    const containerWidthStyle: ViewStyle = {minWidth: stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? '60%' : '100%'};
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
@@ -50,7 +52,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
     const amountOfUnions = stepNames.length - 1;
 
     return (
-        <View style={[styles.interactiveStepHeaderContainer, {minWidth: stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? '60%' : '100%'}]}>
+        <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
                 const isLockedStep = currentStep < index;

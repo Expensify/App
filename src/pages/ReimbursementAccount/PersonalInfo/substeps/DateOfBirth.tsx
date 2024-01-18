@@ -56,7 +56,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-            submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
+            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
