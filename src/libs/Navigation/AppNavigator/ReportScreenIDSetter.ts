@@ -58,7 +58,6 @@ const getLastAccessedReportID = (
 function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata}: ReportScreenIDSetterProps) {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
- 
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -72,7 +71,9 @@ function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, nav
             return;
         }
 
-        const policyMemberAccountIDs = policyMembers ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`] ?? {}) : [];
+        const policyMemberAccountIDs = policyMembers
+            ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`] ?? {}).map((accountID) => Number(accountID))
+            : [];
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
         const reportID = getLastAccessedReportID(

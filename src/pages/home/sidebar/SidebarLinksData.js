@@ -73,7 +73,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
 
-    const policyMemberAccountIDs = _.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`]);
+    const policyMemberAccountIDs = _.map(_.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`]), (accountID) => Number(accountID));
 
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
