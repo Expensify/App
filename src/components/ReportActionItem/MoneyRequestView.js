@@ -313,8 +313,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
