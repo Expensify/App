@@ -3400,16 +3400,16 @@ function cancelPayment(expenseReport, chatReport) {
         },
         ...(chatReport.reportID
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        ...chatReport,
-                        hasOutstandingChildRequest: true,
-                        iouReportID: expenseReport.reportID,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          ...chatReport,
+                          hasOutstandingChildRequest: true,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -3444,15 +3444,15 @@ function cancelPayment(expenseReport, chatReport) {
         },
         ...(chatReport.reportID
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        hasOutstandingChildRequest: false,
-                        iouReportID: 0,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: false,
+                          iouReportID: 0,
+                      },
+                  },
+              ]
             : []),
     ];
 
