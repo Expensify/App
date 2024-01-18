@@ -119,6 +119,7 @@ type Report = {
     welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
+    ownerEmail?: string;
     participantAccountIDs?: number[];
     visibleChatMemberAccountIDs?: number[];
     total?: number;

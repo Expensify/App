@@ -3494,105 +3494,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     API.write('SubmitReport', parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxEntry<OnyxTypes.Report>) {
-    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID);
-    const policy = ReportUtils.getPolicy(chatReport?.policyID);
-    const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticReportAction.reportActionID]: {
-                    ...(optimisticReportAction as OnyxTypes.ReportAction),
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-            value: {
-                ...expenseReport,
-                lastMessageText: optimisticReportAction.message?.[0]?.text ?? '',
-                lastMessageHtml: optimisticReportAction.message?.[0]?.html ?? '',
-                stateNum: isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN,
-            },
-        },
-    ];
-
-    if (chatReport?.reportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                hasOutstandingChildRequest: true,
-                iouReportID: expenseReport.reportID,
-            },
-        });
-    }
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticReportAction.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [expenseReport.reportActionID ?? '']: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-            value: {
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            },
-        },
-    ];
-
-    if (chatReport?.reportID) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                hasOutstandingChildRequest: false,
-                iouReportID: '0',
-            },
-        });
-    }
-
-    type CancelPaymentParams = {
-        iouReportID: string;
-        chatReportID?: string;
-        managerAccountID?: number;
-        reportActionID: string;
-    };
-
-    const parameters: CancelPaymentParams = {
-        iouReportID: expenseReport.reportID,
-        chatReportID: chatReport?.reportID,
-        managerAccountID: expenseReport.managerID,
-        reportActionID: optimisticReportAction.reportActionID,
-    };
-
-    API.write('CancelPayment', parameters, {optimisticData, successData, failureData});
-}
-
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report) {
     const recipient = {accountID: iouReport.ownerAccountID};
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
@@ -3862,5 +3763,4 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
-    cancelPayment,
 };
