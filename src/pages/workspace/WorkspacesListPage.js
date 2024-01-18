@@ -129,17 +129,13 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
      * @returns {JSX}
      */
     const getMenuItem = useCallback(
-        ({item, index}) => {
-            const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-
-            const policyID = item.policyID;
-
+        ({item}) => {
             const threeDotsMenuItems = [
                 {
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
-                        setPolicyIDToDelete(policyID);
+                        setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
                     },
@@ -158,7 +154,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
             return (
                 <OfflineWithFeedback
-                    key={`${keyTitle}_${index}`}
+                    key={`${item.policyID}`}
                     pendingAction={item.pendingAction}
                     errorRowStyles={styles.ph5}
                     onClose={item.dismissError}
@@ -167,12 +163,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     <PressableWithoutFeedback
                         accessibilityRole="button"
                         style={[styles.mh5, styles.mb3]}
-                        onPress={() => {
-                            item.action();
-                        }}
+                        disabled={item.disabled}
+                        onPress={() => item.action()}
                     >
                         <WorkspacesListRow
-                            title={keyTitle}
+                            title={item.title}
                             menuItems={threeDotsMenuItems}
                             workspaceIcon={item.icon}
                             ownerAccountID={item.ownerAccountID}
@@ -314,9 +309,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             title={translate('workspace.emptyWorkspace.title')}
                             subtitle={translate('workspace.emptyWorkspace.subtitle')}
                             ctaText={translate('workspace.new.newWorkspace')}
+                            ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
                             illustration={LottieAnimations.WorkspacePlanet}
                             illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                            // We use this style to vertically center the illustration, as the original illustration is not centered
+                            illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
                         />
                     </View>
                 </ScrollView>

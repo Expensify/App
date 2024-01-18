@@ -20,8 +20,7 @@ function setCodesAreCopied() {
 
 function quitAndNavigateBack(backTo?: Route) {
     clearTwoFactorAuthData();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    Navigation.goBack(backTo || '');
+    Navigation.goBack(backTo);
 }
 
 export {clearTwoFactorAuthData, setTwoFactorAuthStep, quitAndNavigateBack, setCodesAreCopied};

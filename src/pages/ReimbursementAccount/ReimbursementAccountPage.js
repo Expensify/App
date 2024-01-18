@@ -350,7 +350,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
-        const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -361,7 +360,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     BankAccounts.setBankAccountSubStep(null);
                     BankAccounts.setPlaidEvent(null);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
@@ -388,26 +387,14 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 } else if (!isOffline && achData.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                 } else {
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }
                 break;
 
             default:
-                Navigation.goBack(backTo);
+                Navigation.goBack();
         }
     };
-
-    if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
-        return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                />
-            </ScreenWrapper>
-        );
-    }
 
     const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
@@ -424,6 +411,18 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 isSubmittingVerificationsData={isSubmittingVerificationsData}
                 onBackButtonPress={goBack}
             />
+        );
+    }
+
+    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
+        return (
+            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <FullPageNotFoundView
+                    shouldShow
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                />
+            </ScreenWrapper>
         );
     }
 
@@ -462,7 +461,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 continue={continueFunction}
                 policyName={policyName}
                 onBackButtonPress={() => {
-                    Navigation.goBack(lodashGet(route.params, 'backTo', ROUTES.HOME));
+                    Navigation.goBack();
                 }}
             />
         );

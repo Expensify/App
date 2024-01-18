@@ -139,22 +139,22 @@ function WorkspaceReimburseView(props) {
                 icon={Illustrations.TrackShoe}
                 isCentralPane
             >
-                <View style={[styles.mv3]}>
+                <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
+                        shouldShowErrorMessages={false}
+                    >
+                        <MenuItemWithTopDescription
+                            title={currentRatePerUnit}
+                            description={translate('workspace.reimburse.trackDistanceRate')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
+                            wrapperStyle={[styles.mhn5, styles.wAuto]}
+                            brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        />
+                    </OfflineWithFeedback>
                 </View>
-                <OfflineWithFeedback
-                    pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
-                    shouldShowErrorMessages={false}
-                >
-                    <MenuItemWithTopDescription
-                        title={currentRatePerUnit}
-                        description={translate('workspace.reimburse.trackDistanceRate')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy.id))}
-                        wrapperStyle={[styles.mhn5, styles.wAuto]}
-                        brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors') || lodashGet(distanceCustomRate, 'errors')) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                    />
-                </OfflineWithFeedback>
             </Section>
 
             <WorkspaceReimburseSection

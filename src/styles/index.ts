@@ -1665,6 +1665,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
+        emptyWorkspaceIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2317,9 +2322,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportActionContextMenuMiniButton: {
-            ...spacing.p1,
-            ...spacing.mv1,
-            ...spacing.mh1,
+            height: 28,
+            width: 28,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
             ...{borderRadius: variables.buttonBorderRadius},
         },
 
@@ -3315,10 +3321,6 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 16,
         },
 
-        cardSectionIllustrationContainer: {
-            padding: 0,
-        },
-
         cardSectionIllustration: {
             width: 'auto',
             height: variables.sectionIllustrationHeight,
@@ -3407,8 +3409,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         miniQuickEmojiReactionText: {
-            fontSize: 15,
-            lineHeight: 20,
+            fontSize: 18,
+            lineHeight: 22,
             verticalAlign: 'middle',
         },
 

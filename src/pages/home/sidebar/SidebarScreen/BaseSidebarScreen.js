@@ -28,10 +28,9 @@ function BaseSidebarScreen(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}, styles.pb0]}
             testID={BaseSidebarScreen.displayName}
             includePaddingTop={false}
-            shouldDisableSafeAreaPaddingBottom
         >
             {({insets}) => (
                 <View style={[styles.flex1]}>

@@ -8,14 +8,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import dismissModal from './dismissModal';
-import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
-import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
+import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
+import getMatchingCentralPaneRouteForState from './linkingConfig/getMatchingCentralPaneRouteForState';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
 type ActionPayloadParams = {

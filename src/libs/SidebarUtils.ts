@@ -121,7 +121,7 @@ function getOrderedReportIDs(
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportAction[]>,
     currentPolicyID = '',
-    policyMembersAccountIDs: string[] = [],
+    policyMemberAccountIDs: number[] = [],
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
@@ -134,7 +134,7 @@ function getOrderedReportIDs(
             priorityMode,
             allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length ?? 1,
             currentPolicyID,
-            policyMembersAccountIDs,
+            policyMemberAccountIDs,
         ],
         (key, value: unknown) => {
             /**
@@ -186,8 +186,8 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
-    if (currentPolicyID || policyMembersAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, currentPolicyID, policyMembersAccountIDs));
+    if (currentPolicyID || policyMemberAccountIDs.length > 0) {
+        reportsToDisplay = reportsToDisplay.filter((report) => ReportUtils.doesReportBelongToWorkspace(report, currentPolicyID, policyMemberAccountIDs));
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {

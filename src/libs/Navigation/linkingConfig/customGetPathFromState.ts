@@ -1,8 +1,8 @@
 import {getPathFromState} from '@react-navigation/native';
+import getPolicyIdFromState from '@libs/Navigation/getPolicyIdFromState';
+import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
-import getPolicyIdFromState from './getPolicyIdFromState';
-import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
-import type {RootStackParamList, State} from './types';
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
     const path = getPathFromState(state, options);

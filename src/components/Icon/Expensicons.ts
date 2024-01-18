@@ -28,6 +28,8 @@ import Car from '@assets/images/car.svg';
 import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
+import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
@@ -272,4 +274,6 @@ export {
     Podcast,
     Linkedin,
     Instagram,
+    ChatBubbleAdd,
+    ChatBubbleUnread,
 };
