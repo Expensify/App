@@ -2216,12 +2216,20 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
 /**
  * Build invited usernames for admin chat threads
  * @param parentReportAction
+ * @param parentReportActionMessage
  */
-function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>) {
+function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
     if (!parentReportAction || !parentReportAction.originalMessage) {
         return '';
     }
     const originalMessage = parentReportAction.originalMessage as ChangeLog;
+
+    const participantAccountIDs = originalMessage.targetAccountIDs ?? [];
+    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
+    const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
+    if (!users) {
+        return parentReportActionMessage;
+    }
     const actionType = parentReportAction.actionName;
     const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
 
@@ -2231,9 +2239,6 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     const verb = Localize.translateLocal(verbKey);
     const preposition = Localize.translateLocal(prepositionKey);
 
-    const participantAccountIDs = originalMessage.targetAccountIDs ?? [];
-    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
-    const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     const roomName = originalMessage.roomName ?? '';
 
     return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
@@ -2262,7 +2267,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
-            return getAdminRoomInvitedParticipants(parentReportAction);
+            return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
