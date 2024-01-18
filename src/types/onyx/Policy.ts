@@ -82,6 +82,9 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** TODO: Add comment */
+    isPolicyUpdating: boolean;
 };
 
 export default Policy;
