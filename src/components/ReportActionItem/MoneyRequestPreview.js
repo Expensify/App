@@ -57,6 +57,9 @@ const propTypes = {
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: refPropTypes,
 
+    /** Callback for measuring child and running a defined callback/action later */
+    onShowContextMenu: PropTypes.func,
+
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
@@ -112,6 +115,7 @@ const defaultProps = {
     onPreviewPressed: null,
     action: undefined,
     contextMenuAnchor: undefined,
+    onShowContextMenu: () => {},
     checkIfContextMenuActive: () => {},
     containerStyles: [],
     walletTerms: {},
@@ -185,7 +189,7 @@ function MoneyRequestPreview(props) {
     };
 
     const showContextMenu = (event) => {
-        showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
+        props.onShowContextMenu(() => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive));
     };
 
     const getPreviewHeaderText = () => {

@@ -69,6 +69,9 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
+    /** Callback for measuring child and running a defined callback/action later */
+    onShowContextMenu: PropTypes.func,
+
     /* Onyx Props */
     ...withLocalizePropTypes,
 
@@ -113,7 +116,7 @@ function TaskPreview(props) {
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                onLongPress={(event) => props.onShowContextMenu(() => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}

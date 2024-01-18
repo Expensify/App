@@ -43,6 +43,9 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
+    /** Callback for measuring child and running a defined callback/action later */
+    onShowContextMenu: PropTypes.func,
+
     /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: reportPropTypes,
@@ -69,6 +72,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
+    onShowContextMenu: () => {},
     chatReport: {},
     iouReport: {},
     reportActions: {},
@@ -83,6 +87,7 @@ function MoneyRequestAction({
     requestReportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
+    onShowContextMenu,
     checkIfContextMenuActive,
     chatReport,
     iouReport,
@@ -139,6 +144,7 @@ function MoneyRequestAction({
             isBillSplit={isSplitBillAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
+            onShowContextMenu={onShowContextMenu}
             checkIfContextMenuActive={checkIfContextMenuActive}
             shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
             onPreviewPressed={onMoneyRequestPreviewPressed}

@@ -104,6 +104,9 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
+    /** Callback for measuring child and running a defined callback/action later */
+    onShowContextMenu: PropTypes.func,
+
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
@@ -116,6 +119,7 @@ const defaultProps = {
     containerStyles: [],
     iouReport: {},
     checkIfContextMenuActive: () => {},
+    onShowContextMenu: () => {},
     session: {
         accountID: null,
     },
@@ -269,7 +273,7 @@ function ReportPreview(props) {
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                    onLongPress={(event) => props.onShowContextMenu(() => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive))}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role="button"
                     accessibilityLabel={props.translate('iou.viewDetails')}

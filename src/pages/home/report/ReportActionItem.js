@@ -386,6 +386,7 @@ function ReportActionItem(props) {
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
+                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={props.displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -400,6 +401,7 @@ function ReportActionItem(props) {
                     containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
+                    onShowContextMenu={handleShowContextMenu}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
@@ -420,6 +422,7 @@ function ReportActionItem(props) {
                         policyID={ReportUtils.getRootParentReport(props.report).policyID}
                         action={props.action}
                         isHovered={hovered}
+                        onShowContextMenu={handleShowContextMenu}
                         contextMenuAnchor={popoverAnchorRef}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     />
