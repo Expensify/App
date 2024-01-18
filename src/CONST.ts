@@ -667,6 +667,11 @@ const CONST = {
             PRIVATE: 'private',
             RESTRICTED: 'restricted',
         },
+        // State used for offline handling of partial payments & approvals
+        OPTIMISTIC_FLOW_STATUS: {
+            PARTIAL: 'partial',
+            FULL: 'full',
+        },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 79,

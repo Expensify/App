@@ -28,6 +28,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {isReportApproved} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
@@ -105,6 +106,9 @@ const propTypes = {
 
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
+
+    /** Optimistic status of the report used in partial payment/approval flow when there are some money requests on hold */
+    optimisticFlowStatus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -124,6 +128,7 @@ const defaultProps = {
     transaction: {},
     shouldShowPendingConversionMessage: false,
     isWhisper: false,
+    optimisticFlowStatus: false,
 };
 
 function MoneyRequestPreview(props) {
@@ -162,6 +167,8 @@ function MoneyRequestPreview(props) {
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isOnHold = TransactionUtils.isOnHold(props.transaction);
+    const isPartialOnHold = props.optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL && isOnHold;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
@@ -210,12 +217,14 @@ function MoneyRequestPreview(props) {
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isPaidGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport) && !isPartialOnHold) {
             message += ` • ${translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
         } else if (props.iouReport.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
+        } else if (isOnHold && props.optimisticFlowStatus !== CONST.REPORT.OPTIMISTIC_FLOW_STATUS.FULL) {
+            message += ` • ${translate('iou.hold')}`;
         }
         return message;
     };
@@ -280,9 +289,9 @@ function MoneyRequestPreview(props) {
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU && !isPartialOnHold ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {!isSettled && hasFieldErrors && (
+                                {((!isSettled && (hasFieldErrors || isOnHold)) || isPartialOnHold) && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
@@ -302,7 +311,7 @@ function MoneyRequestPreview(props) {
                                     >
                                         {displayAmount}
                                     </Text>
-                                    {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                    {ReportUtils.isSettled(props.iouReport.reportID) && !isPartialOnHold && !props.isBillSplit && (
                                         <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
@@ -362,7 +371,12 @@ function MoneyRequestPreview(props) {
             onLongPress={showContextMenu}
             accessibilityLabel={props.isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, ...props.containerStyles, shouldDisableOnPress && styles.cursorDefault]}
+            style={[
+                styles.moneyRequestPreviewBox,
+                ...props.containerStyles,
+                shouldDisableOnPress && styles.cursorDefault,
+                (isSettled || ReportUtils.isReportApproved(props.iouReport)) && props.optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL && styles.offlineFeedback.pending,
+            ]}
         >
             {childContainer}
         </PressableWithFeedback>

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -43,6 +44,7 @@ type DecisionModalProps = {
 
 function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
 
     return (
@@ -65,7 +67,10 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
-                                <Icon src={Expensicons.Close} />
+                                <Icon
+                                    src={Expensicons.Close}
+                                    fill={theme.icon}
+                                />
                             </PressableWithoutFeedback>
                         </Tooltip>
                     </View>

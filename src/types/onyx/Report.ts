@@ -160,6 +160,9 @@ type Report = {
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, string>;
+
+    /** Optimistic status used for handling of partial payment/approval flow in offline */
+    optimisticFlowStatus?: ValueOf<typeof CONST.REPORT.OPTIMISTIC_FLOW_STATUS>;
 };
 
 export default Report;

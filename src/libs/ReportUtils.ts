@@ -2050,6 +2050,22 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
 }
 
 /**
+ * Return held and full amount formatted with used currency
+ */
+function getNonHeldAmount(report: Report): number {
+    const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
+
+    const nonHeldAmount = transactions.reduce((previousValue, transaction) => {
+        if (!TransactionUtils.isOnHold(transaction)) {
+            return previousValue + transaction.amount * -1;
+        }
+        return previousValue;
+    }, 0);
+
+    return nonHeldAmount;
+}
+
+/**
  * Get money request message for an IOU report
  *
  * @param [reportAction] This can be either a report preview action or the IOU action
@@ -2092,7 +2108,11 @@ function getReportPreviewMessage(
         }
     }
 
-    const totalAmount = getMoneyRequestReimbursableTotal(report);
+    let totalAmount = getMoneyRequestReimbursableTotal(report);
+    if (report && report.optimisticFlowStatus === CONST.REPORT.OPTIMISTIC_FLOW_STATUS.PARTIAL) {
+        totalAmount = getNonHeldAmount(report);
+    }
+
     const policyName = getPolicyName(report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
@@ -4409,19 +4429,20 @@ function hasOnlyHeldExpenses(iouReportID: string): boolean {
  * Return held and full amount formatted with used currency
  */
 function getNonHeldAndFullAmount(iouReportID: string): string[] {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    const usedCurrency = transactions[0].currency;
+    // const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    // const usedCurrency = transactions[0].currency;
+    //
+    // let fullAmount = 0;
+    // const nonheldAmount = transactions.reduce((previousValue, transaction) => {
+    //     fullAmount += transaction.amount * -1;
+    //     if (!TransactionUtils.isOnHold(transaction)) {
+    //         return previousValue + transaction.amount * -1;
+    //     }
+    //     return previousValue;
+    // }, 0);
 
-    let fullAmount = 0;
-    const nonheldAmount = transactions.reduce((previousValue, transaction) => {
-        fullAmount += transaction.amount * -1;
-        if (!TransactionUtils.isOnHold(transaction)) {
-            return previousValue + transaction.amount * -1;
-        }
-        return previousValue;
-    }, 0);
-
-    return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
+    // return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
+    return ['Unheld', 'All'];
 }
 
 /**

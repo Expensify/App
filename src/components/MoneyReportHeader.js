@@ -124,7 +124,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && (isPolicyAdmin || isManager || isPayer)) {
             setIsHoldMenuVisible(true);
         } else {
-            IOU.payMoneyRequest(type, chatReport, moneyRequestReport);
+            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, false);
         }
     };
 

@@ -95,6 +95,7 @@ function MoneyRequestAction({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isSplitBillAction = lodashGet(action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+    const optimisticFlowStatus = lodashGet(iouReport, 'optimisticFlowStatus', null);
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
@@ -145,6 +146,7 @@ function MoneyRequestAction({
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, ...style]}
             isHovered={isHovered}
             isWhisper={isWhisper}
+            optimisticFlowStatus={optimisticFlowStatus}
         />
     );
 }
