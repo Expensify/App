@@ -37,7 +37,9 @@ import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type MoneyRequestPreviewOnyxProps = {
@@ -229,11 +231,8 @@ function MoneyRequestPreview({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const {amount, currency} = ReportUtils.getTransactionDetails(action.originalMessage as OnyxTypes.Transaction) ?? {};
-
-        if (isDistanceRequest) {
-            return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(action.originalMessage as OnyxTypes.Transaction), currency);
-        }
+        const iouOriginalMessage: IOUMessage | EmptyObject = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : {};
+        const {amount = 0, currency = CONST.CURRENCY.USD} = iouOriginalMessage;
 
         return CurrencyUtils.convertToDisplayString(amount, currency);
     };

@@ -39,6 +39,9 @@ import ReportActionItemImage from './ReportActionItemImage';
 type MoneyRequestViewTransactionOnyxProps = {
     /** The transaction associated with the transactionThread */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Violations detected in this transaction */
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
 
 type MoneyRequestViewOnyxPropsWithoutTransaction = {
@@ -56,9 +59,6 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
 
     /** The actions from the parent report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** Violations detected in this transaction */
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
 
 type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutTransaction & {
@@ -387,14 +387,6 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
     },
-    transactionViolations: {
-        key: ({report}) => {
-            const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-            const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
-            const transactionID = originalMessage?.IOUTransactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-        },
-    },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transaction: {
@@ -403,6 +395,14 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
                 const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            },
+        },
+        transactionViolations: {
+            key: ({report}) => {
+                const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+                const transactionID = originalMessage?.IOUTransactionID ?? 0;
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
         },
     })(MoneyRequestView),
