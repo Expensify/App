@@ -1660,6 +1660,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
+        emptyWorkspaceIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -3308,10 +3313,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             marginBottom: 20,
             marginHorizontal: 16,
-        },
-
-        cardSectionIllustrationContainer: {
-            padding: 0,
         },
 
         cardSectionIllustration: {

@@ -50,9 +50,6 @@ type ScreenWrapperProps = {
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom?: boolean;
 
-    /** This overrides the above prop. It force disable the safe area bottom padding. */
-    shouldDisableSafeAreaPaddingBottom?: boolean;
-
     /** Whether to include padding top */
     includePaddingTop?: boolean;
 
@@ -106,7 +103,6 @@ function ScreenWrapper(
         headerGapStyles,
         children,
         shouldShowOfflineIndicator = true,
-        shouldDisableSafeAreaPaddingBottom = false,
         offlineIndicatorStyle,
         style,
         shouldDismissKeyboardBeforeClose = true,
@@ -206,7 +202,7 @@ function ScreenWrapper(
                 }
 
                 // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                if (!shouldDisableSafeAreaPaddingBottom && (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator))) {
+                if (includeSafeAreaPaddingBottom || (isOffline && shouldShowOfflineIndicator)) {
                     paddingStyle.paddingBottom = paddingBottom;
                 }
 

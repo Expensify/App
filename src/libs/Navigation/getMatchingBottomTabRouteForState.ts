@@ -17,7 +17,7 @@ function getMatchingBottomTabRouteForState(state: State<RootStackParamList>): Na
     if (tabName === SCREENS.WORKSPACE.INITIAL) {
         return {name: tabName, params: topmostCentralPaneRoute.params};
     }
-    return {name: tabName as BottomTabName} || defaultRoute;
+    return {name: tabName};
 }
 
 export default getMatchingBottomTabRouteForState;

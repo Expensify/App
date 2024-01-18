@@ -60,7 +60,7 @@ function WorkspaceBillsFirstSection(props) {
                     link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },
             ]}
-            containerStyles={[styles.cardSection]}
+            containerStyles={[styles.cardSectionContainer]}
         >
             <View style={[styles.mv3]}>
                 <Text>
