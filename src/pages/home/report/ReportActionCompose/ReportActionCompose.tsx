@@ -1,8 +1,8 @@
 import {PortalHost} from '@gorhom/portal';
-import lodashGet from 'lodash/get';
 import type {SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {MeasureInWindowOnSuccessCallback, View} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
@@ -21,7 +21,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import compose from '@libs/compose';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
@@ -37,6 +36,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import SendButton from './SendButton';
@@ -51,9 +51,9 @@ type ComposerRef = {
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
-    onSelectionChange: (event: any) => void;
-    triggerHotkeyActions: (event: any) => void;
-    updateShouldShowSuggestionMenuToFalse: () => void;
+    onSelectionChange: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    triggerHotkeyActions: (event: KeyboardEvent) => void;
+    updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => string[];
 };
@@ -99,18 +99,6 @@ type ReportActionComposeProps = {
 } & ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps;
 
-// const defaultProps = {
-//     report: {},
-//     blockedFromConcierge: {},
-//     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-//     isComposerFullSize: false,
-//     pendingAction: null,
-//     shouldShowComposeInput: true,
-//     listHeight: 0,
-//     isReportReadyForDisplay: true,
-//     ...withCurrentUserPersonalDetailsDefaultProps,
-// };
-
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -119,17 +107,17 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
     blockedFromConcierge,
-    currentUserPersonalDetails,
+    currentUserPersonalDetails = {},
     disabled,
-    isComposerFullSize,
+    isComposerFullSize = false,
     onSubmit,
     pendingAction,
     report,
     reportID,
     reportActions,
-    listHeight,
-    shouldShowComposeInput,
-    isReportReadyForDisplay,
+    listHeight = 0,
+    shouldShowComposeInput = true,
+    isReportReadyForDisplay = true,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -313,7 +301,7 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback((e) => {
+    const onBlur = useCallback((e: FocusEvent) => {
         setIsFocused(false);
         if (suggestionsRef.current) {
             suggestionsRef.current.resetSuggestions();
@@ -352,7 +340,7 @@ function ReportActionCompose({
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
-    const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
+    const hasReportRecipient = !isEmptyObject(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
 
@@ -403,6 +391,7 @@ function ReportActionCompose({
                             {({displayFileInModal}) => (
                                 <>
                                     <AttachmentPickerWithMenuItems
+                                        // @ts-expect-error TODO:  Remove this once AttachmentPickerWithMenuItems (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                                         displayFileInModal={displayFileInModal}
                                         reportID={reportID}
                                         report={report}
@@ -455,11 +444,11 @@ function ReportActionCompose({
                                         onValueChange={validateCommentMaxLength}
                                     />
                                     <ReportDropUI
-                                        onDrop={(e) => {
+                                        onDrop={(e: DragEvent) => {
                                             if (isAttachmentPreviewActive) {
                                                 return;
                                             }
-                                            const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+                                            const data = e.dataTransfer?.items[0];
                                             displayFileInModal(data);
                                         }}
                                     />
@@ -500,14 +489,13 @@ function ReportActionCompose({
 
 ReportActionCompose.displayName = 'ReportActionCompose';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
+export default withCurrentUserPersonalDetails(
+    withOnyx<ReportActionComposeProps, ReportActionComposeOnyxProps>({
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         },
-    }),
-)(ReportActionCompose);
+    })(ReportActionCompose),
+);
