@@ -350,7 +350,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={lodashGet(policyTag, 'name', translate('common.tag'))}
-                            title={PolicyUtils.unescapeColon(transactionTag)}
+                            title={PolicyUtils.getCleanedTagName(transactionTag)}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}

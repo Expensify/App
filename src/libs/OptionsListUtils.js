@@ -948,7 +948,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 function getTagsOptions(tags) {
     return _.map(tags, (tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const cleanedName = PolicyUtils.unescapeColon(tag.name);
+        const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
         return {
             text: cleanedName,
             keyForList: tag.name,
@@ -998,7 +998,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchTags = _.filter(enabledTags, (tag) => PolicyUtils.unescapeColon(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const searchTags = _.filter(enabledTags, (tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section

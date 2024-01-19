@@ -158,7 +158,7 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 /**
  * Gets the tag from policy tags, defaults to the first if no key is provided.
  */
-function getTag(policyTags: OnyxCollection<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTags | undefined | EmptyObject {
+function getTag(policyTags: OnyxEntry<Record<string, PolicyTags>>, tagKey?: keyof typeof policyTags): PolicyTags | undefined | EmptyObject {
     if (isEmptyObject(policyTags)) {
         return {};
     }
@@ -195,7 +195,9 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
 }
 
 // This is to remove unnecessary escaping backslash in tag name sent from backend for "Parent: Child" type of tags.
-const unescapeColon = (tag: string) => tag?.replace(/\\{1,2}:/g, ':');
+function getCleanedTagName(tag: string) {
+    return tag?.replace(/\\{1,2}:/g, ':');
+}
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -223,7 +225,7 @@ export {
     getTag,
     getTagListName,
     getTagList,
-    unescapeColon,
+    getCleanedTagName,
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,
