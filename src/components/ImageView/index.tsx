@@ -1,5 +1,5 @@
-import type {MouseEvent as ReactMouseEvent, SyntheticEvent} from 'react';
-import React, { useCallback, useEffect, useRef, useState} from 'react';
+import type {SyntheticEvent} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
