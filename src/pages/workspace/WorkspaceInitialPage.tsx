@@ -1,13 +1,14 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,66 +26,66 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {policyDefaultProps, policyPropTypes} from './withPolicy';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-const propTypes = {
-    ...policyPropTypes,
+type WorkspaceMenuItems = {
+    translationKey: TranslationPaths;
+    icon: IconAsset;
+    action: () => void;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
 
-    /** All reports shared with the user (coming from Onyx) */
-    reports: PropTypes.objectOf(reportPropTypes),
+type WorkspaceInitialPageOnyxProps = {
+    /** All reports shared with the user */
+    reports: OnyxCollection<OnyxTypes.Report>;
 
     /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };
 
-const defaultProps = {
-    reports: {},
-    ...policyDefaultProps,
-    reimbursementAccount: {},
-};
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
-/**
- * @param {string} policyID
- */
-function openEditor(policyID) {
+function openEditor(policyID: string) {
     Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policyID));
 }
 
-/**
- * @param {string} policyID
- */
-function dismissError(policyID) {
+function dismissError(policyID: string) {
     Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage(props) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reportsProp, policyMembers, reimbursementAccount}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
-    const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
+    const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
+    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
 
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
-    const policyID = useMemo(() => policy.id, [policy]);
+    const policyID = useMemo(() => policy?.id, [policy]);
     const [policyReports, adminsRoom, announceRoom] = useMemo(() => {
-        const reports = [];
-        let admins;
-        let announce;
-        _.each(props.reports, (report) => {
+        const reports: OnyxTypes.Report[] = [];
+        let admins: OnyxTypes.Report | undefined;
+        let announce: OnyxTypes.Report | undefined;
+
+        Object.values(reportsProp ?? {}).forEach((report) => {
             if (!report || report.policyID !== policyID) {
                 return;
             }
@@ -104,101 +105,97 @@ function WorkspaceInitialPage(props) {
                 announce = report;
             }
         });
-        return [reports, admins, announce];
-    }, [policyID, props.reports]);
 
-    /**
-     * Call the delete policy and hide the modal
-     */
+        return [reports, admins, announce];
+    }, [policyID, reportsProp]);
+
+    /** Call the delete policy and hide the modal */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports, policy.name);
+        Policy.deleteWorkspace(policyID ?? '', policyReports, policy?.name ?? '');
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-    }, [policyID, policy.name, policyReports]);
+    }, [policyID, policy?.name, policyReports]);
 
     useEffect(() => {
-        const policyDraftId = lodashGet(props.policyDraft, 'id', null);
+        const policyDraftId = policyDraft?.id;
+
         if (!policyDraftId) {
             return;
         }
 
-        App.savePolicyDraftByNewWorkspace(props.policyDraft.id, props.policyDraft.name, '', props.policyDraft.makeMeAdmin);
+        App.savePolicyDraftByNewWorkspace(policyDraft.id, policyDraft.name, '', policyDraft.makeMeAdmin);
         // We only care when the component renders the first time
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (!isCurrencyModalOpen || policy.outputCurrency !== CONST.CURRENCY.USD) {
+        if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
             return;
         }
         setIsCurrencyModalOpen(false);
-    }, [policy.outputCurrency, isCurrencyModalOpen]);
+    }, [policy?.outputCurrency, isCurrencyModalOpen]);
 
-    /**
-     * Call update workspace currency and hide the modal
-     */
+    /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policyID, policy.name, CONST.CURRENCY.USD);
+        Policy.updateGeneralSettings(policyID ?? '', policy?.name ?? '', CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
-        ReimbursementAccount.navigateToBankAccountRoute(policyID);
-    }, [policyID, policy.name]);
+        ReimbursementAccount.navigateToBankAccountRoute(policyID ?? '');
+    }, [policyID, policy?.name]);
 
-    const policyName = lodashGet(policy, 'name', '');
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
-    const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
-    const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
-    const menuItems = [
+    const policyName = policy?.name ?? '';
+    const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
+    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
+    const menuItems: WorkspaceMenuItems[] = [
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)))),
-            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy?.id ?? '')))),
+            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy?.id ?? '')))),
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)))),
-            error: hasCustomUnitsError,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy?.id ?? '')))),
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy?.id ?? '')))),
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy?.id ?? '')))),
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy?.id ?? '')))),
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)))),
-            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy?.id ?? '')))),
+            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
             action: () =>
-                policy.outputCurrency === CONST.CURRENCY.USD
+                policy?.outputCurrency === CONST.CURRENCY.USD
                     ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRouteWithoutParams())))()
                     : setIsCurrencyModalOpen(true),
-            brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
-    const threeDotsMenuItems = useMemo(() => {
+    const threeDotsMenuItems: ThreeDotsMenuItem[] = useMemo(() => {
         const items = [
             {
                 icon: Expensicons.Trashcan,
@@ -227,7 +224,7 @@ function WorkspaceInitialPage(props) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        _.isEmpty(policy) ||
+        isEmptyObject(policy) ||
         !PolicyUtils.isPolicyAdmin(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
@@ -241,7 +238,7 @@ function WorkspaceInitialPage(props) {
                 <FullPageNotFoundView
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     shouldShow={shouldShowNotFoundPage}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.common.workspace')}
@@ -257,9 +254,9 @@ function WorkspaceInitialPage(props) {
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
-                            pendingAction={policy.pendingAction}
-                            onClose={() => dismissError(policy.id)}
-                            errors={policy.errors}
+                            pendingAction={policy?.pendingAction}
+                            onClose={() => dismissError(policy?.id ?? '')}
+                            errors={policy?.errors}
                             errorRowStyles={[styles.ph5, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
@@ -269,14 +266,14 @@ function WorkspaceInitialPage(props) {
                                             <PressableWithoutFeedback
                                                 disabled={hasPolicyCreationError || isExecuting}
                                                 style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
+                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy?.id ?? '')))}
                                                 accessibilityLabel={translate('workspace.common.settings')}
                                                 role={CONST.ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                    source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                                    source={policy?.avatar ? policy?.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     name={policyName}
@@ -284,7 +281,7 @@ function WorkspaceInitialPage(props) {
                                                 />
                                             </PressableWithoutFeedback>
                                         </Tooltip>
-                                        {!_.isEmpty(policy.name) && (
+                                        {!!policy?.name && (
                                             <Tooltip text={translate('workspace.common.settings')}>
                                                 <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError || isExecuting}
@@ -308,14 +305,13 @@ function WorkspaceInitialPage(props) {
                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                 */}
-                                {_.map(menuItems, (item) => (
+                                {menuItems.map((item) => (
                                     <MenuItem
                                         key={item.translationKey}
                                         disabled={hasPolicyCreationError || isExecuting}
                                         interactive={!hasPolicyCreationError}
                                         title={translate(item.translationKey)}
                                         icon={item.icon}
-                                        iconRight={item.iconRight}
                                         onPress={item.action}
                                         shouldShowRightIcon
                                         brickRoadIndicator={item.brickRoadIndicator}
@@ -350,13 +346,10 @@ function WorkspaceInitialPage(props) {
     );
 }
 
-WorkspaceInitialPage.propTypes = propTypes;
-WorkspaceInitialPage.defaultProps = defaultProps;
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
-    withPolicyAndFullscreenLoading,
-    withOnyx({
+    withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
@@ -364,4 +357,5 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
+    withPolicyAndFullscreenLoading,
 )(WorkspaceInitialPage);
