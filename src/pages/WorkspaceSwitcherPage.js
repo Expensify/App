@@ -142,12 +142,20 @@ function WorkspaceSwitcherPage({policies}) {
                     boldStyle: hasUnreadData(policy.id),
                     keyForList: policy.id,
                 }))
-                .sortBy((policy) => policy.text.toLowerCase())
                 .value(),
-        [policies, getIndicatorTypeForPolicy, hasUnreadData],
+        [policies, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID],
     );
 
-    const filteredUserWorkspaces = useMemo(() => _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
+    const sortedWorkspaces = usersWorkspaces.sort((a, b) => {
+        if (a.policyID === activeWorkspaceID) {
+            return -1;
+        }if (b.policyID === activeWorkspaceID) {
+            return 1;
+        }
+        return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
+    });
+
+    const filteredUserWorkspaces = useMemo(() => _.filter(sortedWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
 
     const usersWorkspacesSectionData = useMemo(
         () => ({
