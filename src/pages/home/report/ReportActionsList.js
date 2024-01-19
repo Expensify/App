@@ -412,7 +412,7 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     const onVisibilityChange = useCallback(() => {
-        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report) || messageManuallyMarkedUnread) {
+        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report)) {
             return;
         }
 
@@ -421,7 +421,7 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
-    }, [calculateUnreadMarker, messageManuallyMarkedUnread, report]);
+    }, [calculateUnreadMarker, report]);
 
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(onVisibilityChange);
