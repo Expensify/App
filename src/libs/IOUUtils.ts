@@ -110,14 +110,12 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
 }
 
 /**
- * Returns whether or not a transaction of IOU report contains money requests in a different currency
+ * Returns whether or not an IOU report contains money requests in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
-function isTransactionPendingCurrencyConversion(iouReport: Report, transactionID: string): boolean {
+function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
     const reportTransactions: Transaction[] = TransactionUtils.getAllReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter(
-        (transaction) => transaction.pendingAction && transaction.transactionID === transactionID && TransactionUtils.getCurrency(transaction) !== iouReport.currency,
-    );
+    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && TransactionUtils.getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
@@ -129,4 +127,4 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isTransactionPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, navigateToStartStepIfScanFileCannotBeRead};
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, navigateToStartStepIfScanFileCannotBeRead};
