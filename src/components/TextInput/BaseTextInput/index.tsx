@@ -445,6 +445,9 @@ function BaseTextInput(
                         styles.visibilityHidden,
                     ]}
                     onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0) {
+                            return;
+                        }
                         let additionalWidth = 0;
                         if (Browser.isMobileSafari() || Browser.isSafari()) {
                             additionalWidth = 2;
