@@ -822,8 +822,6 @@ function getMoneyRequestInformation(
     const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
 
     const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
-    // eslint-disable-next-line no-console
-    console.log('optimisticNextStep', optimisticNextStep);
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
