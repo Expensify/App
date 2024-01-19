@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -58,8 +59,8 @@ function EmojiPickerButton(props) {
                             props.onEmojiSelected,
                             emojiPopoverAnchor,
                             {
-                                horizontal: 'right',
-                                vertical: 'bottom',
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                 shiftVertical: props.shiftVertical,
                             },
                             () => {},
