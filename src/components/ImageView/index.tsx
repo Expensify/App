@@ -1,4 +1,5 @@
-import React, {MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState} from 'react';
+import type {MouseEvent as ReactMouseEvent} from 'react';
+import React, { useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -138,10 +139,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     };
 
     const trackPointerPosition = useCallback(
-        (e: MouseEvent) => {
-            const mouseEvent = e as unknown as ReactMouseEvent;
+        (event: MouseEvent) => {
             // Whether the pointer is released inside the ImageView
-            const isInsideImageView = scrollableRef.current?.contains(mouseEvent.nativeEvent.target as Node);
+            const isInsideImageView = scrollableRef.current?.contains(event.target as Node);
 
             if (!isInsideImageView && isZoomed && isDragging && isMouseDown) {
                 setIsDragging(false);
@@ -152,15 +152,14 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     );
 
     const trackMovement = useCallback(
-        (e: MouseEvent) => {
-            const mouseEvent = e as unknown as ReactMouseEvent;
+        (event: MouseEvent) => {
             if (!isZoomed) {
                 return;
             }
 
             if (isDragging && isMouseDown && scrollableRef.current) {
-                const x = mouseEvent.nativeEvent.x;
-                const y = mouseEvent.nativeEvent.y;
+                const x = event.x;
+                const y = event.y;
                 const moveX = initialX - x;
                 const moveY = initialY - y;
                 scrollableRef.current.scrollLeft = initialScrollLeft + moveX;
