@@ -45,6 +45,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
+            if (request.finallyData) {
+                return updateHandler(request.finallyData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
             console.debug('[OnyxUpdateManager] Done applying HTTPS update');
             return Promise.resolve(response);
         });
@@ -71,6 +77,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
  */
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
+function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
@@ -79,7 +86,12 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request
-        if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response && (!isEmptyObject(request.successData) || !isEmptyObject(request.failureData))) {
+        if (
+            type === CONST.ONYX_UPDATE_TYPES.HTTPS &&
+            request &&
+            response &&
+            (!isEmptyObject(request.successData) || !isEmptyObject(request.failureData) || !isEmptyObject(request.finallyData))
+        ) {
             Log.info('[OnyxUpdateManager] Applying success or failure data from request without onyxData from response');
 
             // We use a spread here instead of delete because we don't want to change the response for other middlewares

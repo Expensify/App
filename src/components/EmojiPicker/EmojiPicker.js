@@ -86,7 +86,13 @@ const EmojiPicker = forwardRef((props, ref) => {
         if (isNavigating) {
             onModalHide.current = () => {};
         }
-        emojiPopoverAnchorRef.current = null;
+        const currOnModalHide = onModalHide.current;
+        onModalHide.current = () => {
+            if (currOnModalHide) {
+                currOnModalHide();
+            }
+            emojiPopoverAnchorRef.current = null;
+        };
         setIsEmojiPickerVisible(false);
     };
 
