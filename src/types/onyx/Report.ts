@@ -1,8 +1,8 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import PolicyReportField from '@src/types/onyx/PolicyReportField';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
+import type PolicyReportField from './PolicyReportField';
 
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
@@ -13,7 +13,7 @@ type Note = OnyxCommon.OfflineFeedback & {
     errors?: OnyxCommon.Errors;
 };
 
-type Report = OnyxCommon.OfflineFeedback<'createChat' | 'addWorkspaceRoom' | 'reportName' | 'description' | 'managerID' | PolicyReportField['fieldID']> & {
+type Report = OnyxCommon.OfflineFeedback<PolicyReportField['fieldID']> & {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
