@@ -870,6 +870,8 @@ function createDistanceRequest(report, participant, comment, created, category, 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+    const currentTime = DateUtils.getDBTime();
+    const currentCreated = created === format(new Date(currentTime), CONST.DATE.FNS_FORMAT_STRING) ? currentTime : created;
 
     const optimisticReceipt = {
         source: ReceiptGeneric,
@@ -881,7 +883,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
         comment,
         amount,
         currency,
-        created,
+        currentCreated,
         merchant,
         userAccountID,
         currentUserEmail,
@@ -906,7 +908,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(validWaypoints),
-            created,
+            created: currentCreated,
             category,
             tag,
             billable,
@@ -1260,6 +1262,8 @@ function requestMoney(
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+    const currentTime = DateUtils.getDBTime();
+    const currentCreated = created === format(new Date(currentTime), CONST.DATE.FNS_FORMAT_STRING) ? currentTime : created;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
         getMoneyRequestInformation(
             currentChatReport,
@@ -1267,7 +1271,7 @@ function requestMoney(
             comment,
             amount,
             currency,
-            created,
+            currentCreated,
             merchant,
             payeeAccountID,
             payeeEmail,
@@ -1290,7 +1294,7 @@ function requestMoney(
             amount,
             currency,
             comment,
-            created,
+            created: currentCreated,
             merchant,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
