@@ -409,7 +409,7 @@ type AuthScreensParamList = {
         shouldForceLogin: string;
         email: string;
         shortLivedAuthToken: string;
-        exitTo: Routes;
+        exitTo: string;
     };
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
