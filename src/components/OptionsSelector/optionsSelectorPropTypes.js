@@ -134,9 +134,6 @@ const propTypes = {
 
     /** Whether nested scroll of options is enabled, true by default */
     nestedScrollEnabled: PropTypes.bool,
-
-    /** We only need it for hierarchial policy tags ("Parent: Child") to remove the backslash before the colon */
-    shouldUnescapeColon: PropTypes.bool,
 };
 
 const defaultProps = {

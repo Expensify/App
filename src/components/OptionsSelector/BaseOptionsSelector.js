@@ -586,7 +586,6 @@ class BaseOptionsSelector extends Component {
                         />
                     )
                 }
-                shouldUnescapeColon={this.props.shouldUnescapeColon}
             />
         );
 

@@ -102,9 +102,6 @@ const propTypes = {
 
     /** Custom content to display in the floating footer */
     renderFooterContent: PropTypes.func,
-
-    /** We only need it for hierarchial policy tags ("Parent: Child") to remove the backslash before the colon */
-    shouldUnescapeColon: PropTypes.bool,
 };
 
 const defaultProps = {

@@ -7,7 +7,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {unescapeColon} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -83,9 +82,6 @@ type OptionRowProps = {
 
     /** Key used internally by React */
     keyForList?: string;
-
-    /** We only need it for hierarchial policy tags ("Parent: Child") to remove the backslash before the colon */
-    shouldUnescapeColon?: boolean;
 };
 
 function OptionRow({
@@ -109,7 +105,6 @@ function OptionRow({
     showSelectedState = false,
     shouldDisableRowInnerPadding = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldUnescapeColon = false,
 }: OptionRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -122,8 +117,7 @@ function OptionRow({
         setIsDisabled(isOptionDisabled);
     }, [isOptionDisabled]);
 
-    const rawText = option.text ?? '';
-    const text = shouldUnescapeColon ? unescapeColon(rawText) : rawText;
+    const text = option.text ?? '';
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
     const indentsLength = text.length - fullTitle.length;
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;

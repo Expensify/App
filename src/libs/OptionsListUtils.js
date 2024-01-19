@@ -17,6 +17,7 @@ import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -946,13 +947,17 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return _.map(tags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const cleanedName = PolicyUtils.unescapeColon(tag.name);
+        return {
+            text: cleanedName,
+            keyForList: tag.name,
+            searchText: tag.name,
+            tooltipText: cleanedName,
+            isDisabled: !tag.enabled,
+        };
+    });
 }
 
 /**
@@ -994,7 +999,7 @@ function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInput
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTags = _.filter(enabledTags, (tag) => PolicyUtils.unescapeColon(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section
