@@ -26,8 +26,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Form, GetPhysicalCardForm, LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
-import {TCardDetails} from '@src/types/onyx/Card';
+import type {GetPhysicalCardForm, LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
+import type {TCardDetails} from '@src/types/onyx/Card';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
@@ -68,8 +68,6 @@ function ExpensifyCardPage({
     const [isNotFound, setIsNotFound] = useState(false);
     const [details, setDetails] = useState<TCardDetails>();
     const [cardDetailsError, setCardDetailsError] = useState('');
-
-    console.log(draftValues);
 
     useEffect(() => {
         if (!cardList) {
@@ -128,7 +126,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{0: translate('cardPage.cardLocked')}}
+                                messages={{error: translate('cardPage.cardLocked')}}
                                 type="error"
                             />
                         )}
@@ -186,7 +184,7 @@ function ExpensifyCardPage({
                                                     }
                                                 />
                                                 <DotIndicatorMessage
-                                                    messages={cardDetailsError ? {0: cardDetailsError} : {}}
+                                                    messages={cardDetailsError ? {error: cardDetailsError} : {}}
                                                     type="error"
                                                     style={[styles.ph5]}
                                                 />

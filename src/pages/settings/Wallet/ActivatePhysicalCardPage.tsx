@@ -65,6 +65,7 @@ function ActivatePhysicalCardPage({
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (physicalCard?.isLoading || (cardList && cardList[cardID]?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN)) {
             return;
         }
