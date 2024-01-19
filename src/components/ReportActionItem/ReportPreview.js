@@ -179,11 +179,13 @@ function ReportPreview(props) {
         formattedMerchant = null;
     }
     const previewSubtitle =
-        formattedMerchant ||
-        props.translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts,
-            scanningReceipts: numberOfScanningReceipts,
-        });
+        numberOfRequests === 1 && hasOnlyPendingDistanceRequests
+            ? ''
+            : formattedMerchant ||
+              props.translate('iou.requestCount', {
+                  count: numberOfRequests - numberOfScanningReceipts,
+                  scanningReceipts: numberOfScanningReceipts,
+              });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
 
