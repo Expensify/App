@@ -88,13 +88,10 @@ type ReportActionComposeProps = {
     /** Height of the list which the composer is part of */
     listHeight?: number;
 
-    /** Whether the composer input should be shown */
-    shouldShowComposeInput?: boolean;
-
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 
-    /** /** Whetjer the report is ready for display */
+    /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
 } & ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps;
@@ -212,7 +209,7 @@ function ReportActionCompose({
     }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
     const focus = () => {
-        if (composerRef?.current === null) {
+        if (composerRef.current === null) {
             return;
         }
         composerRef.current.focus(true);
@@ -281,9 +278,9 @@ function ReportActionCompose({
      * Add a new comment to this chat
      */
     const submitForm = useCallback(
-        (e?: SyntheticEvent) => {
-            if (e) {
-                e.preventDefault();
+        (event?: SyntheticEvent) => {
+            if (event) {
+                event.preventDefault();
             }
 
             const newComment = composerRef.current?.prepareCommentAndResetComposer();
@@ -301,12 +298,12 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback((e: FocusEvent) => {
+    const onBlur = useCallback((event: FocusEvent) => {
         setIsFocused(false);
         if (suggestionsRef.current) {
             suggestionsRef.current.resetSuggestions();
         }
-        if (e.relatedTarget && e.relatedTarget === actionButtonRef.current) {
+        if (event.relatedTarget && event.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
     }, []);
@@ -444,11 +441,11 @@ function ReportActionCompose({
                                         onValueChange={validateCommentMaxLength}
                                     />
                                     <ReportDropUI
-                                        onDrop={(e: DragEvent) => {
+                                        onDrop={(event: DragEvent) => {
                                             if (isAttachmentPreviewActive) {
                                                 return;
                                             }
-                                            const data = e.dataTransfer?.items[0];
+                                            const data = event.dataTransfer?.items[0];
                                             displayFileInModal(data);
                                         }}
                                     />
@@ -459,7 +456,7 @@ function ReportActionCompose({
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
                                 onModalHide={focus}
-                                //  @ts-expect-error TODO: Remove this once EmojiPickerButton is migrated to TypeScript.
+                                //  @ts-expect-error TODO: Remove this once EmojiPickerButton (https://github.com/Expensify/App/issues/25155) is migrated to TypeScript.
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                             />
