@@ -64,16 +64,20 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 values[bankInfoStepKeys.ACCOUNT_NUMBER],
                 values[bankInfoStepKeys.ROUTING_NUMBER],
                 values[bankInfoStepKeys.PLAID_MASK],
-                policyID
+                policyID,
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-            BankAccounts.connectBankAccountWithPlaid(bankAccountID, {
-                [bankInfoStepKeys.ROUTING_NUMBER]: values[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
-                [bankInfoStepKeys.ACCOUNT_NUMBER]: values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
-                [bankInfoStepKeys.BANK_NAME]: values[bankInfoStepKeys.BANK_NAME] ?? '',
-                [bankInfoStepKeys.PLAID_ACCOUNT_ID]: values[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '',
-                [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN] ?? '',
-            }, policyID);
+            BankAccounts.connectBankAccountWithPlaid(
+                bankAccountID,
+                {
+                    [bankInfoStepKeys.ROUTING_NUMBER]: values[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
+                    [bankInfoStepKeys.ACCOUNT_NUMBER]: values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
+                    [bankInfoStepKeys.BANK_NAME]: values[bankInfoStepKeys.BANK_NAME] ?? '',
+                    [bankInfoStepKeys.PLAID_ACCOUNT_ID]: values[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '',
+                    [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN] ?? '',
+                },
+                policyID,
+            );
         }
     }, [setupType, values, bankAccountID, policyID]);
 

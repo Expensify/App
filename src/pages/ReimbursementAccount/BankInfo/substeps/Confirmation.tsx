@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,6 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import MenuItemWithTopDescription from "@components/MenuItemWithTopDescription";
 
 type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -77,9 +77,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         onPress={handleModifyAccountNumbers}
                     />
                 )}
-                <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>
-                    {translate('bankAccount.thisBankAccount')}
-                </Text>
+                <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>{translate('bankAccount.thisBankAccount')}</Text>
                 <View style={[styles.ph5, styles.mtAuto]}>
                     {error.length > 0 && (
                         <DotIndicatorMessage
