@@ -2265,7 +2265,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName ?? '', amount: formattedAmount});
     }
 
-    let comment: string | undefined
+    let comment
     if (!isEmptyObject(linkedTransaction)) {
         comment = TransactionUtils.getDescription(linkedTransaction);
     }
