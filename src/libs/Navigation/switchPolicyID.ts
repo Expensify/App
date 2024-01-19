@@ -10,6 +10,7 @@ import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
+import TAB_TO_CENTRAL_PANE_MAPPING from './linkingConfig/TAB_TO_CENTRAL_PANE_MAPPING';
 import Navigation from './Navigation';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
@@ -18,6 +19,12 @@ type ActionPayloadParams = {
     params?: unknown;
     path?: string;
 };
+
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; reportID?: string};
+
+function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
+    return action?.payload && 'name' in action?.payload && action?.payload?.name === screenName;
+}
 
 function getActionForBottomTabNavigator(action: StackNavigationAction, state: NavigationState<RootStackParamList>, policyID?: string): Writable<NavigationAction> | undefined {
     const bottomTabNavigatorRoute = state.routes.at(0);
@@ -30,8 +37,10 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     let payloadParams = params?.params as Record<string, string | undefined>;
     let screen = params.screen;
 
+    // Case when the user is on the AllSettingsScreen and selects the specific workspace. The user is redirected then to the specific workspace settings.
     if (screen === SCREENS.ALL_SETTINGS && policyID) {
         screen = SCREENS.WORKSPACE.INITIAL;
+    // Alternative case when the user is on the specific workspace settings screen and selects "All" workspace.
     } else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
         screen = SCREENS.ALL_SETTINGS;
     }
@@ -65,6 +74,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         root = current;
     }
 
+    // TODO: Invoke goBack in another way
     Navigation.goBack();
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
@@ -81,22 +91,41 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     root.dispatch(actionForBottomTabNavigator);
     // If the layout is wide we need to push matching central pane route to the stack.
     if (!getIsSmallScreenWidth()) {
-        if ((actionForBottomTabNavigator?.payload?.name === SCREENS.WORKSPACE.INITIAL && policyID) || actionForBottomTabNavigator?.payload?.name === SCREENS.HOME) {
+        // Case when the user selects "All" workspace from the specific workspace settings
+        if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.ALL_SETTINGS) && !policyID) {
+            root.dispatch({
+                type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                payload: {
+                    name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+                    params: {
+                        screen: SCREENS.SETTINGS.WORKSPACES,
+                        params: undefined,
+                    },
+                },
+            });
+        } else {
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
             let screen = topmostCentralPaneRoute?.name;
-            let params = {...topmostCentralPaneRoute?.params};
+            const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
+            // Only workspace settings screens have to store the policyID in the params.
+            // In other case, the policyID is read from the BottomTab params.
             if (!screen?.startsWith('Workspace_')) {
                 delete params.policyID;
             } else {
                 params.policyID = policyID;
             }
 
-            if (actionForBottomTabNavigator?.payload?.name === SCREENS.HOME) {
+            // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
+            // To achieve that, it's necessary to navigate without the reportID param.
+            if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.HOME)) {
                 delete params.reportID;
             }
-            if (topmostCentralPaneRoute?.name === 'Settings_Workspaces' && policyID) {
-                screen = 'Workspace_Overview';
+
+            // When the user from the screen with the workspaces list opens the specific workspace from the switcher, the appropriate settings screen has to be pushed to the CentralPane.
+            if (screen === SCREENS.SETTINGS.WORKSPACES && policyID) {
+                screen = TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.WORKSPACE.INITIAL][0];
+                params.policyID = policyID;
             }
 
             root.dispatch({
@@ -106,17 +135,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
                     params: {
                         screen,
                         params,
-                    },
-                },
-            });
-        } else {
-            root.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                payload: {
-                    name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                    params: {
-                        screen: SCREENS.SETTINGS.WORKSPACES,
-                        params: undefined,
                     },
                 },
             });
