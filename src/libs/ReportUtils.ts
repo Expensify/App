@@ -1715,7 +1715,8 @@ function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAct
     const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        return Localize.translateLocal('iou.adminCanceledRequest', {amount});
+        const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
+        return Localize.translateLocal('iou.adminCanceledRequest', {'manager': payerOrApproverName, amount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});

@@ -135,7 +135,7 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
-type AdminCanceledRequestParams = {amount: string};
+type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
