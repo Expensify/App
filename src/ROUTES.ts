@@ -286,10 +286,6 @@ const ROUTES = {
         route: ':iouType/new/merchant/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
     },
-    MONEY_REQUEST_WAYPOINT: {
-        route: ':iouType/new/waypoint/:waypointIndex',
-        getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}` as const,
-    },
     MONEY_REQUEST_RECEIPT: {
         route: ':iouType/new/receipt/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
@@ -297,10 +293,6 @@ const ROUTES = {
     MONEY_REQUEST_DISTANCE: {
         route: ':iouType/new/address/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
-    },
-    MONEY_REQUEST_EDIT_WAYPOINT: {
-        route: 'r/:threadReportID/edit/distance/:transactionID/waypoint/:waypointIndex',
-        getRoute: (threadReportID: number, transactionID: string, waypointIndex: number) => `r/${threadReportID}/edit/distance/${transactionID}/waypoint/${waypointIndex}` as const,
     },
     MONEY_REQUEST_DISTANCE_TAB: {
         route: ':iouType/new/:reportID?/distance',
@@ -314,13 +306,13 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
-        route: 'create/:iouType/confirmation/:transactionID/:reportID/',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}/` as const,
+        route: 'create/:iouType/confirmation/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
-        route: 'create/:iouType/amount/:transactionID/:reportID/',
+        route: 'create/:iouType/amount/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
         route: 'create/:iouType/taxRate/:transactionID/:reportID?',
@@ -333,54 +325,54 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
-        route: 'create/:iouType/category/:transactionID/:reportID/',
+        route: 'create/:iouType/category/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
-        route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?/',
+        route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
-        route: 'create/:iouType/date/:transactionID/:reportID/',
+        route: 'create/:iouType/date/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_DESCRIPTION: {
-        route: 'create/:iouType/description/:transactionID/:reportID/',
+        route: 'create/:iouType/description/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/description/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/description/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_DISTANCE: {
-        route: 'create/:iouType/distance/:transactionID/:reportID/',
+        route: 'create/:iouType/distance/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_MERCHANT: {
-        route: 'create/:iouType/merchant/:transactionID/:reportID/',
+        route: 'create/:iouType/merchant/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/merchant/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: 'create/:iouType/participants/:transactionID/:reportID/',
+        route: 'create/:iouType/participants/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
-        route: 'create/:iouType/scan/:transactionID/:reportID/',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/scan/${transactionID}/${reportID}/`, backTo),
+        route: ':action/:iouType/scan/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: 'create/:iouType/tag/:transactionID/:reportID/',
+        route: 'create/:iouType/tag/:transactionID/:reportID',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}/`, backTo),
+            getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
-        route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex/',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
     // straight to those flows without needing to have optimistic transaction and report IDs.

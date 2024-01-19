@@ -45,11 +45,11 @@ In general, your expense rules will be applied in order, from **top to bottom**,
 4. If you belong to a workspace that is tied to an accounting integration, the configuration settings for this connection may update your expense details upon export, even if the expense rules were successfully applied to the expense.
 
 
-# FAQ 
+{% include faq-begin.md %} 
 ## How can I use Expense Rules to vendor match when exporting to an accounting package?
 When exporting non-reimbursable expenses to your connected accounting package, the payee field will list "Credit Card Misc." if the merchant name on the expense in Expensify is not an exact match to a vendor in the accounting package.
 When an exact match is unavailable, "Credit Card Misc." prevents multiple variations of the same vendor (e.g., Starbucks and Starbucks #1234, as is often seen in credit card statements) from being created in your accounting package.
 For repeated expenses, the best practice is to use Expense Rules, which will automatically update the merchant name without having to do it manually each time. 
 This only works for connections to QuickBooks Online, Desktop, and Xero. Vendor matching cannot be performed in this manner for NetSuite or Sage Intacct due to limitations in the API of the accounting package.
 
-
+{% include faq-end.md %}
