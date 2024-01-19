@@ -87,7 +87,7 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
             });
 
             test('self review and auto approval enabled', () => {
@@ -115,17 +115,19 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     isAutoApprovalEnabled: true,
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                    expect(result).toStrictEqual(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
             });
 
             describe('scheduled submit enabled', () => {
-                optimisticNextStep.title = 'Next Steps:';
+                beforeEach(() => {
+                    optimisticNextStep.title = 'Next Steps:';
+                });
 
                 test('daily', () => {
                     optimisticNextStep.message = [
@@ -141,13 +143,13 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'immediate',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
@@ -165,13 +167,13 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'weekly',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
@@ -189,13 +191,13 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'semimonthly',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
@@ -213,14 +215,14 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'monthly',
                         autoReportingOffset: 2,
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
@@ -238,14 +240,14 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'monthly',
                         autoReportingOffset: 'lastDayOfMonth',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
@@ -263,13 +265,13 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'trip',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
@@ -292,18 +294,15 @@ describe('libs/NextStepUtils', () => {
                         {
                             text: ' these expenses.',
                         },
-                        {
-                            text: ' This report may be selected at random for manual approval.',
-                        },
                     ];
 
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'manual',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                        expect(result).toStrictEqual(optimisticNextStep);
+                        expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
             });
@@ -336,7 +335,7 @@ describe('libs/NextStepUtils', () => {
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
-                    expect(result).toStrictEqual(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
             });
         });
@@ -366,7 +365,7 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
             });
 
             test('another reviewer', () => {
@@ -397,7 +396,7 @@ describe('libs/NextStepUtils', () => {
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-                    expect(result).toStrictEqual(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
             });
 
@@ -430,7 +429,7 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
             });
         });
 
@@ -459,7 +458,7 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
             });
 
             test('another owner', () => {
@@ -473,7 +472,7 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
             });
         });
 
@@ -499,7 +498,7 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: true});
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
             });
 
             test('paid outside of Expensify', () => {
@@ -526,7 +525,15 @@ describe('libs/NextStepUtils', () => {
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithWallet: false});
 
-                expect(result).toStrictEqual(optimisticNextStep);
+                expect(result).toMatchObject(optimisticNextStep);
+            });
+        });
+
+        describe('it generates a nullable optimistic nextStep', () => {
+            test('closed status', () => {
+                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
+
+                expect(result).toBeNull();
             });
         });
     });

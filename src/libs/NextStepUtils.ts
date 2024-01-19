@@ -99,7 +99,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             };
 
             // Scheduled submit enabled
-            if (policy.isHarvestingEnabled) {
+            if (policy.isHarvestingEnabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
                     {
                         text: 'These expenses are scheduled to ',
@@ -131,7 +131,6 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of your trip',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
                     };
 
                     if (harvestingSuffixes[policy.autoReportingFrequency]) {
