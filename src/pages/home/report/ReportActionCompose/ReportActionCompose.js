@@ -118,7 +118,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const {play} = usePlaySound('done');
+    const play = usePlaySound('done');
     /**
      * Updates the Highlight state of the composer
      */

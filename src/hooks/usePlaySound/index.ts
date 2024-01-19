@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Sound from 'react-native-sound';
@@ -11,13 +11,7 @@ const prefix = Platform.select({
 
 const usePlaySound = (soundFile: string) => {
     const [isMuted, setMuted] = useState(false);
-    const [sound, setSound] = useState<Sound>();
-
-    useEffect(() => {
-        const ringtone = new Sound(`${prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE);
-
-        setSound(ringtone);
-    }, [soundFile]);
+    const sound = useMemo(() => new Sound(`${prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE), [soundFile]);
 
     useEffect(() => {
         // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
@@ -36,10 +30,10 @@ const usePlaySound = (soundFile: string) => {
             return;
         }
 
-        sound?.play();
+        sound.play();
     }, [sound, isMuted]);
 
-    return {play};
+    return play;
 };
 
 export default usePlaySound;
