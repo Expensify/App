@@ -153,7 +153,7 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
