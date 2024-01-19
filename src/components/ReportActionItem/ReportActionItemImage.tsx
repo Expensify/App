@@ -1,16 +1,10 @@
-import Str from 'expensify-common/lib/str';
 import React from 'react';
-import type {ReactElement} from 'react';
-import {View} from 'react-native';
 import AttachmentModal from '@components/AttachmentModal';
-import EReceiptThumbnail from '@components/EReceiptThumbnail';
-import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import ReceiptImage from '@components/ReceiptImage';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -45,34 +39,6 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
-
-    let receiptImageComponent: ReactElement;
-
-    if (isEReceipt) {
-        receiptImageComponent = (
-            <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail transactionID={transaction.transactionID} />
-            </View>
-        );
-    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource as string)) {
-        receiptImageComponent = (
-            <ThumbnailImage
-                previewSourceURL={thumbnailSource}
-                style={[styles.w100, styles.h100]}
-                isAuthTokenRequired
-                shouldDynamicallyResize={false}
-            />
-        );
-    } else {
-        receiptImageComponent = (
-            <Image
-                source={{uri: thumbnail ?? image}}
-                style={[styles.w100, styles.h100]}
-            />
-        );
-    }
 
     if (enablePreviewModal) {
         return (
@@ -98,7 +64,11 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                 >
-                                    {receiptImageComponent}
+                                    <ReceiptImage
+                                        transaction={transaction}
+                                        receiptFileName={thumbnail as string}
+                                        receiptPath={image as string}
+                                    />
                                 </PressableWithoutFocus>
                             )
                         }
@@ -108,7 +78,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
         );
     }
 
-    return receiptImageComponent;
+    return <ReceiptImage transaction={transaction} />;
 }
 
 ReportActionItemImage.displayName = 'ReportActionItemImage';

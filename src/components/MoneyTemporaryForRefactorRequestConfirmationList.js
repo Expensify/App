@@ -36,6 +36,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
@@ -639,9 +640,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 </View>
             )}
             {(receiptImage || receiptThumbnail) && (
-                <Image
+                <ReceiptImage
+                    transaction={transaction}
                     style={styles.moneyRequestImage}
-                    source={{uri: receiptThumbnail || receiptImage}}
+                    receiptFileName={receiptFilename}
+                    receiptPath={receiptPath}
+                    confirmationPage
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server

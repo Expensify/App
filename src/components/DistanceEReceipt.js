@@ -16,8 +16,8 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
+import ReceiptImage from './ReceiptImage';
 import Text from './Text';
-import ThumbnailImage from './ThumbnailImage';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
@@ -64,16 +64,7 @@ function DistanceEReceipt({transaction}) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline || !thumbnailSource ? (
-                            <PendingMapView />
-                        ) : (
-                            <ThumbnailImage
-                                previewSourceURL={thumbnailSource}
-                                style={[styles.w100, styles.h100]}
-                                isAuthTokenRequired
-                                shouldDynamicallyResize={false}
-                            />
-                        )}
+                        {isOffline || !thumbnailSource ? <PendingMapView /> : <ReceiptImage transaction={transaction} />}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
                         <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
