@@ -12,6 +12,7 @@ import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -91,6 +92,7 @@ function ReportPreview({
     containerStyles,
     contextMenuAnchor,
     transactions,
+    transactionViolations,
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
@@ -98,6 +100,7 @@ function ReportPreview({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -129,7 +132,7 @@ function ReportPreview({
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasReceipts && hasMissingSmartscanFields;
+    const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
@@ -335,5 +338,8 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     transactions: {
         key: ONYXKEYS.COLLECTION.TRANSACTION,
+    },
+    transactionViolations: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     },
 })(ReportPreview);
