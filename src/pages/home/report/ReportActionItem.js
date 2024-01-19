@@ -89,6 +89,9 @@ const propTypes = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool.isRequired,
 
+    /** Is this the most recent IOU Action? */
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
 
@@ -346,6 +349,7 @@ function ReportActionItem(props) {
                     chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
                     action={props.action}
+                    isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
@@ -819,6 +823,7 @@ export default compose(
         (prevProps, nextProps) =>
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.draftMessage === nextProps.draftMessage &&
+            prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&

@@ -22,6 +22,9 @@ const propTypes = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool.isRequired,
 
+    /** The ID of the most recent IOU report action connected with the shown report */
+    mostRecentIOUReportActionID: PropTypes.string,
+
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: PropTypes.bool.isRequired,
 
@@ -33,10 +36,20 @@ const propTypes = {
 };
 
 const defaultProps = {
+    mostRecentIOUReportActionID: '',
     linkedReportActionID: '',
 };
 
-function ReportActionsListItemRenderer({reportAction, index, report, displayAsGroup, shouldHideThreadDividerLine, shouldDisplayNewMarker, linkedReportActionID}) {
+function ReportActionsListItemRenderer({
+    reportAction,
+    index,
+    report,
+    displayAsGroup,
+    mostRecentIOUReportActionID,
+    shouldHideThreadDividerLine,
+    shouldDisplayNewMarker,
+    linkedReportActionID,
+}) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
         ReportUtils.isChatThread(report) &&
@@ -65,6 +78,7 @@ function ReportActionsListItemRenderer({reportAction, index, report, displayAsGr
                     reportAction.actionName,
                 )
             }
+            isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
         />
     );

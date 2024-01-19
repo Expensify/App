@@ -73,6 +73,7 @@ function ReportActionItemParentAction(props) {
                         report={props.report}
                         action={parentReportAction}
                         displayAsGroup={false}
+                        isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={props.shouldDisplayNewMarker}
                         index={props.index}
                     />

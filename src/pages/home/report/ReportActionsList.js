@@ -34,6 +34,9 @@ const propTypes = {
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
+    /** The ID of the most recent IOU report action connected with the shown report */
+    mostRecentIOUReportActionID: PropTypes.string,
+
     /** The report metadata loading states */
     isLoadingInitialReportActions: PropTypes.bool,
 
@@ -70,6 +73,7 @@ const propTypes = {
 
 const defaultProps = {
     onScroll: () => {},
+    mostRecentIOUReportActionID: '',
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
@@ -124,6 +128,7 @@ function ReportActionsList({
     sortedReportActions,
     windowHeight,
     onScroll,
+    mostRecentIOUReportActionID,
     isSmallScreenWidth,
     personalDetailsList,
     currentUserPersonalDetails,
@@ -410,11 +415,12 @@ function ReportActionsList({
                 report={report}
                 linkedReportActionID={linkedReportActionID}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
