@@ -40,9 +40,9 @@ function navigateToStartStepIfScanFileCannotBeRead(
     }
 
     const onFailure = () => {
-        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, '', '');
+        IOU.setMoneyRequestReceipt(transactionID, '', '', true);
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
             return;
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
