@@ -335,7 +335,6 @@ type TransactionDetails =
           cardID: number;
           originalAmount: number;
           originalCurrency: string;
-          formattedAmount: string;
       }
     | undefined;
 
@@ -1094,10 +1093,9 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks whether all the transactions linked to the IOU report are of the Distance Request type
- *
+ * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
  */
-function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
+function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
 
     // Early return false in case not having any transaction
@@ -1105,7 +1103,7 @@ function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): bo
         return false;
     }
 
-    return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
+    return transactions.every((transaction) => TransactionUtils.hasPendingRoute(transaction));
 }
 
 /**
@@ -1902,7 +1900,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
+    const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
@@ -1944,18 +1942,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     if (!transaction) {
         return;
     }
-
     const report = getReport(transaction?.reportID);
-    const amount = TransactionUtils.getAmount(transaction, isNotEmptyObject(report) && isExpenseReport(report));
-    const currency = TransactionUtils.getCurrency(transaction);
-
-    let formattedAmount;
-    if (TransactionUtils.isDistanceBeingCalculated(transaction)) {
-        formattedAmount = Localize.translateLocal('common.tbd');
-    } else {
-        formattedAmount = amount ? CurrencyUtils.convertToDisplayString(amount, currency) : '';
-    }
-
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
@@ -2153,6 +2140,11 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
         // Transaction data might be empty on app's first load, if so we fallback to Request
         return Localize.translateLocal('iou.request');
     }
+
+    if (TransactionUtils.hasPendingRoute(transaction)) {
+        return Localize.translateLocal('iou.routePending');
+    }
+
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return Localize.translateLocal('iou.receiptScanning');
     }
@@ -2164,7 +2156,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
     const transactionDetails = getTransactionDetails(transaction);
 
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency, TransactionUtils.isDistanceRequest(transaction)) ?? '',
+        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
         comment: transactionDetails?.comment ?? '',
     });
 }
@@ -2177,7 +2169,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
 function getReportPreviewMessage(
     report: OnyxEntry<Report> | EmptyObject,
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
-    shouldConsiderReceiptBeingScanned = false,
+    shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
@@ -2225,11 +2217,15 @@ function getReportPreviewMessage(
         });
     }
 
-    if (!isEmptyObject(reportAction) && shouldConsiderReceiptBeingScanned && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (!isEmptyObject(reportAction) && shouldConsiderScanningReceiptOrPendingRoute && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
 
         if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
             return Localize.translateLocal('iou.receiptScanning');
+        }
+
+        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasPendingRoute(linkedTransaction)) {
+            return Localize.translateLocal('iou.routePending');
         }
     }
     const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
@@ -4717,7 +4713,7 @@ export {
     buildTransactionThread,
     areAllRequestsBeingSmartScanned,
     getTransactionsWithReceipts,
-    hasOnlyDistanceRequestTransactions,
+    hasOnlyTransactionsWithPendingRoutes,
     hasNonReimbursableTransactions,
     hasMissingSmartscanFields,
     getIOUReportActionDisplayMessage,

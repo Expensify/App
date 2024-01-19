@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as Localize from './Localize';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -98,13 +97,8 @@ function convertToFrontendAmount(amountAsInt: number): number {
  *
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
- * @param shouldFallbackToTbd - whether to return 'TBD' instead of a falsy value (e.g. 0.00)
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldFallbackToTbd = false): string {
-    if (shouldFallbackToTbd && !amountInCents) {
-        return Localize.translateLocal('common.tbd');
-    }
-
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmount(amountInCents);
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',

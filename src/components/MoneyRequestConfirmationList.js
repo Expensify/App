@@ -256,7 +256,7 @@ function MoneyRequestConfirmationList(props) {
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
-        ? translate('common.tbd')
+        ? ''
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
@@ -425,6 +425,11 @@ function MoneyRequestConfirmationList(props) {
         if (!props.isDistanceRequest) {
             return;
         }
+
+        if (!hasRoute) {
+            IOU.setMoneyRequestPendingFields_temporaryForRefactor(props.transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        }
+
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
     }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);

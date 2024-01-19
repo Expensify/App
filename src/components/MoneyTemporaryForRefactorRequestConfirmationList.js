@@ -285,7 +285,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
-        ? translate('common.tbd')
+        ? ''
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
@@ -472,6 +472,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (!isDistanceRequest) {
             return;
         }
+
+        if (!hasRoute) {
+            IOU.setMoneyRequestPendingFields_temporaryForRefactor(transaction.transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        }
+
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant_temporaryForRefactor(transaction.transactionID, distanceMerchant);
     }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);

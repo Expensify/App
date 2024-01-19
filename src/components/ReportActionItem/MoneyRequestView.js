@@ -128,7 +128,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const {
         created: transactionDate,
         amount: transactionAmount,
-        formattedAmount: formattedTransactionAmount,
+        currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
         billable: transactionBillable,
@@ -140,6 +140,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     } = ReportUtils.getTransactionDetails(transaction);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const hasPendingRoute = TransactionUtils.hasPendingRoute(transaction);
+    const formattedTransactionAmount = transactionAmount && !hasPendingRoute ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';

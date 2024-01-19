@@ -216,6 +216,14 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
 
 /**
  * @param {String} transactionID
+ * @param {Object} pendingFields
+ */
+function setMoneyRequestPendingFields_temporaryForRefactor(transactionID, pendingFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
+}
+
+/**
+ * @param {String} transactionID
  * @param {String} category
  */
 function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
@@ -964,7 +972,8 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    if (!_.has(transactionChanges, 'waypoints')) {
+    const hasPendingWaypoints = _.has(transactionChanges, 'waypoints');
+    if (!hasPendingWaypoints) {
         const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -1026,7 +1035,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         value: {
             ...updatedTransaction,
             pendingFields,
-            isLoading: _.has(transactionChanges, 'waypoints'),
+            isLoading: hasPendingWaypoints,
             errorFields: null,
         },
     });
@@ -1090,12 +1099,46 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         },
     });
 
-    if (_.has(transactionChanges, 'waypoints')) {
+    if (hasPendingWaypoints) {
+        // When updating waypoints, we need to explicitly set the transaction's amount and IOU report's total to 0.
+        // These values must be calculated on the server because they depend on the distance.
+        optimisticData.push(
+            ...[
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    value: {
+                        total: CONST.IOU.DEFAULT_AMOUNT,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {
+                        amount: CONST.IOU.DEFAULT_AMOUNT,
+                        modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+                        modifiedMerchant: Localize.translateLocal('iou.routePending'),
+                    },
+                },
+            ],
+        );
+
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
             value: null,
+        });
+
+        // Revert the transaction's amount to the original value on failure.
+        // The IOU Report will be fully reverted in the failureData further below.
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+            },
         });
     }
 
@@ -1110,7 +1153,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         },
     });
 
-    // Reset the iouReport to it's original state
+    // Reset the iouReport to its original state
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -3672,6 +3715,7 @@ export {
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
+    setMoneyRequestPendingFields_temporaryForRefactor,
     setMoneyRequestReceipt,
     setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,

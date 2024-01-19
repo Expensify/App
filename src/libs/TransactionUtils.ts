@@ -11,7 +11,6 @@ import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/on
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
@@ -317,29 +316,21 @@ function getOriginalAmount(transaction: Transaction): number {
 }
 
 /**
- * Verify if the transaction is of Distance request and is expecting the distance to be calculated on the server:
- * - it has a zero amount, which means the request was created offline and expects the distance calculation from the server
- * - it is in `isLoading` state, which means the waypoints were updated offline and the distance requires re-calculation
+ * Verify if the transaction is of Distance request and is expecting the distance to be calculated on the server
  */
-function isDistanceBeingCalculated(transaction: OnyxEntry<Transaction>): boolean {
+function hasPendingRoute(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
         return false;
     }
 
-    const amount = getAmount(transaction, false);
-    return isDistanceRequest(transaction) && (!!transaction?.isLoading || amount === 0);
+    return isDistanceRequest(transaction) && !!transaction.pendingFields?.waypoints;
 }
 
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxEntry<Transaction>): string {
-    if (!transaction) {
-        return '';
-    }
-
-    const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : transaction.merchant ?? '';
-    return isDistanceBeingCalculated(transaction) ? merchant.replace(CONST.REGEX.FIRST_SPACE, Localize.translateLocal('common.tbd')) : merchant;
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
 function getDistance(transaction: Transaction): number {
@@ -601,7 +592,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
-    isDistanceBeingCalculated,
+    hasPendingRoute,
     isExpensifyCardTransaction,
     isCardTransaction,
     isPending,

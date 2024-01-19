@@ -141,11 +141,11 @@ function ReportPreview(props) {
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
 
-    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
+    const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyPendingDistanceRequests, hasNonReimbursableTransactions} = useMemo(
         () => ({
             hasMissingSmartscanFields: ReportUtils.hasMissingSmartscanFields(props.iouReportID),
             areAllRequestsBeingSmartScanned: ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action),
-            hasOnlyDistanceRequests: ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID),
+            hasOnlyPendingDistanceRequests: ReportUtils.hasOnlyTransactionsWithPendingRoutes(props.iouReportID),
             hasNonReimbursableTransactions: ReportUtils.hasNonReimbursableTransactions(props.iouReportID),
         }),
         // When transactions get updated these status may have changed, so that is a case where we also want to run this.
@@ -174,11 +174,10 @@ function ReportPreview(props) {
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(props.iouReportID, props.transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
-    const formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 && hasReceipts && !hasOnlyPendingDistanceRequests ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     if (TransactionUtils.isPartialMerchant(formattedMerchant)) {
         formattedMerchant = null;
     }
-    const hasOnlyLoadingDistanceRequests = hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => TransactionUtils.isDistanceBeingCalculated(transaction));
     const previewSubtitle =
         formattedMerchant ||
         props.translate('iou.requestCount', {
@@ -195,8 +194,8 @@ function ReportPreview(props) {
     );
 
     const getDisplayAmount = () => {
-        if (hasOnlyLoadingDistanceRequests) {
-            return props.translate('common.tbd');
+        if (hasOnlyPendingDistanceRequests) {
+            return props.translate('iou.routePending');
         }
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);

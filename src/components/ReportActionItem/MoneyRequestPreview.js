@@ -155,25 +155,21 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {
-        amount: requestAmount,
-        formattedAmount: formattedRequestAmount,
-        currency: requestCurrency,
-        comment: requestComment,
-        merchant,
-    } = ReportUtils.getTransactionDetails(props.transaction);
+    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
     const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
+    const hasPendingRoute = TransactionUtils.hasPendingRoute(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
-    const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldShowMerchant =
+        !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && !hasPendingRoute;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     let merchantOrDescription = requestMerchant;
@@ -231,11 +227,15 @@ function MoneyRequestPreview(props) {
             return translate('iou.receiptScanning');
         }
 
+        if (hasPendingRoute) {
+            return translate('iou.routePending');
+        }
+
         if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
-        return formattedRequestAmount;
+        return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
     };
 
     const getDisplayDeleteAmountText = () => {
