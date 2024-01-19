@@ -81,7 +81,7 @@ function BaseOptionsSelector(props) {
             return defaultIndex;
             // eslint-disable-next-line react-hooks/exhaustive-deps
         },
-        [props.initialFocusedIndex, props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length],
+        [props.initialFocusedIndex, props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex],
     );
 
     const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
@@ -395,6 +395,7 @@ function BaseOptionsSelector(props) {
             prevPaginationPage.current = paginationPage;
             setSections(newSections);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [paginationPage]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
