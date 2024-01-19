@@ -1712,14 +1712,16 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
 function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
-    const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
+
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
+    const {amount, currency} = originalMessage;
+    const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
         const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
-        return Localize.translateLocal('iou.adminCanceledRequest', {'manager': payerOrApproverName, amount});
+        return Localize.translateLocal('iou.adminCanceledRequest', {'manager': payerOrApproverName, formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
-    return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
+    return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, formattedAmount});
 }
 
 /**
