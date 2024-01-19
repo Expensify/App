@@ -92,9 +92,19 @@ function Lightbox({
 
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
-    const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
 
-    const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
+    const isLightboxVisible = useMemo(() => {
+        if (!hasSiblingCarouselItems || NUMBER_OF_CONCURRENT_LIGHTBOXES === 'UNLIMITED') {
+            return true;
+        }
+
+        const indexCanvasOffset = Math.floor((NUMBER_OF_CONCURRENT_LIGHTBOXES - 1) / 2) || 0;
+        const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
+        return !indexOutOfRange;
+    }, [activeIndex, hasSiblingCarouselItems, index]);
+    const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
+
+    const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || !isCanvasLoaded) {
@@ -108,18 +118,6 @@ function Lightbox({
             height: PixelRatio.roundToNearestPixel(contentSize.height * minScale),
         };
     }, [hasSiblingCarouselItems, contentSize, isCanvasLoaded, canvasSize]);
-
-    const isLightboxInRange = useMemo(() => {
-        if (NUMBER_OF_CONCURRENT_LIGHTBOXES === 'UNLIMITED') {
-            return true;
-        }
-
-        const indexCanvasOffset = Math.floor((NUMBER_OF_CONCURRENT_LIGHTBOXES - 1) / 2) || 0;
-        const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
-        return !indexOutOfRange;
-    }, [activeIndex, index]);
-    const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
-    const isLightboxVisible = isLightboxInRange && (isActive || isLightboxImageLoaded || isFallbackImageLoaded);
 
     // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
     // so that we don't see two overlapping images at the same time.
