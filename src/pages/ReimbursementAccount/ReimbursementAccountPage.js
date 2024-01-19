@@ -216,12 +216,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     }
 
-    // Update the data that is returned from back-end to draft value
-    const draftStep = reimbursementAccount.draftStep;
-    if (draftStep) {
-        BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
-    }
-
     /**
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      * @returns {Boolean}
@@ -324,6 +318,13 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
+
+            // Update the data that is returned from back-end to draft value
+            const draftStep = reimbursementAccount.draftStep;
+            if (draftStep) {
+                BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
+            }
+
             if (currentStepRouteParam !== '') {
                 // When we click "Connect bank account", we load the page without the current step param, if there
                 // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
