@@ -1021,6 +1021,7 @@ export default {
     },
     preferencesPage: {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+        muteAllMessagingSoundsFromExpensify: 'Mute all messaging sounds from Expensify',
     },
     priorityModePage: {
         priorityMode: 'Priority mode',

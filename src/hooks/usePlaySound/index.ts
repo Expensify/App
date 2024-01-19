@@ -1,6 +1,8 @@
 import {useCallback, useEffect, useState} from 'react';
 import {Platform} from 'react-native';
+import Onyx from 'react-native-onyx';
 import Sound from 'react-native-sound';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const prefix = Platform.select({
     web: '/sounds/',
@@ -8,6 +10,7 @@ const prefix = Platform.select({
 });
 
 const usePlaySound = (soundFile: string) => {
+    const [isMuted, setMuted] = useState(false);
     const [sound, setSound] = useState<Sound>();
 
     useEffect(() => {
@@ -16,13 +19,27 @@ const usePlaySound = (soundFile: string) => {
         setSound(ringtone);
     }, [soundFile]);
 
-    const play = useCallback(() => {
-        sound?.play();
-    }, [sound]);
+    useEffect(() => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.USER,
+            callback: (val) => setMuted(!!val?.isMutedAllSounds),
+        });
 
-    return {
-        play,
-    };
+        return () => {
+            Onyx.disconnect(connectionID);
+        };
+    }, []);
+
+    const play = useCallback(() => {
+        if (isMuted) {
+            return;
+        }
+
+        sound?.play();
+    }, [sound, isMuted]);
+
+    return {play};
 };
 
 export default usePlaySound;

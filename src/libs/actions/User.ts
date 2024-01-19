@@ -622,6 +622,10 @@ function clearUserErrorMessage() {
     Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
+function setMuteAllSounds(isMutedAllSounds: boolean) {
+    Onyx.merge(ONYXKEYS.USER, {isMutedAllSounds});
+}
+
 /**
  * Clear the data about a screen share request from Onyx.
  */
@@ -885,6 +889,7 @@ export {
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
+    setMuteAllSounds,
     clearUserErrorMessage,
     updateFrequentlyUsedEmojis,
     joinScreenShare,
