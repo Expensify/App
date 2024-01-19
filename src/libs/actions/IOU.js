@@ -2272,10 +2272,16 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
         // Update the last message of the chat report
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || '',
-            amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
-        });
+        const payer = ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || ''
+        const formattedAmount = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency)
+        let messageText
+        if (hasNonReimbursableTransactions) {
+            messageText = Localize.translateLocal('iou.payerSpentAmount', { payer, amount: formattedAmount });
+        } else {
+            const comment = TransactionUtils.getDescription(updatedTransaction)
+            messageText = Localize.translateLocal('iou.payerOwesAmount', { payer, amount: formattedAmount, comment });
+        }
+
         updatedChatReport.lastMessageText = messageText;
         updatedChatReport.lastMessageHtml = messageText;
     }
