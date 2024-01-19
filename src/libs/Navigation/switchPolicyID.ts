@@ -1,16 +1,15 @@
 import {getActionFromState} from '@react-navigation/core';
-import {getPathFromState, NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
-import {Writable} from 'type-fest';
+import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {getPathFromState} from '@react-navigation/native';
+import type {Writable} from 'type-fest';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
-import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
-import getMatchingCentralPaneRouteForState from './linkingConfig/getMatchingCentralPaneRouteForState';
 import Navigation from './Navigation';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
@@ -41,11 +40,6 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     } else {
         payloadParams.policyID = policyID;
     }
-    // // Check if the current bottom tab is the same as the one we want to navigate to. If it is, we don't need to do anything.
-    // const bottomTabCurrentTab = getTopmostBottomTabRoute(state);
-    // if (bottomTabCurrentTab?.name === screen && !shouldNavigate) {
-    //     return;
-    // }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
@@ -89,19 +83,29 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     if (!getIsSmallScreenWidth()) {
         if ((actionForBottomTabNavigator?.payload?.name === SCREENS.WORKSPACE.INITIAL && policyID) || actionForBottomTabNavigator?.payload?.name === SCREENS.HOME) {
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
-            if (!policyID) {
-                delete topmostCentralPaneRoute?.params.policyID;
-            } else if (actionForBottomTabNavigator?.payload?.name === SCREENS.HOME) {
-                delete topmostCentralPaneRoute?.params.reportID;
+            let screen = topmostCentralPaneRoute?.name;
+            let params = {...topmostCentralPaneRoute?.params};
+
+            if (!screen?.startsWith('Workspace_')) {
+                delete params.policyID;
+            } else {
+                params.policyID = policyID;
             }
-            // topmostCentralPaneRoute?.params.policyID = policyID;
+
+            if (actionForBottomTabNavigator?.payload?.name === SCREENS.HOME) {
+                delete params.reportID;
+            }
+            if (topmostCentralPaneRoute?.name === 'Settings_Workspaces' && policyID) {
+                screen = 'Workspace_Overview';
+            }
+
             root.dispatch({
                 type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                 payload: {
                     name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
                     params: {
-                        screen: topmostCentralPaneRoute?.name,
-                        params: {...topmostCentralPaneRoute?.params, policyID},
+                        screen,
+                        params,
                     },
                 },
             });
@@ -117,37 +121,11 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
                 },
             });
         }
+    } else {
+        // // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
+        root.dispatch({
+            type: 'POP_TO_TOP',
+            target: rootState.key,
+        });
     }
-    // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-
-    //     console.log('topmostCentralPaneRoute', topmostCentralPaneRoute);
-    //     const rootState2 = navigation.getRootState() as NavigationState<RootStackParamList>;
-    //     const newPath2 = getPathFromState({routes: rootState2.routes}, linkingConfig.config);
-    //     const stateFromPath2 = getStateFromPath(newPath2) as PartialState<NavigationState<RootStackParamList>>;
-    //     let matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath2)!;
-    //     if (!policyID) {
-    //         delete topmostCentralPaneRoute.params.policyID;
-    //     } else {
-    //         topmostCentralPaneRoute.params = {...matchingCentralPaneRoute.params, policyID};
-    //     }
-    //     console.log('match', matchingCentralPaneRoute);
-    //     root.dispatch({
-    //         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-    //         payload: {
-    //             name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-    //             params: {
-    //                 screen: topmostCentralPaneRoute.name,
-    //                 params: topmostCentralPaneRoute.params,
-    //             },
-    //         },
-    //     });
-    // } else {
-    //     // // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
-    //     root.dispatch({
-    //         type: 'POP_TO_TOP',
-    //         target: rootState.key,
-    //     });
-    // }
-    return;
 }
