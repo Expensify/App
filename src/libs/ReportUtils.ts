@@ -2265,11 +2265,11 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName ?? '', amount: formattedAmount});
     }
 
+    let comment: string | undefined
     if (!isEmptyObject(linkedTransaction)) {
-        const comment = TransactionUtils.getDescription(linkedTransaction);
-        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
+        comment = TransactionUtils.getDescription(linkedTransaction);
     }
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
 /**
