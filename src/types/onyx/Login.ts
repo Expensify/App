@@ -1,6 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-type Login = {
+type Login = OnyxCommon.OfflineFeedback<'defaultLogin' | 'validateLogin' | 'addedLogin' | 'deletedLogin' | 'validateCodeSent'> & {
     /** Phone/Email associated with user */
     partnerUserID?: string;
 
@@ -15,9 +15,6 @@ type Login = {
 
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
-
-    /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.PendingFields;
 };
 
 type LoginList = Record<string, Login>;

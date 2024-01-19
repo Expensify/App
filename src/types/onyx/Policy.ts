@@ -10,7 +10,7 @@ type Rate = {
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Attributes = {
@@ -22,13 +22,13 @@ type CustomUnit = {
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
-type Policy = {
+type Policy = OnyxCommon.OfflineFeedback<'generalSettings' | 'avatar' | 'addWorkspaceRoom'> & {
     /** The ID of the policy */
     id: string;
 
@@ -55,9 +55,6 @@ type Policy = {
 
     /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
-
-    /** Indicates the type of change made to the policy that hasn't been synced with the server yet  */
-    pendingAction?: OnyxCommon.PendingAction;
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors;
@@ -100,9 +97,6 @@ type Policy = {
 
     /** Whether to leave the calling account as an admin on the policy */
     makeMeAdmin?: boolean;
-
-    /** Pending fields for the policy */
-    pendingFields?: Record<string, unknown>;
 
     /** Original file name which is used for the policy avatar */
     originalFileName?: string;

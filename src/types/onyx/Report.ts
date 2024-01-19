@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import PolicyReportField from '@src/types/onyx/PolicyReportField';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -13,7 +14,7 @@ type Note = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-type Report = {
+type Report = OnyxCommon.OfflineFeedback<'createChat' | 'addWorkspaceRoom' | 'reportName' | 'description' | 'managerID' | PolicyReportField['fieldID']> & {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -139,12 +140,6 @@ type Report = {
 
     /** Total amount of money owed for IOU report */
     iouReportAmount?: number;
-
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
-
-    /** Pending fields for the report */
-    pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
     /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;
