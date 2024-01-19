@@ -2178,11 +2178,7 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    let linkedTransaction: Transaction | EmptyObject = {};
-    if (!isEmptyObject(reportAction)) {
-        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
-    }
-
+    const linkedTransaction = !isEmptyObject(reportAction) ? TransactionUtils.getLinkedTransaction(reportAction) : {};
     if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
         // This covers group chats where the last action is a split bill action
         if (isEmptyObject(linkedTransaction)) {
@@ -2265,10 +2261,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName ?? '', amount: formattedAmount});
     }
 
-    let comment
-    if (!isEmptyObject(linkedTransaction)) {
-        comment = TransactionUtils.getDescription(linkedTransaction);
-    }
+    const comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
