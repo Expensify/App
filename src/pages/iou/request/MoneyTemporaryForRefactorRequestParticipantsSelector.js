@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -11,7 +11,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,7 +85,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
@@ -248,12 +247,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
 
-    useEffect(() => {
-        if (!debouncedSearchTerm.length) {
-            return;
+    // When search term updates we will fetch any reports
+    const setSearchTermAndSearchInServer = useCallback((text = '') => {
+        if (text.length) {
+            Report.searchInServer(text);
         }
-        Report.searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm]);
+        setSearchTerm(text);
+    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -341,7 +341,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
+                onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
