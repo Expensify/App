@@ -1169,7 +1169,7 @@ function updateMoneyRequestMerchant(transactionID, transactionThreadReportID, va
 }
 
 /**
- * Updates the tag date of a money request
+ * Updates the tag of a money request
  *
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
