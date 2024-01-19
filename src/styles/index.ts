@@ -32,6 +32,7 @@ import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
+import statusEmojiStyles from './utils/statusEmojiStyles';
 import textDecorationLine from './utils/textDecorationLine';
 import textUnderline from './utils/textUnderline';
 import userSelect from './utils/userSelect';
@@ -3918,24 +3919,28 @@ const styles = (theme: ThemeColors) =>
         emojiStatusLHN: {
             fontSize: 22,
         },
+
+        statusEmojiStyles,
+
         sidebarStatusAvatarContainer: {
             height: 44,
-            width: 84,
+            width: 44,
             backgroundColor: theme.componentBG,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderRadius: 42,
-            paddingHorizontal: 2,
-            marginVertical: -2,
-            marginRight: -2,
-        },
-        sidebarStatusAvatar: {
-            flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
+            borderRadius: 22,
         },
-
+        sidebarStatusAvatar: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.componentBG,
+            height: 30,
+            width: 30,
+            borderRadius: 15,
+            position: 'absolute',
+            right: -7,
+            bottom: -7,
+        },
         moneyRequestViewImage: {
             ...spacing.mh5,
             ...spacing.mv3,
