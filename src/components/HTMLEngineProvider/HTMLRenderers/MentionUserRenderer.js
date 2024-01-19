@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import * as LoginUtils from '@src/libs/LoginUtils';
 import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
+import { cloneDeep } from 'lodash';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -38,8 +39,7 @@ function MentionUserRenderer(props) {
     let accountID;
     let displayNameOrLogin;
     let navigationRoute;
-    const tnode = props.tnode;
-
+    const tnode = cloneDeep(props.tnode);
     const getMentionDisplayText = (displayText, accountId, userLogin = '') => {
         if (accountId && userLogin !== displayText) {
             return displayText;
