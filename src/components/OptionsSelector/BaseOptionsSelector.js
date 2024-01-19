@@ -80,7 +80,7 @@ function BaseOptionsSelector(props) {
 
             return defaultIndex;
         },
-        [props.initialFocusedIndex, props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex, props.initialFocusedIndex],
+        [props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex],
     );
 
     const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
