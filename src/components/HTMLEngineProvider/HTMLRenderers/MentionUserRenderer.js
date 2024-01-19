@@ -1,3 +1,4 @@
+import {cloneDeep} from 'lodash';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
@@ -19,7 +20,6 @@ import CONST from '@src/CONST';
 import * as LoginUtils from '@src/libs/LoginUtils';
 import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import { cloneDeep } from 'lodash';
 
 const propTypes = {
     ...htmlRendererPropTypes,
