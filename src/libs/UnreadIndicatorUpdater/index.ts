@@ -14,13 +14,13 @@ export default function getUnreadReportsForUnreadIndicator(reports: OnyxCollecti
         (report) =>
             ReportUtils.isUnread(report) &&
             ReportUtils.shouldReportBeInOptionList({
-              report,
-              currentReportId: currentReportID ?? '',
-              betas: [],
-              policies: {},
-              doesReportHaveViolations: false,
-              isInGSDMode: false,
-              excludeEmptyChats: false,
+                report,
+                currentReportId: currentReportID ?? '',
+                betas: [],
+                policies: {},
+                doesReportHaveViolations: false,
+                isInGSDMode: false,
+                excludeEmptyChats: false,
             }) &&
             report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     );
