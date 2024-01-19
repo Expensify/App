@@ -35,6 +35,7 @@ import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import usePlaySound from '@hooks/usePlaySound';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import SendButton from './SendButton';
@@ -117,6 +118,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {play} = usePlaySound('done');
     /**
      * Updates the Highlight state of the composer
      */
@@ -287,9 +289,10 @@ function ReportActionCompose({
                 return;
             }
 
+            play();
             onSubmit(newComment);
         },
-        [onSubmit],
+        [onSubmit, play],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
