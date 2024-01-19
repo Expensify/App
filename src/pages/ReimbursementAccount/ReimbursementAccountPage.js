@@ -278,7 +278,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData.subStep || '';
         const localCurrentStep = achData.currentStep || '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
     }
 
     useEffect(
@@ -359,7 +359,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
         const backTo = lodashGet(route.params, 'backTo', ROUTES.HOME);
-
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (hasInProgressVBBA()) {
@@ -382,7 +381,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 if (shouldShowOnfido) {
                     BankAccounts.clearOnfidoToken();
                 } else {
-                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, {subStep: CONST.BANK_ACCOUNT.SUBSTEP.MANUAL});
+                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
                 }
                 break;
 
