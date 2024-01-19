@@ -39,9 +39,11 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
     isGroupChat: boolean;
 };
 
+type Option = Partial<ReportUtils.OptionData>;
+
 type NewChatSectionListData = {
     title?: string;
-    data: OnyxTypes.Report[] | OnyxTypes.PersonalDetails[];
+    data: Option[];
     shouldShow: boolean;
     indexOffset: number;
 };
@@ -52,8 +54,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState<OnyxTypes.Report[]>([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<OnyxTypes.PersonalDetails[]>([]);
+    const [filteredRecentReports, setFilteredRecentReports] = useState<Option[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<Option[]>([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
@@ -230,7 +232,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                 return;
             }
 
-            (interactionTask as {cancel: () => void}).cancel();
+            interactionTask.cancel();
         };
     }, []);
 
