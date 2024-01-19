@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BaseListItem from './BaseListItem';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
 
@@ -272,7 +273,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     };
 
     const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
-        if (!section.title || !section.data) {
+        if (!section.title || isEmptyObject(section.data)) {
             return null;
         }
 
