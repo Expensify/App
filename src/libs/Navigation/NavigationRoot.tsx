@@ -16,7 +16,7 @@ import linkingConfig from './linkingConfig';
 import customGetPathFromState from './linkingConfig/customGetPathFromState';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
-import {RootStackParamList} from './types';
+import type {RootStackParamList} from './types';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
