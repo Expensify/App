@@ -161,7 +161,7 @@ function HeaderView(props) {
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),

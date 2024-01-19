@@ -1,8 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
@@ -91,16 +92,15 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
  * @param accountIDs Array of user accountIDs
  * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
-    const optimisticData: PersonalDetailsList = {};
-    const successData: PersonalDetailsList = {};
-    const failureData: PersonalDetailsList = {};
+function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+    const personalDetailsNew: PersonalDetailsList = {};
+    const personalDetailsCleanup: PersonalDetailsList = {};
 
     logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
         if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
-            optimisticData[accountID] = {
+            personalDetailsNew[accountID] = {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -111,32 +111,29 @@ function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
              * Cleanup the optimistic user to ensure it does not permanently persist.
              * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
              */
-            successData[accountID] = null;
+            personalDetailsCleanup[accountID] = null;
         }
     });
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: personalDetailsNew,
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: personalDetailsCleanup,
+        },
+    ];
+
     return {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: optimisticData,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: successData,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: failureData,
-            },
-        ],
+        optimisticData,
+        finallyData,
     };
 }
 
