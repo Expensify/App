@@ -346,6 +346,8 @@ function ReportActionItem(props) {
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
+                    // If iouReportID exists in originalMessage that mean the request is 1:1 request and the its chat report is the report which contain report preview action.
+                    // Otherwise the request is bill splits and the chat report is the report that contains it.
                     chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
                     action={props.action}
