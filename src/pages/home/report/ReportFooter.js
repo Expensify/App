@@ -134,6 +134,7 @@ function ReportFooter(props) {
                         <ReportActionCompose
                             onSubmit={onSubmitComment}
                             reportID={props.report.reportID}
+                            report={props.report}
                             isEmptyChat={props.isEmptyChat}
                             lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
@@ -157,6 +158,7 @@ export default compose(
     withOnyx({
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+            initialValue: false,
         },
     }),
 )(
