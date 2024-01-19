@@ -348,7 +348,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
                 rightHandSideComponent={itemRightSideComponent}
-                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
