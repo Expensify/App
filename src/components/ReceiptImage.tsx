@@ -36,10 +36,11 @@ function ReceiptImage({transaction, receiptPath, receiptFileName, style, isAuthT
 
     if (!transaction) {
         return (
-            <Image
-                source={{uri: receiptFileName ?? receiptPath}}
-                style={style ?? [styles.w100, styles.h100]}
-                isAuthTokenRequired={isAuthTokenRequired}
+            <ThumbnailImage
+                previewSourceURL={tryResolveUrlFromApiRoot(receiptFileName ?? '')}
+                style={[styles.w100, styles.h100]}
+                isAuthTokenRequired
+                shouldDynamicallyResize={false}
             />
         );
     }
