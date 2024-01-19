@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as Policy from '@userActions/Policy';
@@ -59,6 +60,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
     const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
+    const readOnly = !PolicyUtils.isPolicyAdmin(policy);
 
     return (
         <WorkspacePageWithSections
@@ -99,12 +101,14 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                         previewSource={UserUtils.getFullSizeAvatar(policy.avatar, '')}
                         headerTitle={translate('workspace.common.workspaceAvatar')}
                         originalFileName={policy.originalFileName}
+                        disabled={readOnly}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <MenuItemWithTopDescription
                             title={policy.name}
                             description={translate('workspace.editor.nameInputLabel')}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={!readOnly}
+                            disabled={readOnly}
                             onPress={onPressName}
                         />
 
@@ -112,8 +116,8 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                             <MenuItemWithTopDescription
                                 title={formattedCurrency}
                                 description={translate('workspace.editor.currencyInputLabel')}
-                                shouldShowRightIcon
-                                disabled={hasVBA}
+                                shouldShowRightIcon={!readOnly}
+                                disabled={hasVBA || readOnly}
                                 onPress={onPressCurrency}
                             />
                             <Text style={[styles.textLabel, styles.colorMuted, styles.mt2, styles.mh5]}>

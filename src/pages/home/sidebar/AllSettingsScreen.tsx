@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
-import _ from 'underscore';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -12,6 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 function AllSettingsScreen() {
@@ -57,9 +57,9 @@ function AllSettingsScreen() {
                 link: CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL,
             },
         ];
-        return _.map(baseMenuItems, (item) => ({
+        return baseMenuItems.map((item) => ({
             key: item.translationKey,
-            title: translate(item.translationKey),
+            title: translate(item.translationKey as TranslationPaths),
             icon: item.icon,
             iconRight: item.iconRight,
             onPress: item.action,

@@ -12,23 +12,19 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
+import withPolicy from './withPolicy';
+import type {WithPolicyProps} from './withPolicy';
 
-const propTypes = {
-    ...policyPropTypes,
-};
+type Props = WithPolicyProps;
 
-const defaultProps = {
-    ...policyDefaultProps,
-};
-
-function WorkspaceNamePage({policy}) {
+function WorkspaceNamePage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    // TODO: Change this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
     const submit = useCallback(
-        (values) => {
-            if (policy.isPolicyUpdating) {
+        (values: {name: string}) => {
+            if (!policy || policy.isPolicyUpdating) {
                 return;
             }
 
@@ -36,11 +32,12 @@ function WorkspaceNamePage({policy}) {
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
+        [policy],
     );
 
-    const validate = useCallback((values) => {
-        const errors = {};
+    // TODO: Change this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+    const validate = useCallback((values: {name: string}) => {
+        const errors: Record<string, string> = {};
         const name = values.name.trim();
 
         if (!ValidationUtils.isRequiredFulfilled(name)) {
@@ -64,6 +61,8 @@ function WorkspaceNamePage({policy}) {
                 title={translate('workspace.editor.nameInputLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
+
+            {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                 submitButtonText={translate('workspace.editor.save')}
@@ -75,12 +74,13 @@ function WorkspaceNamePage({policy}) {
             >
                 <View style={styles.mb4}>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
                         inputID="name"
                         label={translate('workspace.editor.nameInputLabel')}
                         accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                        defaultValue={policy.name}
+                        defaultValue={policy?.name}
                         maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         spellCheck={false}
                         autoFocus
@@ -91,8 +91,6 @@ function WorkspaceNamePage({policy}) {
     );
 }
 
-WorkspaceNamePage.propTypes = propTypes;
-WorkspaceNamePage.defaultProps = defaultProps;
 WorkspaceNamePage.displayName = 'WorkspaceNamePage';
 
 export default withPolicy(WorkspaceNamePage);

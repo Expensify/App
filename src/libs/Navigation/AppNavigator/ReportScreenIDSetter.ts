@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -116,6 +115,7 @@ export default withOnyx<ReportScreenIDSetterProps, ReportScreenIDSetterComponent
         key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         allowStaleData: true,
         initialValue: {},
+        selector: (policyMembers) => policyMembers,
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
