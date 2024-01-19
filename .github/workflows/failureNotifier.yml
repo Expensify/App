@@ -14,9 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Fetch Workflow Run Jobs
         id: fetch-workflow-jobs
         uses: actions/github-script@v7
@@ -29,34 +26,26 @@ jobs:
               run_id: runId,
             });
             return jobsData.data;
-      
-      - name: Get merged pull request number
-        id: getMergedPullRequestNumber
-        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
-        with:
-          github_token: ${{ github.token }}
-
 
       - name: Process Each Failed Job
         uses: actions/github-script@v7
         with:
           script: |
-            const prNumber = ${{ steps.getMergedPullRequestNumber.outputs.number }};
-            const jobs = ${{ steps.fetch-workflow-jobs.outputs.result }};
-            const failureLabel = 'workflow-failure';
+            const jobs = ${{steps.fetch-workflow-jobs.outputs.result}};
 
-            const prData = await github.rest.pulls.get({
+            const headCommit = "${{ github.event.workflow_run.head_commit.id }}";            
+            const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: prNumber,
+              commit_sha: headCommit,
             });
 
-            const pr = prData.data;
-
+            const pr = prData.data[0];
             const prLink = pr.html_url;
             const prAuthor = pr.user.login;
-            const prMerger = pr.merged_by.login;
+            const prMerger = "${{ github.event.workflow_run.actor.login }}";
 
+            const failureLabel = 'workflow-failure';
             for (let i = 0; i < jobs.total_count; i++) {
               if (jobs.jobs[i].conclusion == 'failure') {
                 const jobName = jobs.jobs[i].name;
