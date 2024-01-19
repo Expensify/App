@@ -311,7 +311,10 @@ function waitForProtectedRoutes() {
 }
 
 function navigateWithSwitchPolicyID(policyID: string) {
-    goBack();
+    if (!canNavigate('navigateWithSwitchPolicyID')) {
+        return;
+    }
+
     return switchPolicyID(navigationRef.current, policyID);
 }
 

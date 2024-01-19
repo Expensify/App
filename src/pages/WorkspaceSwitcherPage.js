@@ -111,10 +111,8 @@ function WorkspaceSwitcherPage({policies}) {
             setSelectedOption(undefined);
         }
         setActiveWorkspaceID(policyID);
-
-        if (policyID === activeWorkspaceID) {
-            Navigation.goBack();
-        } else {
+        Navigation.goBack();
+        if (policyID !== activeWorkspaceID) {
             Navigation.navigateWithSwitchPolicyID(policyID);
         }
     }, []);
