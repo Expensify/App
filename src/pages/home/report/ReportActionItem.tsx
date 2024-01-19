@@ -388,6 +388,7 @@ function ReportActionItem({
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
+                    transactionViolations={props.transactionViolations}
                 />
             );
         } else if (
