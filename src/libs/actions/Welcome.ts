@@ -138,7 +138,7 @@ function show(routes: NavigationState<RootStackParamList>['routes'], showEngagem
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
         const transitionRoute = routes.find(
-            (route): route is NavigationState<Pick<RootStackParamList, 'TransitionBetweenApps'>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
+            (route): route is NavigationState<Pick<RootStackParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
         );
         const isExitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
 
