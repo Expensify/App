@@ -9,6 +9,7 @@ import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -51,11 +52,11 @@ type ComposerRef = {
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
-    onSelectionChange: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
     triggerHotkeyActions: (event: KeyboardEvent) => void;
-    updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu: boolean) => void;
+    updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
-    getSuggestions: () => string[];
+    getSuggestions: () => Mention[];
 };
 
 type ReportActionComposeOnyxProps = {
@@ -496,3 +497,5 @@ export default withCurrentUserPersonalDetails(
         },
     })(ReportActionCompose),
 );
+
+export type {SuggestionsRef};

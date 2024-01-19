@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -9,17 +10,15 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as SuggestionProps from './suggestionProps';
+// eslint-disable-next-line import/no-cycle
+import {SuggestionProps} from './Suggestions';
 
 /**
  * Check if this piece of string looks like an emoji
- * @param {String} str
- * @param {Number} pos
- * @returns {Boolean}
  */
-const isEmojiCode = (str, pos) => {
+const isEmojiCode = (str: string, pos: number): boolean => {
     const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
-    const leftWord = _.last(leftWords);
+    const leftWord = leftWords.at(-1) ?? '';
     return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
 };
 
@@ -29,38 +28,33 @@ const defaultSuggestionsValues = {
     shouldShowSuggestionMenu: false,
 };
 
-const propTypes = {
+type SuggestionEmojiOnyxProps = {
     /** Preferred skin tone */
-    preferredSkinTone: PropTypes.number,
+    preferredSkinTone: OnyxEntry<string | number>;
+};
 
-    /** A ref to this component */
-    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
-
+type SuggestionEmojiProps = {
     /** Function to clear the input */
-    resetKeyboardInput: PropTypes.func.isRequired,
+    resetKeyboardInput: () => void;
+} & SuggestionEmojiOnyxProps &
+    SuggestionProps;
 
-    ...SuggestionProps.baseProps,
-};
-
-const defaultProps = {
-    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    forwardedRef: null,
-};
-
-function SuggestionEmoji({
-    preferredSkinTone,
-    value,
-    setValue,
-    selection,
-    setSelection,
-    updateComment,
-    isComposerFullSize,
-    isAutoSuggestionPickerLarge,
-    forwardedRef,
-    resetKeyboardInput,
-    measureParentContainer,
-    isComposerFocused,
-}) {
+function SuggestionEmoji(
+    {
+        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
+        value,
+        setValue,
+        selection,
+        setSelection,
+        updateComment,
+        isComposerFullSize,
+        isAutoSuggestionPickerLarge,
+        resetKeyboardInput,
+        measureParentContainer,
+        isComposerFocused,
+    }: SuggestionEmojiProps,
+    ref: ForwardedRef<any>,
+) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowSuggestionMenu;
@@ -214,7 +208,7 @@ function SuggestionEmoji({
     }, []);
 
     useImperativeHandle(
-        forwardedRef,
+        ref,
         () => ({
             resetSuggestions,
             onSelectionChange,
@@ -248,23 +242,11 @@ function SuggestionEmoji({
     );
 }
 
-SuggestionEmoji.propTypes = propTypes;
-SuggestionEmoji.defaultProps = defaultProps;
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
-    <SuggestionEmoji
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-SuggestionEmojiWithRef.displayName = 'SuggestionEmojiWithRef';
-
-export default withOnyx({
+export default withOnyx<SuggestionEmojiProps, SuggestionEmojiOnyxProps>({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         selector: EmojiUtils.getPreferredSkinToneIndex,
     },
-})(SuggestionEmojiWithRef);
+})(forwardRef(SuggestionEmoji));

@@ -1,64 +1,67 @@
-import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
+import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
-import * as SuggestionProps from './suggestionProps';
 
-const propTypes = {
-    /** A ref to this component */
-    forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
-
-    /** Function to clear the input */
-    resetKeyboardInput: PropTypes.func.isRequired,
-
-    /** Is auto suggestion picker large */
-    isAutoSuggestionPickerLarge: PropTypes.bool,
-
-    ...SuggestionProps.baseProps,
+type Selection = {
+    start: number;
+    end: number;
 };
 
-const defaultProps = {
-    forwardedRef: null,
-    isAutoSuggestionPickerLarge: true,
+type SuggestionProps = {
+    value: string;
+    setValue: (newValue: string) => void;
+    selection: Selection;
+    setSelection: (newSelection: Selection) => void;
+    updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
+    measureParentContainer: () => void;
+    isComposerFullSize: boolean;
+    isComposerFocused?: boolean;
+    resetKeyboardInput: () => void;
+    isAutoSuggestionPickerLarge?: boolean;
+    composerHeight?: number;
 };
 
 /**
  * This component contains the individual suggestion components.
  * If you want to add a new suggestion type, add it here.
  *
- * @returns {React.Component}
  */
-function Suggestions({
-    isComposerFullSize,
-    value,
-    setValue,
-    selection,
-    setSelection,
-    updateComment,
-    composerHeight,
-    forwardedRef,
-    resetKeyboardInput,
-    measureParentContainer,
-    isAutoSuggestionPickerLarge,
-    isComposerFocused,
-}) {
-    const suggestionEmojiRef = useRef(null);
-    const suggestionMentionRef = useRef(null);
+function Suggestions(
+    {
+        isComposerFullSize,
+        value,
+        setValue,
+        selection,
+        setSelection,
+        updateComment,
+        composerHeight,
+        resetKeyboardInput,
+        measureParentContainer,
+        isAutoSuggestionPickerLarge = true,
+        isComposerFocused,
+    }: SuggestionProps,
+    ref: ForwardedRef<SuggestionsRef>,
+) {
+    const suggestionEmojiRef = useRef<SuggestionsRef>(null);
+    const suggestionMentionRef = useRef<SuggestionsRef>(null);
     const {isDraggingOver} = useContext(DragAndDropContext);
     const prevIsDraggingOver = usePrevious(isDraggingOver);
 
     const getSuggestions = useCallback(() => {
-        if (suggestionEmojiRef.current && suggestionEmojiRef.current.getSuggestions) {
+        if (suggestionEmojiRef.current?.getSuggestions) {
             const emojiSuggestions = suggestionEmojiRef.current.getSuggestions();
             if (emojiSuggestions.length > 0) {
                 return emojiSuggestions;
             }
         }
 
-        if (suggestionMentionRef.current && suggestionMentionRef.current.getSuggestions) {
+        if (suggestionMentionRef.current?.getSuggestions) {
             const mentionSuggestions = suggestionMentionRef.current.getSuggestions();
             if (mentionSuggestions.length > 0) {
                 return mentionSuggestions;
@@ -72,38 +75,36 @@ function Suggestions({
      * Clean data related to EmojiSuggestions
      */
     const resetSuggestions = useCallback(() => {
-        suggestionEmojiRef.current.resetSuggestions();
-        suggestionMentionRef.current.resetSuggestions();
+        suggestionEmojiRef.current?.resetSuggestions();
+        suggestionMentionRef.current?.resetSuggestions();
     }, []);
 
     /**
      * Listens for keyboard shortcuts and applies the action
-     *
-     * @param {Object} e
      */
-    const triggerHotkeyActions = useCallback((e) => {
-        const emojiHandler = suggestionEmojiRef.current.triggerHotkeyActions(e);
-        const mentionHandler = suggestionMentionRef.current.triggerHotkeyActions(e);
-        return emojiHandler || mentionHandler;
+    const triggerHotkeyActions = useCallback((e: KeyboardEvent) => {
+        const emojiHandler = suggestionEmojiRef.current?.triggerHotkeyActions(e);
+        const mentionHandler = suggestionMentionRef.current?.triggerHotkeyActions(e);
+        return emojiHandler ?? mentionHandler;
     }, []);
 
-    const onSelectionChange = useCallback((e) => {
-        const emojiHandler = suggestionEmojiRef.current.onSelectionChange(e);
+    const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        const emojiHandler = suggestionEmojiRef.current?.onSelectionChange(e);
         return emojiHandler;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
-        suggestionEmojiRef.current.updateShouldShowSuggestionMenuToFalse();
-        suggestionMentionRef.current.updateShouldShowSuggestionMenuToFalse();
+        suggestionEmojiRef.current?.updateShouldShowSuggestionMenuToFalse();
+        suggestionMentionRef.current?.updateShouldShowSuggestionMenuToFalse();
     }, []);
 
-    const setShouldBlockSuggestionCalc = useCallback((shouldBlock) => {
-        suggestionEmojiRef.current.setShouldBlockSuggestionCalc(shouldBlock);
-        suggestionMentionRef.current.setShouldBlockSuggestionCalc(shouldBlock);
+    const setShouldBlockSuggestionCalc = useCallback((shouldBlock: boolean) => {
+        suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
+        suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
     }, []);
 
     useImperativeHandle(
-        forwardedRef,
+        ref,
         () => ({
             resetSuggestions,
             onSelectionChange,
@@ -152,18 +153,8 @@ function Suggestions({
     );
 }
 
-Suggestions.propTypes = propTypes;
-Suggestions.defaultProps = defaultProps;
 Suggestions.displayName = 'Suggestions';
 
-const SuggestionsWithRef = React.forwardRef((props, ref) => (
-    <Suggestions
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default forwardRef(Suggestions);
 
-SuggestionsWithRef.displayName = 'SuggestionsWithRef';
-
-export default SuggestionsWithRef;
+export type {SuggestionProps};
