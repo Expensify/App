@@ -1,4 +1,3 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
 import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Sound from 'react-native-sound';
@@ -9,31 +8,22 @@ const prefix = Platform.select({
     default: '',
 });
 
-const usePlaySound = (soundFile: string) => {
-    const [isMuted, setMuted] = useState(false);
-    const sound = useMemo(() => new Sound(`${prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE), [soundFile]);
+let isMuted = false;
+// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: (val) => (isMuted = !!val?.isMutedAllSounds),
+});
 
-    useEffect(() => {
-        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.USER,
-            callback: (val) => setMuted(!!val?.isMutedAllSounds),
-        });
-
-        return () => {
-            Onyx.disconnect(connectionID);
-        };
-    }, []);
-
-    const play = useCallback(() => {
-        if (isMuted) {
+const playSound = (soundFile: string) => {
+    const sound = new Sound(`${prefix}${soundFile}.mp3`, Sound.MAIN_BUNDLE, (error) => {
+        if (error || isMuted) {
             return;
         }
 
         sound.play();
-    }, [sound, isMuted]);
-
-    return play;
+    });
 };
 
-export default usePlaySound;
+// TODO: where to move this file?
+export default playSound;

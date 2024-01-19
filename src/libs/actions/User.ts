@@ -1,8 +1,10 @@
 import {isBefore} from 'date-fns';
+import flattenDeep from 'lodash/flattenDeep';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
+import playSound from '@hooks/usePlaySound';
 import * as API from '@libs/API';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -469,6 +471,49 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
     });
 }
 
+function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
+    try {
+        console.log(121314, JSON.stringify(pushJSON));
+        const types = flattenDeep(
+            pushJSON.filter((update) => update.key.includes('reportActions_')).map((update) => Object.keys(update.value).map((key) => update.value[key].originalMessage)),
+        );
+
+        console.log(898989, {types});
+
+        // someone sent money
+        if (types.find((message) => message.IOUDetails)) {
+            console.log(11111, 'someone sent money');
+            return playSound('success');
+        }
+
+        // mention user
+        if (types.find((message) => message.html?.includes('<mention-user>'))) {
+            console.log(11111, 'mention user');
+            return playSound('attention');
+        }
+
+        // assign a task
+        if (types.find((message) => message.taskReportID)) {
+            console.log(11111, 'assign a task');
+            return playSound('attention');
+        }
+
+        // request money
+        if (types.find((message) => message.IOUTransactionID)) {
+            console.log(11111, 'request money');
+            return playSound('attention');
+        }
+
+        // plain message
+        if (types.find((message) => message.html)) {
+            console.log(11111, 'mention user');
+            return playSound('receive');
+        }
+    } catch (e) {
+        // do nothing
+    }
+}
+
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
@@ -513,8 +558,10 @@ function subscribeToUserEvents() {
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
-    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) =>
-        SequentialQueue.getCurrentRequest().then(() => {
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
+        playSoundForMessageType(pushJSON);
+
+        return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
             if (currentUserAccountID === -1) {
                 return;
@@ -527,8 +574,8 @@ function subscribeToUserEvents() {
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
             return onyxUpdatePromise;
-        }),
-    );
+        });
+    });
 }
 
 /**
