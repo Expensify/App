@@ -79,9 +79,8 @@ function BaseOptionsSelector(props) {
             }
 
             return defaultIndex;
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
-        [props.initialFocusedIndex, props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex],
+        [props.initialFocusedIndex, props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length, props.focusedIndex, props.initialFocusedIndex],
     );
 
     const isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
@@ -377,6 +376,7 @@ function BaseOptionsSelector(props) {
         } else {
             subscribeToEnterShortcut();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [disableEnterShortCut]);
 
     useEffect(() => {
@@ -386,6 +386,7 @@ function BaseOptionsSelector(props) {
         } else {
             unSubscribeFromKeyboardShortcut();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isFocused]);
 
     useEffect(() => {
