@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
@@ -28,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Form, LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Form, GetPhysicalCardForm, LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
 import {TCardDetails} from '@src/types/onyx/Card';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RedDotCardSection from './RedDotCardSection';
@@ -42,7 +40,7 @@ type ExpensifyCardPageOnyxProps = {
     cardList: OnyxEntry<Record<string, OnyxCard>>;
 
     /** Draft values used by the get physical card form */
-    draftValues: OnyxEntry<Form | undefined>;
+    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
 
     /** Login info */
     loginList: OnyxEntry<LoginList>;
@@ -52,7 +50,7 @@ type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & StackScreenProps<Publ
 
 function ExpensifyCardPage({
     cardList,
-    draftValues = {},
+    draftValues,
     loginList = {},
     privatePersonalDetails = {},
     route: {
@@ -70,6 +68,8 @@ function ExpensifyCardPage({
     const [isNotFound, setIsNotFound] = useState(false);
     const [details, setDetails] = useState<TCardDetails>();
     const [cardDetailsError, setCardDetailsError] = useState('');
+
+    console.log(draftValues);
 
     useEffect(() => {
         if (!cardList) {
@@ -96,13 +96,13 @@ function ExpensifyCardPage({
     };
 
     const goToGetPhysicalCardFlow = () => {
-        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues, privatePersonalDetails, loginList);
+        const updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(draftValues ?? {}, privatePersonalDetails ?? {}, loginList ?? {});
 
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(updatedDraftValues), loginList ?? {});
     };
 
-    const hasDetectedDomainFraud = domainCards.some((card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
-    const hasDetectedIndividualFraud = domainCards.some((card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const hasDetectedDomainFraud = domainCards?.some((card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
+    const hasDetectedIndividualFraud = domainCards?.some((card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;

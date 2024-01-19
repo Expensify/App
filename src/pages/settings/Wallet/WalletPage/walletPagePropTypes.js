@@ -4,7 +4,18 @@ import cardPropTypes from '@components/cardPropTypes';
 import networkPropTypes from '@components/networkPropTypes';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
-import walletTransferPropTypes from '@pages/settings/Wallet/walletTransferPropTypes';
+import CONST from '@src/CONST';
+
+const walletTransferPropTypes = PropTypes.shape({
+    /** Selected accountID for transfer */
+    selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
+    /** Type to filter the payment Method list */
+    filterPaymentMethodType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, '']),
+
+    /** Whether the success screen is shown to user. */
+    shouldShowSuccess: PropTypes.bool,
+});
 
 const propTypes = {
     /** Wallet balance transfer props */

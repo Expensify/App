@@ -5,22 +5,22 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
 
 type DraftValues = {
-    addressLine1: string;
-    addressLine2: string;
-    city: string;
-    country: string;
-    legalFirstName: string;
-    legalLastName: string;
-    phoneNumber: string;
-    state: string;
-    zipPostCode: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    country?: string;
+    legalFirstName?: string;
+    legalLastName?: string;
+    phoneNumber?: string;
+    state?: string;
+    zipPostCode?: string;
 };
 
 type PrivatePersonalDetails = {
-    address: {street: string; city: string; state: string; country: string; zip: string};
-    legalFirstName: string;
-    legalLastName: string;
-    phoneNumber: string;
+    address?: {street: string; city: string; state: string; country: string; zip: string};
+    legalFirstName?: string;
+    legalLastName?: string;
+    phoneNumber?: string;
 };
 
 type LoginList = Record<string, Login>;
@@ -33,12 +33,7 @@ type LoginList = Record<string, Login>;
  * @returns
  */
 function getCurrentRoute(domain: string, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    const {
-        address: {street, city, state, country, zip},
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-    } = privatePersonalDetails;
+    const {address: {city, country, state, street, zip} = {}, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails;
 
     if (!legalFirstName && !legalLastName) {
         return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain);
@@ -91,23 +86,18 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
  * @returns
  */
 function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails: PrivatePersonalDetails, loginList: LoginList) {
-    const {
-        address: {city, country, state, street = '', zip},
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-    } = privatePersonalDetails;
+    const {address: {city, country, state, street, zip} = {}, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails;
 
     return {
-        legalFirstName: draftValues.legalFirstName || legalFirstName,
-        legalLastName: draftValues.legalLastName || legalLastName,
-        addressLine1: draftValues.addressLine1 || street.split('\n')[0],
-        addressLine2: draftValues.addressLine2 || street.split('\n')[1] || '',
-        city: draftValues.city || city,
-        country: draftValues.country || country,
-        phoneNumber: draftValues.phoneNumber || (phoneNumber ?? UserUtils.getSecondaryPhoneLogin(loginList) ?? ''),
-        state: draftValues.state || state,
-        zipPostCode: draftValues.zipPostCode || zip,
+        legalFirstName: draftValues.legalFirstName ?? legalFirstName,
+        legalLastName: draftValues.legalLastName ?? legalLastName,
+        addressLine1: draftValues.addressLine1 ?? street?.split('\n')[0] ?? '',
+        addressLine2: draftValues.addressLine2 ?? street?.split('\n')[1] ?? '',
+        city: draftValues.city ?? city,
+        country: draftValues.country ?? country,
+        phoneNumber: draftValues.phoneNumber ?? phoneNumber ?? UserUtils.getSecondaryPhoneLogin(loginList) ?? '',
+        state: draftValues.state ?? state,
+        zipPostCode: draftValues.zipPostCode ?? zip,
     };
 }
 
@@ -117,7 +107,7 @@ function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails:
  * @returns
  */
 function getUpdatedPrivatePersonalDetails(draftValues: DraftValues): PrivatePersonalDetails {
-    const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
+    const {addressLine1, addressLine2, city = '', country = '', legalFirstName, legalLastName, phoneNumber, state = '', zipPostCode = ''} = draftValues;
     return {
         legalFirstName,
         legalLastName,

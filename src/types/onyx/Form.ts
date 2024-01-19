@@ -21,6 +21,18 @@ type DateOfBirthForm = Form & {
     dob?: string;
 };
 
+type GetPhysicalCardForm = Form & {
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    country?: string;
+    legalFirstName?: string;
+    legalLastName?: string;
+    phoneNumber?: string;
+    state?: string;
+    zipPostCode?: string;
+};
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm};
+export type {AddDebitCardForm, DateOfBirthForm, GetPhysicalCardForm};
