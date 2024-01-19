@@ -51,6 +51,7 @@ jobs:
           ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
           PACKAGE_SCRIPT_NAME: android-build-e2e
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
   buildDelta:
     runs-on: ubuntu-latest-xl
@@ -112,6 +113,7 @@ jobs:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
           PACKAGE_SCRIPT_NAME: android-build-e2edelta
           APP_OUTPUT_PATH: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
   runTestsInAWS:
     runs-on: ubuntu-latest

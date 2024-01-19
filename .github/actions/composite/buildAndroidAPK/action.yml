@@ -11,12 +11,15 @@ inputs:
   APP_OUTPUT_PATH:
     description: The path to the built APK
     required: true
+  MAPBOX_SDK_DOWNLOAD_TOKEN:
+    description: The token to use to download the MapBox SDK
+    required: true
 
 runs:
   using: composite
   steps:
     - name: Configure MapBox SDK
-      run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+      run: ./scripts/setup-mapbox-sdk.sh ${{ inputs.MAPBOX_SDK_DOWNLOAD_TOKEN }}
       shell: bash
 
     - uses: Expensify/App/.github/actions/composite/setupNode@main
