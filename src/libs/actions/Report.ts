@@ -2505,7 +2505,7 @@ function getReportPrivateNote(reportID: string) {
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(text: string, choice: string) {
+function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
     const commandName = 'CompleteEngagementModal';
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
