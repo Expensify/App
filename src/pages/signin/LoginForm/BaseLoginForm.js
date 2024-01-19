@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
@@ -70,9 +71,6 @@ const propTypes = {
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    isInModal: PropTypes.bool,
-
     isVisible: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
@@ -88,7 +86,6 @@ const defaultProps = {
     closeAccount: {},
     blurOnSubmit: false,
     innerRef: () => {},
-    isInModal: false,
 };
 
 function LoginForm(props) {
@@ -100,6 +97,7 @@ function LoginForm(props) {
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {translate} = props;
 
@@ -213,7 +211,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (props.isInModal) {
+        if (shouldUseNarrowLayout) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();

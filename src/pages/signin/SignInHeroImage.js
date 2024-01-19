@@ -3,23 +3,19 @@ import React from 'react';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
-
-    shouldShowSmallScreen: PropTypes.bool,
-};
-
-const defaultProps = {
-    shouldShowSmallScreen: false,
 };
 
 function SignInHeroImage(props) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     let imageSize;
-    if (props.isSmallScreenWidth || props.shouldShowSmallScreen) {
+    if (shouldUseNarrowLayout) {
         imageSize = {
             height: variables.signInHeroImageMobileHeight,
             width: variables.signInHeroImageMobileWidth,

@@ -30,7 +30,7 @@ function SignInModal() {
             testID={SignInModal.displayName}
         >
             <HeaderWithBackButton />
-            <SignInPage isInModal />
+            <SignInPage />
         </ScreenWrapper>
     );
 }

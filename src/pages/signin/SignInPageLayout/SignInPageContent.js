@@ -7,6 +7,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -32,14 +33,12 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
-    /** Whether to show signIn hero image on a particular page */
-    shouldShowSmallScreen: PropTypes.bool.isRequired,
-
     ...withLocalizePropTypes,
 };
 
 function SignInPageContent(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -77,9 +76,9 @@ function SignInPageContent(props) {
                     <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
                         <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
                     </View>
-                    {props.shouldShowSmallScreen ? (
+                    {shouldUseNarrowLayout ? (
                         <View style={[styles.mt8]}>
-                            <SignInHeroImage shouldShowSmallScreen />
+                            <SignInHeroImage />
                         </View>
                     ) : null}
                 </View>
