@@ -9,7 +9,6 @@ import InvertedFlatList from '@components/InvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useCallbackRef from '@hooks/useCallbackRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -412,7 +411,7 @@ function ReportActionsList({
         calculateUnreadMarker();
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
-    const visibilityCallback = useCallbackRef(() => {
+    const onVisibilityChange = useCallback(() => {
         if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report) || messageManuallyMarkedUnread) {
             return;
         }
@@ -422,15 +421,13 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
-    });
+    }, [calculateUnreadMarker, messageManuallyMarkedUnread, report]);
 
     useEffect(() => {
-        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(visibilityCallback);
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(onVisibilityChange);
 
         return unsubscribeVisibilityListener;
-
-        /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    }, [report.reportID]);
+    }, [onVisibilityChange]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
