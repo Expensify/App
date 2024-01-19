@@ -4730,7 +4730,6 @@ export {
     canEditReportDescription,
     doesTransactionThreadHaveViolations,
     hasViolations,
-    shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
     hasSmartscanError,
