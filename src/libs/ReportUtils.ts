@@ -4453,7 +4453,7 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
  *  We only want policy owners and admins to be able to modify the report description, but not in thread chat.
  */
 function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return !isMoneyRequestReport(report) && !isArchivedRoom(report) && isChatRoom(report) && !isChatThread(report) && isEmpty(policy);
+    return !isMoneyRequestReport(report) && !isArchivedRoom(report) && isChatRoom(report) && !isChatThread(report) && !isEmpty(policy);
 }
 /**
  * Checks if report action has error when smart scanning
