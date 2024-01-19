@@ -1,4 +1,4 @@
-name: Build an Android apk
+name: Build an Android apk for e2e tests
 description: Build an Android apk for an E2E test build and upload it as an artifact
 
 inputs:
