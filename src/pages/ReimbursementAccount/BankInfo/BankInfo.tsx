@@ -75,7 +75,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN] ?? '',
             }, policyID);
         }
-    }, [reimbursementAccount, setupType, values, bankAccountID, policyID]);
+    }, [setupType, values, bankAccountID, policyID]);
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
