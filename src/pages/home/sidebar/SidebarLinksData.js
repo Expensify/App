@@ -57,6 +57,9 @@ const propTypes = {
     /** The policies which the user has access to */
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    policyMembers: PropTypes.object,
 };
 
 const defaultProps = {
@@ -66,6 +69,7 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
+    policyMembers: {},
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network, policyMembers}) {
@@ -73,7 +77,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
 
-    const policyMemberAccountIDs = _.map(_.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`]), (accountID) => Number(accountID));
+    const policyMemberAccountIDs = _.map(_.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`] ?? {}), (accountID) => Number(accountID));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
