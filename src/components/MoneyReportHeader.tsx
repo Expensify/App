@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -20,9 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import SettlementButton from './SettlementButton';
 
@@ -66,14 +64,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-
-    const cancelPayment = useCallback(() => {
-        // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
-        IOU.cancelPayment(moneyRequestReport, chatReport);
-        setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
-
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
@@ -100,13 +90,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('iou.cancelPayment'),
-            onSelected: () => setIsConfirmModalVisible(true),
-        });
-    }
     if (!ReportUtils.isArchivedRoom(chatReport)) {
         threeDotsMenuItems.push({
             icon: ZoomIcon,
@@ -208,16 +191,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </View>
-            <ConfirmModal
-                title={translate('iou.cancelPayment')}
-                isVisible={isConfirmModalVisible}
-                onConfirm={cancelPayment}
-                onCancel={() => setIsConfirmModalVisible(false)}
-                prompt={translate('iou.cancelPaymentConfirmation')}
-                confirmText={translate('iou.cancelPayment')}
-                cancelText={translate('common.dismiss')}
-                danger
-            />
         </View>
     );
 }

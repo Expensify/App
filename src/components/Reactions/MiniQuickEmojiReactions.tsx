@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
+import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -61,7 +62,7 @@ function MiniQuickEmojiReactions({
 
     return (
         <View style={styles.flexRow}>
-            {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
+            {CONST.QUICK_REACTIONS.slice(0, 3).map((emoji: Emoji) => (
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
@@ -90,7 +91,8 @@ function MiniQuickEmojiReactions({
             >
                 {({hovered, pressed}) => (
                     <Icon
-                        small
+                        width={variables.iconSizeMedium}
+                        height={variables.iconSizeMedium}
                         src={Expensicons.AddReaction}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
