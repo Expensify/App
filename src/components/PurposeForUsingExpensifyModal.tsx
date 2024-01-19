@@ -116,16 +116,16 @@ function PurposeForUsingExpensifyModal() {
                 const translationKey = `purposeForExpensify.${choice}` as const;
                 return {
                     key: translationKey,
-                        title: translate(translationKey),
+                    title: translate(translationKey),
                     icon: menuIcons[choice],
-                        iconRight: Expensicons.ArrowRight,
-                        onPress: () => completeModalAndClose(messageCopy[choice], choice),
-                        shouldShowRightIcon: true,
-                        numberOfLinesTitle: 2,
+                    iconRight: Expensicons.ArrowRight,
+                    onPress: () => completeModalAndClose(messageCopy[choice], choice),
+                    shouldShowRightIcon: true,
+                    numberOfLinesTitle: 2,
                 };
             }),
         [completeModalAndClose, translate],
-        );
+    );
 
     return (
         <Modal
