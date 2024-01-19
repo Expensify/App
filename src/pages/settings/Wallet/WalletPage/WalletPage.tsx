@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import type {Ref} from 'react';
+import type {ForwardedRef, Ref, RefObject, SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, NativeTouchEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -38,6 +38,7 @@ import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WalletPageOnyxProps, WalletPageProps} from './types';
+import { Source, TransferMethod } from '@components/KYCWall/types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
@@ -269,7 +270,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
      */
-    const navigateToWalletOrTransferBalancePage = (source: string) => {
+    const navigateToWalletOrTransferBalancePage = (source?: Source) => {
         Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
@@ -392,7 +393,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
                                             <KYCWall
                                                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                                                onSuccessfulKYC={(_iouPaymentType: string, source: string) => navigateToWalletOrTransferBalancePage(source)}
+                                                onSuccessfulKYC={(source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod: string) => {
                                                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                                     if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
@@ -404,11 +405,10 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                                popoverPlacement="bottom"
                                                 source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                                 shouldIncludeDebitCard={hasActivatedWallet}
                                             >
-                                                {(triggerKYCFlow: (e: GestureResponderEvent | KeyboardEvent | undefined) => void, buttonRef: Ref<View>) => {
+                                                {(triggerKYCFlow: (event: SyntheticEvent<NativeTouchEvent>, iouPaymentType: TransferMethod) => void, buttonRef: ForwardedRef<HTMLElement>) => {
                                                     if (shouldShowLoadingSpinner) {
                                                         return null;
                                                     }
@@ -416,7 +416,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                     if (hasActivatedWallet) {
                                                         return (
                                                             <MenuItem
-                                                                ref={buttonRef}
+                                                                ref={buttonRef as ForwardedRef<View>}
                                                                 title={translate('common.transferBalance')}
                                                                 icon={Expensicons.Transfer}
                                                                 onPress={triggerKYCFlow}
@@ -455,7 +455,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
                                                     return (
                                                         <Button
-                                                            ref={buttonRef}
+                                                            ref={buttonRef as ForwardedRef<View>}
                                                             text={translate('walletPage.enableWallet')}
                                                             onPress={triggerKYCFlow}
                                                             style={styles.mh5}
@@ -576,6 +576,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                 }}
                 onItemSelected={(method: string) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
+                shouldShowPersonalBankAccountOption
             />
         </>
     );

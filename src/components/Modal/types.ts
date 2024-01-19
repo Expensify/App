@@ -21,7 +21,7 @@ type BaseModalProps = Partial<ModalProps> & {
     shouldSetModalVisibility?: boolean;
 
     /** Callback method fired when the user requests to close the modal */
-    onClose: (ref?: React.RefObject<HTMLElement>) => void;
+    onClose: () => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
