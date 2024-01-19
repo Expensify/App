@@ -93,6 +93,10 @@ function Lightbox({
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
 
+    // Enables/disables the lightbox based on the number of concurrent lightboxes
+    // On higher-end devices, we can show render lightboxes at the same time,
+    // while on lower-end devices we want to only render the active carousel item as a lightbox
+    // to avoid performance issues.
     const isLightboxVisible = useMemo(() => {
         if (!hasSiblingCarouselItems || NUMBER_OF_CONCURRENT_LIGHTBOXES === 'UNLIMITED') {
             return true;
