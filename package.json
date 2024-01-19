@@ -88,7 +88,6 @@
     "@react-ng/bounds-observer": "^0.2.1",
     "@rnmapbox/maps": "^10.0.11",
     "@shopify/flash-list": "^1.6.3",
-    "@types/node": "^18.14.0",
     "@ua/react-native-airship": "^15.3.1",
     "@vue/preload-webpack-plugin": "^2.0.0",
     "awesome-phonenumber": "^5.4.0",
@@ -217,6 +216,7 @@
     "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.195",
     "@types/mapbox-gl": "^2.7.13",
+    "@types/node": "^20.11.5",
     "@types/pusher-js": "^5.1.0",
     "@types/react": "18.2.45",
     "@types/react-beautiful-dnd": "^13.1.4",
@@ -316,7 +316,7 @@
     ]
   },
   "engines": {
-    "node": "20.9.0",
-    "npm": "10.1.0"
+    "node": "20.10.0",
+    "npm": "10.2.3"
   }
 }
