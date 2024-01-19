@@ -282,6 +282,7 @@ function RoomMembersPage(props) {
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
