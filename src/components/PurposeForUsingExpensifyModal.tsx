@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,6 +15,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
+import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
 import Text from './Text';
@@ -70,6 +71,12 @@ const messageCopy = {
         "This will send a money request to each of your friends for however much they owe you, and we'll take care of getting you paid back. Thanks for asking, and let me know how it goes!",
 };
 
+const menuItemBase: MenuItemProps = {
+    iconRight: Expensicons.ArrowRight,
+    shouldShowRightIcon: true,
+    numberOfLinesTitle: 2,
+};
+
 function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -96,54 +103,54 @@ function PurposeForUsingExpensifyModal() {
         setIsModalOpen(false);
     }, []);
 
-    const completeModalAndClose = (message: string, choice: string) => {
+    const completeModalAndClose = useCallback((message: string, choice: string) => {
         Report.completeEngagementModal(message, choice);
         setIsModalOpen(false);
         Report.navigateToConciergeChat();
-    };
+    }, []);
 
-    const menuItems = [
-        {
-            key: 'purposeForExpensify.track',
-            title: translate('purposeForExpensify.track'),
-            icon: Expensicons.ReceiptSearch,
-            iconRight: Expensicons.ArrowRight,
-            onPress: () => completeModalAndClose(messageCopy.track, 'newDotTrack'),
-            shouldShowRightIcon: true,
-            numberOfLinesTitle: 2,
-            link: undefined,
-        },
-        {
-            key: 'purposeForExpensify.submit',
-            title: translate('purposeForExpensify.submit'),
-            icon: Expensicons.Scan,
-            iconRight: Expensicons.ArrowRight,
-            onPress: () => completeModalAndClose(messageCopy.submit, 'newDotSubmit'),
-            shouldShowRightIcon: true,
-            numberOfLinesTitle: 2,
-            link: undefined,
-        },
-        {
-            key: 'purposeForExpensify.manageTeam',
-            title: translate('purposeForExpensify.manageTeam'),
-            icon: Expensicons.MoneyBag,
-            iconRight: Expensicons.ArrowRight,
-            onPress: () => completeModalAndClose(messageCopy.business, 'newDotManageTeam'),
-            shouldShowRightIcon: true,
-            numberOfLinesTitle: 2,
-            link: undefined,
-        },
-        {
-            key: 'purposeForExpensify.splitChat',
-            title: translate('purposeForExpensify.splitChat'),
-            icon: Expensicons.Briefcase,
-            iconRight: Expensicons.ArrowRight,
-            onPress: () => completeModalAndClose(messageCopy.chatSplit, 'newDotSplitChat'),
-            shouldShowRightIcon: true,
-            numberOfLinesTitle: 2,
-            link: undefined,
-        },
-    ];
+    const menuItems: MenuItemProps[] = useMemo(
+        () =>
+                    [
+                        {
+                            key: 'purposeForExpensify.track',
+                            title: translate('purposeForExpensify.track'),
+                            icon: Expensicons.ReceiptSearch,
+                            iconRight: Expensicons.ArrowRight,
+                            onPress: () => completeModalAndClose(messageCopy.track, 'newDotTrack'),
+                            shouldShowRightIcon: true,
+                            numberOfLinesTitle: 2,
+                        },
+                        {
+                            key: 'purposeForExpensify.submit',
+                            title: translate('purposeForExpensify.submit'),
+                            icon: Expensicons.Scan,
+                            iconRight: Expensicons.ArrowRight,
+                            onPress: () => completeModalAndClose(messageCopy.submit, 'newDotSubmit'),
+                            shouldShowRightIcon: true,
+                            numberOfLinesTitle: 2,
+                        },
+                        {
+                            key: 'purposeForExpensify.manageTeam',
+                            title: translate('purposeForExpensify.manageTeam'),
+                            icon: Expensicons.MoneyBag,
+                            iconRight: Expensicons.ArrowRight,
+                            onPress: () => completeModalAndClose(messageCopy.business, 'newDotManageTeam'),
+                            shouldShowRightIcon: true,
+                            numberOfLinesTitle: 2,
+                        },
+                        {
+                            key: 'purposeForExpensify.splitChat',
+                            title: translate('purposeForExpensify.splitChat'),
+                            icon: Expensicons.Briefcase,
+                            iconRight: Expensicons.ArrowRight,
+                            onPress: () => completeModalAndClose(messageCopy.chatSplit, 'newDotSplitChat'),
+                            shouldShowRightIcon: true,
+                            numberOfLinesTitle: 2,
+                        },
+                    ].map((item) => ({...menuItemBase, ...item})),
+        [completeModalAndClose, translate],
+        );
 
     return (
         <Modal
