@@ -188,7 +188,6 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
     const reportID = props.report.reportID;
     const isLoading = (!!reportActionID && props.isLoadingInitialReportActions) || !props.isReadyForCommentLinking;
-    const firstReportActionName = lodashGet(reportActions, ['0', 'actionName']);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -216,6 +215,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const newestReportAction = lodashGet(reportActions, ['0']);
     const oldestReportAction = useMemo(() => _.last(reportActions), [reportActions]);
     const hasCreatedAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const firstReportActionName = lodashGet(reportActions, ['0', 'actionName']);
 
     /**
      * @returns {Boolean}
