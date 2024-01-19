@@ -12,7 +12,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
-
 type WorkspaceAvatarOnyxProps = {
     policy: OnyxEntry<Policy>;
     isLoadingApp: OnyxEntry<boolean>;
