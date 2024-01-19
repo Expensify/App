@@ -16,7 +16,7 @@ function BaseAttachmentViewPdf({
     style,
 }) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const scale = attachmentCarouselPagerContext === undefined ? 1 : attachmentCarouselPagerContext.scale;
+    const scrollEnabled = attachmentCarouselPagerContext === undefined ? 1 : attachmentCarouselPagerContext.scrollEnabled;
 
     useEffect(() => {
         if (!attachmentCarouselPagerContext) {
@@ -43,11 +43,11 @@ function BaseAttachmentViewPdf({
             if (onPressProp !== undefined) {
                 onPressProp(e);
             }
-            if (attachmentCarouselPagerContext !== undefined && attachmentCarouselPagerContext.onTap !== undefined && scale === 1) {
+            if (attachmentCarouselPagerContext !== undefined && attachmentCarouselPagerContext.onTap !== undefined && scrollEnabled) {
                 attachmentCarouselPagerContext.onTap(e);
             }
         },
-        [attachmentCarouselPagerContext, onPressProp, scale],
+        [attachmentCarouselPagerContext, scrollEnabled, onPressProp],
     );
 
     return (

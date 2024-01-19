@@ -27,7 +27,6 @@ type PagerItem = {
 
 type AttachmentCarouselPagerProps = {
     items: PagerItem[];
-    scale: number;
     scrollEnabled?: boolean;
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
@@ -37,7 +36,7 @@ type AttachmentCarouselPagerProps = {
 };
 
 function AttachmentCarouselPager(
-    {items, scale, scrollEnabled = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
+    {items, scrollEnabled = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const styles = useThemeStyles();
@@ -68,11 +67,11 @@ function AttachmentCarouselPager(
         () => ({
             pagerRef,
             isPagerSwiping,
-            scale,
+            scrollEnabled,
             onTap,
             onScaleChanged,
         }),
-        [isPagerSwiping, scale, onTap, onScaleChanged],
+        [isPagerSwiping, scrollEnabled, onTap, onScaleChanged],
     );
 
     useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
