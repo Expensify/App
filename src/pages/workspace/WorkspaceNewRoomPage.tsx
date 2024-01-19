@@ -32,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Account, Form, Policy, Report as ReportType, Session} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type FormValues = {
@@ -43,10 +44,19 @@ type FormValues = {
 };
 
 type WorkspaceNewRoomPageOnyxProps = {
+    /** The list of policies the user has access to. */
     policies: OnyxCollection<Policy>;
+
+    /** All reports shared with the user */
     reports: OnyxCollection<ReportType>;
+
+    /** Form state for NEW_ROOM_FORM */
     formState: OnyxEntry<Form>;
+
+    /** Session details for the user */
     session: OnyxEntry<Session>;
+
+    /** policyID for main workspace */
     activePolicyID: OnyxEntry<Required<Account>['activePolicyID']>;
 };
 
@@ -76,7 +86,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormValues) => {
-        const participants = session ? [session.accountID ?? -1] : [];
+        const participants = session?.accountID ? [session.accountID] : [];
         const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
@@ -125,12 +135,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     }, [isPolicyAdmin]);
 
     /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
+     * @param values - form input values passed by the Form component
+     * @returns an object containing validation errors, if any were found during validation
      */
     const validate = useCallback(
-        (values: FormValues) => {
-            const errors: Record<string, string> = {};
+        (values: FormValues): OnyxCommon.Errors => {
+            const errors: OnyxCommon.Errors = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
