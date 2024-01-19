@@ -139,6 +139,7 @@ function IdologyQuestions({questions, idNumber}) {
                 scrollContextEnabled
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.saveAndContinue')}
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={SingleChoiceQuestion}

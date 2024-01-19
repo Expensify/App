@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
@@ -343,7 +343,8 @@ function ReportActionsList({
     const initialNumToRender = useMemo(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
+        const itemsToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        return itemsToRender > 0 ? itemsToRender : undefined;
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight]);
 
     /**
@@ -513,4 +514,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(memo(ReportActionsList));
+export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(ReportActionsList);

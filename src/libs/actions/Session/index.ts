@@ -200,16 +200,7 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -225,7 +216,7 @@ function resendValidateCode(login = credentials.login) {
 
     const params: RequestNewValidateCodeParams = {email: login};
 
-    API.write('RequestNewValidateCode', params, {optimisticData, successData, failureData});
+    API.write('RequestNewValidateCode', params, {optimisticData, finallyData});
 }
 
 type OnyxData = {
@@ -301,11 +292,11 @@ function beginSignIn(email: string) {
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
  */
-function beginAppleSignIn(idToken: string) {
+function beginAppleSignIn(idToken: string | undefined | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     type BeginAppleSignInParams = {
-        idToken: string;
+        idToken: typeof idToken;
         preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
     };
 
@@ -318,11 +309,11 @@ function beginAppleSignIn(idToken: string) {
  * Shows Google sign-in process, and if an auth token is successfully obtained,
  * passes the token on to the Expensify API to sign in with
  */
-function beginGoogleSignIn(token: string) {
+function beginGoogleSignIn(token: string | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     type BeginGoogleSignInParams = {
-        token: string;
+        token: string | null;
         preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
     };
 
