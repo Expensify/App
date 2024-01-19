@@ -3,6 +3,7 @@ import type {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import type {Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -118,7 +119,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
-        taskID: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
@@ -236,12 +237,6 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
     [SCREENS.MONEY_REQUEST.WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: number;
-    };
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
         iouType: string;
         transactionID: string;
         waypointIndex: string;
@@ -384,10 +379,11 @@ type RightModalNavigatorParamList = {
 type PublicScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        shortLivedAuthToken: string;
-        exitTo: string;
+        email?: string;
+        error?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
+        exitTo?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

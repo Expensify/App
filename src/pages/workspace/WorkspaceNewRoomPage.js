@@ -77,6 +77,9 @@ const propTypes = {
         /** accountID of current user */
         accountID: PropTypes.number,
     }),
+
+    /** policyID for main workspace */
+    activePolicyID: PropTypes.string,
 };
 const defaultProps = {
     reports: {},
@@ -88,6 +91,7 @@ const defaultProps = {
     session: {
         accountID: 0,
     },
+    activePolicyID: null,
 };
 
 function WorkspaceNewRoomPage(props) {
@@ -96,7 +100,7 @@ function WorkspaceNewRoomPage(props) {
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
-    const [policyID, setPolicyID] = useState(null);
+    const [policyID, setPolicyID] = useState(props.activePolicyID);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
@@ -137,6 +141,13 @@ function WorkspaceNewRoomPage(props) {
     useEffect(() => {
         Report.clearNewRoomFormError();
     }, []);
+
+    useEffect(() => {
+        if (policyID) {
+            return;
+        }
+        setPolicyID(props.activePolicyID);
+    }, [props.activePolicyID, policyID]);
 
     useEffect(() => {
         if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
@@ -296,6 +307,7 @@ function WorkspaceNewRoomPage(props) {
                                     inputID="policyID"
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
+                                    value={policyID}
                                     onValueChange={setPolicyID}
                                 />
                             </View>
@@ -353,6 +365,11 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        activePolicyID: {
+            key: ONYXKEYS.ACCOUNT,
+            selector: (account) => (account && account.activePolicyID) || null,
+            initialValue: null,
         },
     }),
 )(WorkspaceNewRoomPage);

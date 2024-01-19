@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -209,11 +210,16 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     }, [reports, personalDetails, searchTerm]);
 
     useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
+        const interactionTask = doInteractionTask(() => {
             setDidScreenTransitionEnd(true);
         });
 
-        return interactionTask.cancel;
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
     }, []);
 
     useEffect(() => {
