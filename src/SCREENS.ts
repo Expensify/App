@@ -107,7 +107,7 @@ const SCREENS = {
         PRIVATE_NOTES: 'Private_Notes',
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
-        REFERRAL: 'Referral',
+        REFERRAL: 'Referral_Details',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
