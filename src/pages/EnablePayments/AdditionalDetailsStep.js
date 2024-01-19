@@ -16,9 +16,9 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';

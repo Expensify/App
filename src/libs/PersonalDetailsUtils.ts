@@ -1,6 +1,6 @@
+import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -8,7 +8,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
-
 
 type FirstAndLastName = {
     firstName: string;
@@ -273,5 +272,5 @@ export {
     getStreetLines,
     getEffectiveDisplayName,
     createDisplayName,
-    extractFirstAndLastNameFromAvailableDetails
+    extractFirstAndLastNameFromAvailableDetails,
 };

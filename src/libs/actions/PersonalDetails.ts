@@ -35,7 +35,6 @@ Onyx.connect({
     callback: (val) => (privatePersonalDetails = val),
 });
 
-
 function updatePronouns(pronouns: string) {
     if (currentUserAccountID) {
         type UpdatePronounsParams = {
