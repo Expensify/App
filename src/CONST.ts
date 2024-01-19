@@ -269,7 +269,6 @@ const CONST = {
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_COMMENT_LINKING: 'commentLinking',
-        POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
     },
@@ -480,7 +479,9 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
+    OLDDOT_URLS: {
+        INBOX: 'inbox',
+    },
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -528,6 +529,7 @@ const CONST = {
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -601,6 +603,10 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
+            INVITE: 'invited',
+            NOTHING: 'nothing',
+        },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
             ACCOUNT_CLOSED: 'accountClosed',
@@ -631,18 +637,13 @@ const CONST = {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
-        STATE: {
-            OPEN: 'OPEN',
-            SUBMITTED: 'SUBMITTED',
-            PROCESSING: 'PROCESSING',
-        },
         STATE_NUM: {
             OPEN: 0,
-            PROCESSING: 1,
-            SUBMITTED: 2,
+            SUBMITTED: 1,
+            APPROVED: 2,
             BILLING: 3,
         },
-        STATUS: {
+        STATUS_NUM: {
             OPEN: 0,
             SUBMITTED: 1,
             CLOSED: 2,
@@ -1181,6 +1182,11 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
+        },
+        DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',
@@ -1284,10 +1290,15 @@ const CONST = {
             TRIP: 'trip',
             MANUAL: 'manual',
         },
+        AUTO_REPORTING_OFFSET: {
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        ID_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
@@ -1365,6 +1376,7 @@ const CONST = {
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
+        ACCENT_LATIN_CHARS: /[\u00C0-\u017F]/g,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1422,6 +1434,7 @@ const CONST = {
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
+            REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
         },
 
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
@@ -1434,6 +1447,8 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
 
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+
+        REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
     },
 
     PRONOUNS: {
@@ -2719,7 +2734,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2889,8 +2904,10 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '7470147100835202',
-        POLICY_ID: 'B795B6319125BDF2',
+        PROD_PUBLIC_ROOM_ID: '7470147100835202',
+        PROD_POLICY_ID: 'B795B6319125BDF2',
+        TEST_PUBLIC_ROOM_ID: '207591744844000',
+        TEST_POLICY_ID: 'ABD1345ED7293535',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2954,6 +2971,7 @@ const CONST = {
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
+        SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
     },
@@ -3051,13 +3069,24 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
 
+    BRICK_ROAD: {
+        GBR: 'GBR',
+        RBR: 'RBR',
+    },
+
+    /**
+     * Constants for types of violations.
+     * Defined here because they need to be referenced by the type system to generate the
+     * ViolationNames type.
+     */
     VIOLATIONS: {
         ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
         AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
@@ -3101,6 +3130,8 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 } as const;
 
 export default CONST;

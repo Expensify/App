@@ -57,6 +57,7 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 jest.mock('../../src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
 }));
+jest.mock('../../src/hooks/usePermissions.ts');
 
 jest.mock('../../src/libs/Navigation/Navigation');
 
@@ -208,7 +209,7 @@ test.skip('[ReportScreen] should render ReportScreen with composer interactions'
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
@@ -273,7 +274,7 @@ test.skip('[ReportScreen] should press of the report item', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
