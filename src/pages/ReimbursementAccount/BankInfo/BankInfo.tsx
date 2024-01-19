@@ -12,9 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import * as ReimbursementAccountUtils from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import Confirmation from './substeps/Confirmation';
 import Manual from './substeps/Manual';
 import Plaid from './substeps/Plaid';
@@ -107,7 +108,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
                     [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
                 };
-                ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+                ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
                 BankAccounts.setBankAccountSubStep(null);
             }
         } else {
