@@ -11,7 +11,7 @@ Pay-per-use is a billing option for people who prefer to use Expensify month to 
 1. Create a Group Workspace if you haven’t already by going to **Settings > Workspaces > Group > New Workspace** 
 2. Once you’ve created your Workspace, under the “Subscription” section on the Group Workspace page, select “Pay-per-use”.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What is considered an active user? 
 An active user is anyone who chats, creates, modifies, submits, approves, reimburses, or exports a report in Expensify. This includes actions taken by a Copilot and Workspace automation (such as Scheduled Submit and automated reimbursement). If no one on your Group Workspace uses Expensify in a given month, you will not be billed for that month.
@@ -26,4 +26,4 @@ If you expect to have an increased number of users for more than 3 out of 12 mon
 ## Will billing only be in USD currency?
 While USD is the default billing currency, we also have GBP, AUD, and NZD billing currencies. You can see the rates on our [pricing](https://www.expensify.com/pricing)  page. 
 
-
+{% include faq-end.md %}

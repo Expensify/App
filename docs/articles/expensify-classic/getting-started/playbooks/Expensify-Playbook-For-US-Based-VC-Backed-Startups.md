@@ -80,7 +80,7 @@ For an efficiency-focused company, we recommend setting up [Scheduled Submit](ht
 4. You’ll notice *Scheduled Submit* is located directly under *Report Basics*
 5. Choose *Daily*
 
-Between Expensify's SmartScan technology, direct corporate card feed import, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Card or scan their receipt.
+Between Expensify's SmartScan technology, direct corporate card feed import, automatic categorization, and [DoubleCheck](https://community.expensify.com/discussion/5738/deep-dive-how-does-concierge-receipt-audit-work) features, your employees shouldn't need to do anything more than swipe their Expensify Visa® Commercial Card or scan their receipt.
 
 Scheduled Submit will ensure all expenses are submitted automatically. Any expenses that do not fall within the rules you’ve set up for your policy will be escalated to you for manual review.
 
@@ -155,7 +155,7 @@ The Expensify Card has many benefits for your company. Two in particular are wor
 ### If you don't have a corporate card, use the Expensify Card
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back (within the US)
+- Up to 2% cash back (Applies to USD purchases only)
 - [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest)
 - Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
 - A stable, unbreakable connection (third-party bank feeds can run into connectivity issues)

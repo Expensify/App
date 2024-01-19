@@ -1,17 +1,16 @@
-import React, {useMemo, useRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import _ from 'underscore';
-import Logo from '@assets/images/new-expensify.svg';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
@@ -22,6 +21,7 @@ import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import pkg from '../../../../package.json';
 
 const propTypes = {
@@ -41,6 +41,7 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = props;
     const popoverAnchor = useRef(null);
@@ -95,64 +96,61 @@ function AboutPage(props) {
         }));
     }, [translate, waitForNavigate]);
 
+    const overlayContent = useCallback(
+        () => (
+            <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb5]}>
+                <Text
+                    selectable
+                    style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
+                >
+                    v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+                </Text>
+            </View>
+        ),
+        // disabling this rule, as we want this to run only on the first render
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
+
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={AboutPage.displayName}
+        <IllustratedHeaderPageLayout
+            title={props.translate('initialSettingsPage.about')}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            illustration={LottieAnimations.Coin}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
+            overlayContent={overlayContent}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={props.translate('initialSettingsPage.about')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                    />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
-                        <View style={[styles.flex1]}>
-                            <View style={[styles.pageWrapper, styles.pv3]}>
-                                <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <ImageSVG
-                                        contentFit="contain"
-                                        src={Logo}
-                                        height={80}
-                                        width={80}
-                                    />
-                                    <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted, styles.userSelectText]}>
-                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
-                                    </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
-                                </View>
-                            </View>
-                            <MenuItemList
-                                menuItems={menuItems}
-                                shouldUseSingleExecution
-                            />
-                        </View>
-                        <View style={[styles.sidebarFooter]}>
-                            <Text
-                                style={[styles.chatItemMessageHeaderTimestamp]}
-                                numberOfLines={1}
-                            >
-                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                                <TextLink
-                                    style={[styles.textMicroSupporting, styles.link]}
-                                    href={CONST.TERMS_URL}
-                                >
-                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                                </TextLink>{' '}
-                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                                <TextLink
-                                    style={[styles.textMicroSupporting, styles.link]}
-                                    href={CONST.PRIVACY_URL}
-                                >
-                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                                </TextLink>
-                                .
-                            </Text>
-                        </View>
-                    </ScrollView>
-                </>
-            )}
-        </ScreenWrapper>
+            <View style={[styles.settingsPageBody, styles.ph5]}>
+                <Text style={[styles.textHeadline, styles.mb1]}>{props.translate('footer.aboutExpensify')}</Text>
+                <Text style={[styles.baseFontStyle, styles.mb4]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
+            </View>
+            <MenuItemList
+                menuItems={menuItems}
+                shouldUseSingleExecution
+            />
+            <View style={[styles.sidebarFooter]}>
+                <Text
+                    style={[styles.chatItemMessageHeaderTimestamp]}
+                    numberOfLines={1}
+                >
+                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                    <TextLink
+                        style={[styles.textMicroSupporting, styles.link]}
+                        href={CONST.TERMS_URL}
+                    >
+                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                    </TextLink>{' '}
+                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                    <TextLink
+                        style={[styles.textMicroSupporting, styles.link]}
+                        href={CONST.PRIVACY_URL}
+                    >
+                        {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
+                    </TextLink>
+                    .
+                </Text>
+            </View>
+        </IllustratedHeaderPageLayout>
     );
 }
 

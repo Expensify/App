@@ -1,15 +1,5 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
-import * as OptionsListUtils from './OptionsListUtils';
+import type {Report} from '@src/types/onyx';
 import * as ReportUtils from './ReportUtils';
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
-});
 
 /**
  * Returns the report name if the report is a group chat
@@ -17,10 +7,12 @@ Onyx.connect({
 function getGroupChatName(report: Report): string | undefined {
     const participants = report.participantAccountIDs ?? [];
     const isMultipleParticipantReport = participants.length > 1;
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, allPersonalDetails ?? {});
-    // @ts-expect-error Error will gone when OptionsListUtils will be migrated to Typescript
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipantReport);
-    return ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips);
+
+    return participants
+        .map((participant) => ReportUtils.getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+        .sort((first, second) => first?.localeCompare(second ?? '') ?? 0)
+        .filter(Boolean)
+        .join(', ');
 }
 
 export {
