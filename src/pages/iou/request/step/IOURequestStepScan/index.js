@@ -74,6 +74,7 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
+    const trackRef = useRef(null);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -162,11 +163,34 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     };
 
+    const handleOnUserMedia = (stream) => {
+        setCameraPermissionState('granted');
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track.getCapabilities();
+        if (capabilities.torch) {
+            trackRef.current = track;
+        }
+        setIsTorchAvailable(!!capabilities.torch);
+    };
+
     const capturePhoto = useCallback(() => {
         if (!cameraRef.current.getScreenshot) {
             return;
         }
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current.applyConstraints({
+                advanced: [{torch: true}],
+            });
+        }
         const imageBase64 = cameraRef.current.getScreenshot();
+
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current.applyConstraints({
+                advanced: [{torch: false}],
+            });
+        }
+
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64, filename);
         const source = URL.createObjectURL(file);
@@ -178,7 +202,7 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, isFlashLightOn]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -209,14 +233,12 @@ function IOURequestStepScan({
                     </View>
                 )}
                 <NavigationAwareCamera
-                    onUserMedia={() => setCameraPermissionState('granted')}
+                    onUserMedia={handleOnUserMedia}
                     onUserMediaError={() => setCameraPermissionState('denied')}
                     style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                     ref={cameraRef}
                     screenshotFormat="image/png"
                     videoConstraints={{facingMode: {exact: 'environment'}}}
-                    torchOn={isFlashLightOn}
-                    onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
                     cameraTabIndex={1}
                 />
