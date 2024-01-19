@@ -4,6 +4,14 @@ import type * as OnyxCommon from './OnyxCommon';
 
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+type DismissedReferralBanners = {
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST: string]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT: string]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY: string]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND: string]?: boolean;
+    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE: string]?: boolean;
+};
+
 type Account = {
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
@@ -54,6 +62,7 @@ type Account = {
     success?: string;
     codesAreCopied?: boolean;
     twoFactorAuthStep?: TwoFactorAuthStep;
+    dismissedReferralBanners?: DismissedReferralBanners;
 };
 
 export default Account;
