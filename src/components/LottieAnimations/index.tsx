@@ -57,6 +57,11 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         w: variables.updateAnimationW,
         h: variables.updateAnimationH,
     },
+    Coin: {
+        file: require('@assets/animations/Coin.lottie'),
+        w: 375,
+        h: 240,
+    },
 };
 
 export default DotLottieAnimations;
