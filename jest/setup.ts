@@ -34,6 +34,6 @@ jest.spyOn(console, 'debug').mockImplementation((...params) => {
 
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({
-    unlink: jest.fn(() => new Promise((res) => res())),
+    unlink: jest.fn(() => new Promise<void>((res) => res())),
     CachesDirectoryPath: jest.fn(),
 }));

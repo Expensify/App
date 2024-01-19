@@ -1,14 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import _ from 'underscore';
 
-/**
- * @param {String} imagePath
- */
-function mockImages(imagePath) {
+function mockImages(imagePath: string) {
     const imageFilenames = fs.readdirSync(path.resolve(__dirname, `../assets/${imagePath}/`));
     // eslint-disable-next-line rulesdir/prefer-early-return
-    _.each(imageFilenames, (fileName) => {
+    imageFilenames.forEach((fileName) => {
         if (/\.svg/.test(fileName)) {
             jest.mock(`../assets/${imagePath}/${fileName}`, () => () => '');
         }
