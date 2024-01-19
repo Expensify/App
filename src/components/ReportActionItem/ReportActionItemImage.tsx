@@ -78,7 +78,13 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
         );
     }
 
-    return <ReceiptImage transaction={transaction} />;
+    return (
+        <ReceiptImage
+            transaction={transaction}
+            receiptFileName={thumbnail as string}
+            receiptPath={image as string}
+        />
+    );
 }
 
 ReportActionItemImage.displayName = 'ReportActionItemImage';
