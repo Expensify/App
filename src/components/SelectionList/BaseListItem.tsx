@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -12,10 +11,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import {baseListItemPropTypes} from './selectionListPropTypes';
+import type {BaseListItemProps, RadioItem, User} from './types';
 import UserListItem from './UserListItem';
 
-function BaseListItem({
+function BaseListItem<TItem extends User | RadioItem>({
     item,
     isFocused = false,
     isDisabled = false,
@@ -26,13 +25,12 @@ function BaseListItem({
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
-}) {
+}: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
-    const ListItem = isUserItem ? UserListItem : RadioListItem;
+    const isRadioItem = item.rightElement === undefined;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -70,7 +68,7 @@ function BaseListItem({
                         styles.justifyContentBetween,
                         styles.sidebarLinkInner,
                         styles.userSelectNone,
-                        isUserItem ? styles.peopleRow : styles.optionRow,
+                        isRadioItem ? styles.optionRow : styles.peopleRow,
                         isFocused && styles.sidebarLinkActive,
                     ]}
                 >
@@ -100,20 +98,32 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
-                    <ListItem
-                        item={item}
-                        textStyles={[
-                            styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            styles.sidebarLinkTextBold,
-                            styles.pre,
-                            item.alternateText ? styles.mb1 : null,
-                        ]}
-                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                        isDisabled={isDisabled}
-                        onSelectRow={onSelectRow}
-                        showTooltip={showTooltip}
-                    />
+
+                    {isRadioItem ? (
+                        <RadioListItem
+                            item={item}
+                            textStyles={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre, item.alternateText ? styles.mb1 : null]}
+                            alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            isDisabled={isDisabled}
+                            onSelectRow={() => onSelectRow(item)}
+                            showTooltip={showTooltip}
+                        />
+                    ) : (
+                        <UserListItem
+                            item={item}
+                            textStyles={[
+                                styles.optionDisplayName,
+                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkTextBold,
+                                styles.pre,
+                                item.alternateText ? styles.mb1 : null,
+                            ]}
+                            alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            isDisabled={isDisabled}
+                            onSelectRow={() => onSelectRow(item)}
+                            showTooltip={showTooltip}
+                        />
+                    )}
                     {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
@@ -129,7 +139,7 @@ function BaseListItem({
                     )}
                     {rightHandSideComponentRender()}
                 </View>
-                {Boolean(item.invitedSecondaryLogin) && (
+                {!!item.invitedSecondaryLogin && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
                         {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
                     </Text>
@@ -140,6 +150,5 @@ function BaseListItem({
 }
 
 BaseListItem.displayName = 'BaseListItem';
-BaseListItem.propTypes = baseListItemPropTypes;
 
 export default BaseListItem;
