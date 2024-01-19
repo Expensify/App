@@ -28,7 +28,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -49,6 +49,9 @@ type ReportPreviewOnyxProps = {
 
     /** All the transactions, used to update ReportPreview label and status */
     transactions: OnyxCollection<Transaction>;
+
+    /** All of the transaction violations */
+    transactionViolations: OnyxCollection<TransactionViolations>;
 };
 
 type ReportPreviewProps = ReportPreviewOnyxProps & {
