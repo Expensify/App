@@ -4413,22 +4413,17 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
 
-        // If the payment was cancelled, show the "Owes" message
-        if (!isSettled(IOUReportID)) {
-            translationKey = 'iou.payerOwesAmount';
-        } else {
-            switch (originalMessage.paymentType) {
-                case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                    translationKey = 'iou.paidElsewhereWithAmount';
-                    break;
-                case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-                case CONST.IOU.PAYMENT_TYPE.VBBA:
-                    translationKey = 'iou.paidWithExpensifyWithAmount';
-                    break;
-                default:
-                    translationKey = 'iou.payerPaidAmount';
-                    break;
-            }
+        switch (originalMessage.paymentType) {
+            case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+                translationKey = 'iou.paidElsewhereWithAmount';
+                break;
+            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
+                translationKey = 'iou.paidWithExpensifyWithAmount';
+                break;
+            default:
+                translationKey = 'iou.payerPaidAmount';
+                break;
         }
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: payerName ?? ''});
     }
