@@ -114,7 +114,7 @@ function WorkspaceNewRoomPage(props) {
         [props.policies],
     );
     const [policyID, setPolicyID] = useState(() => {
-        if (_.some(workspaceOptions, option => option.value === props.activePolicyID)) {
+        if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
             return props.activePolicyID;
         }
         return '';
@@ -159,12 +159,12 @@ function WorkspaceNewRoomPage(props) {
 
     useEffect(() => {
         if (policyID) {
-            if (_.some(workspaceOptions, opt => opt.value === policyID)) {
+            if (_.some(workspaceOptions, (opt) => opt.value === policyID)) {
                 setPolicyID('');
             }
             return;
         }
-        if (_.some(workspaceOptions, opt => opt.value === props.activePolicyID)) {
+        if (_.some(workspaceOptions, (opt) => opt.value === props.activePolicyID)) {
             setPolicyID(props.activePolicyID);
         } else {
             setPolicyID('');
@@ -217,8 +217,6 @@ function WorkspaceNewRoomPage(props) {
         },
         [props.reports],
     );
-
-
 
     const writeCapabilityOptions = useMemo(
         () =>
