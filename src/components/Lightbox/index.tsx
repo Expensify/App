@@ -1,16 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
+import Image from '@components/Image';
+import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
+import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
+import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useStyleUtils from '@hooks/useStyleUtils';
-import Image from './Image';
-import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from './MultiGestureCanvas';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from './MultiGestureCanvas/types';
-import {getCanvasFitScale} from './MultiGestureCanvas/utils';
+import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
-// Increase/decrease this number to change the number of concurrent lightboxes
-// The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
-type LightboxConcurrencyLimit = number | 'UNLIMITED';
-const NUMBER_OF_CONCURRENT_LIGHTBOXES: LightboxConcurrencyLimit = 3;
 const DEFAULT_IMAGE_SIZE = 200;
 const DEFAULT_IMAGE_DIMENSION: ContentSize = {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE};
 
@@ -75,7 +72,6 @@ function Lightbox({
     );
 
     const [contentSize, setInternalContentSize] = useState<ContentSize | undefined>(() => cachedImageDimensions.get(uri));
-    const isContentLoaded = contentSize !== undefined;
     const setContentSize = useCallback(
         (newDimensions: ContentSize | undefined) => {
             setInternalContentSize(newDimensions);
@@ -131,7 +127,8 @@ function Lightbox({
     // because it's only going to be rendered after the fallback image is hidden.
     const shouldShowLightbox = !hasSiblingCarouselItems || !isFallbackVisible;
 
-    const isLoading = isActive && (!isCanvasLoaded || !isContentLoaded);
+    const isContentLoaded = isLightboxImageLoaded || isFallbackImageLoaded;
+    const isLoading = isActive && (!isCanvasLoaded || !isContentLoaded || isFallbackVisible);
 
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
@@ -148,6 +145,7 @@ function Lightbox({
         if (isLightboxVisible) {
             return;
         }
+        setLightboxImageLoaded(false);
         setContentSize(undefined);
     }, [isLightboxVisible, setContentSize]);
 
@@ -157,12 +155,9 @@ function Lightbox({
         }
 
         if (isActive) {
-            if (isContentLoaded && isFallbackVisible) {
-                // We delay hiding the fallback image while image transformer is still rendering
-                setTimeout(() => {
-                    setFallbackVisible(false);
-                    setFallbackImageLoaded(false);
-                }, 100);
+            if (isLightboxImageLoaded && isFallbackVisible) {
+                setFallbackVisible(false);
+                setFallbackImageLoaded(false);
             }
         } else {
             if (isLightboxVisible && isLightboxImageLoaded) {
@@ -196,7 +191,9 @@ function Lightbox({
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoad={updateContentSize}
-                                    onLoadEnd={() => setLightboxImageLoaded(true)}
+                                    onLoadEnd={() => {
+                                        setLightboxImageLoaded(true);
+                                    }}
                                 />
                             </MultiGestureCanvas>
                         </View>
