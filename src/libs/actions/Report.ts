@@ -2509,7 +2509,7 @@ function completeEngagementModal(text: string, choice: string) {
     const commandName = 'CompleteEngagementModal';
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
-    const reportCommentAction: Partial<ReportAction> = reportComment.reportAction;
+    const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
     const lastComment = reportCommentAction?.message?.[0];
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
     const reportCommentText = reportComment.commentText;
@@ -2529,12 +2529,12 @@ function completeEngagementModal(text: string, choice: string) {
 
     const report = ReportUtils.getReport(conciergeChatReportID);
 
-    if (isNotEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     if (reportCommentAction?.reportActionID) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
@@ -2564,7 +2564,7 @@ function completeEngagementModal(text: string, choice: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-            value: optimisticReportActions,
+            value: optimisticReportActions as ReportActions,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
