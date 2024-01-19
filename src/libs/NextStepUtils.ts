@@ -105,46 +105,44 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: 'These expenses are scheduled to ',
                     },
                 ];
+                let harvestingSuffix = '';
 
                 if (policy.autoReportingFrequency) {
                     const currentDate = new Date();
 
                     let autoSubmissionDate: string;
 
-                    if (policy.autoReportingOffset === 'lastDayOfMonth') {
+                    if (policy.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                         const currentDateWithLastDayOfMonth = lastDayOfMonth(currentDate);
 
-                        autoSubmissionDate = format(currentDateWithLastDayOfMonth, 'do');
-                    } else if (policy.autoReportingOffset === 'lastBusinessDayOfMonth') {
-                        // TODO: Get from the backend
-                        // const currentLastBusinessDayOfMonth =
+                        autoSubmissionDate = format(currentDateWithLastDayOfMonth, CONST.DATE.ORDINAL_DAY_OF_MONTH);
+                    } else if (policy.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                        // TODO: Implement calculation
                         autoSubmissionDate = '';
-                    } else if (Number.isNaN(Number(policy.autoReportingOffset))) {
-                        autoSubmissionDate = '';
+                    } else if (policy.autoReportingOffset !== undefined) {
+                        autoSubmissionDate = format(currentDate.setDate(policy.autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     } else {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        autoSubmissionDate = format(currentDate.setDate(+policy.autoReportingOffset!), 'do');
+                        autoSubmissionDate = '';
                     }
 
                     const harvestingSuffixes = {
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: `on the ${autoSubmissionDate} of each month`,
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of your trip',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
                     };
 
-                    optimisticNextStep.message.push({
-                        text: `automatically submit ${harvestingSuffixes[policy.autoReportingFrequency]}!`,
-                        type: 'strong',
-                    });
-                } else {
-                    optimisticNextStep.message.push({
-                        text: `automatically submit!`,
-                        type: 'strong',
-                    });
+                    if (harvestingSuffixes[policy.autoReportingFrequency]) {
+                        harvestingSuffix = ` ${harvestingSuffixes[policy.autoReportingFrequency]}`;
+                    }
                 }
+
+                optimisticNextStep.message.push({
+                    text: `automatically submit${harvestingSuffix}!`,
+                    type: 'strong',
+                });
 
                 optimisticNextStep.message.push({
                     text: ' No further action required!',
