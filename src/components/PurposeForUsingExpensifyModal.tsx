@@ -19,6 +19,7 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
 import Text from './Text';
+import type {ValueOf} from "type-fest";
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
@@ -104,7 +105,7 @@ function PurposeForUsingExpensifyModal() {
         setIsModalOpen(false);
     }, []);
 
-    const completeModalAndClose = useCallback((message: string, choice: string) => {
+    const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
         Report.completeEngagementModal(message, choice);
         setIsModalOpen(false);
         Report.navigateToConciergeChat();
