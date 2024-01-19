@@ -125,7 +125,7 @@ function Lightbox({
     // so that we don't see two overlapping images at the same time.
     // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
     // because it's only going to be rendered after the fallback image is hidden.
-    const shouldShowLightbox = !hasSiblingCarouselItems || !isFallbackVisible;
+    const shouldShowLightbox = isLightboxImageLoaded && (!hasSiblingCarouselItems || !isFallbackVisible);
 
     const isContentLoaded = isLightboxImageLoaded || isFallbackImageLoaded;
     const isLoading = isActive && (!isCanvasLoaded || !isContentLoaded || isFallbackVisible);
@@ -141,6 +141,7 @@ function Lightbox({
         }
     }, [isItemActive]);
 
+    // Resets the lightbox when it becomes inactive
     useEffect(() => {
         if (isLightboxVisible) {
             return;
@@ -149,6 +150,7 @@ function Lightbox({
         setContentSize(undefined);
     }, [isLightboxVisible, setContentSize]);
 
+    // Enables and disables the fallback image when the carousel item is active or not
     useEffect(() => {
         if (!hasSiblingCarouselItems) {
             return;
