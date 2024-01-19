@@ -1251,7 +1251,6 @@ export default {
         letsDoubleCheck: "Let's double check that everything looks right.",
         accountEnding: 'Account ending in',
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
-        connectDifferentAccount: 'Connect a different account',
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
         chooseAnAccountBelow: 'Choose an account below',
