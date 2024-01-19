@@ -22,7 +22,7 @@ import Text from './Text';
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
-    track:
+    [CONST.INTRO_CHOICES.TRACK]:
         'Great! To track your expenses, I suggest you create a workspace to keep everything contained:\n' +
         '\n' +
         '1. Press your avatar icon\n' +
@@ -38,7 +38,7 @@ const messageCopy = {
         "4. Choose what kind of expense you'd like to log, whether a manual expense, scanned receipt, or tracked distance.\n" +
         '\n' +
         "That'll be stored in your My Business Expenses room for your later access. Thanks for asking, and let me know how it goes!",
-    submit:
+    [CONST.INTRO_CHOICES.SUBMIT]:
         'Hi there, to submit expenses for reimbursement, please:\n' +
         '\n' +
         '1. Press the big green + button\n' +
@@ -47,7 +47,7 @@ const messageCopy = {
         '4. Enter the email address or phone number of your boss\n' +
         '\n' +
         "And we'll take it from there to get you paid back. Please give it a shot and let me know how it goes!",
-    business:
+    [CONST.INTRO_CHOICES.MANAGE_TEAM]:
         "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
         '\n' +
         '1. Press your avatar icon\n' +
@@ -56,7 +56,7 @@ const messageCopy = {
         '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
         '\n' +
         'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!',
-    chatSplit:
+    [CONST.INTRO_CHOICES.CHAT_SPLIT]:
         'Hi there, to split an expense such as with a friend, please:\n' +
         '\n' +
         'Press the big green + button\n' +
@@ -71,10 +71,11 @@ const messageCopy = {
         "This will send a money request to each of your friends for however much they owe you, and we'll take care of getting you paid back. Thanks for asking, and let me know how it goes!",
 };
 
-const menuItemBase: MenuItemProps = {
-    iconRight: Expensicons.ArrowRight,
-    shouldShowRightIcon: true,
-    numberOfLinesTitle: 2,
+const menuIcons = {
+    [CONST.INTRO_CHOICES.TRACK]: Expensicons.ReceiptSearch,
+    [CONST.INTRO_CHOICES.SUBMIT]: Expensicons.Scan,
+    [CONST.INTRO_CHOICES.MANAGE_TEAM]: Expensicons.MoneyBag,
+    [CONST.INTRO_CHOICES.CHAT_SPLIT]: Expensicons.Briefcase,
 };
 
 function PurposeForUsingExpensifyModal() {
@@ -111,44 +112,18 @@ function PurposeForUsingExpensifyModal() {
 
     const menuItems: MenuItemProps[] = useMemo(
         () =>
-                    [
-                        {
-                            key: 'purposeForExpensify.track',
-                            title: translate('purposeForExpensify.track'),
-                            icon: Expensicons.ReceiptSearch,
-                            iconRight: Expensicons.ArrowRight,
-                            onPress: () => completeModalAndClose(messageCopy.track, 'newDotTrack'),
-                            shouldShowRightIcon: true,
-                            numberOfLinesTitle: 2,
-                        },
-                        {
-                            key: 'purposeForExpensify.submit',
-                            title: translate('purposeForExpensify.submit'),
-                            icon: Expensicons.Scan,
-                            iconRight: Expensicons.ArrowRight,
-                            onPress: () => completeModalAndClose(messageCopy.submit, 'newDotSubmit'),
-                            shouldShowRightIcon: true,
-                            numberOfLinesTitle: 2,
-                        },
-                        {
-                            key: 'purposeForExpensify.manageTeam',
-                            title: translate('purposeForExpensify.manageTeam'),
-                            icon: Expensicons.MoneyBag,
-                            iconRight: Expensicons.ArrowRight,
-                            onPress: () => completeModalAndClose(messageCopy.business, 'newDotManageTeam'),
-                            shouldShowRightIcon: true,
-                            numberOfLinesTitle: 2,
-                        },
-                        {
-                            key: 'purposeForExpensify.splitChat',
-                            title: translate('purposeForExpensify.splitChat'),
-                            icon: Expensicons.Briefcase,
-                            iconRight: Expensicons.ArrowRight,
-                            onPress: () => completeModalAndClose(messageCopy.chatSplit, 'newDotSplitChat'),
-                            shouldShowRightIcon: true,
-                            numberOfLinesTitle: 2,
-                        },
-                    ].map((item) => ({...menuItemBase, ...item})),
+            Object.values(CONST.INTRO_CHOICES).map((choice) => {
+                const translationKey = `purposeForExpensify.${choice}` as const;
+                return {
+                    key: translationKey,
+                        title: translate(translationKey),
+                    icon: menuIcons[choice],
+                        iconRight: Expensicons.ArrowRight,
+                        onPress: () => completeModalAndClose(messageCopy[choice], choice),
+                        shouldShowRightIcon: true,
+                        numberOfLinesTitle: 2,
+                };
+            }),
         [completeModalAndClose, translate],
         );
 
