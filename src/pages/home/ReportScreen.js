@@ -140,7 +140,7 @@ function getReportID(route) {
 function ReportScreen({
     betas,
     route,
-    report,
+    report: reportProp,
     reportMetadata,
     reportActions,
     parentReportAction,
@@ -162,6 +162,48 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
+    /**
+     * Create a lightweight Report so as to keep the re-rendering as light as possible by
+     * passing in only the required props.
+     * 
+     * Also, this plays nicely in contrast with Onyx,
+     * which creates a new object every time collection changes. Because of this we can't
+     * put this into onyx selector as it will be the same.
+     */
+    const report = useMemo(
+        () => ({
+            lastReadTime: reportProp.lastReadTime,
+            reportID: reportProp.reportID,
+            policyID: reportProp.policyID,
+            lastVisibleActionCreated: reportProp.lastVisibleActionCreated,
+            statusNum: reportProp.statusNum,
+            stateNum: reportProp.stateNum,
+            writeCapability: reportProp.writeCapability,
+            type: reportProp.type,
+            errorFields: reportProp.errorFields,
+            isPolicyExpenseChat: reportProp.isPolicyExpenseChat,
+            parentReportID: reportProp.parentReportID,
+            parentReportActionID: reportProp.parentReportActionID,
+            chatType: reportProp.chatType,
+            pendingFields: reportProp.pendingFields,
+            isDeletedParentAction: reportProp.isDeletedParentAction,
+            reportName: reportProp.reportName,
+            description: reportProp.description,
+            managerID: reportProp.managerID,
+            total: reportProp.total,
+            nonReimbursableTotal: reportProp.nonReimbursableTotal,
+            reportFields: reportProp.reportFields,
+            ownerAccountID: reportProp.ownerAccountID,
+            currency: reportProp.currency,
+            participantAccountIDs: reportProp.participantAccountIDs,
+            isWaitingOnBankAccount: reportProp.isWaitingOnBankAccount,
+            iouReportID: reportProp.iouReportID,
+            isOwnPolicyExpenseChat: reportProp.isOwnPolicyExpenseChat,
+            notificationPreference: reportProp.notificationPreference,
+        }),
+        [reportProp.lastReadTime, reportProp.reportID, reportProp.policyID, reportProp.lastVisibleActionCreated, reportProp.statusNum, reportProp.stateNum, reportProp.writeCapability, reportProp.type, reportProp.errorFields, reportProp.isPolicyExpenseChat, reportProp.parentReportID, reportProp.parentReportActionID, reportProp.chatType, reportProp.pendingFields, reportProp.isDeletedParentAction, reportProp.reportName, reportProp.description, reportProp.managerID, reportProp.total, reportProp.nonReimbursableTotal, reportProp.reportFields, reportProp.ownerAccountID, reportProp.currency, reportProp.participantAccountIDs, reportProp.isWaitingOnBankAccount, reportProp.iouReportID, reportProp.isOwnPolicyExpenseChat, reportProp.notificationPreference],
+    );
+
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
