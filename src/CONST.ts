@@ -1293,10 +1293,15 @@ const CONST = {
             TRIP: 'trip',
             MANUAL: 'manual',
         },
+        AUTO_REPORTING_OFFSET: {
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        ID_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
@@ -3067,7 +3072,8 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
@@ -3079,6 +3085,11 @@ const CONST = {
         RBR: 'RBR',
     },
 
+    /**
+     * Constants for types of violations.
+     * Defined here because they need to be referenced by the type system to generate the
+     * ViolationNames type.
+     */
     VIOLATIONS: {
         ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
         AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
