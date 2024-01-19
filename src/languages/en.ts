@@ -1999,7 +1999,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out of pocket',
+        outOfPocket: 'Out-of-pocket spend',
         companySpend: 'Company spend',
     },
     distance: {
