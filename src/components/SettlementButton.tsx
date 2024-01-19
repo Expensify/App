@@ -12,6 +12,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -72,10 +73,10 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     buttonSize?: ButtonSizeValue;
 
     /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute?: string;
+    addBankAccountRoute?: Route;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
-    addDebitCardRoute?: string;
+    addDebitCardRoute?: Route;
 
     /** Whether the button should be disabled */
     isDisabled?: boolean;
