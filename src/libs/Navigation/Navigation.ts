@@ -311,6 +311,7 @@ function waitForProtectedRoutes() {
 }
 
 function navigateWithSwitchPolicyID(policyID: string) {
+    goBack();
     return switchPolicyID(navigationRef.current, policyID);
 }
 

@@ -11,7 +11,6 @@ import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
 import TAB_TO_CENTRAL_PANE_MAPPING from './linkingConfig/TAB_TO_CENTRAL_PANE_MAPPING';
-import Navigation from './Navigation';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
 type ActionPayloadParams = {
@@ -40,8 +39,9 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     // Case when the user is on the AllSettingsScreen and selects the specific workspace. The user is redirected then to the specific workspace settings.
     if (screen === SCREENS.ALL_SETTINGS && policyID) {
         screen = SCREENS.WORKSPACE.INITIAL;
+    }
     // Alternative case when the user is on the specific workspace settings screen and selects "All" workspace.
-    } else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
+    else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
         screen = SCREENS.ALL_SETTINGS;
     }
     if (!payloadParams) {
@@ -73,9 +73,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     while ((current = root.getParent())) {
         root = current;
     }
-
-    // TODO: Invoke goBack in another way
-    Navigation.goBack();
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const newPath = getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
