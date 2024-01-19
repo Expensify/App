@@ -33,4 +33,5 @@ type TransactionViolation = {
 
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, TransactionViolations, ViolationName};
+export type {TransactionViolation, ViolationName};
+export default TransactionViolations;
