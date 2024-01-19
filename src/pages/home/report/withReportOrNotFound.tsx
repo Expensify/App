@@ -11,7 +11,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -42,7 +42,7 @@ export default function (
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
             useEffect(() => {
-                if (!isReportIdInRoute || isNotEmptyObject(props.report)) {
+                if (!isReportIdInRoute || !isEmptyObject(props.report)) {
                     // If the report is not required or is already loaded, we don't need to call the API
                     return;
                 }
