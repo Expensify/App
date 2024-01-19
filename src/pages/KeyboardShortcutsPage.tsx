@@ -1,6 +1,5 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,11 +9,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
+type Shortcut = {
+    displayName: string;
+    descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy';
+};
+
 function KeyboardShortcutsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const shortcuts = _.chain(CONST.KEYBOARD_SHORTCUTS)
-        .filter((shortcut) => !_.isEmpty(shortcut.descriptionKey))
+    const shortcuts = Object.values(CONST.KEYBOARD_SHORTCUTS)
         .map((shortcut) => {
             const platformAdjustedModifiers = KeyboardShortcut.getPlatformEquivalentForKeys(shortcut.modifiers);
             return {
@@ -22,16 +25,12 @@ function KeyboardShortcutsPage() {
                 descriptionKey: shortcut.descriptionKey,
             };
         })
-        .value();
-
+        .filter((shortcut): shortcut is Shortcut => !!shortcut.descriptionKey);
     /**
      * Render the information of a single shortcut
-     * @param {Object} shortcut
-     * @param {String} shortcut.displayName
-     * @param {String} shortcut.descriptionKey
-     * @returns {React.Component}
+     * @param shortcut - The shortcut to render
      */
-    const renderShortcut = (shortcut) => (
+    const renderShortcut = (shortcut: Shortcut) => (
         <MenuItem
             key={shortcut.displayName}
             title={shortcut.displayName}
@@ -49,8 +48,8 @@ function KeyboardShortcutsPage() {
             <HeaderWithBackButton title={translate('keyboardShortcutsPage.title')} />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.mb3, styles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
-                    {_.map(shortcuts, renderShortcut)}
+                    <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle]}>{translate('keyboardShortcutsPage.subtitle')}</Text>
+                    {shortcuts.map(renderShortcut)}
                 </View>
             </ScrollView>
         </ScreenWrapper>
