@@ -8,10 +8,12 @@ import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
@@ -66,8 +68,13 @@ const propTypes = {
 
     /** The transaction from the parent report action */
     transactions: PropTypes.objectOf(transactionPropTypes),
+
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
+
+    /** The list of transaction violations */
+    transactionViolations: transactionViolationsPropType,
+
     ...withCurrentReportIDPropTypes,
 };
 
@@ -82,6 +89,7 @@ const defaultProps = {
     transactions: {},
     draftComments: {},
     onFirstItemRendered: () => {},
+    transactionViolations: {},
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -103,8 +111,10 @@ function LHNOptionsList({
     draftComments,
     currentReportID,
     onFirstItemRendered,
+    transactionViolations,
 }) {
     const styles = useThemeStyles();
+    const {canUseViolations} = usePermissions();
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -136,7 +146,7 @@ function LHNOptionsList({
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
             const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID];
+            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID, itemParentReportAction.actorAccountID];
 
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
 
@@ -156,10 +166,26 @@ function LHNOptionsList({
                     preferredLocale={preferredLocale}
                     comment={itemComment}
                     onLayout={onLayoutItem}
+                    transactionViolations={transactionViolations}
+                    canUseViolations={canUseViolations}
                 />
             );
         },
-        [currentReportID, draftComments, onLayoutItem, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [
+            currentReportID,
+            draftComments,
+            onSelectRow,
+            optionMode,
+            personalDetails,
+            policy,
+            preferredLocale,
+            reportActions,
+            reports,
+            shouldDisableFocusOptions,
+            transactions,
+            transactionViolations,
+            canUseViolations,
+        ],
     );
 
     return (
@@ -207,6 +233,9 @@ export default compose(
         },
         draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     }),
 )(LHNOptionsList);

@@ -3,13 +3,13 @@ import type {RefObject} from 'react';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
-import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import type IconAsset from '@src/types/utils/IconAsset';
 import MenuItem from './MenuItem';
 import type {AnchorAlignment} from './Popover/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -17,7 +17,7 @@ import Text from './Text';
 
 type PopoverMenuItem = {
     /** An icon element displayed on the left side */
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
 
     /** Text label */
     text: string;
@@ -46,7 +46,7 @@ type PopoverMenuItem = {
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
 
-type PopoverMenuProps = PopoverModalProps & {
+type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
@@ -127,6 +127,14 @@ function PopoverMenu({
         {isActive: isVisible},
     );
 
+    const onModalHide = () => {
+        setFocusedIndex(-1);
+        if (selectedItemIndex.current !== null) {
+            menuItems[selectedItemIndex.current].onSelected();
+            selectedItemIndex.current = null;
+        }
+    };
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -134,13 +142,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={onClose}
             isVisible={isVisible}
-            onModalHide={() => {
-                setFocusedIndex(-1);
-                if (selectedItemIndex.current !== null) {
-                    menuItems[selectedItemIndex.current].onSelected();
-                    selectedItemIndex.current = null;
-                }
-            }}
+            onModalHide={onModalHide}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInTiming={animationInTiming}
