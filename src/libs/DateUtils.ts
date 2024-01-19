@@ -734,7 +734,7 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
  * Return the date with full format if the created date is the current date.
  * Otherwise return the created date.
  */
-function enrichMoneyRequestTimestamp(created: string) {
+function enrichMoneyRequestTimestamp(created: string): string {
     const currentTime = getDBTime();
     return isSameDay(new Date(created), new Date(currentTime)) ? currentTime : created;
 }
