@@ -34,6 +34,11 @@ const propTypes = {
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
 
+    /**
+     * The navigation prop passed by the navigator.
+     *
+     * This is required because transitionEnd event doesn't trigger in the automated testing environment.
+     */
     navigation: PropTypes.shape({}),
 };
 

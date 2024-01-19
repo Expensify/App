@@ -93,34 +93,8 @@ function SearchPageWrapper(args) {
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * Same approach as in ReportScreen.perf-test.js
- *
- * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
- *
- * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = () => {
-    const transitionEndListeners = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener = jest.fn().mockImplementation((listener, callback) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            _.filter(transitionEndListeners, (cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
 test('[Search Page] should interact when text input changes', async () => {
-    const {addListener} = createAddListenerMock();
+    const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
@@ -147,7 +121,7 @@ test('[Search Page] should interact when text input changes', async () => {
 });
 
 test('[Search Page] should render options list', async () => {
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
     const scenario = async () => {
@@ -173,7 +147,7 @@ test('[Search Page] should render options list', async () => {
 });
 
 test('[Search Page] should search in options list', async () => {
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
@@ -204,7 +178,7 @@ test('[Search Page] should search in options list', async () => {
 });
 
 test('[Search Page] should click on list item', async () => {
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
         await screen.findByTestId('SearchPage');
