@@ -143,7 +143,7 @@ function WorkspaceSwitcherPage({policies}) {
                     keyForList: policy.id,
                 }))
                 .value(),
-        [policies, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID],
+        [policies, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
     const sortedWorkspaces = usersWorkspaces.sort((workspace1, workspace2) => {
