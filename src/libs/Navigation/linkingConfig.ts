@@ -335,7 +335,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: ROUTES.NEW_TASK_SHARE_DESTINATION,
                             [SCREENS.NEW_TASK.DETAILS]: ROUTES.NEW_TASK_DETAILS,
                             [SCREENS.NEW_TASK.TITLE]: ROUTES.NEW_TASK_TITLE,
-                            [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
@@ -450,7 +449,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {
                         screens: {
                             [SCREENS.TASK.TITLE]: ROUTES.TASK_TITLE.route,
-                            [SCREENS.TASK.DESCRIPTION]: ROUTES.TASK_DESCRIPTION.route,
                             [SCREENS.TASK.ASSIGNEE]: ROUTES.TASK_ASSIGNEE.route,
                         },
                     },

@@ -150,7 +150,7 @@ function TaskView(props) {
                         shouldParseTitle
                         description={props.translate('task.description')}
                         title={props.report.description || ''}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}

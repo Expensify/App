@@ -175,7 +175,6 @@ const SCREENS = {
 
     TASK: {
         TITLE: 'Task_Title',
-        DESCRIPTION: 'Task_Description',
         ASSIGNEE: 'Task_Assignee',
     },
 
