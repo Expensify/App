@@ -22,9 +22,11 @@ export default function getUnreadReportsForUnreadIndicator(reports: OnyxCollecti
                 isInGSDMode: false,
                 excludeEmptyChats: false,
             }) &&
-            // Chats with hidden preference remain invisible in the LHN and are not considered "unread."
-            // They are excluded from the LHN rendering, but not filtered from the "option list."
-            // This ensures they appear in Search, but not in the LHN or unread count.
+            /**
+             * Chats with hidden preference remain invisible in the LHN and are not considered "unread."
+             * They are excluded from the LHN rendering, but not filtered from the "option list."
+             * This ensures they appear in Search, but not in the LHN or unread count.
+             */
             report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     );
 }
