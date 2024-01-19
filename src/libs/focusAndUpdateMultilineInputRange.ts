@@ -1,4 +1,4 @@
-import {TextInput} from 'react-native';
+import type {TextInput} from 'react-native';
 
 /**
  * Focus a multiline text input and place the cursor at the end of the value (if there is a value in the input).

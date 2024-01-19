@@ -1,4 +1,4 @@
-import UseDefaultDragAndDrop from './types';
+import type UseDefaultDragAndDrop from './types';
 
 const useDefaultDragAndDrop: UseDefaultDragAndDrop = () => {};
 

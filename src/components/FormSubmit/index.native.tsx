@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {FormSubmitProps, FormSubmitRef} from './types';
+import type {FormSubmitProps, FormSubmitRef} from './types';
 
 function FormSubmit({style, children}: FormSubmitProps, ref: FormSubmitRef) {
     return (

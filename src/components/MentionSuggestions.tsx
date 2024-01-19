@@ -1,10 +1,11 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import CONST from '@src/CONST';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import Text from './Text';
@@ -30,7 +31,7 @@ type MentionSuggestionsProps = {
     /** Array of suggested mentions */
     mentions: Mention[];
 
-    /** Fired when the user selects an mention */
+    /** Fired when the user selects a mention */
     onSelect: () => void;
 
     /** Mention prefix that follows the @ sign  */
@@ -41,7 +42,7 @@ type MentionSuggestionsProps = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: boolean;
 
-    /** Meaures the parent container's position and dimensions. */
+    /** Measures the parent container's position and dimensions. */
     measureParentContainer: () => void;
 };
 
@@ -51,6 +52,7 @@ type MentionSuggestionsProps = {
 const keyExtractor = (item: Mention) => item.alternateText;
 
 function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     /**
@@ -70,6 +72,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                             size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                             name={item.icons[0].name}
                             type={item.icons[0].type}
+                            fill={isIcon ? theme.success : undefined}
                             fallbackIcon={item.icons[0].fallbackIcon}
                         />
                     </View>
@@ -97,7 +100,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.textSupporting]}
                                     >
                                         {text}
                                     </Text>
@@ -116,7 +119,8 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             styles.flexShrink1,
             styles.flex1,
             styles.mentionSuggestionsDisplayName,
-            styles.mentionSuggestionsHandle,
+            styles.textSupporting,
+            theme.success,
             StyleUtils,
         ],
     );

@@ -291,6 +291,7 @@ function BaseOptionsList({
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
                         ListFooterComponent={renderFooterContent}
+                        testID="options-list"
                     />
                 </>
             )}

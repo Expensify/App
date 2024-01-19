@@ -106,11 +106,11 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
                 reportID={reportID}
                 isEdittingSplitBill
                 onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
+                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
 
                     setDraftSplitTransaction({
                         amount,
-                        currency: defaultCurrency,
+                        currency: transactionChanges.currency,
                     });
                 }}
                 onNavigateToCurrency={() => {
