@@ -2185,17 +2185,19 @@ function getReportPreviewMessage(
             return reportActionMessage;
         }
 
-        if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
-            return Localize.translateLocal('iou.receiptScanning');
-        }
+        if (!isEmptyObject(linkedTransaction)) {
+            if (TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
+                return Localize.translateLocal('iou.receiptScanning');
+            }
 
-        if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
-            return Localize.translateLocal('iou.receiptMissingDetails');
-        }
+            if (TransactionUtils.hasMissingSmartscanFields(linkedTransaction)) {
+                return Localize.translateLocal('iou.receiptMissingDetails');
+            }
 
-        const transactionDetails = getTransactionDetails(linkedTransaction);
-        const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-        return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+            const transactionDetails = getTransactionDetails(linkedTransaction);
+            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+            return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+        }
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
