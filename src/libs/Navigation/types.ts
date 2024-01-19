@@ -270,7 +270,6 @@ type TeachersUniteNavigatorParamList = {
 
 type TaskDetailsNavigatorParamList = {
     [SCREENS.TASK.TITLE]: undefined;
-    [SCREENS.TASK.DESCRIPTION]: undefined;
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
     };
