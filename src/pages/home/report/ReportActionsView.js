@@ -188,6 +188,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
     const reportID = props.report.reportID;
     const isLoading = (!!reportActionID && props.isLoadingInitialReportActions) || !props.isReadyForCommentLinking;
+    const firstReportActionName = lodashGet(reportActions, ['0', 'actionName']);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -211,8 +212,8 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         listID,
     } = usePaginatedReportActionList(reportActionID, allReportActions, fetchNewerAction, route, isLoading, props.isLoadingInitialReportActions);
     const hasCachedActions = useInitialValue(() => _.size(reportActions) > 0);
-    const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
-    const newestReportAction = lodashGet(reportActions, '[0]');
+    const hasNewestReportAction = lodashGet(reportActions, ['0', 'created']) === props.report.lastVisibleActionCreated;
+    const newestReportAction = lodashGet(reportActions, ['0']);
     const oldestReportAction = useMemo(() => _.last(reportActions), [reportActions]);
     const hasCreatedAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
@@ -394,6 +395,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
 
         const shouldOpenReport =
+            firstReportActionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
             !hasCreatedAction &&
             props.isReadyForCommentLinking &&
             reportActions.length < 24 &&
@@ -410,6 +412,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         reportID,
         reportActions,
         reportActionID,
+        firstReportActionName,
         props.isReadyForCommentLinking,
         props.isLoadingOlderReportActions,
         props.isLoadingNewerReportActions,
