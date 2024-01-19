@@ -395,11 +395,26 @@ function getAllReportErrors(report, reportActions) {
 }
 
 /**
- * Get the last message text from the report directly or from other sources for special cases.
- * @param {Object} report
+ * Get the last actor display name from last actor details.
+ * @param lastActorDetails
+ * @param hasMultipleParticipants
  * @returns {String}
  */
-function getLastMessageTextForReport(report) {
+
+function getLastActorDisplayName(lastActorDetails, hasMultipleParticipants) {
+    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+        ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        : '';
+}
+
+/**
+ * Get the last message text from the report directly or from other sources for special cases.
+ * @param {Object} report
+ * @param {Object | null} lastActorDetails
+ * @param {Object} [policy]
+ * @returns {String}
+ */
+function getLastMessageTextForReport(report, lastActorDetails, policy) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
@@ -436,6 +451,15 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+    } else if (ReportUtils.isArchivedRoom(report)) {
+        const archiveReason =
+            (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
+            CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+
+        lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+            displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
+            policyName: ReportUtils.getPolicyName(report, false, policy),
+        });
     }
 
     return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
@@ -526,23 +550,10 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        const lastActorDisplayName =
-            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-                ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
-                : '';
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
-
-        if (result.isArchivedRoom) {
-            const archiveReason =
-                (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
-                CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                policyName: ReportUtils.getPolicyName(report),
-            });
-        }
 
         const lastAction = visibleReportActionItems[report.reportID];
         const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
@@ -2010,6 +2021,7 @@ export {
     getParticipantsOption,
     isSearchStringMatch,
     shouldOptionShowTooltip,
+    getLastActorDisplayName,
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
