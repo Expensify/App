@@ -110,7 +110,7 @@ const ONYXKEYS = {
     /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
-    /** This NVP will be `true` if the user has dismissed the engagement modal */
+    /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
     NVP_HAS_DISMISSED_IDLE_PANEL: 'hasDismissedIdlePanel',
 
     /** This NVP contains the choice that the user made on the engagement modal */
