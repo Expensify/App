@@ -3439,7 +3439,7 @@ function replaceReceipt(transactionID, file, source) {
             value: {
                 receipt: oldReceipt,
                 filename: transaction.filename,
-                errors: getReceiptError(receiptOptimistic, source.name),
+                errors: getReceiptError(receiptOptimistic, file.name),
             },
         },
     ];
