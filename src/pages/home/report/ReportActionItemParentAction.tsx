@@ -89,4 +89,3 @@ export default withOnyx<ReportActionItemParentActionProps, ReportActionItemParen
         canEvict: false,
     },
 })(ReportActionItemParentAction);
-export type {ReportActionItemParentActionProps, ReportActionItemParentActionOnyxProps};
