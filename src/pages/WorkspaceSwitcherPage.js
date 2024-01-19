@@ -146,13 +146,14 @@ function WorkspaceSwitcherPage({policies}) {
         [policies, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID],
     );
 
-    const sortedWorkspaces = usersWorkspaces.sort((a, b) => {
-        if (a.policyID === activeWorkspaceID) {
+    const sortedWorkspaces = usersWorkspaces.sort((workspace1, workspace2) => {
+        if (workspace1.policyID === activeWorkspaceID) {
             return -1;
-        }if (b.policyID === activeWorkspaceID) {
+        }
+        if (workspace2.policyID === activeWorkspaceID) {
             return 1;
         }
-        return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
+        return workspace1.text.toLowerCase().localeCompare(workspace2.text.toLowerCase());
     });
 
     const filteredUserWorkspaces = useMemo(() => _.filter(sortedWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
@@ -192,12 +193,13 @@ function WorkspaceSwitcherPage({policies}) {
                 </View>
                 <View>
                     <OptionRow
-                        option={{...option, brickRoadIndicator: option.policyID === activeWorkspaceID ? undefined : option.brickRoadIndicator}}
+                        option={{...option, brickRoadIndicator: !activeWorkspaceID ? undefined : option.brickRoadIndicator}}
                         onSelectRow={selectPolicy}
                         showTitleTooltip={false}
                         shouldShowSubscript={false}
                         highlightSelected
-                        isSelected={option.policyID === activeWorkspaceID}
+                        isSelected={!activeWorkspaceID}
+                        optionIsFocused={!activeWorkspaceID}
                     />
                 </View>
             </>
@@ -247,7 +249,7 @@ function WorkspaceSwitcherPage({policies}) {
                         highlightSelectedOptions
                         shouldShowOptions
                         autoFocus={false}
-                        disableFocusOptions
+                        disableFocusOptions={!activeWorkspaceID}
                         canSelectMultipleOptions={false}
                         shouldShowSubscript={false}
                         showTitleTooltip={false}
