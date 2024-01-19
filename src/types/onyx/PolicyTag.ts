@@ -10,10 +10,6 @@ type PolicyTag = {
     'GL Code': string;
 };
 
-type PolicyTags = {
-    name: string;
-    required: boolean;
-    tags: Record<string, PolicyTag>;
-};
+type PolicyTags = Record<string, PolicyTag>;
 
 export type {PolicyTag, PolicyTags};

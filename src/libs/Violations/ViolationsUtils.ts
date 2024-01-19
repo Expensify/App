@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTag, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const ViolationsUtils = {
     /**
@@ -14,7 +14,7 @@ const ViolationsUtils = {
         transaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTags: Record<string, PolicyTag>,
+        policyTags: PolicyTags,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): {
