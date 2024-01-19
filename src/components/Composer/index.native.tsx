@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -29,11 +30,13 @@ function Composer(
 ) {
     const textInput = useRef<TextInput | null>(null);
 
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     /**
      * Set the TextInput Ref
+     * @param {Element} el
      */
     const setTextInputRef = useCallback((el: TextInput) => {
         textInput.current = el;
@@ -57,28 +60,20 @@ function Composer(
         onClear();
     }, [shouldClear, onClear]);
 
-    /**
-     * Set maximum number of lines
-     */
-    const maxNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) {
-            return;
-        }
-        return maxLines;
-    }, [isComposerFullSize, maxLines]);
-
-    const composerStyles = useMemo(() => StyleSheet.flatten(style), [style]);
+    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
+    const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
         <RNTextInput
+            multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
-            style={[composerStyles, styles.verticalAlignMiddle]}
-            maxNumberOfLines={maxNumberOfLines}
+            textAlignVertical="center"
+            style={[composerStyle, maxHeightStyle]}
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
