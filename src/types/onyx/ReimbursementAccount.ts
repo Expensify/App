@@ -20,7 +20,7 @@ type ACHData = {
     bankAccountID?: number;
 };
 
-type ReimbursementAccount = {
+type ReimbursementAccount = OnyxCommon.OfflineFeedback & {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
@@ -44,8 +44,6 @@ type ReimbursementAccount = {
 
     /** Draft step of the setup flow from Onyx */
     draftStep?: BankAccountStep;
-
-    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default ReimbursementAccount;

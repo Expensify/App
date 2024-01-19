@@ -4,25 +4,23 @@ import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
 
-type Rate = {
+type Rate = OnyxCommon.OfflineFeedback & {
     name?: string;
     rate?: number;
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
-    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Attributes = {
     unit: Unit;
 };
 
-type CustomUnit = {
+type CustomUnit = OnyxCommon.OfflineFeedback & {
     name: string;
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
-    pendingAction?: OnyxCommon.PendingAction;
     errors?: OnyxCommon.Errors;
 };
 

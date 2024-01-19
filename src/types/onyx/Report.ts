@@ -8,10 +8,9 @@ type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENC
 
 type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 
-type Note = {
+type Note = OnyxCommon.OfflineFeedback & {
     note: string;
     errors?: OnyxCommon.Errors;
-    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Report = OnyxCommon.OfflineFeedback<'createChat' | 'addWorkspaceRoom' | 'reportName' | 'description' | 'managerID' | PolicyReportField['fieldID']> & {
