@@ -2581,18 +2581,6 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
         },
     ];
 
-    // Update the timezone if it's been 5 minutes from the last time the user added a comment
-    if (DateUtils.canUpdateTimezone()) {
-        const timezone = DateUtils.getCurrentTimezone();
-        parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[currentUserAccountID]: {timezone}},
-        });
-        DateUtils.setTimezoneUpdated();
-    }
-
     API.write(commandName, parameters, {
         optimisticData,
         successData,
