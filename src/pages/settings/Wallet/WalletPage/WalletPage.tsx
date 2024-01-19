@@ -13,6 +13,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
+import {Source, TransferMethod} from '@components/KYCWall/types';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
@@ -38,7 +39,6 @@ import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WalletPageOnyxProps, WalletPageProps} from './types';
-import { Source, TransferMethod } from '@components/KYCWall/types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
@@ -408,7 +408,10 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                 source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                                 shouldIncludeDebitCard={hasActivatedWallet}
                                             >
-                                                {(triggerKYCFlow: (event: SyntheticEvent<NativeTouchEvent>, iouPaymentType: TransferMethod) => void, buttonRef: ForwardedRef<HTMLElement>) => {
+                                                {(
+                                                    triggerKYCFlow: (event: SyntheticEvent<NativeTouchEvent>, iouPaymentType: TransferMethod) => void,
+                                                    buttonRef: ForwardedRef<HTMLElement>,
+                                                ) => {
                                                     if (shouldShowLoadingSpinner) {
                                                         return null;
                                                     }

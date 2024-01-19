@@ -79,6 +79,7 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
 
     /** Type to filter the payment Method list */
     filterType?: TupleToUnion<typeof FILTER_TYPES>;
+
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
