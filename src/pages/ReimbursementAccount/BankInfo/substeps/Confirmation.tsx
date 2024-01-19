@@ -4,9 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -15,8 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -63,14 +58,14 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                         <MenuItemWithTopDescription
                             description={translate('bankAccount.routingNumber')}
                             title={values[bankInfoStepKeys.ROUTING_NUMBER]}
-                            shouldShowRightIcon={!Boolean(bankAccountID)}
+                            shouldShowRightIcon={!bankAccountID}
                             onPress={handleModifyAccountNumbers}
                         />
 
                         <MenuItemWithTopDescription
                             description={translate('bankAccount.accountNumber')}
                             title={values[bankInfoStepKeys.ACCOUNT_NUMBER]}
-                            shouldShowRightIcon={!Boolean(bankAccountID)}
+                            shouldShowRightIcon={!bankAccountID}
                             onPress={handleModifyAccountNumbers}
                         />
                     </View>
@@ -79,7 +74,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     <MenuItemWithTopDescription
                         description={values[bankInfoStepKeys.BANK_NAME]}
                         title={`${translate('bankAccount.accountEnding')} ${(values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
-                        shouldShowRightIcon={!Boolean(bankAccountID)}
+                        shouldShowRightIcon={!bankAccountID}
                         onPress={handleModifyAccountNumbers}
                     />
                 )}
