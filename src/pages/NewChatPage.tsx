@@ -41,7 +41,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 type Option = Partial<ReportUtils.OptionData>;
 
-// TODO: Update this type when OptionListUtils (https://github.com/Expensify/App/pull/32470) is migrated
+// TODO: Update this type once OptionListUtils.js (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
 type NewChatSectionListData = {
     title?: string;
     data: Option[];
