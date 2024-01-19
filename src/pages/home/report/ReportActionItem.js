@@ -307,7 +307,7 @@ function ReportActionItem(props) {
     );
 
     const actionableItemButtons = useMemo(() => {
-        if (!(props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && !lodashGet(props.action, 'originalMessage.resolution', null))) {
+        if (!(ReportActionsUtils.isActionableMentionWhisper(props.action) && !lodashGet(props.action, 'originalMessage.resolution', null))) {
             return [];
         }
         return [
@@ -684,6 +684,11 @@ function ReportActionItem(props) {
         originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
         !isSendingMoney
     ) {
+        return null;
+    }
+
+    // if isActionableMentionWhisper, and resolved, then we don't want to render anything
+    if (ReportActionsUtils.isActionableMentionWhisper(props.action) && lodashGet(props.action, 'originalMessage.resolution', null)) {
         return null;
     }
 
