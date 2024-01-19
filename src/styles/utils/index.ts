@@ -1435,7 +1435,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         {
             alignItems: 'center',
             justifyContent: 'center',
-            ...(isSmallScreenWidth ? {} : {paddingBottom: 160}),
+            ...(isSmallScreenWidth ? {} : styles.pb40),
         },
     ],
 
