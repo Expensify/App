@@ -1,4 +1,4 @@
-import type {MouseEvent as ReactMouseEvent} from 'react';
+import type {MouseEvent as ReactMouseEvent, SyntheticEvent} from 'react';
 import React, { useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
@@ -113,11 +113,10 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         return {offsetX, offsetY};
     };
 
-    const onContainerPress = (e?: GestureResponderEvent | KeyboardEvent) => {
-        const mouseEvent = e as unknown as ReactMouseEvent;
+    const onContainerPress = (e?: GestureResponderEvent | KeyboardEvent | SyntheticEvent<Element, PointerEvent>) => {
         if (!isZoomed && !isDragging) {
-            if (mouseEvent.nativeEvent) {
-                const {offsetX, offsetY} = mouseEvent.nativeEvent;
+            if (e && 'nativeEvent' in e && 'offsetX' in e.nativeEvent) {
+                const {offsetX, offsetY} = e.nativeEvent;
 
                 // Dividing clicked positions by the zoom scale to get coordinates
                 // so that once we zoom we will scroll to the clicked location.
