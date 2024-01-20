@@ -266,8 +266,8 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false): number {
+    // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {

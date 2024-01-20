@@ -2225,7 +2225,7 @@ function getReportPreviewMessage(
             return Localize.translateLocal('iou.receiptScanning');
         }
 
-        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasPendingRoute(linkedTransaction)) {
+        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasPendingRoute(linkedTransaction) && !TransactionUtils.getAmount(linkedTransaction)) {
             return Localize.translateLocal('iou.routePending');
         }
     }
