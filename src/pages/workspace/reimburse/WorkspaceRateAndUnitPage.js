@@ -48,10 +48,10 @@ function WorkspaceRateAndUnitPage(props) {
         Policy.openWorkspaceReimburseView(props.policy.id);
     }, [props]);
 
-    // const unitItems = [
-    //     {label: props.translate('common.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-    //     {label: props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-    // ];
+    const unitItems = {
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: props.translate('common.kilometers'),
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: props.translate('common.miles'),
+    };
 
     const saveUnitAndRate = (unit, rate) => {
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -154,14 +154,18 @@ function WorkspaceRateAndUnitPage(props) {
                         <InputWrapper
                             InputComponent={FormMenuItem}
                             inputID="rate"
-                            defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, props.toLocaleDigit)}
+                            defaultValue={distanceCustomRate.rate}
                             title={props.translate('workspace.reimburse.trackDistanceRate')}
+                            customValueRenderer={(value) => CurrencyUtils.convertAmountToDisplayString(value, lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD))}
+                            shouldShowRightIcon
                         />
                         <InputWrapper
                             InputComponent={FormMenuItem}
                             inputID="unit"
                             title={props.translate('workspace.reimburse.trackDistanceUnit')}
                             defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
+                            customValueRenderer={(value) => unitItems[value]}
+                            shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
                 </FormProvider>
