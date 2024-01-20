@@ -420,7 +420,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -1292,6 +1292,7 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        transactionViolations = {},
         includePolicyTaxRates,
         policyTaxRates,
     },
@@ -1357,7 +1358,22 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
+    const filteredReports = _.filter(reports, (report) => {
+        const {parentReportID, parentReportActionID} = report || {};
+        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+        const parentReportAction = canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {};
+        const doesReportHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: Navigation.getTopmostReportId(),
+            betas,
+            policies,
+            doesReportHaveViolations,
+            isInGSDMode: false,
+            excludeEmptyChats: false,
+        });
+    });
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
