@@ -160,7 +160,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere'),
+                text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
