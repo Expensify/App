@@ -316,14 +316,10 @@ function getOriginalAmount(transaction: Transaction): number {
 }
 
 /**
- * Verify if the transaction is of Distance request and is expecting the distance to be calculated on the server
+ * Verify if the transaction is expecting the distance to be calculated on the server
  */
 function hasPendingRoute(transaction: OnyxEntry<Transaction>): boolean {
-    if (!transaction) {
-        return false;
-    }
-
-    return isDistanceRequest(transaction) && !!transaction.pendingFields?.waypoints;
+    return !!transaction?.pendingFields?.waypoints;
 }
 
 /**

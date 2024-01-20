@@ -172,7 +172,7 @@ function MoneyRequestPreview(props) {
         !_.isEmpty(requestMerchant) &&
         requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
         requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(hasPendingRoute && !requestAmount);
+        !(isDistanceRequest && hasPendingRoute && !requestAmount);
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     let merchantOrDescription = requestMerchant;
