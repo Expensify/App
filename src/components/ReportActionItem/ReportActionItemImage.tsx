@@ -56,7 +56,7 @@ function ReportActionItemImage({thumbnail, isThumbnail, image, enablePreviewModa
     } else if ((thumbnail ?? isThumbnail) && !isLocalFile && !Str.isPDF(imageSource)) {
         propsObj = thumbnailSource ? {shouldUseThumnailImage: true, source: thumbnailSource} : {isThumbnail: true, transactionID: transaction?.transactionID};
     } else {
-        propsObj = {isThumbnail, source: thumbnail ?? image};
+        propsObj = {isThumbnail, transactionID: transaction?.transactionID, source: thumbnail ?? image};
     }
 
     if (enablePreviewModal) {

@@ -69,7 +69,6 @@ function DistanceEReceipt({transaction}) {
                         ) : (
                             <ReceiptImage
                                 source={thumbnailSource}
-                                isThumbnail={isThumbnail}
                                 shouldUseThumnailImage
                             />
                         )}
