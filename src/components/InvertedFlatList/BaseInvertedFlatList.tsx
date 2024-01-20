@@ -4,13 +4,13 @@ import type {FlatListProps, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 
 type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
-    shouldEnableAutoscrollToTopThreshold?: boolean;
+    shouldEnableAutoScrollToTopThreshold?: boolean;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
-    const {shouldEnableAutoscrollToTopThreshold, ...rest} = props;
+    const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
 
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
@@ -18,12 +18,12 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             minIndexForVisible: 1,
         };
 
-        if (shouldEnableAutoscrollToTopThreshold) {
+        if (shouldEnableAutoScrollToTopThreshold) {
             config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
         }
 
         return config;
-    }, [shouldEnableAutoscrollToTopThreshold]);
+    }, [shouldEnableAutoScrollToTopThreshold]);
 
     return (
         <FlatList

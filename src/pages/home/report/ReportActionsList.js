@@ -142,7 +142,7 @@ function ReportActionsList({
     isComposerFullSize,
     listID,
     onContentSizeChange,
-    shouldEnableAutoscrollToTopThreshold,
+    shouldEnableAutoScrollToTopThreshold,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -546,7 +546,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoscrollToTopThreshold={shouldEnableAutoscrollToTopThreshold}
+                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
             </Animated.View>
         </>

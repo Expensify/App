@@ -2,6 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -184,7 +185,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
 
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
-
+    const [isInitialLinkedView, setIsInitialLinkedView] = useState(false);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
     const reportID = props.report.reportID;
     const isLoading = (!!reportActionID && props.isLoadingInitialReportActions) || !props.isReadyForCommentLinking;
@@ -393,13 +394,12 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         // Temporary solution for handling REPORTPREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
         // This code should be removed once REPORTPREVIEW is no longer repositioned.
         // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
-
         const shouldOpenReport =
             firstReportActionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
             !hasCreatedAction &&
             props.isReadyForCommentLinking &&
             reportActions.length < 24 &&
-            reportActions.length > 1 &&
+            reportActions.length >= 1 &&
             !props.isLoadingInitialReportAction &&
             !props.isLoadingOlderReportActions &&
             !props.isLoadingNewerReportActions;
@@ -419,10 +419,26 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         props.isLoadingInitialReportAction,
     ]);
 
+    // Check if the first report action in the list is the one we're currently linked to
+    const isTheFirstReportActionIsLinked = firstReportActionID !== reportActionID;
+
+    useEffect(() => {
+        if (isTheFirstReportActionIsLinked) {
+            // this should be applied after we navigated to linked reportAction
+            InteractionManager.runAfterInteractions(() => {
+                setIsInitialLinkedView(true);
+            });
+        } else {
+            setIsInitialLinkedView(false);
+        }
+    }, [isTheFirstReportActionIsLinked]);
+
     // Comments have not loaded at all yet do nothing
     if (!_.size(reportActions)) {
         return null;
     }
+    // AutoScroll is disabled when we do linking to a specific reportAction
+    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || isInitialLinkedView);
 
     return (
         <>
@@ -440,7 +456,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
                 policy={props.policy}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
-                shouldEnableAutoscrollToTopThreshold={hasNewestReportAction && !reportActionID}
+                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>
