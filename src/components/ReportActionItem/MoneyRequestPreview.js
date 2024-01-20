@@ -178,7 +178,7 @@ function MoneyRequestPreview(props) {
         merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
+    const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(props.transaction), transaction: props.transaction}] : [];
 
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
