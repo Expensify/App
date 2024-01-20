@@ -1928,7 +1928,9 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     }
 
     if (isProcessingReport(report) || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
-        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        const reportTransactions = !isEmptyObject(report) ? TransactionUtils.getAllReportTransactions(report.reportID) : []
+        const comment = reportTransactions.length === 1 ? TransactionUtils.getDescription(reportTransactions[0]) : undefined
+        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount, comment});
     }
 
     return payerPaidAmountMessage;
