@@ -875,6 +875,22 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const enabledAndSelectedCategories = _.filter(sortedCategories, (category) => category.enabled || _.includes(selectedOptionNames, category.name));
+    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(enabledAndSelectedCategories),
+        });
+
+        return categorySections;
+    }
+
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
             // "Selected" section
@@ -885,22 +901,6 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         });
 
         indexOffset += selectedOptions.length;
-    }
-
-    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
-    const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(filteredCategories),
-        });
-
-        return categorySections;
     }
 
     const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
@@ -924,6 +924,8 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
+
+    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
