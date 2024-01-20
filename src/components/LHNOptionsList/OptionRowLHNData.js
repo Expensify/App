@@ -10,7 +10,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import {getSortedReportActionsForDisplayKey} from '@src/ONYXKEYS';
+import {getSortedReportActionsForDisplayKey} from '@src/onyx/ReportActions';
 import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
