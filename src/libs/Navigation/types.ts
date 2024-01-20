@@ -95,7 +95,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REIMBURSE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RATE_AND_UNIT]: undefined;
+    [SCREENS.WORKSPACE.RATE_AND_UNIT.ROOT]: undefined;
     [SCREENS.WORKSPACE.BILLS]: {
         policyID: string;
     };

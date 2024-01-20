@@ -243,7 +243,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.WORKSPACE.REIMBURSE]: {
                                 path: ROUTES.WORKSPACE_REIMBURSE.route,
                             },
-                            [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
+                            [SCREENS.WORKSPACE.RATE_AND_UNIT.ROOT]: {
                                 path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                             },
                             [SCREENS.WORKSPACE.BILLS]: {

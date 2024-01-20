@@ -195,7 +195,9 @@ const SCREENS = {
         SETTINGS: 'Workspace_Settings',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
-        RATE_AND_UNIT: 'Workspace_RateAndUnit',
+        RATE_AND_UNIT: {
+            ROOT: 'Workspace_RateAndUnit',
+        },
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',

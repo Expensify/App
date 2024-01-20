@@ -1,14 +1,15 @@
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
-import {Keyboard, View} from 'react-native';
+// import {Keyboard, View} from 'react-native';
+import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
-import Picker from '@components/Picker';
-import TextInput from '@components/TextInput';
+// import Picker from '@components/Picker';
+// import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
@@ -24,6 +25,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import FormMenuItem from '@components/FormMenuItem';
 
 const propTypes = {
     ...policyPropTypes,
@@ -46,10 +48,10 @@ function WorkspaceRateAndUnitPage(props) {
         Policy.openWorkspaceReimburseView(props.policy.id);
     }, [props]);
 
-    const unitItems = [
-        {label: props.translate('common.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-        {label: props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-    ];
+    // const unitItems = [
+    //     {label: props.translate('common.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+    //     {label: props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+    // ];
 
     const saveUnitAndRate = (unit, rate) => {
         const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -125,7 +127,7 @@ function WorkspaceRateAndUnitPage(props) {
                             Policy.clearCustomUnitErrors(props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
                         }
                     >
-                        <InputWrapper
+                        {/* <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID="rate"
@@ -148,7 +150,19 @@ function WorkspaceRateAndUnitPage(props) {
                                 items={unitItems}
                                 defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
                             />
-                        </View>
+                        </View> */}
+                        <InputWrapper
+                            InputComponent={FormMenuItem}
+                            inputID="rate"
+                            defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, props.toLocaleDigit)}
+                            title={props.translate('workspace.reimburse.trackDistanceRate')}
+                        />
+                        <InputWrapper
+                            InputComponent={FormMenuItem}
+                            inputID="unit"
+                            title={props.translate('workspace.reimburse.trackDistanceUnit')}
+                            defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
+                        />
                     </OfflineWithFeedback>
                 </FormProvider>
             )}
