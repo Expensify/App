@@ -18,13 +18,13 @@ import Image from './Image';
 
 type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
-    borderRadius?: number;
 };
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
+    borderRadius?: number;
 };
 
 const backgroundImages = {
@@ -84,7 +84,7 @@ function EReceiptThumbnail({transaction, borderRadius}: EReceiptThumbnailProps) 
                 styles.overflowHidden,
                 styles.alignItemsCenter,
                 containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
-                borderRadius && {borderRadius},
+                borderRadius ? {borderRadius} : {},
             ]}
             onLayout={onContainerLayout}
         >

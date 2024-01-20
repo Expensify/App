@@ -1,10 +1,11 @@
 import React from 'react';
-import type {ImageStyle, StyleProp} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Image from './Image';
 import ThumbnailImage from './ThumbnailImage';
+
+type Style = {height: number; borderRadius: number; margin: number};
 
 type ReceiptImageProps = {
     transactionID?: string;
@@ -13,7 +14,7 @@ type ReceiptImageProps = {
     isEReceipt?: boolean;
     source?: string;
     isAuthTokenRequired?: boolean;
-    style?: StyleProp<ImageStyle>;
+    style?: Style;
 };
 
 function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImage = false, isEReceipt = false, source, isAuthTokenRequired, style}: ReceiptImageProps) {
