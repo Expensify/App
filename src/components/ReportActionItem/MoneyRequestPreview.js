@@ -234,7 +234,7 @@ function MoneyRequestPreview(props) {
             return translate('iou.routePending');
         }
 
-        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
