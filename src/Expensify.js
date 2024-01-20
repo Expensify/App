@@ -38,12 +38,12 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 
 Onyx.registerLogger(({level, message}) => {
-    if (level === 'alert') {
-        Log.alert(message);
-        console.error(message);
-    } else {
-        Log.info(message);
-    }
+    // if (level === 'alert') {
+    //     Log.alert(message);
+    //     console.error(message);
+    // } else {
+    //     Log.info(message);
+    // }
 });
 
 const propTypes = {

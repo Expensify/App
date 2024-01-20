@@ -68,7 +68,7 @@ const propTypes = {
     reportMetadata: reportMetadataPropTypes,
 
     /** All the report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report's parentReportAction */
     parentReportAction: PropTypes.shape(reportActionPropTypes),
@@ -108,7 +108,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: {},
+    sortedReportActions: [],
     parentReportAction: {},
     report: {},
     reportMetadata: {
@@ -148,7 +148,7 @@ function ReportScreen({
     route,
     report,
     reportMetadata,
-    reportActions,
+    sortedReportActions,
     parentReportAction,
     accountManagerReportID,
     personalDetails,
@@ -186,7 +186,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(sortedReportActions) && reportMetadata.isLoadingInitialReportActions;
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS_NUM.CLOSED;
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
@@ -516,7 +516,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={reportActions}
+                                        reportActions={sortedReportActions}
                                         report={report}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
@@ -534,7 +534,7 @@ function ReportScreen({
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={reportActions}
+                                        reportActions={sortedReportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
@@ -566,7 +566,7 @@ export default compose(
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
-            reportActions: {
+            sortedReportActions: {
                 key: ({route}) => getSortedReportActionsForDisplayKey(getReportID(route)),
             },
             report: {

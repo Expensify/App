@@ -187,6 +187,8 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
  *
  */
 function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
+    console.warn('getSortedReportActions');
+
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
