@@ -1,24 +1,13 @@
 import Str from 'expensify-common/lib/str';
-import type {ImageSourcePropType} from 'react-native';
-import ReceiptDoc from '@assets/images/receipt-doc.png';
-import ReceiptGeneric from '@assets/images/receipt-generic.png';
-import ReceiptHTML from '@assets/images/receipt-html.png';
-import ReceiptSVG from '@assets/images/receipt-svg.png';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
-import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
-    image: ImageSourcePropType | string;
-    thumbnail: ImageSourcePropType | string | null;
+    image: string;
+    thumbnail?: string;
     transaction?: Transaction;
     isLocalFile?: boolean;
-};
-
-type FileNameAndExtension = {
-    fileExtension?: string;
-    fileName?: string;
+    isThumbnail?: boolean;
 };
 
 /**
@@ -39,12 +28,12 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     if (!Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
         if (hasEReceipt) {
-            return {thumbnail: null, image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
+            return {image: ROUTES.ERECEIPT.getRoute(transaction.transactionID), transaction};
         }
 
         // For local files, we won't have a thumbnail yet
         if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-            return {thumbnail: null, image: path, isLocalFile: true};
+            return {image: path, isLocalFile: true};
         }
 
         if (isReceiptImage) {
@@ -52,22 +41,9 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         }
     }
 
-    const {fileExtension} = FileUtils.splitExtensionFromFileName(filename) as FileNameAndExtension;
-    let image = ReceiptGeneric;
-    if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
-        image = ReceiptHTML;
-    }
-
-    if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
-        image = ReceiptDoc;
-    }
-
-    if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
-        image = ReceiptSVG;
-    }
-
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
-    return {thumbnail: image, image: path, isLocalFile};
+
+    return {isThumbnail: true, image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export

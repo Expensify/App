@@ -237,6 +237,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
+                                isThumbnail={receiptURIs.isThumbnail}
                                 image={receiptURIs.image}
                                 isLocalFile={receiptURIs.isLocalFile}
                                 transaction={transaction}

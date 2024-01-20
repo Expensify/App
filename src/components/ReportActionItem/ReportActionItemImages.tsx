@@ -11,8 +11,9 @@ import type {Transaction} from '@src/types/onyx';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type Image = {
-    thumbnail: string | number;
-    image: string | number;
+    thumbnail?: string;
+    isThumbnail?: boolean;
+    image: string;
     transaction: Transaction;
     isLocalFile: boolean;
 };
@@ -71,7 +72,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, image, transaction, isLocalFile}, index) => {
+            {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -87,6 +88,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                             image={image}
                             isLocalFile={isLocalFile}
                             transaction={transaction}
+                            isThumbnail={isThumbnail}
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>

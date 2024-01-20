@@ -34,7 +34,7 @@ function DistanceEReceipt({transaction}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
+    const {thumbnail, isThumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
@@ -64,7 +64,15 @@ function DistanceEReceipt({transaction}) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline || !thumbnailSource ? <PendingMapView /> : <ReceiptImage transaction={transaction} />}
+                        {isOffline || !thumbnailSource ? (
+                            <PendingMapView />
+                        ) : (
+                            <ReceiptImage
+                                source={thumbnailSource}
+                                isThumbnail={isThumbnail}
+                                shouldUseThumnailImage
+                            />
+                        )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
                         <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
