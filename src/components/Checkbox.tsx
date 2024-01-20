@@ -1,10 +1,12 @@
-import React, {type ForwardedRef, forwardRef, type MouseEventHandler, type KeyboardEvent as ReactKeyboardEvent} from 'react';
-import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import React, {forwardRef} from 'react';
+import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';

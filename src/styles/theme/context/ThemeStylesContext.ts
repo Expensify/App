@@ -1,6 +1,8 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import type {ThemeStyles} from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
 import {DefaultStyleUtils} from '@styles/utils';
 import type {StyleUtilsType} from '@styles/utils';
 

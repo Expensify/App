@@ -99,7 +99,7 @@ To completely remove the card connection, unassign every card from the list and 
 
 Note: If expenses are Processing and then rejected, they will also be deleted when they're returned to an Open state as the card they're linked to no longer exists.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## My Commercial Card feed is set up. Why is a specific card not coming up when I try to assign it to an employee?
 Cards will appear in the drop-down when activated and have at least one posted transaction. If the card is activated and has been used for a while and you're still not seeing it, please reach out to your Account Manager or message concierge@expensify.com for further assistance.
@@ -124,3 +124,5 @@ If your company uses a Commercial Card program that isn’t with one of our Appr
 - Stripe
 - Brex
 
+
+{% include faq-end.md %}

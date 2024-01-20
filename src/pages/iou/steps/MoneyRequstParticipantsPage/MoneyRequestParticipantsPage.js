@@ -2,7 +2,7 @@ import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -56,36 +56,34 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
-    const optionsSelectorRef = useRef();
     const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
     const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
     const isSendRequest = iouType === CONST.IOU.TYPE.SEND;
     const isScanRequest = MoneyRequestUtils.isScanRequest(selectedTab);
     const isSplitRequest = iou.id === CONST.IOU.TYPE.SPLIT;
-    const [headerTitle, setHeaderTitle] = useState();
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
-
-    useEffect(() => {
+    const headerTitle = useMemo(() => {
         if (isDistanceRequest) {
-            setHeaderTitle(translate('common.distance'));
-            return;
+            return translate('common.distance');
         }
 
         if (isSendRequest) {
-            setHeaderTitle(translate('common.send'));
-            return;
+            return translate('common.send');
         }
 
         if (isScanRequest) {
-            setHeaderTitle(translate('tabSelector.scan'));
-            return;
+            return translate('tabSelector.scan');
         }
 
-        setHeaderTitle(iou.isSplitRequest ? translate('iou.split') : translate('tabSelector.manual'));
-    }, [iou.isSplitRequest, isDistanceRequest, translate, isScanRequest, isSendRequest]);
+        if (iou.isSplitRequest) {
+            return translate('iou.split');
+        }
+
+        return translate('tabSelector.manual');
+    }, [iou, isDistanceRequest, translate, isScanRequest, isSendRequest]);
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
@@ -130,7 +128,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
-            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={MoneyRequestParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -140,7 +137,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestParticipantsSelector
-                        ref={(el) => (optionsSelectorRef.current = el)}
                         participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}

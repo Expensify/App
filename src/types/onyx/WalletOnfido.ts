@@ -1,11 +1,11 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type WalletOnfido = {
     /** Unique identifier returned from openOnfidoFlow then re-sent to ActivateWallet with Onfido response data */
-    applicantID: string;
+    applicantID?: string;
 
     /** Token used to initialize the Onfido SDK token */
-    sdkToken: string;
+    sdkToken?: string;
 
     /** Loading state to provide feedback when we are waiting for a request to finish */
     isLoading?: boolean;

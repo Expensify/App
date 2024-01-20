@@ -1,7 +1,8 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {OnyxCollection, withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxCollection} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';

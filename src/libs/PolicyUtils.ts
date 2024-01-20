@@ -1,9 +1,10 @@
 import Str from 'expensify-common/lib/str';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};

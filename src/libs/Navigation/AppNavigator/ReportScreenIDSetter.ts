@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
@@ -33,8 +34,19 @@ const getLastAccessedReportID = (
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,
     openOnAdminRoom: boolean,
     reportMetadata: OnyxCollection<ReportMetadata>,
+    policyID?: string,
+    policyMemberAccountIDs?: number[],
 ): string | undefined => {
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom, reportMetadata);
+    const lastReport = ReportUtils.findLastAccessedReport(
+        reports,
+        ignoreDefaultRooms,
+        policies,
+        !!isFirstTimeNewExpensifyUser,
+        openOnAdminRoom,
+        reportMetadata,
+        policyID,
+        policyMemberAccountIDs,
+    );
     return lastReport?.reportID;
 };
 
@@ -44,6 +56,11 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route?.params?.reportID) {
+            const reportActionID = route?.params?.reportActionID;
+            const regexValidReportActionID = new RegExp(/^\d*$/);
+            if (reportActionID && !regexValidReportActionID.test(reportActionID)) {
+                navigation.setParams({reportActionID: ''});
+            }
             App.confirmReadyToOpenApp();
             return;
         }

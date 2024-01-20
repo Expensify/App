@@ -1,10 +1,12 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import {RouteProp} from '@react-navigation/native';
-import React, {ComponentType, ForwardedRef, RefAttributes, useCallback, useEffect} from 'react';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {RouteProp} from '@react-navigation/native';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {useCallback, useEffect} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -12,8 +14,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -58,7 +60,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!props.isSmallScreenWidth || (isNotEmptyObject(props.report) && isNotEmptyObject(reportAction))) {
+            if (!props.isSmallScreenWidth || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
