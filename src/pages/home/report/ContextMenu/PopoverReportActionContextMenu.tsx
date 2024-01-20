@@ -162,7 +162,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isChronosReport = false,
         isPinnedChat = false,
         isUnreadChat = false,
-        disabledActions = [],
+        disabledOptions = [],
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -193,7 +193,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
                 });
             }
         }).then(() => {
-            setDisabledActions(disabledActions);
+            setDisabledActions(disabledOptions);
             typeRef.current = type;
             reportIDRef.current = reportID ?? '0';
             reportActionIDRef.current = reportActionID ?? '0';
