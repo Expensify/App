@@ -21,7 +21,7 @@ function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImag
 
     if (isEReceipt || isThumbnail) {
         return (
-            <View style={[styles.w100, styles.h100]}>
+            <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail transactionID={transactionID ?? ''} />
             </View>
         );
