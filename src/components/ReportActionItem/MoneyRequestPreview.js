@@ -169,7 +169,10 @@ function MoneyRequestPreview(props) {
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
     const shouldShowMerchant =
-        !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && !hasPendingRoute;
+        !_.isEmpty(requestMerchant) &&
+        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
+        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
+        !(hasPendingRoute && !requestAmount);
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     let merchantOrDescription = requestMerchant;
@@ -227,7 +230,7 @@ function MoneyRequestPreview(props) {
             return translate('iou.receiptScanning');
         }
 
-        if (hasPendingRoute) {
+        if (hasPendingRoute && !requestAmount) {
             return translate('iou.routePending');
         }
 

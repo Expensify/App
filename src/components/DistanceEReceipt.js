@@ -75,9 +75,7 @@ function DistanceEReceipt({transaction}) {
                         )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
-                        {!hasPendingRoute && (
-                            <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>
-                        )}
+                        {!hasPendingRoute && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
                         <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>

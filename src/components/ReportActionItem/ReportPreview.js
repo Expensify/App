@@ -174,18 +174,16 @@ function ReportPreview(props) {
     const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(props.iouReportID, props.transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
-    let formattedMerchant = numberOfRequests === 1 && hasReceipts && !hasOnlyPendingDistanceRequests ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     if (TransactionUtils.isPartialMerchant(formattedMerchant)) {
         formattedMerchant = null;
     }
     const previewSubtitle =
-        numberOfRequests === 1 && hasOnlyPendingDistanceRequests
-            ? ''
-            : formattedMerchant ||
-              props.translate('iou.requestCount', {
-                  count: numberOfRequests - numberOfScanningReceipts,
-                  scanningReceipts: numberOfScanningReceipts,
-              });
+        formattedMerchant ||
+        props.translate('iou.requestCount', {
+            count: numberOfRequests - numberOfScanningReceipts,
+            scanningReceipts: numberOfScanningReceipts,
+        });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
 
@@ -196,14 +194,14 @@ function ReportPreview(props) {
     );
 
     const getDisplayAmount = () => {
-        if (hasOnlyPendingDistanceRequests) {
-            return props.translate('iou.routePending');
-        }
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.iouReport.currency);
         }
         if (isScanning) {
             return props.translate('iou.receiptScanning');
+        }
+        if (hasOnlyPendingDistanceRequests) {
+            return props.translate('iou.routePending');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -253,6 +251,8 @@ function ReportPreview(props) {
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSubtitle =
+        !isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant && !(hasOnlyPendingDistanceRequests && !totalDisplaySpend)));
     return (
         <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>
             <View style={[styles.chatItemMessage, ...props.containerStyles]}>
@@ -301,7 +301,7 @@ function ReportPreview(props) {
                                     )}
                                 </View>
                             </View>
-                            {!isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant)) && (
+                            {shouldShowSubtitle && (
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
