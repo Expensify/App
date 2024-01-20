@@ -1941,13 +1941,23 @@ function shouldOptionShowTooltip(option) {
  * @param {Object} personalDetails
  * @param {Boolean} shouldGetOptionDetails
  * @param {Number} indexOffset
+ * @param {Boolean} maxOptionsSelected
  * @returns {Object}
  */
-function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, personalDetails = {}, shouldGetOptionDetails = false, indexOffset) {
+function formatSectionsFromSearchTerm(
+    searchTerm,
+    selectedOptions,
+    filteredRecentReports,
+    filteredPersonalDetails,
+    personalDetails = {},
+    shouldGetOptionDetails = false,
+    indexOffset,
+    maxOptionsSelected,
+) {
     // We show the selected participants at the top of the list when there is no search term
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '') {
+    if (searchTerm === '' || maxOptionsSelected) {
         return {
             section: {
                 title: undefined,

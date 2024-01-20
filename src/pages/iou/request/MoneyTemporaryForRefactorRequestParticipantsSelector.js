@@ -131,6 +131,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             personalDetails,
             true,
             indexOffset,
+            maxParticipantsReached,
         );
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
@@ -239,12 +240,15 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     );
 
     // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
-        setSearchTerm(text);
-    }, []);
+    const setSearchTermAndSearchInServer = useCallback(
+        (text = '') => {
+            if (text.length && !maxParticipantsReached) {
+                Report.searchInServer(text);
+            }
+            setSearchTerm(text);
+        },
+        [maxParticipantsReached],
+    );
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent

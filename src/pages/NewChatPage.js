@@ -77,7 +77,16 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         const sectionsList = [];
         let indexOffset = 0;
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, {}, false, indexOffset);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            searchTerm,
+            selectedOptions,
+            filteredRecentReports,
+            filteredPersonalDetails,
+            {},
+            false,
+            indexOffset,
+            maxParticipantsReached,
+        );
         sectionsList.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;
 
@@ -230,10 +239,15 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     }, [didScreenTransitionEnd, updateOptions]);
 
     // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchTerm(text);
-    }, []);
+    const setSearchTermAndSearchInServer = useCallback(
+        (text = '') => {
+            if (text && !maxParticipantsReached) {
+                Report.searchInServer(text);
+            }
+            setSearchTerm(text);
+        },
+        [maxParticipantsReached],
+    );
 
     const {inputCallbackRef} = useAutoFocusInput();
 
