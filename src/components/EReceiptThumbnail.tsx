@@ -18,6 +18,7 @@ import Image from './Image';
 
 type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
+    borderRadius?: number;
 };
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
@@ -35,7 +36,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -83,6 +84,7 @@ function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
                 styles.overflowHidden,
                 styles.alignItemsCenter,
                 containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
+                borderRadius && {borderRadius},
             ]}
             onLayout={onContainerLayout}
         >
