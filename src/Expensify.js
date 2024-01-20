@@ -37,14 +37,7 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 
-Onyx.registerLogger(({level, message}) => {
-    // if (level === 'alert') {
-    //     Log.alert(message);
-    //     console.error(message);
-    // } else {
-    //     Log.info(message);
-    // }
-});
+Onyx.registerLogger(() => {});
 
 const propTypes = {
     /* Onyx Props */
