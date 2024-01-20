@@ -1,9 +1,9 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
+import type {Phrase, PhraseParameters} from '@libs/Localize';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Phrase, PhraseParameters} from './Localize';
 
 const ViolationsUtils = {
     /**

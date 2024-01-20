@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -9,21 +8,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import colors from '@styles/theme/colors';
+import type {CurrentLocationButtonProps} from './types';
 
-const propTypes = {
-    /** Callback that runs when location button is clicked */
-    onPress: PropTypes.func,
-
-    /** Boolean to indicate if the button is clickable */
-    isDisabled: PropTypes.bool,
-};
-
-const defaultProps = {
-    isDisabled: false,
-    onPress: () => {},
-};
-
-function CurrentLocationButton({onPress, isDisabled}) {
+function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -32,7 +19,7 @@ function CurrentLocationButton({onPress, isDisabled}) {
         <PressableWithFeedback
             style={[styles.flexRow, styles.pv4, styles.ph3, isDisabled && styles.buttonOpacityDisabled]}
             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(getButtonState(true), true)}
-            onPress={onPress}
+            onPress={() => onPress?.()}
             accessibilityLabel={translate('location.useCurrent')}
             disabled={isDisabled}
             onMouseDown={(e) => e.preventDefault()}
@@ -48,7 +35,5 @@ function CurrentLocationButton({onPress, isDisabled}) {
 }
 
 CurrentLocationButton.displayName = 'CurrentLocationButton';
-CurrentLocationButton.propTypes = propTypes;
-CurrentLocationButton.defaultProps = defaultProps;
 
 export default CurrentLocationButton;
