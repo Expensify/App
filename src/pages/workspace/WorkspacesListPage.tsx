@@ -120,7 +120,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount}: 
         if (isEmptyObject(policies)) {
             return [];
         }
-        return Object.values(policies ?? {})
+        return Object.values(policies)
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map(
                 (policy): WorkspaceItem => ({
