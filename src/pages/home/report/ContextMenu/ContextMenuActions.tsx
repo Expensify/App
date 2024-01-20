@@ -70,8 +70,7 @@ type ContextMenuActionPayload = {
     close: () => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: MutableRefObject<HTMLElement | View | Text | null>;
-    checkIfContextMenuActive?: () => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
 };
 
@@ -502,27 +501,12 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.menu',
         icon: Expensicons.ThreeDots,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
-        onPress: (closePopover, {reportAction, reportID, event, anchor, selection, draftMessage, checkIfContextMenuActive}) => {
-            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-            const originalReport = ReportUtils.getReport(originalReportID);
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event as GestureResponderEvent | MouseEvent,
-                selection,
-                anchor?.current as View | RNText | null,
-                reportID,
-                reportAction.reportActionID,
-                originalReportID,
-                draftMessage,
-                checkIfContextMenuActive,
-                checkIfContextMenuActive,
-                ReportUtils.isArchivedRoom(originalReport),
-                ReportUtils.chatIncludesChronos(originalReport),
-            );
+        onPress: (closePopover, {openOverflowMenu, event}) => {
+            openOverflowMenu(event as GestureResponderEvent | MouseEvent);
         },
         getDescription: () => {},
     },
 ];
 
 export default ContextMenuActions;
-export type {ContextMenuActionPayload};
+export type {ContextMenuActionPayload, ContextMenuAction};
