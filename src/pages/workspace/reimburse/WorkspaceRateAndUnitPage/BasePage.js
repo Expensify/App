@@ -1,10 +1,11 @@
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormMenuItem from '@components/FormMenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 // import Picker from '@components/Picker';
@@ -24,7 +25,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import FormMenuItem from '@components/FormMenuItem';
 
 const propTypes = {
     route: PropTypes.shape({

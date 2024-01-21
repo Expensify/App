@@ -1,15 +1,15 @@
-import React, { useMemo } from 'react';
+import type {RouteProp} from '@react-navigation/native';
+import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import type {RouteProp} from '@react-navigation/native';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type OptionRow = {
     value: string;
@@ -19,20 +19,23 @@ type OptionRow = {
 };
 
 type WorkspaceUnitPageProps = WithPolicyOnyxProps & {
-    route: RouteProp<{params: {policyID: string; unit?: string; rate?: string;}}>;
+    route: RouteProp<{params: {policyID: string; unit?: string; rate?: string}}>;
 };
 
 function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const unitItems = useMemo(() => ({
-        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('common.kilometers'),
-        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('common.miles'),
-    }),[translate]);
+    const unitItems = useMemo(
+        () => ({
+            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('common.kilometers'),
+            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('common.miles'),
+        }),
+        [translate],
+    );
 
     const updateUnit = (unit: string) => {
         Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', unit, props.route.params.rate));
-    }
+    };
 
     const defaultValue = useMemo(() => {
         const defaultDistanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);

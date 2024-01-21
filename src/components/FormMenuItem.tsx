@@ -10,7 +10,7 @@ type FormMenuItemProps = (NoIcon | AvatarProps | IconProps) &
         value?: string;
 
         /** Custom value renderer to render description based on form values */
-        customValueRenderer?: (value?: string) => (string | undefined);
+        customValueRenderer?: (value?: string) => string | undefined;
     };
 
 function FormMenuItem({customValueRenderer, value, errorText, ...props}: FormMenuItemProps, ref: ForwardedRef<View>) {

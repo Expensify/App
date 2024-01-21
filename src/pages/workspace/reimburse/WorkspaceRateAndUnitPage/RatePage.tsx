@@ -1,36 +1,38 @@
-import React, { useMemo } from 'react';
+import type {RouteProp} from '@react-navigation/native';
+import React, {useMemo} from 'react';
+import AmountForm from '@components/AmountForm';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapperWithRef from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import * as NumberUtils from '@libs/NumberUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import type {RouteProp} from '@react-navigation/native';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapperWithRef from '@components/Form/InputWrapper';
-import AmountForm from '@components/AmountForm';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as NumberUtils from '@libs/NumberUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import ROUTES from '@src/ROUTES';
 
 type WorkspaceUnitPageProps = WithPolicyOnyxProps & {
-    route: RouteProp<{params: {policyID: string; unit?: string; rate?: string;}}>;
+    route: RouteProp<{params: {policyID: string; unit?: string; rate?: string}}>;
 };
 
 function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
-    const submit = (values: {rateEdit: number;}) => {
-        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', props.route.params.unit, (values.rateEdit * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()));
-    }
+    const submit = (values: {rateEdit: number}) => {
+        Navigation.navigate(
+            ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', props.route.params.unit, (values.rateEdit * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()),
+        );
+    };
 
-    const validate = (values: {rateEdit: number;}) => {
-        const errors: {rateEdit?: string;} = {};
+    const validate = (values: {rateEdit: number}) => {
+        const errors: {rateEdit?: string} = {};
         const parsedRate = PolicyUtils.getRateDisplayValue(values.rateEdit, toLocaleDigit);
         const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;

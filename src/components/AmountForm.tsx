@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useRef, useState, forwardRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +25,7 @@ type AmountFormProps = {
     errorText?: string;
 
     /** Callback to update the amount in the FormProvider */
-    onInputChange?: (value: number) => void; 
+    onInputChange?: (value: number) => void;
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: () => void;
@@ -34,7 +34,7 @@ type AmountFormProps = {
 /**
  * Returns the new selection object based on the updated amount's length
  */
-const getNewSelection = (oldSelection: {start: number, end: number}, prevLength: number, newLength: number) => {
+const getNewSelection = (oldSelection: {start: number; end: number}, prevLength: number, newLength: number) => {
     const cursorPosition = oldSelection.end + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
@@ -97,7 +97,7 @@ function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText
                 return;
             }
 
-            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to 
+            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to
             // setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet
             // flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
 
