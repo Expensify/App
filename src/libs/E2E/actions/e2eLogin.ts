@@ -1,3 +1,5 @@
+/* eslint-disable rulesdir/prefer-actions-set-data */
+
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
@@ -58,7 +60,11 @@ export default function (): Promise<boolean> {
                     // authenticate with a predefined user
                     console.debug('[E2E] Signing in…');
                     Authenticate(e2eUserCredentials)
-                        .then(() => {
+                        .then((response) => {
+                            Onyx.merge(ONYXKEYS.SESSION, {
+                                authToken: response.authToken,
+                                email: e2eUserCredentials.email,
+                            });
                             console.debug('[E2E] Signed in finished!');
                             return waitForBeginSignInToFinish();
                         })
