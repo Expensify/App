@@ -1,8 +1,25 @@
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
+import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
-import E2EClient from '@libs/E2E/client';
-import * as Session from '@userActions/Session';
+import {Authenticate} from '@libs/Authentication';
+import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+function getConfigValueOrThrow(key: string): string {
+    const value = Config[key];
+    if (value == null) {
+        throw new Error(`Missing config value for ${key}`);
+    }
+    return value;
+}
+
+const e2eUserCredentials = {
+    email: getConfigValueOrThrow('EXPENSIFY_PARTNER_PASSWORD_EMAIL'),
+    partnerUserID: getConfigValueOrThrow('EXPENSIFY_PARTNER_USER_ID'),
+    partnerUserSecret: getConfigValueOrThrow('EXPENSIFY_PARTNER_USER_SECRET'),
+    partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
+    partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
+};
 
 /**
  * Command for e2e test to automatically sign in a user.
@@ -11,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  *
  * @return Resolved true when the user was actually signed in. Returns false if the user was already logged in.
  */
-export default function (email = 'expensify.testuser@trashmail.de'): Promise<boolean> {
+export default function (): Promise<boolean> {
     const waitForBeginSignInToFinish = (): Promise<void> =>
         new Promise((resolve) => {
             const id = Onyx.connect({
@@ -31,7 +48,7 @@ export default function (email = 'expensify.testuser@trashmail.de'): Promise<boo
     let neededLogin = false;
 
     // Subscribe to auth token, to check if we are authenticated
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
@@ -40,22 +57,19 @@ export default function (email = 'expensify.testuser@trashmail.de'): Promise<boo
 
                     // authenticate with a predefined user
                     console.debug('[E2E] Signing in…');
-                    Session.beginSignIn(email);
-                    console.debug('[E2E] Waiting for sign in to finish…');
-                    waitForBeginSignInToFinish().then(() => {
-                        // Get OTP code
-                        console.debug('[E2E] Waiting for OTP…');
-                        E2EClient.getOTPCode().then((otp) => {
-                            // Complete sign in
-                            console.debug('[E2E] Completing sign in with otp code', otp);
-                            Session.signIn(otp);
+                    Authenticate(e2eUserCredentials)
+                        .then(() => {
+                            console.debug('[E2E] Signed in finished!');
+                            return waitForBeginSignInToFinish();
+                        })
+                        .catch((error) => {
+                            console.error('[E2E] Error while signing in', error);
+                            reject(error);
                         });
-                    });
-                } else {
-                    // signal that auth was completed
-                    resolve(neededLogin);
-                    Onyx.disconnect(connectionId);
                 }
+                // signal that auth was completed
+                resolve(neededLogin);
+                Onyx.disconnect(connectionId);
             },
         });
     });

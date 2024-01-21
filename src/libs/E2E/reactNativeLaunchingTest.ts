@@ -45,6 +45,7 @@ E2EClient.getTestConfig()
     .then((config): Promise<void> | undefined => {
         const test = tests[config.name];
         if (!test) {
+            console.error(`[E2E] Test '${config.name}' not found`);
             // instead of throwing, report the error to the server, which is better for DX
             return E2EClient.submitTestResults({
                 name: config.name,
