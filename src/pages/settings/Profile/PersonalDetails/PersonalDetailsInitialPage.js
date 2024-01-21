@@ -5,6 +5,7 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import MenuItemGroup from '@components/MenuItemGroup';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,25 +79,25 @@ function PersonalDetailsInitialPage(props) {
                             <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
                         </View>
                         <MenuItemGroup>
-                        <MenuItemWithTopDescription
-                            title={legalName}
-                            description={props.translate('privatePersonalDetails.legalName')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
-                        />
-                        <MenuItemWithTopDescription
-                            title={privateDetails.dob || ''}
-                            description={props.translate('common.dob')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
-                            titleStyle={[styles.flex1]}
-                        />
-                        <MenuItemWithTopDescription
-                            title={PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails)}
-                            description={props.translate('privatePersonalDetails.address')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
-                        />
+                            <MenuItemWithTopDescription
+                                title={legalName}
+                                description={props.translate('privatePersonalDetails.legalName')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
+                            />
+                            <MenuItemWithTopDescription
+                                title={privateDetails.dob || ''}
+                                description={props.translate('common.dob')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
+                                titleStyle={[styles.flex1]}
+                            />
+                            <MenuItemWithTopDescription
+                                title={PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails)}
+                                description={props.translate('privatePersonalDetails.address')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
+                            />
                         </MenuItemGroup>
                     </View>
                 </ScrollView>
