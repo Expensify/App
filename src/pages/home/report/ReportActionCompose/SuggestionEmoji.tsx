@@ -1,8 +1,7 @@
-import PropTypes from 'prop-types';
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
@@ -10,22 +9,12 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-// eslint-disable-next-line import/no-cycle
-import {SuggestionProps} from './Suggestions';
+import type {SuggestionProps} from './Suggestions';
 
-/**
- * Check if this piece of string looks like an emoji
- */
-const isEmojiCode = (str: string, pos: number): boolean => {
-    const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
-    const leftWord = leftWords.at(-1) ?? '';
-    return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
-};
-
-const defaultSuggestionsValues = {
-    suggestedEmojis: [],
-    colonSignIndex: -1,
-    shouldShowSuggestionMenu: false,
+type SuggestionsValue = {
+    suggestedEmojis: any[];
+    colonIndex: number;
+    shouldShowSuggestionMenu: boolean;
 };
 
 type SuggestionEmojiOnyxProps = {
@@ -38,6 +27,21 @@ type SuggestionEmojiProps = {
     resetKeyboardInput: () => void;
 } & SuggestionEmojiOnyxProps &
     SuggestionProps;
+
+/**
+ * Check if this piece of string looks like an emoji
+ */
+const isEmojiCode = (str: string, pos: number): boolean => {
+    const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
+    const leftWord = leftWords.at(-1) ?? '';
+    return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
+};
+
+const defaultSuggestionsValues: SuggestionsValue = {
+    suggestedEmojis: [],
+    colonIndex: -1,
+    shouldShowSuggestionMenu: false,
+};
 
 function SuggestionEmoji(
     {
@@ -61,7 +65,7 @@ function SuggestionEmoji(
 
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
-        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, isAutoSuggestionPickerLarge),
+        maxIndex: SuggestionsUtils.getMaxArrowIndex(suggestionValues.suggestedEmojis.length, !!isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
 
@@ -75,7 +79,7 @@ function SuggestionEmoji(
      * @param {Number} selectedEmoji
      */
     const insertSelectedEmoji = useCallback(
-        (highlightedEmojiIndexInner) => {
+        (highlightedEmojiIndexInner: number) => {
             const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
             const emojiObject = suggestionValues.suggestedEmojis[highlightedEmojiIndexInner];
             const emojiCode = emojiObject.types && emojiObject.types[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
