@@ -60,6 +60,9 @@ const propTypes = {
     /** Submit button styles */
     submitButtonStyles: stylePropTypes,
 
+    /** Whether to apply flex to the submit button */
+    submitFlexEnabled: PropTypes.bool,
+
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -81,6 +84,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     submitButtonStyles: [],
+    submitFlexEnabled: true,
     shouldHideFixErrorsAlert: false,
 };
 
@@ -97,6 +101,7 @@ function FormWrapper(props) {
         isSubmitButtonVisible,
         style,
         submitButtonStyles,
+        submitFlexEnabled,
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
@@ -153,7 +158,7 @@ function FormWrapper(props) {
                                 focusInput.focus();
                             }
                         }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, ...submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter
@@ -180,6 +185,7 @@ function FormWrapper(props) {
             styles.mh0,
             styles.mt5,
             submitButtonStyles,
+            submitFlexEnabled,
             submitButtonText,
             shouldHideFixErrorsAlert,
         ],

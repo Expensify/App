@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import useLocalize from '@hooks/useLocalize';
-// import useThemeStyles from '@hooks/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -22,7 +22,7 @@ type WorkspaceUnitPageProps = WithPolicyOnyxProps & {
 };
 
 function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
-    // const styles = useThemeStyles();
+    const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
     const submit = (values: {rateEdit: number;}) => {
@@ -56,7 +56,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
-            backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy?.id ?? '')}
+            backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
         >
             {() => (
@@ -67,15 +67,16 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline
+                    style={[styles.flexGrow1, styles.mh5]}
+                    submitFlexEnabled={false}
                 >
                     <InputWrapperWithRef
                         // @ts-expect-error Migration Pending
                         InputComponent={AmountForm}
                         inputID="rateEdit"
                         onCurrencyButtonPress={() => {}}
-                        defaultValue={props.route.params.rate}
                         currency={props.policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                        value={(typeof props.route.params.rate === 'string' ? parseFloat(props.route.params.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}
+                        defaultValue={(typeof props.route.params.rate === 'string' ? parseFloat(props.route.params.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}
                     />
                 </FormProvider>
             )}

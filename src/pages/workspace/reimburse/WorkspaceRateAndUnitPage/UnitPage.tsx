@@ -59,7 +59,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
-            backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy?.id ?? '')}
+            backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
         >
             {() => (

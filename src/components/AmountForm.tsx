@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef, useState, forwardRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -190,7 +190,7 @@ function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        <>
             <View
                 id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
@@ -223,26 +223,26 @@ function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText
                 />
                 {!!errorText && (
                     <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
+                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.w100]}
                         isError
                         message={errorText}
                     />
                 )}
             </View>
-            <View
-                onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
-                id={NUM_PAD_CONTAINER_VIEW_ID}
-            >
-                {canUseTouchScreen ? (
+            {canUseTouchScreen ? (
+                <View
+                    onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
+                    style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
+                    id={NUM_PAD_CONTAINER_VIEW_ID}
+                >
                     <BigNumberPad
                         id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
-                ) : null}
-            </View>
-        </ScrollView>
+                </View>
+            ) : null}
+        </>
     );
 }
 
