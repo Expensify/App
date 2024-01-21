@@ -4,4 +4,13 @@ type SigninParams = {
 
 type IsE2ETestSession = () => boolean;
 
-export type {SigninParams, IsE2ETestSession};
+type NetworkCacheMap = Record<
+    string, // hash
+    {
+        url: string;
+        options: RequestInit;
+        response: Response;
+    }
+>;
+
+export type {SigninParams, IsE2ETestSession, NetworkCacheMap};

@@ -8,8 +8,10 @@
 import type {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
+import Config from 'react-native-config';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
+import installNetworkInterceptor from './NetworkInterceptor';
 
 type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, () => void>;
 
@@ -21,6 +23,12 @@ console.debug('==========================');
 if (!Metrics.canCapturePerformanceMetrics()) {
     throw new Error('Performance module not available! Please set CAPTURE_METRICS=true in your environment file!');
 }
+
+const appInstanceId = Config.E2E_BRANCH
+if (!appInstanceId) {
+    throw new Error('E2E_BRANCH not set in environment file!');
+}
+
 
 // import your test here, define its name and config first in e2e/config.js
 const tests: Tests = {
@@ -40,6 +48,14 @@ const appReady = new Promise<void>((resolve) => {
         resolve();
     });
 });
+
+// Install the network interceptor
+installNetworkInterceptor(
+    () => E2EClient.getNetworkCache(appInstanceId),
+    (networkCache) => E2EClient.updateNetworkCache(appInstanceId, networkCache),
+    // TODO: this needs to be set my the launch args, which we aren't using yet …
+    false,
+)
 
 E2EClient.getTestConfig()
     .then((config): Promise<void> | undefined => {

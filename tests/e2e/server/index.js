@@ -54,39 +54,6 @@ const createListenerState = () => {
     return [listeners, addListener];
 };
 
-const https = require('https');
-
-function simpleHttpRequest(url, method = 'GET') {
-    return new Promise((resolve, reject) => {
-        const req = https.request(url, {method}, (res) => {
-            let data = '';
-            res.on('data', (chunk) => {
-                data += chunk;
-            });
-            res.on('end', () => {
-                resolve(data);
-            });
-        });
-        req.on('error', reject);
-        req.end();
-    });
-}
-
-const parseString = require('xml2js').parseString;
-
-function simpleXMLToJSON(xml) {
-    // using xml2js
-    return new Promise((resolve, reject) => {
-        parseString(xml, (err, result) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve(result);
-        });
-    });
-}
-
 /**
  * The test result object that a client might submit to the server.
  * @typedef TestResult
@@ -117,6 +84,7 @@ const createServerInstance = () => {
     const [testDoneListeners, addTestDoneListener] = createListenerState();
 
     let activeTestConfig;
+    const networkCache = {};
 
     /**
      * @param {TestConfig} testConfig
@@ -179,24 +147,36 @@ const createServerInstance = () => {
                 break;
             }
 
-            case Routes.getOtpCode: {
-                // Wait 10 seconds for the email to arrive
-                setTimeout(() => {
-                    simpleHttpRequest('https://www.trashmail.de/inbox-api.php?name=expensify.testuser')
-                        .then(simpleXMLToJSON)
-                        .then(({feed}) => {
-                            const firstEmailID = feed.entry[0].id;
-                            // Get email content:
-                            return simpleHttpRequest(`https://www.trashmail.de/mail-api.php?name=expensify.testuser&id=${firstEmailID}`).then(simpleXMLToJSON);
-                        })
-                        .then(({feed}) => {
-                            const content = feed.entry[0].content[0];
-                            // content is a string, find code using regex based on text "Use 259463 to sign"
-                            const otpCode = content.match(/Use (\d+) to sign/)[1];
-                            console.debug('otpCode', otpCode);
-                            res.end(otpCode);
-                        });
-                }, 10000);
+            case Routes.testGetNetworkCache: {
+                getPostJSONRequestData(req, res).then((data) => {
+                    const appInstanceId = data && data.appInstanceId;
+                    if (!appInstanceId) {
+                        res.statusCode = 400;
+                        res.end('Invalid request missing appInstanceId');
+                        return;
+                    }
+
+                    const cachedData = networkCache[appInstanceId] || {};
+                    res.end(JSON.stringify(cachedData));
+                });
+
+                break;
+            }
+
+            case Routes.testUpdateNetworkCache: {
+                getPostJSONRequestData(req, res).then((data) => {
+                    const appInstanceId = data && data.appInstanceId;
+                    const cache = data && data.cache;
+                    if (!appInstanceId || !cache) {
+                        res.statusCode = 400;
+                        res.end('Invalid request missing appInstanceId or cache');
+                        return;
+                    }
+
+                    networkCache[appInstanceId] = cache;
+                    res.end('ok');
+                });
+
                 break;
             }
 
