@@ -32,17 +32,15 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.
-    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
-    const primaryColor = colorStyles?.backgroundColor;
-    const secondaryColor = colorStyles?.color;
+    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
 
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-    const transactionAmount = transactionDetails?.amount;
-    const transactionCurrency = transactionDetails?.currency ?? '';
-    const transactionMerchant = transactionDetails?.merchant;
-    const transactionDate = transactionDetails?.created;
-    const transactionCardID = transactionDetails?.cardID;
-
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency = '',
+        merchant: transactionMerchant,
+        created: transactionDate,
+        cardID: transactionCardID,
+    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
