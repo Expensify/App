@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -26,6 +27,12 @@ import ROUTES from '@src/ROUTES';
 import FormMenuItem from '@components/FormMenuItem';
 
 const propTypes = {
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            policyID: PropTypes.string.isRequired,
+            unit: PropTypes.string,
+        }).isRequired,
+    }).isRequired,
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
@@ -33,13 +40,12 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {},
-    formDraft: {},
     ...policyDefaultProps,
 };
 
 function WorkspaceRateAndUnitPage(props) {
     useEffect(() => {
-        if (lodashGet(props, 'policy.customUnits', []).length !== 0 && lodashGet(props, 'formDraft.policyID', '') === props.policy.id) {
+        if (lodashGet(props, 'policy.customUnits', []).length !== 0) {
             return;
         }
 
@@ -156,18 +162,16 @@ function WorkspaceRateAndUnitPage(props) {
                             title={props.translate('workspace.reimburse.trackDistanceRate')}
                             customValueRenderer={(value) => CurrencyUtils.convertAmountToDisplayString(value, lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD))}
                             shouldShowRightIcon
-                            shouldSaveDraft
                         />
                         <InputWrapper
                             InputComponent={FormMenuItem}
                             inputID="unit"
                             title={props.translate('workspace.reimburse.trackDistanceUnit')}
-                            defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
+                            value={props.route.params.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
                             customValueRenderer={(value) => unitItems[value]}
                             shouldShowRightIcon
-                            shouldSaveDraft
                             onPress={() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id));
+                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id, props.route.params.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)));
                             }}
                         />
                     </OfflineWithFeedback>
@@ -188,9 +192,6 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        formDraft: {
-            key: ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT,
         },
     }),
     withThemeStyles,

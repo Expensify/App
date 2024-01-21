@@ -1,24 +1,15 @@
 import React, { useMemo } from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import compose from '@libs/compose';
 import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import type * as OnyxTypes from '@src/types/onyx';
-
-type WorkspaceUnitPageOnyxProps = {
-    /** Draft form data related to workspaceRateAndUnitForm */
-    formDraft: OnyxEntry<OnyxTypes.Form>;
-};
+import type {RouteProp} from '@react-navigation/native';
 
 type OptionRow = {
     value: string;
@@ -27,7 +18,9 @@ type OptionRow = {
     isSelected: boolean;
 };
 
-type WorkspaceUnitPageProps = WithPolicyProps & WorkspaceUnitPageOnyxProps;
+type WorkspaceUnitPageProps = WithPolicyOnyxProps & {
+    route: RouteProp<{params: {policyID: string; unit?: string}}>;
+};
 
 function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     const styles = useThemeStyles();
@@ -38,10 +31,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     }),[translate]);
 
     const updateUnit = (unit: string) => {
-        // @ts-expect-error This is a problem with Form Draft type
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT, {unit});
-        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
+        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', unit));
     }
 
     const defaultValue = useMemo(() => {
@@ -56,13 +46,12 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                 value: unit,
                 text: label,
                 keyForList: unit,
-                // @ts-expect-error This is a problem with Form Draft type
-                isSelected: (props.formDraft?.unit || defaultValue) === unit,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                isSelected: (props.route.params.unit || defaultValue) === unit,
             });
         });
         return arr;
-        // @ts-expect-error This is a problem with Form Draft type
-    }, [defaultValue, props.formDraft?.unit, unitItems]);
+    }, [defaultValue, props.route.params.unit, unitItems]);
 
     return (
         <WorkspacePageWithSections
@@ -73,26 +62,22 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
         >
+            {() => (
+                <>
+                    <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
 
-            <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
-
-            <SelectionList
-                // @ts-expect-error Migration pending for SelectionList
-                sections={[{data: unitOptions}]}
-                onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
-                initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
-            />
+                    <SelectionList
+                        // @ts-expect-error Migration pending for SelectionList
+                        sections={[{data: unitOptions}]}
+                        onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
+                        initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
+                    />
+                </>
+            )}
         </WorkspacePageWithSections>
     );
 }
 
 WorkspaceUnitPage.displayName = 'WorkspaceUnitPage';
 
-export default compose(
-    withOnyx<WorkspaceUnitPageProps, WorkspaceUnitPageOnyxProps>({
-        formDraft: {
-            key: ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT,
-        },
-    }),
-    withPolicy,
-)(WorkspaceUnitPage);
+export default withPolicy(WorkspaceUnitPage);
