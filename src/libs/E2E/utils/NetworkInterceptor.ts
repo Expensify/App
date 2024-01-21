@@ -101,7 +101,7 @@ export default function installNetworkInterceptor(
 
         const hash = hashFetchArgs(args);
         if (shouldReturnRecordedResponse && networkCache?.[hash] != null) {
-            console.debug(LOG_TAG, 'Returning recorded response for hash:', hash);
+            console.debug(LOG_TAG, 'Returning recorded response for url:', url);
             const {response} = networkCache[hash];
             return Promise.resolve(response);
         }
