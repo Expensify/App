@@ -19,7 +19,7 @@ type OptionRow = {
 };
 
 type WorkspaceUnitPageProps = WithPolicyOnyxProps & {
-    route: RouteProp<{params: {policyID: string; unit?: string}}>;
+    route: RouteProp<{params: {policyID: string; unit?: string; rate?: string;}}>;
 };
 
 function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
@@ -31,7 +31,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     }),[translate]);
 
     const updateUnit = (unit: string) => {
-        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', unit));
+        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', unit, props.route.params.rate));
     }
 
     const defaultValue = useMemo(() => {

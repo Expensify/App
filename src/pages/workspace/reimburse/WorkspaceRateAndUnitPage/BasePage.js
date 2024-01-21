@@ -31,6 +31,7 @@ const propTypes = {
         params: PropTypes.shape({
             policyID: PropTypes.string.isRequired,
             unit: PropTypes.string,
+            rate: PropTypes.string,
         }).isRequired,
     }).isRequired,
     ...policyPropTypes,
@@ -102,6 +103,9 @@ function WorkspaceRateAndUnitPage(props) {
     const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
 
+    const unitValue = props.route.params.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const rateValue = props.route.params.rate || distanceCustomRate.rate.toString();
+
     return (
         <WorkspacePageWithSections
             headerText={props.translate('workspace.reimburse.trackDistance')}
@@ -158,20 +162,23 @@ function WorkspaceRateAndUnitPage(props) {
                         <InputWrapper
                             InputComponent={FormMenuItem}
                             inputID="rate"
-                            defaultValue={distanceCustomRate.rate}
+                            value={parseFloat(rateValue)}
                             title={props.translate('workspace.reimburse.trackDistanceRate')}
                             customValueRenderer={(value) => CurrencyUtils.convertAmountToDisplayString(value, lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD))}
                             shouldShowRightIcon
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy.id, unitValue, rateValue));
+                            }}
                         />
                         <InputWrapper
                             InputComponent={FormMenuItem}
                             inputID="unit"
                             title={props.translate('workspace.reimburse.trackDistanceUnit')}
-                            value={props.route.params.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
+                            value={unitValue}
                             customValueRenderer={(value) => unitItems[value]}
                             shouldShowRightIcon
                             onPress={() => {
-                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id, props.route.params.unit || lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)));
+                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id, unitValue, rateValue));
                             }}
                         />
                     </OfflineWithFeedback>
