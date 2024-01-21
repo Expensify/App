@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
@@ -220,8 +221,14 @@ class ContactMethodDetailsPage extends Component {
      * @param {Boolean} isOpen
      */
     toggleDeleteModal(isOpen) {
-        this.setState({isDeleteModalOpen: isOpen});
-        Keyboard.dismiss();
+        if (canUseTouchScreen() && isOpen) {
+            InteractionManager.runAfterInteractions(() => {
+                this.setState({isDeleteModalOpen: isOpen});
+            });
+            Keyboard.dismiss();
+        } else {
+            this.setState({isDeleteModalOpen: isOpen});
+        }
     }
 
     /**

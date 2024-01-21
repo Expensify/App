@@ -1,12 +1,14 @@
-import Airship, {EventType, PushPayload} from '@ua/react-native-airship';
+import type {PushPayload} from '@ua/react-native-airship';
+import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as PushNotificationActions from '@userActions/PushNotification';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
-import NotificationType, {NotificationData} from './NotificationType';
-import PushNotificationType, {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
+import type {NotificationData} from './NotificationType';
+import NotificationType from './NotificationType';
+import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
+import type PushNotificationType from './types';
 
 type NotificationEventActionCallback = (data: NotificationData) => void;
 
@@ -190,40 +192,6 @@ const clearNotifications: ClearNotifications = () => {
     Airship.push.clearNotifications();
 };
 
-const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
-    let payload = pushPayload.extras.payload;
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
-    }
-    const data = payload as NotificationData;
-    return {
-        notificationID: pushPayload.notificationId,
-        reportID: String(data.reportID),
-    };
-};
-
-const clearReportNotifications = (reportID: string) => {
-    Log.info('[PushNotification] clearing report notifications', false, {reportID});
-
-    Airship.push
-        .getActiveNotifications()
-        .then((pushPayloads) => {
-            const reportNotificationIDs = pushPayloads.reduce<string[]>((notificationIDs, pushPayload) => {
-                const notification = parseNotificationAndReportIDs(pushPayload);
-                if (notification.notificationID && notification.reportID === reportID) {
-                    notificationIDs.push(notification.notificationID);
-                }
-                return notificationIDs;
-            }, []);
-
-            Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
-            reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
-        })
-        .catch((error) => {
-            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
-        });
-};
-
 const PushNotification: PushNotificationType = {
     init,
     register,
@@ -232,7 +200,6 @@ const PushNotification: PushNotificationType = {
     onSelected,
     TYPE: NotificationType,
     clearNotifications,
-    clearReportNotifications,
 };
 
 export default PushNotification;

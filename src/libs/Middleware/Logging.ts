@@ -1,8 +1,8 @@
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import Request from '@src/types/onyx/Request';
-import Response from '@src/types/onyx/Response';
-import Middleware from './types';
+import type Request from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
+import type Middleware from './types';
 
 function logRequestDetails(message: string, request: Request, response?: Response | void) {
     // Don't log about log or else we'd cause an infinite loop

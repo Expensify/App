@@ -18,7 +18,6 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {CONTEXT_MENU_TYPES} from './home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
@@ -65,15 +64,15 @@ function ReferralDetailsPage({route, account}) {
             headerContent={
                 <Icon
                     src={PaymentHands}
-                    width={178}
+                    width={589}
                     height={232}
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
-            <Text style={[styles.textHeadline, styles.mb3, styles.mt3, styles.ph4]}>{contentHeader}</Text>
-            <Text style={[styles.inlineSystemMessage, styles.ml0, styles.mb6, styles.ph4]}>{contentBody}</Text>
+            <Text style={[styles.textHeadline, styles.mb2, styles.ph5]}>{contentHeader}</Text>
+            <Text style={[styles.webViewStyles.baseFontStyle, styles.ml0, styles.mb5, styles.ph5]}>{contentBody}</Text>
 
             {shouldShowClipboard && (
                 <ContextMenuItem
@@ -96,7 +95,7 @@ function ReferralDetailsPage({route, account}) {
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
-                onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
+                onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
             />
         </HeaderPageLayout>
     );

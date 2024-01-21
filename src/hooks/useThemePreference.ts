@@ -1,7 +1,7 @@
 import {useContext, useEffect, useState} from 'react';
 import {useColorScheme} from 'react-native';
 import {PreferredThemeContext} from '@components/OnyxProvider';
-import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import CONST from '@src/CONST';
 
 function useThemePreference() {

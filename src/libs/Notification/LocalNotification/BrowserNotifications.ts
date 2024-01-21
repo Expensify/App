@@ -1,12 +1,13 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import Str from 'expensify-common/lib/str';
-import {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
-import {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
-import {LocalNotificationClickHandler, LocalNotificationData} from './types';
+import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
@@ -108,7 +109,7 @@ export default {
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ReportUtils.getModifiedExpenseMessage(reportAction);
+        const body = ModifiedExpenseMessage.getForReportAction(reportAction);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

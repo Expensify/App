@@ -20,7 +20,7 @@ The Track plan is tailored for solo Expensify users who don't require expense su
 ## Individual Submit Plan
 The Submit plan is designed for individuals who need to keep track of their expenses and share them with someone else, such as their boss, accountant, or even a housemate. It's specifically tailored for single users who want to both track and submit their expenses efficiently.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## How can I change Individual plans?
 You have the flexibility to switch between a Track and Submit plan, or vice versa, at any time by navigating to **Settings > Workspaces > Individual > *Workspace Name* > Plan**. This allows you to adapt your expense management approach as needed.
@@ -30,3 +30,5 @@ You can easily upgrade from a Collect to a Control plan at any time by going to 
 
 ## How does pricing work if I have two types of Group Workspace plans? 
 If you have a Control and Collect Workspace, you will be charged at the Control Workspace rate. 
+
+{% include faq-end.md %}

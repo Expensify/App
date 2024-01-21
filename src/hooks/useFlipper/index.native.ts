@@ -1,5 +1,5 @@
 import {useFlipper as useFlipperRN} from '@react-navigation/devtools';
-import UseFlipper from './types';
+import type UseFlipper from './types';
 
 const useFlipper: UseFlipper = useFlipperRN;
 
