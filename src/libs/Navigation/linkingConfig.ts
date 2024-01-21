@@ -246,6 +246,12 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.WORKSPACE.RATE_AND_UNIT.ROOT]: {
                                 path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                             },
+                            [SCREENS.WORKSPACE.RATE_AND_UNIT.RATE]: {
+                                path: ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.route,
+                            },
+                            [SCREENS.WORKSPACE.RATE_AND_UNIT.UNIT]: {
+                                path: ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.route,
+                            },
                             [SCREENS.WORKSPACE.BILLS]: {
                                 path: ROUTES.WORKSPACE_BILLS.route,
                             },

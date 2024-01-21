@@ -1459,6 +1459,9 @@ function openWorkspaceReimburseView(policyID: string) {
         return;
     }
 
+    // @ts-expect-error TODO: Fix this later
+    Onyx.set(ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM, {policyID});
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

@@ -96,6 +96,8 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RATE_AND_UNIT.ROOT]: undefined;
+    [SCREENS.WORKSPACE.RATE_AND_UNIT.RATE]: undefined;
+    [SCREENS.WORKSPACE.RATE_AND_UNIT.UNIT]: undefined;
     [SCREENS.WORKSPACE.BILLS]: {
         policyID: string;
     };

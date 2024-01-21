@@ -196,7 +196,9 @@ const SCREENS = {
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: {
-            ROOT: 'Workspace_RateAndUnit',
+            ROOT: 'Workspace_RateAndUnit_Root',
+            RATE: 'Workspace_RateAndUnit_Rate',
+            UNIT: 'Workspace_RateAndUnit_Unit',
         },
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',

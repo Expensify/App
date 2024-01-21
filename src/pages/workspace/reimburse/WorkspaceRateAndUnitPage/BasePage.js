@@ -1,7 +1,5 @@
 import lodashGet from 'lodash/get';
 import React, {useEffect} from 'react';
-// import {Keyboard, View} from 'react-native';
-import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
@@ -35,12 +33,13 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {},
+    formDraft: {},
     ...policyDefaultProps,
 };
 
 function WorkspaceRateAndUnitPage(props) {
     useEffect(() => {
-        if (lodashGet(props, 'policy.customUnits', []).length !== 0) {
+        if (lodashGet(props, 'policy.customUnits', []).length !== 0 && lodashGet(props, 'formDraft.policyID', '') === props.policy.id) {
             return;
         }
 
@@ -77,7 +76,6 @@ function WorkspaceRateAndUnitPage(props) {
 
     const submit = (values) => {
         saveUnitAndRate(values.unit, values.rate);
-        Keyboard.dismiss();
         Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id));
     };
 
@@ -158,6 +156,7 @@ function WorkspaceRateAndUnitPage(props) {
                             title={props.translate('workspace.reimburse.trackDistanceRate')}
                             customValueRenderer={(value) => CurrencyUtils.convertAmountToDisplayString(value, lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD))}
                             shouldShowRightIcon
+                            shouldSaveDraft
                         />
                         <InputWrapper
                             InputComponent={FormMenuItem}
@@ -166,6 +165,10 @@ function WorkspaceRateAndUnitPage(props) {
                             defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
                             customValueRenderer={(value) => unitItems[value]}
                             shouldShowRightIcon
+                            shouldSaveDraft
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy.id));
+                            }}
                         />
                     </OfflineWithFeedback>
                 </FormProvider>
@@ -185,6 +188,9 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        formDraft: {
+            key: ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM_DRAFT,
         },
     }),
     withThemeStyles,
