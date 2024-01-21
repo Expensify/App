@@ -412,7 +412,7 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     const onVisibilityChange = useCallback(() => {
-        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || !ReportUtils.isUnread(report)) {
+        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || userActiveSince.current > (report.lastVisibleActionCreated || '')) {
             return;
         }
 
