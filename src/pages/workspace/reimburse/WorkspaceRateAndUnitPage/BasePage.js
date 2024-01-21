@@ -66,7 +66,6 @@ function WorkspaceRateAndUnitPage(props) {
         const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
         const unitName = lodashGet(distanceCustomUnit, 'name', '');
-        const rateNumValue = PolicyUtils.getNumericValue(rate, props.toLocaleDigit);
 
         const newCustomUnit = {
             customUnitID: unitID,
@@ -74,7 +73,7 @@ function WorkspaceRateAndUnitPage(props) {
             attributes: {unit},
             rates: {
                 ...currentCustomUnitRate,
-                rate: rateNumValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                rate,
             },
         };
         Policy.updateWorkspaceCustomUnitAndRate(props.policy.id, distanceCustomUnit, newCustomUnit, props.policy.lastModified);
@@ -87,13 +86,14 @@ function WorkspaceRateAndUnitPage(props) {
 
     const validate = (values) => {
         const errors = {};
+        const parsedRate = PolicyUtils.getRateDisplayValue(values.rate / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, props.toLocaleDigit);
         const decimalSeparator = props.toLocaleDigit('.');
         const outputCurrency = lodashGet(props, 'policy.outputCurrency', CONST.CURRENCY.USD);
         // Allow one more decimal place for accuracy
         const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(outputCurrency) + 1}})?$`, 'i');
-        if (!rateValueRegex.test(values.rate) || values.rate === '') {
+        if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
             errors.rate = 'workspace.reimburse.invalidRateError';
-        } else if (NumberUtils.parseFloatAnyLocale(values.rate) <= 0) {
+        } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
             errors.rate = 'workspace.reimburse.lowRateError';
         }
         return errors;

@@ -210,6 +210,7 @@ export {
     hasCustomUnitsError,
     getNumericValue,
     getUnitRateValue,
+    getRateDisplayValue,
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
