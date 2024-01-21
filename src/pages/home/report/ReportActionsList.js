@@ -143,6 +143,7 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
+    const userInactiveSince = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -412,7 +413,23 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     const onVisibilityChange = useCallback(() => {
-        if (!Visibility.isVisible() || scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD || userActiveSince.current > (report.lastVisibleActionCreated || '')) {
+        if (!Visibility.isVisible()) {
+            userInactiveSince.current = DateUtils.getDBTime();
+            return;
+        }
+
+        if (
+            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
+            !(
+                sortedVisibleReportActions &&
+                _.some(
+                    sortedVisibleReportActions,
+                    (reportAction) =>
+                        userInactiveSince.current < reportAction.created &&
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
+                )
+            )
+        ) {
             return;
         }
 
@@ -421,7 +438,7 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
-    }, [calculateUnreadMarker, report]);
+    }, [calculateUnreadMarker, report, sortedVisibleReportActions]);
 
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(onVisibilityChange);
