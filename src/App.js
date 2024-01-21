@@ -45,7 +45,9 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-function App() {
+function App(props) {
+    console.log('App.js: App(): props:', props);
+
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (

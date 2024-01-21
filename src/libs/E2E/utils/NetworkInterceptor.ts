@@ -1,5 +1,5 @@
 /* eslint-disable @lwc/lwc/no-async-await */
-import type {NetworkCacheMap} from './types';
+import type {NetworkCacheMap} from '@libs/E2E/types';
 
 const LOG_TAG = `[E2E][NetworkInterceptor]`;
 // Requests with these headers will be ignored:

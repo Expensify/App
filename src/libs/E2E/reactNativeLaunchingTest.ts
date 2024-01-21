@@ -11,7 +11,8 @@ import Performance from '@libs/Performance';
 import Config from 'react-native-config';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
-import installNetworkInterceptor from './NetworkInterceptor';
+import installNetworkInterceptor from './utils/NetworkInterceptor';
+import LaunchArgs from './utils/LaunchArgs';
 
 type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, () => void>;
 
@@ -53,8 +54,7 @@ const appReady = new Promise<void>((resolve) => {
 installNetworkInterceptor(
     () => E2EClient.getNetworkCache(appInstanceId),
     (networkCache) => E2EClient.updateNetworkCache(appInstanceId, networkCache),
-    // TODO: this needs to be set my the launch args, which we aren't using yet …
-    false,
+    LaunchArgs.mockNetwork ?? false
 )
 
 E2EClient.getTestConfig()

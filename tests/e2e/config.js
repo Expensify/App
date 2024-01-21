@@ -31,6 +31,10 @@ module.exports = {
 
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
+    // The path to the activity within the app that we want to launch.
+    // Note: even though we have different package _names_, this path doesn't change.
+    ACTIVITY_PATH: 'com.expensify.chat.MainActivity',
+
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
 
