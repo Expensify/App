@@ -16,7 +16,7 @@ type MenuItemGroupProps = {
     children: React.ReactNode;
 
     /** Whether or not to use the single execution hook */
-    shouldUseSingleExecution: boolean;
+    shouldUseSingleExecution?: boolean;
 };
 
 function MenuItemGroup({children, shouldUseSingleExecution = true}: MenuItemGroupProps) {

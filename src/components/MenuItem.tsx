@@ -376,7 +376,7 @@ function MenuItem(
                 onPress(event);
                 return;
             }
-            singleExecution(waitForNavigate(() => onPress(event)));
+            singleExecution(waitForNavigate(() => onPress(event)))();
         }
     };
 
