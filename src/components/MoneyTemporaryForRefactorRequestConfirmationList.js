@@ -652,7 +652,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ) : (
-                isFromPaidPolicy && (
+                isFromPaidPolicy &&
+                !isDistanceRequest &&
+                iouType === CONST.IOU.TYPE.REQUEST && (
                     <ReceiptEmptyState
                         onPress={() =>
                             Navigation.navigate(
