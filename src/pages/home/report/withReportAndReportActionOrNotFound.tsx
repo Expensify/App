@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -9,11 +9,13 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -37,10 +39,7 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportAndReportActionOrNotFoundProps = OnyxProps &
-    WindowDimensionsProps & {
-        route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
-    };
+type WithReportAndReportActionOrNotFoundProps = OnyxProps & WindowDimensionsProps & StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,

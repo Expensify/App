@@ -1,8 +1,9 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,12 +14,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
@@ -28,14 +31,27 @@ type FlagCommentPageWithOnyxProps = {
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
-type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageWithOnyxProps;
+type FlagCommentPageNavigationProps = StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
-type FlagCommentRouteProp = RouteProp<{params: {reportID: string; reportActionID: string}}>;
+type FlagCommentPageProps = FlagCommentPageNavigationProps & WithReportAndReportActionOrNotFoundProps & FlagCommentPageWithOnyxProps;
+
+type Severity = ValueOf<typeof CONST.MODERATION>;
+
+type SeverityItem = {
+    severity: Severity;
+    name: string;
+    icon: React.FC<SvgProps>;
+    description: string;
+    furtherDetails: string;
+    furtherDetailsIcon: React.FC<SvgProps>;
+};
+
+type SeverityItemList = SeverityItem[];
 
 /**
  * Get the reportID for the associated chatReport
  */
-function getReportID(route: FlagCommentRouteProp) {
+function getReportID(route: FlagCommentPageNavigationProps['route']) {
     return route.params.reportID.toString();
 }
 
@@ -43,7 +59,7 @@ function FlagCommentPage({parentReportActions, route, report, reportActions}: Fl
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const severities = [
+    const severities: SeverityItemList = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
             name: translate('moderation.spam'),
@@ -94,21 +110,25 @@ function FlagCommentPage({parentReportActions, route, report, reportActions}: Fl
         },
     ];
 
-    const getActionToFlag = useCallback(() => {
+    const getActionToFlag = useCallback((): OnyxTypes.ReportAction | null => {
         let reportAction = reportActions?.[`${route.params.reportActionID.toString()}`];
 
         // Handle threads if needed
         if (reportAction?.reportActionID === undefined) {
-            reportAction = parentReportActions?.[report?.parentReportActionID ?? ''] ?? undefined;
+            reportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+        }
+
+        if (!reportAction) {
+            return null;
         }
 
         return reportAction;
     }, [report, reportActions, route.params.reportActionID, parentReportActions]);
 
-    const flagComment = (severity: ValueOf<typeof CONST.MODERATION>) => {
+    const flagComment = (severity: Severity) => {
         let reportID: string | undefined = getReportID(route);
         const reportAction = getActionToFlag();
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''] ?? undefined;
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
 
         // Handle threads if needed
         if (ReportUtils.isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
@@ -140,35 +160,30 @@ function FlagCommentPage({parentReportActions, route, report, reportActions}: Fl
             includeSafeAreaPaddingBottom={false}
             testID={FlagCommentPage.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => {
-                const actionToFlag = getActionToFlag();
-                const shouldShowFlagComment = actionToFlag && ReportUtils.shouldShowFlagComment(actionToFlag, report);
-
-                return (
-                    <FullPageNotFoundView shouldShow={!shouldShowFlagComment}>
-                        <HeaderWithBackButton
-                            title={translate('reportActionContextMenu.flagAsOffensive')}
-                            shouldNavigateToTopMostReport
-                            onBackButtonPress={() => {
-                                Navigation.goBack();
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? ''));
-                            }}
-                        />
-                        <ScrollView
-                            contentContainerStyle={safeAreaPaddingBottomStyle}
-                            style={styles.settingsPageBackground}
-                        >
-                            <View style={styles.pageWrapper}>
-                                <View style={styles.settingsPageBody}>
-                                    <Text style={styles.webViewStyles.baseFontStyle}>{translate('moderation.flagDescription')}</Text>
-                                </View>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), report)}>
+                    <HeaderWithBackButton
+                        title={translate('reportActionContextMenu.flagAsOffensive')}
+                        shouldNavigateToTopMostReport
+                        onBackButtonPress={() => {
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? ''));
+                        }}
+                    />
+                    <ScrollView
+                        contentContainerStyle={safeAreaPaddingBottomStyle}
+                        style={styles.settingsPageBackground}
+                    >
+                        <View style={styles.pageWrapper}>
+                            <View style={styles.settingsPageBody}>
+                                <Text style={styles.webViewStyles.baseFontStyle}>{translate('moderation.flagDescription')}</Text>
                             </View>
-                            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('moderation.chooseAReason')}</Text>
-                            {severityMenuItems}
-                        </ScrollView>
-                    </FullPageNotFoundView>
-                );
-            }}
+                        </View>
+                        <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('moderation.chooseAReason')}</Text>
+                        {severityMenuItems}
+                    </ScrollView>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 }
