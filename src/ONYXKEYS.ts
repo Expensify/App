@@ -350,6 +350,8 @@ const ONYXKEYS = {
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
         GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
+        EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
+        EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
     },
 } as const;
 
