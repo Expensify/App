@@ -5,9 +5,12 @@ import {
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
+    getDate,
+    getDay,
     getDayOfYear,
     isAfter,
     isBefore,
@@ -737,17 +740,16 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
  * returns {number}
  */
 function getLastBusinessDayOfMonth(inputDate: Date): number {
-    const currentDate = new Date(inputDate);
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
 
-    // Set the date to the last day of the month
-    currentDate.setMonth(currentDate.getMonth() + 1, 0);
-
-    // Loop backward to find the latest business day
-    while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-        currentDate.setDate(currentDate.getDate() - 1);
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
     }
 
-    return currentDate.getDate();
+    return getDate(currentDate);
 }
 
 const DateUtils = {
