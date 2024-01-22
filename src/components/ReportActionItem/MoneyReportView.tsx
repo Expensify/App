@@ -75,7 +75,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                                     title={title}
                                     onPress={() => {}}
                                     shouldShowRightIcon
-                                    disabled={false}
+                                    disabled={ReportUtils.isReportFieldOfTypeTitle(reportField)}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
                                     numberOfLinesTitle={0}
