@@ -129,7 +129,7 @@ export default function useArrowKeyFocusManager({
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 
     const arrowLeftCallback = useCallback(() => {
-        if (maxIndex < 0) {
+        if (maxIndex < 0 || !allowHorizontalArrowKeys) {
             return;
         }
 
@@ -151,11 +151,11 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, maxIndex]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, allowHorizontalArrowKeys ? arrowLeftCallback : () => {}, arrowConfig);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
 
     const arrowRightCallback = useCallback(() => {
-        if (maxIndex < 0) {
+        if (maxIndex < 0 || !allowHorizontalArrowKeys) {
             return;
         }
 
@@ -177,8 +177,8 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, maxIndex]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, allowHorizontalArrowKeys ? arrowRightCallback : () => {}, arrowConfig);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
 
     // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
     return [focusedIndex, setFocusedIndex];
