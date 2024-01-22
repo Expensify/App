@@ -1,5 +1,5 @@
 /* eslint-disable @lwc/lwc/no-async-await */
-import type {NetworkCacheMap} from '@libs/E2E/types';
+import type {NetworkCacheEntry, NetworkCacheMap} from '@libs/E2E/types';
 
 const LOG_TAG = `[E2E][NetworkInterceptor]`;
 // Requests with these headers will be ignored:
@@ -12,14 +12,6 @@ const globalIsNetworkInterceptorInstalledPromise = new Promise<void>((resolve, r
     globalRejectIsNetworkInterceptorInstalled = reject;
 });
 let networkCache: NetworkCacheMap | null = null;
-
-/**
- * This function hashes the arguments of fetch.
- */
-function hashFetchArgs(args: Parameters<typeof fetch>) {
-    const [url, options] = args;
-    return JSON.stringify({url, options});
-}
 
 /**
  * The headers of a fetch request can be passed as an array of tuples or as an object.
@@ -68,6 +60,33 @@ function fetchArgsGetUrl(args: Parameters<typeof fetch>): string {
     throw new Error('Could not get url from fetch args');
 }
 
+function networkCacheEntryToResponse({headers, status, statusText, body}: NetworkCacheEntry): Response {
+    // Transform headers to Headers object:
+    const newHeaders = new Headers();
+    Object.entries(headers).forEach(([key, value]) => {
+        newHeaders.append(key, value);
+    });
+
+    return new Response(body, {
+        status,
+        statusText,
+        headers: newHeaders,
+    });
+}
+
+/**
+ * This function hashes the arguments of fetch.
+ */
+function hashFetchArgs(args: Parameters<typeof fetch>) {
+    const url = fetchArgsGetUrl(args);
+    const options = fetchArgsGetRequestInit(args);
+    const headers = getFetchRequestHeadersAsObject(options);
+    // Note: earlier we were using the body value as well, however
+    // the body for the same request might be different due to including
+    // times or app versions.
+    return `${url}${JSON.stringify(headers)}`;
+}
+
 export default function installNetworkInterceptor(
     getNetworkCache: () => Promise<NetworkCacheMap>,
     updateNetworkCache: (networkCache: NetworkCacheMap) => Promise<unknown>,
@@ -78,11 +97,13 @@ export default function installNetworkInterceptor(
 
     if (networkCache == null && shouldReturnRecordedResponse) {
         console.debug(LOG_TAG, 'fetching network cache …');
-        getNetworkCache().then((newCache) => {
-            networkCache = newCache;
-            globalResolveIsNetworkInterceptorInstalled();
-            console.debug(LOG_TAG, 'network cache fetched!');
-        }, globalRejectIsNetworkInterceptorInstalled);
+        getNetworkCache()
+            .then((newCache) => {
+                networkCache = newCache;
+                globalResolveIsNetworkInterceptorInstalled();
+                console.debug(LOG_TAG, 'network cache fetched!');
+            }, globalRejectIsNetworkInterceptorInstalled)
+            .catch(globalRejectIsNetworkInterceptorInstalled);
     } else {
         networkCache = {};
         globalResolveIsNetworkInterceptorInstalled();
@@ -90,7 +111,8 @@ export default function installNetworkInterceptor(
 
     // @ts-expect-error Fetch global types weirdly include URL
     global.fetch = async (...args: Parameters<typeof fetch>) => {
-        const headers = getFetchRequestHeadersAsObject(fetchArgsGetRequestInit(args));
+        const options = fetchArgsGetRequestInit(args);
+        const headers = getFetchRequestHeadersAsObject(options);
         const url = fetchArgsGetUrl(args);
         // Check if headers contain any of the ignored headers, or if react native metro server:
         if (IGNORE_REQUEST_HEADERS.some((header) => headers[header] != null) || url.includes('8081')) {
@@ -100,23 +122,29 @@ export default function installNetworkInterceptor(
         await globalIsNetworkInterceptorInstalledPromise;
 
         const hash = hashFetchArgs(args);
-        if (shouldReturnRecordedResponse && networkCache?.[hash] != null) {
+        const cachedResponse = networkCache?.[hash];
+        if (shouldReturnRecordedResponse && cachedResponse != null) {
+            const response = networkCacheEntryToResponse(cachedResponse);
             console.debug(LOG_TAG, 'Returning recorded response for url:', url);
-            const {response} = networkCache[hash];
             return Promise.resolve(response);
+        }
+        if (shouldReturnRecordedResponse) {
+            console.debug('!!! Missed cache hit for url:', url);
         }
 
         return originalFetch(...args)
-            .then((res) => {
+            .then(async (res) => {
                 if (networkCache != null) {
-                    console.debug(LOG_TAG, 'Updating network cache for hash:');
+                    const body = await res.clone().text();
                     networkCache[hash] = {
-                        // @ts-expect-error TODO: The user could pass these differently, add better handling
-                        url: args[0],
-                        // @ts-expect-error TODO: The user could pass these differently, add better handling
-                        options: args[1],
-                        response: res,
+                        url,
+                        options,
+                        body,
+                        headers: getFetchRequestHeadersAsObject(options),
+                        status: res.status,
+                        statusText: res.statusText,
                     };
+                    console.debug(LOG_TAG, 'Updating network cache for url:', url);
                     // Send the network cache to the test server:
                     return updateNetworkCache(networkCache).then(() => res);
                 }
