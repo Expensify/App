@@ -168,7 +168,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, highlightedIndex, onEmojiSelected, preferredSkinTone],
+        [filteredEmojis, highlightedIndex, isFocused, onEmojiSelected, preferredSkinTone],
     );
 
     /**
