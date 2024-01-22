@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Report from '@userActions/Report';
@@ -24,8 +25,10 @@ function OptionRowLHNData({
     comment,
     policy,
     receiptTransactions,
-    parentReportAction = null,
-    transaction = null,
+    parentReportAction,
+    transaction,
+    transactionViolations,
+    canUseViolations,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -38,9 +41,19 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport?.reportID, receiptTransactions, reportActions]);
 
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction);
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale ?? CONST.LOCALES.DEFAULT, policy ?? null, parentReportAction);
+        const item = SidebarUtils.getOptionData({
+            report: fullReport,
+            reportActions,
+            personalDetails,
+            preferredLocale,
+            policy,
+            parentReportAction,
+            hasViolations,
+        });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -51,7 +64,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, canUseViolations]);
 
     useEffect(() => {
         if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
