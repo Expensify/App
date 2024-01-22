@@ -119,7 +119,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
-        taskID: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
