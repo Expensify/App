@@ -618,7 +618,10 @@ function MoneyRequestConfirmationList(props) {
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ) : (
-                isFromPaidPolicy && (
+```suggestion
+                isFromPaidPolicy &&
+                !isDistanceRequest &&
+                iouType === CONST.IOU.TYPE.REQUEST && (
                     <ReceiptEmptyState
                         onPress={() =>
                             Navigation.navigate(
