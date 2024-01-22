@@ -99,7 +99,7 @@ function IOURequestStepTaxAmountPage({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {

@@ -52,7 +52,7 @@ You can automatically import receipts from many travel platforms into Expensify,
 - From your account settings, choose whether expenses should be sent to Expensify automatically or manually.
 - We recommend sending them automatically, so you can travel without even thinking about your expense reports.
 
-# FAQ
+{% include faq-begin.md %}
 
 **Q: What if I don’t have the option for Send to Expensify in Trainline?**
 
@@ -69,3 +69,5 @@ A: Yes, you can set a weekly or monthly cadence for SpotHero expenses to be emai
 **Q: Do I need to select a specific profile before booking in Bolt Work and Grab?**
 
 A: Yes, ensure you have selected your work or business profile as the payment method before booking.
+
+{% include faq-end.md %}

@@ -1,10 +1,11 @@
 import {FlashList} from '@shopify/flash-list';
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import refPropTypes from '@components/refPropTypes';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';

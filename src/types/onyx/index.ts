@@ -56,10 +56,12 @@ import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
+import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
+import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
@@ -125,11 +127,13 @@ export type {
     Task,
     Transaction,
     TransactionViolation,
+    TransactionViolations,
     User,
     UserLocation,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
+    WalletAdditionalQuestionDetails,
     WalletOnfido,
     WalletStatement,
     WalletTerms,

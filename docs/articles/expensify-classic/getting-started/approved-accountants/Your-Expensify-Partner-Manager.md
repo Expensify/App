@@ -22,7 +22,7 @@ You can contact your Partner Manager by:
 - Signing in to new.expensify.com and searching for your Partner Manager
 - Replying to or clicking the chat link on any email you get from your Partner Manager
 
-# FAQs
+{% include faq-begin.md %}
 ## How do I know if my Partner Manager is online?
 You will be able to see if they are online via their status in new.expensify.com, which will either say “online” or have their working hours.
 
@@ -33,3 +33,5 @@ If you’re unable to contact your Partner Manager (i.e., they're out of office 
 Of course! You can ask your Partner Manager to schedule a call whenever you think one might be helpful. Partner Managers can discuss client onboarding strategies, firm wide training, and client setups.
 
 We recommend continuing to work with Concierge for **general support questions**, as this team is always online and available to help immediately. 
+
+{% include faq-end.md %}
