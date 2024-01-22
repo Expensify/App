@@ -92,7 +92,7 @@ function getActionForBottomTabNavigator(
     const bottomTabParams = bottomTabCurrentTab?.params as Record<string, string | undefined>;
 
     // Verify if the policyID is different than the one we are currently on. If it is, we need to navigate to the new policyID.
-    const isNewPolicy = bottomTabParams.policyID !== payloadParams.policyID;
+    const isNewPolicy = bottomTabParams?.policyID !== payloadParams?.policyID;
     if (bottomTabCurrentTab?.name === screen && !shouldNavigate && !isNewPolicy) {
         return;
     }

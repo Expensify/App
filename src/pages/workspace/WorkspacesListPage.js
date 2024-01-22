@@ -131,20 +131,25 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const getMenuItem = useCallback(
         ({item}) => {
             const threeDotsMenuItems = [
-                {
-                    icon: Expensicons.Trashcan,
-                    text: translate('workspace.common.delete'),
-                    onSelected: () => {
-                        setPolicyIDToDelete(item.policyID);
-                        setPolicyNameToDelete(item.title);
-                        setIsDeleteModalOpen(true);
-                    },
-                },
-                {
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom)),
-                },
+                // Check if the user is an admin of the workspace
+                ...(item.role === CONST.POLICY.ROLE.ADMIN
+                    ? [
+                          {
+                              icon: Expensicons.Trashcan,
+                              text: translate('workspace.common.delete'),
+                              onSelected: () => {
+                                  setPolicyIDToDelete(item.policyID);
+                                  setPolicyNameToDelete(item.title);
+                                  setIsDeleteModalOpen(true);
+                              },
+                          },
+                          {
+                              icon: Expensicons.Hashtag,
+                              text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+                              onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom)),
+                          },
+                      ]
+                    : []),
                 {
                     icon: Expensicons.Hashtag,
                     text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
@@ -275,6 +280,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
                 announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
                 ownerAccountID: policy.ownerAccountID,
+                role: policy.role,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
