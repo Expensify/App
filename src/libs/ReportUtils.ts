@@ -5,6 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashUnescape from 'lodash/unescape';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -2325,7 +2326,7 @@ function getThreadReportNameHtml(reportActionMessageHtml: string): string {
     const blockTags = ['br', 'h1', 'pre', 'div', 'blockquote', 'p', 'li', 'div'];
     const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
     const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
-    return reportActionMessageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
+    return reportActionMessageHtml.replace(threadHeaderHtmlRegExp, (match, g1: string, g2: string) => {
         if (!g1 || g1 === 'h1') {
             return g2;
         }
@@ -2344,7 +2345,7 @@ function getThreadReportNameHtml(reportActionMessageHtml: string): string {
  * Get the title for a thread based on parent message.
  * If render in html, only the first line of the message should display.
  */
-function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}, shouldRenderAsHTML: boolean, shouldRenderFirstLineOnly: boolean): string {
+function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}, shouldRenderAsHTML = false, shouldRenderFirstLineOnly = true): string {
     if (!shouldRenderAsHTML && !shouldRenderFirstLineOnly) {
         return (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
     }
@@ -2355,8 +2356,8 @@ function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | Empty
         return Str.stripHTML(threadReportNameHtml);
     }
 
-    // <body></body> is to prevent the redundant body div which causes text overflown
-    return StringUtils.containsHtml(threadReportNameHtml) ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : threadReportNameHtml;
+    // <body></body> is to prevent the redundant body which causes text overflown
+    return StringUtils.containsHtml(threadReportNameHtml) ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : lodashUnescape(threadReportNameHtml);
 }
 
 /**

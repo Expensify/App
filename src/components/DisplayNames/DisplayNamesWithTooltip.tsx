@@ -1,13 +1,13 @@
-import React, {Fragment, useCallback, useRef} from 'react';
+import React, {Fragment, useCallback, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import StringUtils from '@libs/StringUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import type DisplayNamesProps from './types';
 
@@ -49,7 +49,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     }, []);
 
-    const title = StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : fullTitle;
+    const title = useMemo(() => (StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : ReportUtils.formatReportLastMessageText(fullTitle)), [fullTitle]);
 
     return (
         // Tokenization of string only support prop numberOfLines on Web
@@ -59,7 +59,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
             ref={containerRef}
         >
             {shouldUseFullTitle
-                ? ReportUtils.formatReportLastMessageText(fullTitle)
+                ? title
                 : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>

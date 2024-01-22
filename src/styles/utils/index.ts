@@ -1298,6 +1298,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
+     * Return the height of RenderHtml text container with numberOfLines=1
+     */
+    getHeightOfRenderHtmlText: (numberOfLines: number): ViewStyle => (numberOfLines === 1 ? {height: styles.webViewStyles.baseFontStyle.lineHeight} : {}),
+
+    /**
      * Return the height of magic code input container
      */
     getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
