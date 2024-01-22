@@ -271,6 +271,7 @@ const FormProvider = forwardRef(
                               }
                               propsToParse.onSubmitEditing(e);
                           },
+                          returnKeyType: 'go',
                       }
                     : {};
 
@@ -288,7 +289,6 @@ const FormProvider = forwardRef(
 
                 return {
                     ...propsToParse,
-                    returnKeyType: shouldSubmitEdit ? 'go' : propsToParse.returnKeyType,
                     blurOnSubmit: (isMultiline && shouldSubmitEdit) || propsToParse.blurOnSubmit,
                     ...onSubmitEditingObject,
                     ref:
