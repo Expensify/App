@@ -40,7 +40,7 @@ type WorkSpaceSettingsPageErrors = {name?: string};
 
 type WorkSpaceSettingsPageValues = {name: string};
 
-function WorkspaceSettingsPage({policy, currencyList, route}: WorkSpaceSettingsPageProps) {
+function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
