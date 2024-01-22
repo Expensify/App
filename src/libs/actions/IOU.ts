@@ -3203,7 +3203,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
         },
     ];
 
-    if (currentNextStep !== null) {
+    if (currentNextStep) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
