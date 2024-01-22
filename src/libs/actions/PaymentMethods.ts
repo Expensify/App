@@ -17,7 +17,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
-    continueAction?: (event?: GestureResponderEvent | KeyboardEvent | undefined, iouPaymentType?: TransferMethod) => void;
+    continueAction?: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => void;
 };
 
 /**

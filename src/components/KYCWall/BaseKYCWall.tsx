@@ -145,7 +145,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent | undefined, iouPaymentType?: TransferMethod) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
