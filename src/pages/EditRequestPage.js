@@ -172,6 +172,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
 
     const saveCategory = useCallback(
         ({category: newCategory}) => {
+            // In case the same category has been selected, reset the category.
             const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
             IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
             Navigation.dismissModal();
