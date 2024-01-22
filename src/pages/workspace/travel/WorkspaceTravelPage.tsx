@@ -4,10 +4,13 @@ import useLocalize from '@hooks/useLocalize';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
 import WorkspaceTravelVBAView from './WorkspaceTravelVBAView';
 
-function WorkspaceTravelPage({route}: StackScreenProps<SettingsNavigatorParamList, 'Workspace_Travel'>) {
+type WorkspaceTravelPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL>;
+
+function WorkspaceTravelPage({route}: WorkspaceTravelPageProps) {
     const {translate} = useLocalize();
 
     return (

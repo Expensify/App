@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type WorkspaceTravelNoVBAViewProps = {
+    /** The policy ID currently being configured */
     policyID: string;
 };
 
