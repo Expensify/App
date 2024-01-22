@@ -49,7 +49,7 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
-type Transaction = OnyxCommon.OfflineFeedback<'comment' | 'created' | 'amount' | 'currency' | 'merchant' | 'waypoints' | 'billable' | 'category' | 'tag'> & {
+type Transaction = {
     amount: number;
     billable: boolean;
     category: string;
@@ -94,5 +94,7 @@ type Transaction = OnyxCommon.OfflineFeedback<'comment' | 'created' | 'amount' |
     originalCurrency?: string;
 };
 
-export default Transaction;
+type TransactionWithOfflineFeedback = OnyxCommon.OnyxItemWithOfflineFeedback<Transaction, keyof Transaction | keyof Comment>;
+
+export default TransactionWithOfflineFeedback;
 export type {WaypointCollection, Comment, Receipt, Waypoint};

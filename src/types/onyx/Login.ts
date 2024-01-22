@@ -1,6 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-type Login = OnyxCommon.OfflineFeedback<'defaultLogin' | 'validateLogin' | 'addedLogin' | 'deletedLogin' | 'validateCodeSent'> & {
+type Login = {
     /** Phone/Email associated with user */
     partnerUserID?: string;
 
@@ -17,7 +17,9 @@ type Login = OnyxCommon.OfflineFeedback<'defaultLogin' | 'validateLogin' | 'adde
     errorFields?: OnyxCommon.ErrorFields;
 };
 
-type LoginList = Record<string, Login>;
+type LoginWithOfflineFeedback = OnyxCommon.OnyxItemWithOfflineFeedback<Login, keyof Login | 'defaultLogin' | 'validateLogin' | 'addedLogin' | 'deletedLogin'>;
 
-export default Login;
+type LoginList = Record<string, LoginWithOfflineFeedback>;
+
+export default LoginWithOfflineFeedback;
 export type {LoginList};

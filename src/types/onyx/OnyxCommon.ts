@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | null;
 
-type PendingFields<TKey extends string> = {[key in TKey]?: PendingAction};
+type PendingFields<TKey extends string> = {[key in Exclude<TKey, 'pendingAction' | 'pendingFields'>]?: PendingAction};
 
 type OfflineFeedback<TKey extends string = string> = {
     /** The type of action that's pending  */
@@ -13,6 +13,8 @@ type OfflineFeedback<TKey extends string = string> = {
     /** Field-specific pending states for offline updates */
     pendingFields?: PendingFields<TKey>;
 };
+
+type OnyxItemWithOfflineFeedback<TOnyx, TKey extends string = string> = TOnyx & OfflineFeedback<TKey>;
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
@@ -37,4 +39,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OfflineFeedback};
+export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OfflineFeedback, OnyxItemWithOfflineFeedback};
