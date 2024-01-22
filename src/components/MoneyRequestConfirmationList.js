@@ -624,7 +624,7 @@ function MoneyRequestConfirmationList(props) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                     CONST.IOU.ACTION.CREATE,
-                                    CONST.IOU.TYPE.REQUEST,
+                                    iouType
                                     transaction.transactionID,
                                     props.reportID,
                                     Navigation.getActiveRouteWithoutParams(),
