@@ -10,7 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
@@ -95,6 +95,7 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     includePolicyTaxRates?: boolean;
     policyTaxRates?: PolicyTaxRateWithDefault;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
 type MemberForList = {
@@ -1383,7 +1384,7 @@ function getOptions(
     const filteredReports = Object.values(reports ?? {}).filter((report) => {
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportAction = canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {};
+        const parentReportAction = canGetParentReport ? allReportActions[parentReportID][parentReportActionID] : null;
         const doesReportHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
 
         return ReportUtils.shouldReportBeInOptionList({
@@ -1393,6 +1394,7 @@ function getOptions(
             policies,
             doesReportHaveViolations,
             isInGSDMode: false,
+
             excludeEmptyChats: false,
         });
     });
