@@ -1,89 +1,73 @@
-import PropTypes from 'prop-types';
+import isEqual from 'lodash/isEqual';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import type {SectionListRenderItem} from 'react-native';
 import {View} from 'react-native';
-import _ from 'underscore';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OptionData} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
+import type {BaseOptionListProps, OptionsList, OptionsListData, Section} from './types';
 
-const propTypes = {
-    /** Determines whether the keyboard gets dismissed in response to a drag */
-    keyboardDismissMode: PropTypes.string,
-
-    /** Called when the user begins to drag the scroll view. Only used for the native component */
-    onScrollBeginDrag: PropTypes.func,
-
-    /** Callback executed on scroll. Only used for web/desktop component */
-    onScroll: PropTypes.func,
-
-    /** List styles for SectionList */
-    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    ...optionsListPropTypes,
-};
-
-const defaultProps = {
-    keyboardDismissMode: 'none',
-    onScrollBeginDrag: () => {},
-    onScroll: () => {},
-    listStyles: [],
-    ...optionsListDefaultProps,
-};
-
-function BaseOptionsList({
-    keyboardDismissMode,
-    onScrollBeginDrag,
-    onScroll,
-    listStyles,
-    focusedIndex,
-    selectedOptions,
-    headerMessage,
-    isLoading,
-    sections,
-    onLayout,
-    hideSectionHeaders,
-    shouldHaveOptionSeparator,
-    showTitleTooltip,
-    optionHoveredStyle,
-    contentContainerStyles,
-    sectionHeaderStyle,
-    showScrollIndicator,
-    listContainerStyles: listContainerStylesProp,
-    shouldDisableRowInnerPadding,
-    shouldPreventDefaultFocusOnSelectRow,
-    disableFocusOptions,
-    canSelectMultipleOptions,
-    shouldShowMultipleOptionSelectorAsButton,
-    multipleOptionSelectorButtonText,
-    onAddToSelection,
-    highlightSelectedOptions,
-    onSelectRow,
-    boldStyle,
-    isDisabled,
-    innerRef,
-    isRowMultilineSupported,
-    isLoadingNewOptions,
-    nestedScrollEnabled,
-    bounces,
-    renderFooterContent,
-}) {
+function BaseOptionsList(
+    {
+        keyboardDismissMode = 'none',
+        onScrollBeginDrag = () => {},
+        onScroll = () => {},
+        listStyles,
+        focusedIndex = 0,
+        selectedOptions = [],
+        headerMessage = '',
+        isLoading = false,
+        sections = [],
+        onLayout,
+        hideSectionHeaders = false,
+        shouldHaveOptionSeparator = false,
+        showTitleTooltip = false,
+        optionHoveredStyle,
+        contentContainerStyles,
+        sectionHeaderStyle,
+        showScrollIndicator = false,
+        listContainerStyles: listContainerStylesProp,
+        shouldDisableRowInnerPadding = false,
+        shouldPreventDefaultFocusOnSelectRow = false,
+        disableFocusOptions = false,
+        canSelectMultipleOptions = false,
+        shouldShowMultipleOptionSelectorAsButton,
+        multipleOptionSelectorButtonText,
+        onAddToSelection,
+        highlightSelectedOptions = false,
+        onSelectRow,
+        boldStyle = false,
+        isDisabled = false,
+        isRowMultilineSupported = false,
+        isLoadingNewOptions = false,
+        nestedScrollEnabled = true,
+        bounces = true,
+        renderFooterContent,
+    }: BaseOptionListProps,
+    ref: ForwardedRef<OptionsList>,
+) {
     const styles = useThemeStyles();
-    const flattenedData = useRef();
-    const previousSections = usePrevious(sections);
+    const flattenedData = useRef<
+        Array<{
+            length: number;
+            offset: number;
+        }>
+    >([]);
+    const previousSections = usePrevious<OptionsListData[]>(sections);
     const didLayout = useRef(false);
 
-    const listContainerStyles = listContainerStylesProp || [styles.flex1];
+    const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
-     *
-     * @returns {Array<Object>}
      */
     const buildFlatSectionArray = () => {
         let offset = 0;
@@ -92,8 +76,7 @@ function BaseOptionsList({
         const flatArray = [{length: 0, offset}];
 
         // Build the flat array
-        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-            const section = sections[sectionIndex];
+        for (const section of sections) {
             // Add the section header
             const sectionHeaderHeight = section.title && !hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
             flatArray.push({length: sectionHeaderHeight, offset});
@@ -119,7 +102,7 @@ function BaseOptionsList({
     };
 
     useEffect(() => {
-        if (_.isEqual(sections, previousSections)) {
+        if (isEqual(sections, previousSections)) {
             return;
         }
         flattenedData.current = buildFlatSectionArray();
@@ -138,8 +121,8 @@ function BaseOptionsList({
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
-     * @param {Array} data - This is the same as the data we pass into the component
-     * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
+     * @param data - This is the same as the data we pass into the component
+     * @param flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
      *
      *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
      *     2. Each section includes a header, even if we don't provide/render one.
@@ -147,14 +130,12 @@ function BaseOptionsList({
      *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
-     *
-     * @returns {Object}
      */
-    const getItemLayout = (data, flatDataArrayIndex) => {
-        if (!_.has(flattenedData.current, flatDataArrayIndex)) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
+        if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
-
         const targetItem = flattenedData.current[flatDataArrayIndex];
         return {
             length: targetItem.length,
@@ -165,10 +146,8 @@ function BaseOptionsList({
 
     /**
      * Returns the key used by the list
-     * @param {Object} option
-     * @return {String}
      */
-    const extractKey = (option) => option.keyForList;
+    const extractKey = (option: OptionData) => option.keyForList ?? '';
 
     /**
      * Function which renders a row in the list
@@ -180,9 +159,10 @@ function BaseOptionsList({
      *
      * @return {Component}
      */
-    const renderItem = ({item, index, section}) => {
-        const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
-        const isSelected = _.some(selectedOptions, (option) => {
+
+    const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
+        const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
+        const isSelected = selectedOptions?.some((option) => {
             if (option.accountID && option.accountID === item.accountID) {
                 return true;
             }
@@ -191,7 +171,7 @@ function BaseOptionsList({
                 return true;
             }
 
-            if (_.isEmpty(option.name)) {
+            if (!option.name || StringUtils.isEmptyString(option.name)) {
                 return false;
             }
 
@@ -200,7 +180,7 @@ function BaseOptionsList({
 
         return (
             <OptionRow
-                keyForList={item.keyForList}
+                keyForList={item.keyForList ?? ''}
                 option={item}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
@@ -224,15 +204,8 @@ function BaseOptionsList({
 
     /**
      * Function which renders a section header component
-     *
-     * @param {Object} params
-     * @param {Object} params.section
-     * @param {String} params.section.title
-     * @param {Boolean} params.section.shouldShow
-     *
-     * @return {Component}
      */
-    const renderSectionHeader = ({section: {title, shouldShow}}) => {
+    const renderSectionHeader = ({section: {title, shouldShow}}: {section: OptionsListData}) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
@@ -265,8 +238,8 @@ function BaseOptionsList({
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     ) : null}
-                    <SectionList
-                        ref={innerRef}
+                    <SectionList<OptionData, Section>
+                        ref={ref}
                         style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
@@ -299,23 +272,15 @@ function BaseOptionsList({
     );
 }
 
-BaseOptionsList.propTypes = propTypes;
-BaseOptionsList.defaultProps = defaultProps;
 BaseOptionsList.displayName = 'BaseOptionsList';
 
 // using memo to avoid unnecessary rerenders when parents component rerenders (thus causing this component to rerender because shallow comparison is used for some props).
 export default memo(
-    forwardRef((props, ref) => (
-        <BaseOptionsList
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
+    forwardRef(BaseOptionsList),
     (prevProps, nextProps) =>
         nextProps.focusedIndex === prevProps.focusedIndex &&
-        nextProps.selectedOptions.length === prevProps.selectedOptions.length &&
+        nextProps?.selectedOptions?.length === prevProps?.selectedOptions?.length &&
         nextProps.headerMessage === prevProps.headerMessage &&
         nextProps.isLoading === prevProps.isLoading &&
-        _.isEqual(nextProps.sections, prevProps.sections),
+        isEqual(nextProps.sections, prevProps.sections),
 );
