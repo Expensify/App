@@ -375,9 +375,7 @@ function MagicCodeInput(
                             autoComplete={input.length === 0 ? autoComplete : undefined}
                             shouldDelayFocus={input.length === 0 && shouldDelayFocus}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            onChangeText={(textValue) => {
-                                onChangeText(textValue);
-                            }}
+                            onChangeText={onChangeText}
                             onKeyPress={onKeyPress}
                             onFocus={onFocus}
                             onBlur={() => {
