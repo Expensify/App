@@ -88,10 +88,7 @@ function ReportActionsView(props) {
     const isFirstRender = useRef(true);
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-
-    const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
-
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
     const isFocused = useIsFocused();
@@ -118,36 +115,14 @@ function ReportActionsView(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        const prevNetwork = prevNetworkRef.current;
-        // When returning from offline to online state we want to trigger a request to OpenReport which
-        // will fetch the reportActions data and mark the report as read. If the report is not fully visible
-        // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
-        const wasNetworkChangeDetected = lodashGet(prevNetwork, 'isOffline') && !lodashGet(props.network, 'isOffline');
-        if (wasNetworkChangeDetected) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                Report.reconnect(reportID);
-            }
-        }
-        // update ref with current network state
-        prevNetworkRef.current = props.network;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.network, props.report, isReportFullyVisible]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                Report.reconnect(reportID);
-            }
+            openReportIfNecessary();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.session, props.report, isReportFullyVisible]);
-
+    }, [props.session, props.report]);
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
         // If the view is expanded from mobile to desktop layout

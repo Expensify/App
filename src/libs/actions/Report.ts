@@ -767,58 +767,6 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
-/** Get the latest report history without marking the report as read. */
-function reconnect(reportID: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingInitialReportActions: true,
-                isLoadingNewerReportActions: false,
-                isLoadingOlderReportActions: false,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingInitialReportActions: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingInitialReportActions: false,
-            },
-        },
-    ];
-
-    type ReconnectToReportParameters = {
-        reportID: string;
-    };
-
-    const parameters: ReconnectToReportParameters = {
-        reportID,
-    };
-
-    API.write('ReconnectToReport', parameters, {optimisticData, successData, failureData});
-}
-
 /**
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
@@ -1094,12 +1042,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
-    }
-
-    // A report can be missing a name if a comment is received via pusher event and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
-    // In this case, we call reconnect so that we can fetch the report data without marking it as read
-    if (report.reportID && report.reportName === undefined) {
-        reconnect(report.reportID);
     }
 }
 
@@ -2654,7 +2596,6 @@ export {
     searchInServer,
     addComment,
     addAttachment,
-    reconnect,
     updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
     updateNotificationPreference,
