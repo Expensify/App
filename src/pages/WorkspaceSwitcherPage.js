@@ -192,6 +192,8 @@ function WorkspaceSwitcherPage({policies}) {
         );
     }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles, theme.textSupporting, translate]);
 
+    const headerMessage = filteredUserWorkspaces.length === 0 ? translate('common.noResultsFound') : '';
+
     const workspacesSection = useMemo(
         () => (
             <>
@@ -232,6 +234,7 @@ function WorkspaceSwitcherPage({policies}) {
                         selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}
                         shouldPreventDefaultFocusOnSelectRow
+                        headerMessage={headerMessage}
                         highlightSelectedOptions
                         shouldShowOptions
                         autoFocus={false}
