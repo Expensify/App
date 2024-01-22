@@ -2608,4 +2608,23 @@ export default {
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta tasa de impuesto',
     },
+    exitSurvey: {
+        header: 'Antes de irte',
+        title: 'Antes de irte, por favor dinos por qué te gustaría cambiarte a Expensify Classic.',
+        reasons: {
+            // TODO: use consts for these keys
+            featureNotAvailable: 'Necesito una función que sólo está disponible en Expensify Classic.',
+            dontUnderstand: 'No entiendo cómo usar New Expensify.',
+            preferClassic: 'Entiendo cómo usar New Expensify, pero prefiero Expensify Classic.',
+        },
+        prompts: {
+            featureNotAvailable: '¿Qué función necesitas que no esté disponible en New Expensify?',
+            dontUnderstand: '¿Qué estás tratando de hacer?',
+            preferClassic: '¿Por qué prefieres Expensify Classic?',
+        },
+        thankYou: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
+        goToExpensifyClassic: 'Cambiar a Expensify Classic',
+        offline:
+            'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
 } satisfies EnglishTranslation;
