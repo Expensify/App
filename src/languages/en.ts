@@ -2124,14 +2124,14 @@ export default {
         title: 'Before you go, please tell us why you’d like to switch to Expensify Classic.',
         reasons: {
             // TODO: use consts for these keys
-            featureNotAvailable: "I need a feature that's only available in Expensify Classic.",
-            dontUnderstand: "I don't understand how to use New Expensify.",
-            preferClassic: 'I understand how to use New Expensify, but I prefer Expensify Classic.',
+            [CONST.EXIT_SURVEY_REASONS.FEATURE_NOT_AVAILABLE]: "I need a feature that's only available in Expensify Classic.",
+            [CONST.EXIT_SURVEY_REASONS.DONT_UNDERSTAND]: "I don't understand how to use New Expensify.",
+            [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: 'I understand how to use New Expensify, but I prefer Expensify Classic.',
         },
         prompts: {
-            featureNotAvailable: "What feature do you need that isn't available in New Expensify?",
-            dontUnderstand: 'What are you trying to do?',
-            preferClassic: 'Why to you prefer Classic Expensify?',
+            [CONST.EXIT_SURVEY_REASONS.FEATURE_NOT_AVAILABLE]: "What feature do you need that isn't available in New Expensify?",
+            [CONST.EXIT_SURVEY_REASONS.DONT_UNDERSTAND]: 'What are you trying to do?',
+            [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: 'Why to you prefer Classic Expensify?',
         },
         thankYou: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
         goToExpensifyClassic: 'Switch to Expensify Classic',

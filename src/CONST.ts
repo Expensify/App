@@ -3131,6 +3131,12 @@ const CONST = {
     },
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
+
+    EXIT_SURVEY_REASONS: {
+        FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
+        DONT_UNDERSTAND: 'dontUnderstand',
+        PREFER_CLASSIC: 'preferClassic',
+    },
 } as const;
 
 export default CONST;
