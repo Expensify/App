@@ -870,9 +870,14 @@ function clearDraftCustomStatus() {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
+function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) {
+    API.write('DismissReferralBanner', {type});
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
+    dismissReferralBanner,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
