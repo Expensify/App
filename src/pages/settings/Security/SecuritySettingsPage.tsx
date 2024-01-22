@@ -53,7 +53,7 @@ function SecuritySettingsPage() {
             illustration={LottieAnimations.Safe}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
             shouldShowOfflineIndicatorInWideScreen
-            testID= {SecuritySettingsPage.displayName}
+            testID={SecuritySettingsPage.displayName}
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
