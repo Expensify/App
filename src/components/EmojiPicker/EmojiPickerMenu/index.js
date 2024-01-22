@@ -82,8 +82,9 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 return;
             }
 
-            setHighlightFirstEmoji(false);
-            setIsUsingKeyboardMovement(true);
+            if (highlightFirstEmoji) {
+                setHighlightFirstEmoji(false);
+            }
 
             if (!isUsingKeyboardMovement) {
                 setIsUsingKeyboardMovement(true);
@@ -97,10 +98,10 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 searchInputRef.current.focus();
             }
         },
-        [arePointerEventsDisabled, filteredEmojis.length, isUsingKeyboardMovement],
+        [arePointerEventsDisabled, filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement],
     );
 
-    const [highlightedIndex, setHighlightedIndex] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         maxIndex: filteredEmojis.length - 1,
         // Spacers indexes need to be disabled so that the arrow keys don't focus them. All headers are hidden when list is filtered
         disabledIndexes: isListFiltered ? [] : [...headerIndices, ...spacersIndexes],
@@ -120,7 +121,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             setFilteredEmojis(allEmojis);
             setHeaderIndices(headerRowIndices);
-            setHighlightedIndex(-1);
+            setFocusedIndex(-1);
             setHighlightEmoji(false);
             return;
         }
@@ -142,8 +143,8 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
-                const item = filteredEmojis[highlightedIndex];
+            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && focusedIndex !== -1) {
+                const item = filteredEmojis[focusedIndex];
                 if (!item) {
                     return;
                 }
@@ -168,7 +169,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, highlightedIndex, isFocused, onEmojiSelected, preferredSkinTone],
+        [filteredEmojis, focusedIndex, isFocused, onEmojiSelected, preferredSkinTone],
     );
 
     /**
@@ -253,8 +254,8 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
 
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
-            const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted = index === highlightedIndex && highlightEmoji;
+            const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
+            const shouldEmojiBeHighlighted = index === focusedIndex && highlightEmoji;
             const shouldFirstEmojiBeHighlighted = index === 0 && highlightFirstEmoji;
 
             return (
@@ -269,7 +270,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                         setIsUsingKeyboardMovement(false);
                     }}
                     emoji={emojiCode}
-                    onFocus={() => setHighlightedIndex(index)}
+                    onFocus={() => setFocusedIndex(index)}
                     isFocused={isEmojiFocused}
                     isHighlighted={shouldFirstEmojiBeHighlighted || shouldEmojiBeHighlighted}
                 />
@@ -277,7 +278,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
         },
         [
             preferredSkinTone,
-            highlightedIndex,
+            focusedIndex,
             isUsingKeyboardMovement,
             highlightEmoji,
             highlightFirstEmoji,
@@ -287,7 +288,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             windowWidth,
             translate,
             onEmojiSelected,
-            setHighlightedIndex,
+            setFocusedIndex,
         ],
     );
 
@@ -310,7 +311,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onFocus={() => {
-                        setHighlightedIndex(-1);
+                        setFocusedIndex(-1);
                         setIsFocused(true);
                         setIsUsingKeyboardMovement(false);
                     }}
@@ -332,7 +333,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
-                extraData={[highlightedIndex, preferredSkinTone]}
+                extraData={[focusedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
             />
         </View>
