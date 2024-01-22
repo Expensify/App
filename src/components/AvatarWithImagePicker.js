@@ -88,6 +88,9 @@ const propTypes = {
 
     /** Indicates if picker feature should be disabled */
     disabled: PropTypes.bool,
+
+    /** Should we use default cursor for disabled content */
+    shouldUseDefaultCursorWhenDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -109,6 +112,7 @@ const defaultProps = {
     previewSource: '',
     originalFileName: '',
     disabled: false,
+    shouldUseDefaultCursorWhenDisabled: false, 
 };
 
 function AvatarWithImagePicker({
@@ -314,6 +318,7 @@ function AvatarWithImagePicker({
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || disabled}
+                            disabledStyle={true && [styles.cursorDefault]}
                             ref={anchorRef}
                         >
                             <View>

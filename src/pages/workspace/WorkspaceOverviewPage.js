@@ -110,6 +110,8 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                             shouldShowRightIcon={!readOnly}
                             disabled={readOnly}
                             onPress={onPressName}
+                            shouldGreyOutWhenDisabled={false}
+                            shouldUseDefaultCursorWhenDisabled
                         />
 
                         <View>
@@ -119,6 +121,8 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                                 shouldShowRightIcon={!readOnly}
                                 disabled={hasVBA || readOnly}
                                 onPress={onPressCurrency}
+                                shouldGreyOutWhenDisabled={false}
+                                shouldUseDefaultCursorWhenDisabled
                             />
                             <Text style={[styles.textLabel, styles.colorMuted, styles.mt2, styles.mh5]}>
                                 {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
