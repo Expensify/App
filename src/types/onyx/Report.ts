@@ -122,8 +122,9 @@ type Report = {
     total?: number;
     currency?: string;
     errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields;
+    managerEmail?: string;
     parentReportActionIDs?: number[];
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
@@ -154,6 +155,8 @@ type Report = {
     isHidden?: boolean;
     isChatRoom?: boolean;
     participantsList?: PersonalDetails[];
+    text?: string;
+    updateReportInLHN?: boolean;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
     selected?: boolean;
