@@ -66,7 +66,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
 
     const onFocusedIndexChange = useCallback(
         (newIndex) => {
-            if (filteredEmojis.length === 0 || isListFiltered) {
+            if (filteredEmojis.length === 0) {
                 return;
             }
 
@@ -82,7 +82,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 searchInputRef.current.focus();
             }
         },
-        [arePointerEventsDisabled, filteredEmojis.length, isListFiltered, isUsingKeyboardMovement],
+        [arePointerEventsDisabled, filteredEmojis.length, isUsingKeyboardMovement],
     );
 
     const [highlightedIndex, setHighlightedIndex] = useArrowKeyFocusManager({
