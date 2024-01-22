@@ -4,13 +4,14 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import HeaderPageLayout from '@components/HeaderPageLayout';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
 import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -53,9 +54,6 @@ const propTypes = {
 const defaultProps = {
     policies: {},
 };
-
-const MINIMUM_WORKSPACES_TO_SHOW_SEARCH = 8;
-const EXPENSIFY_TITLE = 'Expensify';
 
 function WorkspaceSwitcherPage({policies}) {
     const theme = useTheme();
@@ -158,11 +156,11 @@ function WorkspaceSwitcherPage({policies}) {
 
     const everythingSection = useMemo(() => {
         const option = {
-            text: EXPENSIFY_TITLE,
+            text: CONST.WORKSPACE_SWITCHER.NAME,
             icons: [
                 {
                     source: Expensicons.ExpensifyAppIcon,
-                    name: EXPENSIFY_TITLE,
+                    name: CONST.WORKSPACE_SWITCHER.NAME,
                     type: CONST.ICON_TYPE_AVATAR,
                 },
             ],
@@ -229,7 +227,7 @@ function WorkspaceSwitcherPage({policies}) {
                         ref={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
                         value={searchTerm}
-                        shouldShowTextInput={usersWorkspaces.length >= MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
+                        shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
                         onChangeText={onChangeText}
                         selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}
@@ -261,14 +259,15 @@ function WorkspaceSwitcherPage({policies}) {
     }, [activeWorkspaceID, usersWorkspaces]);
 
     return (
-        <HeaderPageLayout
-            title={translate('workspace.switcher.headerTitle')}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SWITCHER.ROOT].backgroundColor}
-            onBackButtonPress={Navigation.goBack}
-        >
+        <ScreenWrapper>
+            <HeaderWithBackButton
+                title={translate('workspace.switcher.headerTitle')}
+                backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SWITCHER.ROOT].backgroundColor}
+                onBackButtonPress={Navigation.goBack}
+            />
             {everythingSection}
             {workspacesSection}
-        </HeaderPageLayout>
+        </ScreenWrapper>
     );
 }
 
