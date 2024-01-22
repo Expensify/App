@@ -29,6 +29,11 @@ jest.mock('react-native-reanimated', () => ({
     useAnimatedRef: jest.fn,
 }));
 
+jest.doMock('../../src/components/ConfirmedRoute.tsx', () => {
+    const Comp = (props) => props.children;
+    return Comp;
+});
+
 jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
     function WithNavigationFocus(props) {
         return (
