@@ -2219,7 +2219,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
  * @param parentReportActionMessage
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
-    if (!parentReportAction || !parentReportAction.originalMessage) {
+    if (!parentReportAction?.originalMessage) {
         return '';
     }
     const originalMessage = parentReportAction.originalMessage as ChangeLog;
