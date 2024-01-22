@@ -829,8 +829,8 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
     if (currentActionIndex === -1) {
         return false;
     }
-    const nextReportAction = sortedReportActions[currentActionIndex + 1];
-    return isReportActionUnread(reportAction, lastReadTime) && (!nextReportAction || !isReportActionUnread(nextReportAction, lastReadTime));
+    const prevReportAction = sortedReportActions[currentActionIndex - 1];
+    return isReportActionUnread(reportAction, lastReadTime) && (!prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 
 export {
