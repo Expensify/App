@@ -15,11 +15,9 @@ function retrieveMaxCanvasArea() {
             usePromise: true,
             useWorker: false,
         })
-        .then(() => ({
-            onSuccess: (width: number, height: number) => {
-                Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
-            },
-        }));
+        .then(({width, height}) => {
+            Onyx.merge(ONYXKEYS.MAX_CANVAS_AREA, width * height);
+        });
 }
 
 /**
