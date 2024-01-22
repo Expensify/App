@@ -1,10 +1,12 @@
+import type { PropsWithChildren} from 'react';
 import React, {forwardRef} from 'react';
-import PropTypes from 'prop-types';
+
+import type { ScrollViewProps} from 'react-native';
 import {ScrollView} from 'react-native';
 import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 
-const ActionSheetAwareScrollView = forwardRef((props, ref) => (
+const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>((props, ref) => (
     <ScrollView
         ref={ref}
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -14,22 +16,14 @@ const ActionSheetAwareScrollView = forwardRef((props, ref) => (
     </ScrollView>
 ));
 
-ActionSheetAwareScrollView.defaultProps = {
-    children: null,
-};
-
-ActionSheetAwareScrollView.propTypes = {
-    children: PropTypes.node,
-};
-
 export default ActionSheetAwareScrollView;
 
 /**
  * This function should be used as renderScrollComponent prop for FlatList
- * @param {Object} props - props that will be passed to the ScrollView from FlatList
- * @returns {React.ReactElement} - ActionSheetAwareScrollView
+ * @param props - props that will be passed to the ScrollView from FlatList
+ * @returns - ActionSheetAwareScrollView
  */
-function renderScrollComponent(props) {
+function renderScrollComponent(props: ScrollViewProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 }

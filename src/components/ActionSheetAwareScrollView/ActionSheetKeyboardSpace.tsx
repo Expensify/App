@@ -9,7 +9,6 @@ import Reanimated, {
     withSequence,
     withTiming,
     useSharedValue,
-    withDelay,
     interpolate,
 } from 'react-native-reanimated';
 
@@ -20,6 +19,7 @@ import { useKeyboardHandler } from 'react-native-keyboard-controller';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import useStyleUtils from '@hooks/useStyleUtils';
+import type { ViewProps } from 'react-native';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
 
 const useAnimatedKeyboard2 = () => {
@@ -86,7 +86,7 @@ const config = {
     damping: 500,
 };
 
-function ActionSheetKeyboardSpace(props) {
+function ActionSheetKeyboardSpace(props: ViewProps) {
     const styles = useThemeStyles();
     const safeArea = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard2();

@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {runOnJS, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
 import Log from '../libs/Log';
 
 // When you need to debug state machine change this to true
@@ -52,14 +52,16 @@ const DEBUG_MODE = true;
  *     },
  * }
  *
- * @param {Object} stateMachine - a state machine object
- * @param {Object} initialState - the initial state of the state machine
- * @returns {Object} - an object containing the current state, a transition function, and a reset function
+ * @param stateMachine - a state machine object
+ * @param initialState - the initial state of the state machine
+ * @returns an object containing the current state, a transition function, and a reset function
  */
 function useWorkletStateMachine(stateMachine, initialState) {
     const currentState = useSharedValue(initialState);
 
-    const log = useWorkletCallback((message, params) => {
+    const log = useCallback((message, params) => {
+        'worklet';
+
         if (!DEBUG_MODE) {
             return;
         }
@@ -67,7 +69,9 @@ function useWorkletStateMachine(stateMachine, initialState) {
         runOnJS(Log.info)(`[StateMachine] ${message}`, false, params);
     }, []);
 
-    const transitionWorklet = useWorkletCallback((action) => {
+    const transitionWorklet = useCallback((action) => {
+        'worklet';
+
         if (!action) {
             throw new Error('state machine action is required');
         }
@@ -121,7 +125,9 @@ function useWorkletStateMachine(stateMachine, initialState) {
         };
     });
 
-    const resetWorklet = useWorkletCallback(() => {
+    const resetWorklet = useCallback(() => {
+        'worklet';
+
         log('RESET STATE MACHINE');
         currentState.value = initialState;
     }, []);

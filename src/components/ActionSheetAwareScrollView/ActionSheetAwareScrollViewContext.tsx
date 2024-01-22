@@ -1,8 +1,24 @@
-import React, {createContext, useMemo} from 'react';
+import type {PropsWithChildren} from 'react';
+import React, { createContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import useWorkletStateMachine from '../../hooks/useWorkletStateMachine';
 
-const ActionSheetAwareScrollViewContext = createContext();
+import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
+
+type Context = {
+    currentActionSheetState: {},
+    transitionActionSheetState: {},
+    transitionActionSheetStateWorklet: () => void;
+    resetStateMachine: () => void;
+};
+const NOOP = () => {};
+const defaultValue: Context = {
+    currentActionSheetState: {},
+    transitionActionSheetState: {},
+    transitionActionSheetStateWorklet: NOOP,
+    resetStateMachine: NOOP,
+};
+
+const ActionSheetAwareScrollViewContext = createContext<Context>(defaultValue);
 
 const Actions = {
     OPEN_KEYBOARD: 'KEYBOARD_OPEN',
@@ -26,6 +42,9 @@ const Actions = {
     SHOW_ATTACHMENTS_POPOVER: 'SHOW_ATTACHMENTS_POPOVER',
     CLOSE_ATTACHMENTS_POPOVER: 'CLOSE_ATTACHMENTS_POPOVER',
     SHOW_ATTACHMENTS_PICKER_POPOVER: 'SHOW_ATTACHMENTS_PICKER_POPOVER',
+    CLOSE_EMOJI_PICKER_POPOVER_STANDALONE: 'CLOSE_EMOJI_PICKER_POPOVER_STANDALONE',
+    MEASURE_CALL_POPOVER: 'MEASURE_CALL_POPOVER',
+    CLOSE_CALL_POPOVER: 'CLOSE_CALL_POPOVER'
 };
 
 const States = {
@@ -45,6 +64,8 @@ const States = {
     CALL_POPOVER_WITH_KEYBOARD_OPEN: 'callPopoverWithKeyboardOpen',
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: 'attachmentsPopoverWithKeyboardOpen',
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED: 'attachmentsPopoverWithKeyboardClosed',
+    MODAL_DELETED: 'modalDeleted',
+    MODAL_WITH_KEYBOARD_OPEN_DELETED: 'modalWithKeyboardOpenDeleted'
 };
 
 const STATE_MACHINE = {
@@ -129,7 +150,7 @@ const STATE_MACHINE = {
     },
 };
 
-function ActionSheetAwareScrollViewProvider(props) {
+function ActionSheetAwareScrollViewProvider(props: PropsWithChildren<unknown>) {
     const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine(STATE_MACHINE, {
         previous: null,
         current: {
