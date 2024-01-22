@@ -8,11 +8,13 @@ import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Policy from '@userActions/Policy';
@@ -72,12 +74,26 @@ const defaultProps = {
     policyMembers: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network, policyMembers}) {
+function SidebarLinksData({
+    isFocused,
+    allReportActions,
+    betas,
+    chatReports,
+    currentReportID,
+    insets,
+    isLoadingApp,
+    onLinkClick,
+    policies,
+    priorityMode,
+    network,
+    policyMembers,
+    session: {accountID},
+}) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
 
-    const policyMemberAccountIDs = _.map(_.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`] ?? {}), (accountID) => Number(accountID));
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
@@ -229,6 +245,7 @@ const policySelector = (policy) =>
 
 export default compose(
     withCurrentReportID,
+    withCurrentUserPersonalDetails,
     withNavigationFocus,
     withNetwork(),
     withOnyx({
