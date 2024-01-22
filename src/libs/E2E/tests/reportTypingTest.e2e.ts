@@ -30,7 +30,8 @@ const test = () => {
             }
 
             console.debug(`[E2E] Sidebar loaded, navigating to a report…`);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('98345625'));
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('8268282951170052'));
 
             // Wait until keyboard is visible (so we are focused on the input):
             waitForKeyboard().then(() => {
