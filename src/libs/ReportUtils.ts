@@ -27,6 +27,7 @@ import type {
     ReportMetadata,
     Session,
     Transaction,
+    TransactionViolation,
 } from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
