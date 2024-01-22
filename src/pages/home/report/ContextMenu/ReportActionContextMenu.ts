@@ -101,7 +101,7 @@ function showContextMenu(
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
-    draftMessage = undefined,
+    draftMessage: string | undefined = undefined,
     onShow = () => {},
     onHide = () => {},
     isArchivedRoom = false,

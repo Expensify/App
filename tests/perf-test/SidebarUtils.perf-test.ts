@@ -4,7 +4,7 @@ import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -58,13 +58,27 @@ describe('SidebarUtils', () => {
         const parentReportAction = createRandomReportAction(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs});
+
+        await measureFunction(
+            () =>
+                SidebarUtils.getOptionData({
+                    report,
+                    reportActions,
+                    personalDetails,
+                    preferredLocale,
+                    policy,
+                    parentReportAction,
+                    hasViolations: false,
+                }),
+            {runs},
+        );
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
         const currentReportId = '1';
         const allReports = getMockedReports();
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
+        const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
         const policies = createCollection<Policy>(
             (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
@@ -90,6 +104,8 @@ describe('SidebarUtils', () => {
         ) as unknown as OnyxCollection<ReportAction[]>;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions), {runs});
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations), {
+            runs,
+        });
     });
 });
