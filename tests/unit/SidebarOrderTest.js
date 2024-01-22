@@ -9,8 +9,9 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
 jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
@@ -255,7 +256,7 @@ describe('Sidebar', () => {
                 reportName: taskReportName,
                 managerID: 2,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
             // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
@@ -313,8 +314,8 @@ describe('Sidebar', () => {
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             report3.iouReportID = iouReport.reportID;
 
@@ -374,9 +375,8 @@ describe('Sidebar', () => {
                 policyName: 'Workspace',
                 total: -10000,
                 currency: 'USD',
-                state: CONST.REPORT.STATE.SUBMITTED,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 chatReportID: report3.reportID,
                 parentReportID: report3.reportID,
             };
@@ -575,9 +575,8 @@ describe('Sidebar', () => {
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                state: CONST.REPORT.STATE.SUBMITTED,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             report3.iouReportID = iouReport.reportID;
             const currentReportId = report2.reportID;
@@ -740,8 +739,8 @@ describe('Sidebar', () => {
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
@@ -837,8 +836,8 @@ describe('Sidebar', () => {
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
@@ -914,8 +913,8 @@ describe('Sidebar', () => {
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport2 = {
                 ...LHNTestUtils.getFakeReport([9, 10]),
@@ -926,8 +925,8 @@ describe('Sidebar', () => {
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport3 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
@@ -938,8 +937,8 @@ describe('Sidebar', () => {
                 total: 100000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport4 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
@@ -950,8 +949,8 @@ describe('Sidebar', () => {
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport5 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
@@ -962,8 +961,8 @@ describe('Sidebar', () => {
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
             report1.iouReportID = iouReport1.reportID;
