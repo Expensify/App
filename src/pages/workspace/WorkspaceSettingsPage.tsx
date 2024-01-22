@@ -31,7 +31,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkSpaceSettingsPageOnyxProps = {
     /** Constant, list of available currencies */
-    currencyList:  OnyxEntry<CurrencyList>;
+    currencyList: OnyxEntry<CurrencyList>;
 };
 
 type WorkSpaceSettingsPageProps = WithPolicyProps & WorkSpaceSettingsPageOnyxProps;

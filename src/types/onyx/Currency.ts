@@ -24,4 +24,4 @@ type Currency = {
 type CurrencyList = Record<string, Currency | null>;
 
 export default Currency;
-export type {CurrencyList}
+export type {CurrencyList};
