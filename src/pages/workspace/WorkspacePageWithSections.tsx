@@ -17,8 +17,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Policy, ReimbursementAccount} from '@src/types/onyx';
-import type UserOnyx from '@src/types/onyx/User';
+import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {PolicyRoute} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -30,7 +29,7 @@ type WorkspacePageWithSectionsOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** User Data from Onyx */
-    user: OnyxEntry<UserOnyx>;
+    user: OnyxEntry<User>;
 };
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
