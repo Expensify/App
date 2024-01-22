@@ -329,7 +329,7 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
- * @param {Boolean} hasOutstandingChildRequest
+ * @param {Array} needsToBeManuallySubmitted
  * @returns {Array} - An array containing the optimistic data, success data, and failure data.
  */
 function buildOnyxDataForMoneyRequest(
@@ -348,7 +348,7 @@ function buildOnyxDataForMoneyRequest(
     policy,
     policyTags,
     policyCategories,
-    hasOutstandingChildRequest = false,
+    needsToBeManuallySubmitted,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const optimisticData = [
@@ -361,7 +361,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                hasOutstandingChildRequest,
+                hasOutstandingChildRequest: needsToBeManuallySubmitted && iouReport.managerID === userAccountID && iouReport.total !== 0,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
@@ -687,7 +687,7 @@ function getMoneyRequestInformation(
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
     // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = false;
+    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -806,10 +806,6 @@ function getMoneyRequestInformation(
           }
         : undefined;
 
-    // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
-    // so the employee has to submit to their manager manually.
-    const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
-
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
@@ -827,7 +823,7 @@ function getMoneyRequestInformation(
         policy,
         policyTags,
         policyCategories,
-        hasOutstandingChildRequest,
+        needsToBeManuallySubmitted,
     );
 
     return {
@@ -2544,7 +2540,19 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     let updatedIOUReport = {...iouReport};
     const updatedReportPreviewAction = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-    if (ReportUtils.isExpenseReport(iouReport)) {
+
+    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
+
+    let needsToBeManuallySubmitted = true;
+    if (isPolicyExpenseChat) {
+        const policy = ReportUtils.getPolicy(iouReport.policyID);
+        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        needsToBeManuallySubmitted = isFromPaidPolicy && !(policy.isHarvestingEnabled || false);
+    }
+
+    if (isPolicyExpenseChat) {
         updatedIOUReport = {...iouReport};
 
         // Because of the Expense reports are stored as negative values, we add the total from the amount
@@ -2646,6 +2654,13 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                   },
               ]
             : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                hasOutstandingChildRequest: needsToBeManuallySubmitted && updatedIOUReport.managerID === userAccountID && updatedIOUReport.total !== 0,
+            },
+        },
     ];
 
     const successData = [
