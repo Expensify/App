@@ -473,52 +473,42 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
 
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     try {
-        console.log(121314, JSON.stringify(pushJSON));
         const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
         const flatten = flattenDeep(reportActionsOnly.map((update) => Object.keys(update.value).map((key) => update.value[key])));
         const types = flatten.map((data) => data.originalMessage);
 
-        console.log(898989, {types, flatten});
-
         // Someone completes a task
         if (flatten.find((data) => data.actionName === 'TASKCOMPLETED')) {
-            console.log(1111, 'completed task');
             return playSound('success');
         }
 
         // Someone completes a money request
         if (flatten.find((data) => data.actionName === 'IOU')) {
-            console.log(1111, 'completed money request');
             return playSound('success');
         }
 
         // someone sent money
         if (types.find((message) => message.IOUDetails)) {
-            console.log(11111, 'someone sent money');
             return playSound('success');
         }
 
         // mention user
         if (types.find((message) => message.html?.includes('<mention-user>'))) {
-            console.log(11111, 'mention user');
             return playSound('attention');
         }
 
         // assign a task
         if (types.find((message) => message.taskReportID)) {
-            console.log(11111, 'assign a task');
             return playSound('attention');
         }
 
         // request money
         if (types.find((message) => message.IOUTransactionID)) {
-            console.log(11111, 'request money');
             return playSound('attention');
         }
 
         // plain message
         if (types.find((message) => message.html)) {
-            console.log(11111, 'plain message');
             return playSound('receive');
         }
     } catch (e) {
