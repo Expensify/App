@@ -44,6 +44,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -112,7 +113,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && <Text>{translate('reportActionsView.usePlusButton')}</Text>}
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
+                    <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
+                )}
             </Text>
         </>
     );

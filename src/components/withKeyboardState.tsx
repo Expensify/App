@@ -16,7 +16,9 @@ const keyboardStatePropTypes = {
     isKeyboardShown: PropTypes.bool.isRequired,
 };
 
-const KeyboardStateContext = createContext<KeyboardStateContextValue | null>(null);
+const KeyboardStateContext = createContext<KeyboardStateContextValue>({
+    isKeyboardShown: false,
+});
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const [isKeyboardShown, setIsKeyboardShown] = useState(false);

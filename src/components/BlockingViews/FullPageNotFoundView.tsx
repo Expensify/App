@@ -33,10 +33,10 @@ type FullPageNotFoundViewProps = {
     linkKey?: TranslationPaths;
 
     /** Method to trigger when pressing the back button of the header */
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
 
     /** Function to call when pressing the navigation link */
-    onLinkPress: () => void;
+    onLinkPress?: () => void;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
