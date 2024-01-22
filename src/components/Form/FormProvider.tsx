@@ -94,9 +94,9 @@ function FormProvider(
             const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
-                FormActions.setErrors(formID, null);
+                FormActions.clearErrors(formID);
             }
-            FormActions.setErrorFields(formID, null);
+            FormActions.clearErrorFields(formID);
 
             const validateErrors = validate?.(trimmedStringValues) ?? {};
 
