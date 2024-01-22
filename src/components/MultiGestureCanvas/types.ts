@@ -22,7 +22,7 @@ type ZoomRange = {
 type OnScaleChangedCallback = (zoomScale: number) => void;
 
 /** Triggered when the canvas is tapped (single tap) */
-type OnTapCallback = (() => void) | undefined;
+type OnTapCallback = () => void;
 
 /** Types used of variables used within the MultiGestureCanvas component and it's hooks */
 type MultiGestureCanvasVariables = {
@@ -43,8 +43,8 @@ type MultiGestureCanvasVariables = {
     pinchTranslateY: SharedValue<number>;
     stopAnimation: () => void;
     reset: (animated: boolean, callback: () => void) => void;
-    onTap: OnTapCallback | undefined;
-    onScaleChanged?: OnScaleChangedCallback;
+    onTap: OnTapCallback;
+    onScaleChanged: OnScaleChangedCallback | undefined;
 };
 
 export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, MultiGestureCanvasVariables};

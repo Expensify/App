@@ -1,6 +1,8 @@
 import type {WithSpringConfig} from 'react-native-reanimated';
 import type {ZoomRange} from './types';
 
+const DOUBLE_TAP_SCALE = 3;
+
 // The spring config is used to determine the physics of the spring animation
 // Details and a playground for testing different configs can be found at
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withSpring
@@ -23,4 +25,4 @@ const ZOOM_RANGE_BOUNCE_FACTORS: Required<ZoomRange> = {
     max: 1.5,
 };
 
-export {SPRING_CONFIG, DEFAULT_ZOOM_RANGE, ZOOM_RANGE_BOUNCE_FACTORS};
+export {DOUBLE_TAP_SCALE, SPRING_CONFIG, DEFAULT_ZOOM_RANGE, ZOOM_RANGE_BOUNCE_FACTORS};
