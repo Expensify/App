@@ -7,12 +7,9 @@ import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
@@ -21,10 +18,8 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -667,39 +662,7 @@ class BaseOptionsSelector extends Component {
                 </View>
                 {this.props.shouldShowReferralCTA && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
-                            }}
-                            style={[
-                                this.props.themeStyles.p5,
-                                this.props.themeStyles.w100,
-                                this.props.themeStyles.br2,
-                                this.props.themeStyles.highlightBG,
-                                this.props.themeStyles.flexRow,
-                                this.props.themeStyles.justifyContentBetween,
-                                this.props.themeStyles.alignItemsCenter,
-                                {gap: 10},
-                            ]}
-                            accessibilityLabel="referral"
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        >
-                            <Text>
-                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
-                                <Text
-                                    color={this.props.theme.success}
-                                    style={this.props.themeStyles.textStrong}
-                                >
-                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
-                                </Text>
-                            </Text>
-                            <Icon
-                                src={Info}
-                                height={20}
-                                width={20}
-                                fill={this.props.theme.icon}
-                            />
-                        </PressableWithoutFeedback>
+                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
                     </View>
                 )}
 
