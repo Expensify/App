@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
-import Log from '../libs/Log';
+import Log from '@libs/Log';
 
 // When you need to debug state machine change this to true
 const DEBUG_MODE = true;
@@ -59,7 +59,7 @@ const DEBUG_MODE = true;
 function useWorkletStateMachine(stateMachine, initialState) {
     const currentState = useSharedValue(initialState);
 
-    const log = useCallback((message, params) => {
+    const log = useCallback((message: string, params = undefined) => {
         'worklet';
 
         if (!DEBUG_MODE) {

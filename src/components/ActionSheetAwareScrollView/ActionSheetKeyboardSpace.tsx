@@ -133,6 +133,8 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     const setAndTiming = useCallback((set, animateTo) => {
         "worklet";
 
+        console.log("syncLocalWorkletState", syncLocalWorkletState.shouldRunAnimation);
+
         return !syncLocalWorkletState.shouldRunAnimation
             ? (() => {
                   syncLocalWorkletState.shouldRunAnimation = true;
@@ -327,6 +329,12 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
 
                 if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
                     console.log("TRANSITION #17", lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
+                    return withSequence(
+                        withTiming(lastKeyboardHeight, {
+                            duration: 0,
+                        }),
+                        withSpring(nextOffset < 0 ? 0 : nextOffset, config)
+                    );
                     return setAndTiming(lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                 }
 
