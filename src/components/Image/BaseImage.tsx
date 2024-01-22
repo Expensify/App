@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
 import {Image as RNImage} from 'react-native';
 import type {ImageLoadEventData} from 'react-native';
-import type ImageProps from './types';
+import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, ...props}: ImageProps) {
+function BaseImage({onLoad, ...props}: BaseImageProps) {
     const imageLoadedSuccessfully = useCallback(
         (event: {nativeEvent: ImageLoadEventData}) => {
             if (!onLoad) {

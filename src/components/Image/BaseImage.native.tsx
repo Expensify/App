@@ -1,9 +1,9 @@
 import {Image as ExpoImage} from 'expo-image';
 import type {ImageLoadEventData} from 'expo-image';
 import {useCallback} from 'react';
-import type ImageProps from './types';
+import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, ...props}: ImageProps) {
+function BaseImage({onLoad, ...props}: BaseImageProps) {
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
             if (!onLoad) {
