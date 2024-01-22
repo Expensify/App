@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -108,13 +108,14 @@ function WorkspacePageWithSections({
         fetchData(shouldSkipVBBACall);
     }, [shouldSkipVBBACall]);
 
-    const shouldShow = () => {
+
+    const shouldShow = useMemo(() => {
         if (isEmptyObject(policy)) {
             return true;
         }
 
         return !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
-    };
+    }, [policy]);
 
     return (
         <ScreenWrapper
@@ -125,7 +126,7 @@ function WorkspacePageWithSections({
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={shouldShow()}
+                shouldShow={shouldShow}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
