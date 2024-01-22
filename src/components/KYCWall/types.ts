@@ -10,7 +10,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 
-type TransferMethod = ValueOf<typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
+type TransferMethod = ValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
 
@@ -61,7 +61,7 @@ type KYCWallProps = {
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */
-    onSuccessfulKYC: (currentSource?: Source, iouPaymentType?: TransferMethod) => void;
+    onSuccessfulKYC: (iouPaymentType?: TransferMethod, currentSource?: Source) => void;
 
     /** Children to build the KYC */
     children: (continueAction: (event: SyntheticEvent<NativeTouchEvent>, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;

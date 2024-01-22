@@ -26,7 +26,7 @@ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: string) => void;
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
@@ -37,7 +37,7 @@ type SettlementButtonOnyxProps = {
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType: PaymentType) => void;
+    onPress: (paymentType?: PaymentType) => void;
 
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: EnablePaymentsRoute;

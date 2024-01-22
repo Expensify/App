@@ -203,7 +203,7 @@ function KYCWall({
 
             Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
 
-            onSuccessfulKYC(currentSource, iouPaymentType);
+            onSuccessfulKYC(iouPaymentType, currentSource);
         },
         [
             bankAccountList,
