@@ -27,8 +27,7 @@ const addPolicyIdToRoute = (route: NavigationPartialRoute, policyID?: string) =>
         return routeWithPolicyID;
     }
 
-    // @ts-expect-error TODO: fix this type
-    routeWithPolicyID.params.policyID = policyID;
+    routeWithPolicyID.params = {...routeWithPolicyID.params, policyID};
 
     return routeWithPolicyID;
 };

@@ -59,6 +59,9 @@ const propTypes = {
     /** The policies which the user has access to */
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    policyMembers: PropTypes.object,
 };
 
 const defaultProps = {
@@ -68,6 +71,7 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
+    policyMembers: {},
 };
 
 function SidebarLinksData({

@@ -25,7 +25,6 @@ import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/Worksp
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
@@ -115,7 +114,6 @@ function WorkspaceSwitcherPage({policies}) {
 
     const selectPolicy = useCallback((option) => {
         const policyID = option.policyID;
-        const pathPrefix = `w/${policyID || 'global'}/`;
 
         if (policyID) {
             setSelectedOption(option);
@@ -123,10 +121,10 @@ function WorkspaceSwitcherPage({policies}) {
             setSelectedOption(undefined);
         }
         setActiveWorkspaceID(policyID);
-        // TO DO: Unify workspace-related navigation
         Navigation.goBack();
-        Navigation.navigate(`${pathPrefix}${ROUTES.HOME}`);
-        Navigation.navigate(ROUTES.REPORT);
+        if (policyID !== activeWorkspaceID) {
+            Navigation.navigateWithSwitchPolicyID(policyID);
+        }
     }, []);
 
     const onChangeText = useCallback((newSearchTerm) => {
