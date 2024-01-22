@@ -9,7 +9,7 @@ import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -82,10 +82,10 @@ function OfflineWithFeedback({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const hasErrors = isNotEmptyObject(errors ?? {});
+    const hasErrors = !isEmptyObject(errors ?? {});
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorMessages = omitBy(errors, (e) => e === null);
-    const hasErrorMessages = isNotEmptyObject(errorMessages);
+    const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     const isAddError = hasErrors && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -150,3 +150,4 @@ function OfflineWithFeedback({
 OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default OfflineWithFeedback;
+export type {OfflineWithFeedbackProps};
