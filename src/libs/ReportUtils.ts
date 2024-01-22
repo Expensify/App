@@ -1801,7 +1801,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
+function getMoneyRequestTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport: OnyxEntry<Report> | undefined;
     if (isMoneyRequestReport(report)) {
@@ -1903,7 +1903,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const moneyRequestTotal = getMoneyRequestTotal(report);
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
@@ -2203,7 +2203,7 @@ function getReportPreviewMessage(
         }
     }
 
-    const totalAmount = getMoneyRequestReimbursableTotal(report);
+    const totalAmount = getMoneyRequestTotal(report);
     const policyName = getPolicyName(report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
@@ -2746,7 +2746,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(!isEmptyObject(report) ? report : null), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(!isEmptyObject(report) ? report : null), currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -4593,7 +4593,7 @@ export {
     hasExpensifyGuidesEmails,
     requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
-    getMoneyRequestReimbursableTotal,
+    getMoneyRequestTotal,
     getMoneyRequestSpendBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
