@@ -18,6 +18,7 @@ import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import Log from '@libs/Log';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -38,6 +39,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
+            Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             Session.signInWithShortLivedAuthToken(email, token);
             return;
         }
