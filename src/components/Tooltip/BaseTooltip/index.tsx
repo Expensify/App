@@ -189,7 +189,7 @@ function Tooltip(
         (e: MouseEvent) => {
             updateTargetAndMousePosition(e);
             if (React.isValidElement(children)) {
-                children.props.onMouseEnter(e);
+                children.props.onMouseEnter?.(e);
             }
         },
         [children, updateTargetAndMousePosition],
