@@ -22,7 +22,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -41,7 +40,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceMenuItems = {
+type WorkspaceMenuItem = {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void;
@@ -79,7 +78,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
-    const policyID = useMemo(() => policy?.id, [policy]);
+    const policyID = useMemo(() => policy?.id ?? '', [policy]);
     const [policyReports, adminsRoom, announceRoom] = useMemo(() => {
         const reports: OnyxTypes.Report[] = [];
         let admins: OnyxTypes.Report | undefined;
@@ -111,7 +110,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
 
     /** Call the delete policy and hide the modal */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID ?? '', policyReports, policy?.name ?? '');
+        Policy.deleteWorkspace(policyID, policyReports, policy?.name ?? '');
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
@@ -138,50 +137,50 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policyID ?? '', policy?.name ?? '', CONST.CURRENCY.USD);
+        Policy.updateGeneralSettings(policyID, policy?.name ?? '', CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
-        ReimbursementAccount.navigateToBankAccountRoute(policyID ?? '');
+        ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policy?.name]);
 
     const policyName = policy?.name ?? '';
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
-    const menuItems: WorkspaceMenuItems[] = [
+    const menuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.settings',
             icon: Expensicons.Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policyID)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policyID)))),
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policyID)))),
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy?.id ?? '')))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
@@ -255,7 +254,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingAction}
-                            onClose={() => dismissError(policy?.id ?? '')}
+                            onClose={() => dismissError(policyID)}
                             errors={policy?.errors}
                             errorRowStyles={[styles.ph5, styles.pv2]}
                         >
@@ -266,14 +265,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
                                             <PressableWithoutFeedback
                                                 disabled={hasPolicyCreationError || isExecuting}
                                                 style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy?.id ?? '')))}
+                                                onPress={singleExecution(waitForNavigate(() => openEditor(policyID)))}
                                                 accessibilityLabel={translate('workspace.common.settings')}
                                                 role={CONST.ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                    source={policy?.avatar ? policy?.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                                    // It's possible for avatar to be an empty string, so we must use "||" to fallback to the default workspace avatar
+                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                                    source={policy?.avatar || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                                     fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     name={policyName}
@@ -348,7 +349,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
 
 WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
-export default compose(
+export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceInitialPageProps, WorkspaceInitialPageOnyxProps>({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -356,6 +357,5 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-    }),
-    withPolicyAndFullscreenLoading,
-)(WorkspaceInitialPage);
+    })(WorkspaceInitialPage),
+);
