@@ -30,6 +30,9 @@ type Icon = {
 
     /** Fill color of the icon */
     fill?: string;
+
+    /** Icon should be displayed in its own color */
+    displayInDefaultIconColor?: boolean;
 };
 
 export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};

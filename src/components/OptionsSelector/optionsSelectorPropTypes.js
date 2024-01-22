@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import optionPropTypes from '@components/optionPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
@@ -139,7 +140,7 @@ const propTypes = {
     nestedScrollEnabled: PropTypes.bool,
 
     /** Left icon to display in TextInput */
-    textIconLeft: PropTypes.elementType,
+    textIconLeft: sourcePropTypes,
 };
 
 const defaultProps = {

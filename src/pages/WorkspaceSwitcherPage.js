@@ -181,6 +181,7 @@ function WorkspaceSwitcherPage({policies}) {
                     source: Expensicons.ExpensifyAppIcon,
                     name: EXPENSIFY_TITLE,
                     type: CONST.ICON_TYPE_AVATAR,
+                    displayInDefaultIconColor: true,
                 },
             ],
             brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
