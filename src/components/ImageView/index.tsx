@@ -115,7 +115,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
     const onContainerPress = (e?: GestureResponderEvent | KeyboardEvent | SyntheticEvent<Element, PointerEvent>) => {
         if (!isZoomed && !isDragging) {
-            if (e && 'nativeEvent' in e && 'offsetX' in e.nativeEvent) {
+            if (e && 'nativeEvent' in e && e.nativeEvent instanceof PointerEvent) {
                 const {offsetX, offsetY} = e.nativeEvent;
 
                 // Dividing clicked positions by the zoom scale to get coordinates
