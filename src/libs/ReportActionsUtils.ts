@@ -2,7 +2,7 @@ import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/lib/utils';
+import OnyxUtils from 'react-native-onyx/dist/utils';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

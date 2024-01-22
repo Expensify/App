@@ -3,7 +3,7 @@ import type {MutableRefObject, SyntheticEvent} from 'react';
 import type {NativeTouchEvent} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransferMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
