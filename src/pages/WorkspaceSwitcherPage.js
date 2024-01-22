@@ -29,6 +29,16 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
+const sortWorkspacesBySelected = (workspace1, workspace2, selectedWorkspaceID) => {
+    if (workspace1.policyID === selectedWorkspaceID) {
+        return -1;
+    }
+    if (workspace2.policyID === selectedWorkspaceID) {
+        return 1;
+    }
+    return workspace1.text.toLowerCase().localeCompare(workspace2.text.toLowerCase());
+};
+
 const propTypes = {
     /** The list of this user's policies */
     policies: PropTypes.objectOf(
@@ -146,25 +156,21 @@ function WorkspaceSwitcherPage({policies}) {
         [policies, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
-    const sortedWorkspaces = usersWorkspaces.sort((workspace1, workspace2) => {
-        if (workspace1.policyID === activeWorkspaceID) {
-            return -1;
-        }
-        if (workspace2.policyID === activeWorkspaceID) {
-            return 1;
-        }
-        return workspace1.text.toLowerCase().localeCompare(workspace2.text.toLowerCase());
-    });
-
-    const filteredUserWorkspaces = useMemo(() => _.filter(sortedWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
+    const filteredAndSortedUserWorkspaces = useMemo(
+        () =>
+            _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())).sort((policy1, policy2) =>
+                sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID),
+            ),
+        [searchTerm, usersWorkspaces],
+    );
 
     const usersWorkspacesSectionData = useMemo(
         () => ({
-            data: filteredUserWorkspaces,
+            data: filteredAndSortedUserWorkspaces,
             shouldShow: true,
             indexOffset: 0,
         }),
-        [filteredUserWorkspaces],
+        [filteredAndSortedUserWorkspaces],
     );
 
     const everythingSection = useMemo(() => {
