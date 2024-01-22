@@ -56,7 +56,7 @@ type SuggestionsRef = {
     triggerHotkeyActions: (event: KeyboardEvent) => void;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
-    getSuggestions: () => Mention[];
+    getSuggestions: () => Mention[] | Emoji[];
 };
 
 type ReportActionComposeOnyxProps = {

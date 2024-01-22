@@ -89,7 +89,7 @@ function Suggestions(
     }, []);
 
     const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        const emojiHandler = suggestionEmojiRef.current?.onSelectionChange(e);
+        const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         return emojiHandler;
     }, []);
 
