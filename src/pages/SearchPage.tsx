@@ -50,7 +50,7 @@ type SearchPageSectionItem = {
     indexOffset: number;
 };
 
-type SearchPageSectionList = SearchPageSectionItem[]
+type SearchPageSectionList = SearchPageSectionItem[];
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}: SearchPageProps) {
     const [searchValue, setSearchValue] = useState('');
