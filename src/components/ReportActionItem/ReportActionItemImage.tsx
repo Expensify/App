@@ -17,7 +17,7 @@ import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
-    thumbnail?: string | number;
+    thumbnail?: string | number | null;
 
     /** URI for the image or local numeric reference for the image  */
     image: string | number;

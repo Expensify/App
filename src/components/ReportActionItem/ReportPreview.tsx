@@ -245,7 +245,6 @@ function ReportPreview({
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         {hasReceipts && (
                             <ReportActionItemImages
-                                // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                                 images={lastThreeReceipts}
                                 total={transactionsWithReceipts.length}
                                 isHovered={isHovered || isScanning}
