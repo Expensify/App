@@ -1489,6 +1489,28 @@ function openWorkspaceReimburseView(policyID: string) {
     API.read('OpenWorkspaceReimburseView', params, {successData, failureData});
 }
 
+/**
+ * Returns the accountIDs of the members of the policy whose data is passed in the parameters
+ */
+function openWorkspace(policyID: string, clientMemberAccountIDs: number[]) {
+    if (!policyID || !clientMemberAccountIDs) {
+        Log.warn('openWorkspace invalid params', {policyID, clientMemberAccountIDs});
+        return;
+    }
+
+    type OpenWorkspaceParams = {
+        policyID: string;
+        clientMemberAccountIDs: string;
+    };
+
+    const params: OpenWorkspaceParams = {
+        policyID,
+        clientMemberAccountIDs: JSON.stringify(clientMemberAccountIDs),
+    };
+
+    API.read('OpenWorkspace', params);
+}
+
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -2066,6 +2088,7 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
+    openWorkspace,
     removeWorkspace,
     createWorkspaceFromIOUPayment,
     setWorkspaceInviteMembersDraft,
