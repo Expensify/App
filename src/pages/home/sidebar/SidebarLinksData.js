@@ -11,6 +11,7 @@ import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -98,6 +99,7 @@ const defaultProps = {
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network, transactionViolations}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const prevPriorityMode = usePrevious(priorityMode);
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
@@ -108,13 +110,14 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
             return reportIDsRef.current;
         }
 
-        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        // However, if the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
-        if (!isLoading || !reportIDsRef.current || network.isOffline) {
+        // 1. We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        // 2. If the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
+        // 3. Changing priority mode to Most Recent will call OpenApp. If there is an existing reports and the priority mode is updated, we want to immediately update the list instead of waiting the OpenApp request to complete
+        if (!isLoading || !reportIDsRef.current || network.isOffline || (reportIDsRef.current && prevPriorityMode !== priorityMode)) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading, network.isOffline, transactionViolations]);
+    }, [allReportActions, betas, chatReports, policies, prevPriorityMode, priorityMode, isLoading, network.isOffline, transactionViolations]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -266,7 +269,7 @@ export default compose(
             initialValue: {},
         },
         transactionViolations: {
-            key: ONYXKEYS.TRANSACTION_VIOLATIONS,
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
             initialValue: {},
         },
     }),

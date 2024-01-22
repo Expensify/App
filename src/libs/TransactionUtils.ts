@@ -148,6 +148,13 @@ function isMerchantMissing(transaction: Transaction) {
     return isMerchantEmpty && isModifiedMerchantEmpty;
 }
 
+/**
+ * Check if the merchant is partial i.e. `(none)`
+ */
+function isPartialMerchant(merchant: string): boolean {
+    return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+}
+
 function isAmountMissing(transaction: Transaction) {
     return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
@@ -587,6 +594,7 @@ export {
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
+    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,

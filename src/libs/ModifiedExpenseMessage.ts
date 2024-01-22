@@ -187,8 +187,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.tag ?? '',
-            reportActionOriginalMessage?.oldTag ?? '',
+            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.tag ?? ''),
+            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.oldTag ?? ''),
             policyTagListName,
             true,
             setFragments,

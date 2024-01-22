@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {interpolate, runOnUI, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
+import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -203,25 +203,12 @@ function AvatarCropModal(props) {
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
-    const panGestureEventHandler = useAnimatedGestureHandler(
-        {
-            onStart: (_, context) => {
-                // we have to assign translate values to a context
-                // since that is required for proper work of turbo modules.
-                // eslint-disable-next-line no-param-reassign
-                context.translateX = translateX.value;
-                // eslint-disable-next-line no-param-reassign
-                context.translateY = translateY.value;
-            },
-            onActive: (event, context) => {
-                const newX = event.translationX + context.translateX;
-                const newY = event.translationY + context.translateY;
+    const panGesture = Gesture.Pan().onChange((event) => {
+        const newX = translateX.value + event.changeX;
+        const newY = translateY.value + event.changeY;
 
-                updateImageOffset(newX, newY);
-            },
-        },
-        [imageContainerSize, updateImageOffset, translateX, translateY],
-    );
+        updateImageOffset(newX, newY);
+    });
 
     // This effect is needed to recalculate the maximum offset values
     // when the browser window is resized.
@@ -251,32 +238,33 @@ function AvatarCropModal(props) {
      * Calculates new scale value and updates images offset to ensure
      * that image stays in the center of the container after changing scale.
      */
-    const panSliderGestureEventHandler = useAnimatedGestureHandler(
-        {
-            onStart: (_, context) => {
-                // we have to assign this value to a context
-                // since that is required for proper work of turbo modules.
-                // eslint-disable-next-line no-param-reassign
-                context.translateSliderX = translateSlider.value;
-                isPressableEnabled.value = false;
-            },
-            onActive: (event, context) => {
-                const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
-                const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+    const sliderPanGestureCallbacks = {
+        onBegin: () => {
+            'worklet';
 
-                const differential = newScale / scale.value;
-
-                scale.value = newScale;
-                translateSlider.value = newSliderValue;
-
-                const newX = translateX.value * differential;
-                const newY = translateY.value * differential;
-                updateImageOffset(newX, newY);
-            },
-            onEnd: () => (isPressableEnabled.value = true),
+            isPressableEnabled.value = false;
         },
-        [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize, isPressableEnabled],
-    );
+        onChange: (event) => {
+            'worklet';
+
+            const newSliderValue = clamp(translateSlider.value + event.changeX, [0, sliderContainerSize]);
+            const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+
+            const differential = newScale / scale.value;
+
+            scale.value = newScale;
+            translateSlider.value = newSliderValue;
+
+            const newX = translateX.value * differential;
+            const newY = translateY.value * differential;
+            updateImageOffset(newX, newY);
+        },
+        onFinalize: () => {
+            'worklet';
+
+            isPressableEnabled.value = true;
+        },
+    };
 
     // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
@@ -394,7 +382,7 @@ function AvatarCropModal(props) {
                             <ImageCropView
                                 imageUri={props.imageUri}
                                 containerSize={imageContainerSize}
-                                panGestureEventHandler={panGestureEventHandler}
+                                panGesture={panGesture}
                                 originalImageHeight={originalImageHeight}
                                 originalImageWidth={originalImageWidth}
                                 scale={scale}
@@ -418,7 +406,7 @@ function AvatarCropModal(props) {
                                 >
                                     <Slider
                                         sliderValue={translateSlider}
-                                        onGesture={panSliderGestureEventHandler}
+                                        gestureCallbacks={sliderPanGestureCallbacks}
                                     />
                                 </PressableWithoutFeedback>
                                 <Tooltip
