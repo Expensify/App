@@ -730,6 +730,26 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     };
 }
 
+/**
+ * Returns the latest business day of input date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    const currentDate = new Date(inputDate);
+
+    // Set the date to the last day of the month
+    currentDate.setMonth(currentDate.getMonth() + 1, 0);
+
+    // Loop backward to find the latest business day
+    while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+        currentDate.setDate(currentDate.getDate() - 1);
+    }
+
+    return currentDate.getDate();
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -774,6 +794,7 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
+    getLastBusinessDayOfMonth,
 };
 
 export default DateUtils;
