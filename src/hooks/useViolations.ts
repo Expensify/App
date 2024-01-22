@@ -49,14 +49,15 @@ type ViolationsMap = Map<MoneyRequestField, TransactionViolation[]>;
 
 function useViolations(violations: TransactionViolation[]) {
     const violationsByField = useMemo((): ViolationsMap => {
+        const filteredViolations = violations.filter((v) => v.type === 'violation');
         const violationGroups = new Map<MoneyRequestField, TransactionViolation[]>();
-
-        for (const violation of violations) {
-            const field = violationFields[violation.name];
-            const existingViolations = violationGroups.get(field) ?? [];
-            violationGroups.set(field, [...existingViolations, violation]);
+        for (const violation of filteredViolations) {
+            if (violation.type === 'violation') {
+                const field = violationFields[violation.name];
+                const existingViolations = violationGroups.get(field) ?? [];
+                violationGroups.set(field, [...existingViolations, violation]);
+            }
         }
-
         return violationGroups ?? new Map();
     }, [violations]);
 
