@@ -26,6 +26,8 @@ type CustomUnit = {
     errors?: OnyxCommon.Errors;
 };
 
+type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
+
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -83,6 +85,12 @@ type Policy = {
 
     /** Whether the scheduled submit is enabled */
     isHarvestingEnabled?: boolean;
+
+    /** Whether the scheduled submit is enabled */
+    isPreventSelfApprovalEnabled?: boolean;
+
+    /** When the monthly scheduled submit should happen */
+    autoReportingOffset?: AutoReportingOffset;
 
     /** The accountID of manager who the employee submits their expenses to on paid policies */
     submitsTo?: number;
