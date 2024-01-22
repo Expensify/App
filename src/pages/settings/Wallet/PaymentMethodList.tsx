@@ -128,7 +128,7 @@ function dismissError(item: PaymentMethod) {
     }
 }
 
-function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false) {
+function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false): boolean {
     if (!isDefault) {
         return false;
     }

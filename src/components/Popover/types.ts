@@ -34,7 +34,7 @@ type PopoverProps = BaseModalProps &
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */
-        withoutOverlay: boolean;
+        withoutOverlay?: boolean;
 
         /** The dimensions of the popover */
         popoverDimensions?: PopoverDimensions;

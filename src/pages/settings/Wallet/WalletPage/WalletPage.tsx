@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import type {ForwardedRef, Ref, RefObject, SyntheticEvent} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, NativeTouchEvent} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -13,7 +13,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
-import {Source, TransferMethod} from '@components/KYCWall/types';
+import type {Source, TransferMethod} from '@components/KYCWall/types';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
@@ -409,7 +409,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                 shouldIncludeDebitCard={hasActivatedWallet}
                                             >
                                                 {(
-                                                    triggerKYCFlow: (event: SyntheticEvent<NativeTouchEvent>, iouPaymentType: TransferMethod) => void,
+                                                    triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => void,
                                                     buttonRef: ForwardedRef<HTMLElement>,
                                                 ) => {
                                                     if (shouldShowLoadingSpinner) {
@@ -522,7 +522,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                             top: anchorPosition.anchorPositionTop,
                             right: anchorPosition.anchorPositionRight,
                         }}
-                        anchorRef={paymentMethodButtonRef}
+                        anchorRef={paymentMethodButtonRef as RefObject<View>}
                     >
                         {!showConfirmDeleteModal && (
                             <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : {}]}>
