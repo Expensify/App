@@ -441,10 +441,10 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'solicitud' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'solicitud' : 'comentario'}`,
         deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+            `¿Estás seguro de que quieres eliminar esta ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'solicitud' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
@@ -459,16 +459,16 @@ export default {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         beginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `¡Colabora aquí con todos los participantes de ${domainRoom}! 🎉\nUtiliza `,
         beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
-            `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
+            `¡Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
         beginningOfChatHistoryAdminOnlyPostingRoom: 'Solo los administradores pueden enviar mensajes en esta sala.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
-            `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
+            `¡Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
-        beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
+        beginningOfChatHistoryUserRoomPartOne: '¡Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
         beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
@@ -581,8 +581,8 @@ export default {
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
         requestCount: ({count, scanningReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}`,
-        deleteRequest: 'Eliminar pedido',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar este pedido?',
+        deleteRequest: 'Eliminar solicitud',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
@@ -865,7 +865,7 @@ export default {
         },
     },
     passwordConfirmationScreen: {
-        passwordUpdated: 'Contraseña actualizada!',
+        passwordUpdated: '¡Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
     },
     privateNotes: {
@@ -922,7 +922,7 @@ export default {
         enableWallet: 'Habilitar Billetera',
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
-        addBankAccount: 'Agregar cuenta bancaria',
+        addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
@@ -1211,7 +1211,7 @@ export default {
     },
     statusPage: {
         status: 'Estado',
-        statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
+        statusExplanation: 'Añade un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes añadir un mensaje opcionalmente!',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
@@ -1813,7 +1813,7 @@ export default {
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
     },
     genericErrorPage: {
-        title: '¡Uh-oh, algo salió mal!',
+        title: '¡Oh-oh, algo salió mal!',
         body: {
             helpTextMobile: 'Intenta cerrar y volver a abrir la aplicación o cambiar a la',
             helpTextWeb: 'web.',
@@ -1896,12 +1896,12 @@ export default {
         },
         notAvailable: {
             title: 'Actualización no disponible',
-            message: 'No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
+            message: '¡No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
             okay: 'Vale',
         },
         error: {
             title: 'Comprobación fallida',
-            message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
+            message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!',
         },
     },
     report: {
@@ -2419,7 +2419,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
-        deletedRequest: '[Pedido eliminado]',
+        deletedRequest: '[Solicitud eliminada]',
         reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',
@@ -2443,13 +2443,13 @@ export default {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
         chooseAReason: 'Elige abajo un motivo para reportarlo:',
         spam: 'Spam',
-        spamDescription: 'Promoción fuera de tema no solicitada',
+        spamDescription: 'Publicidad no solicitada',
         inconsiderate: 'Desconsiderado',
         inconsiderateDescription: 'Frase insultante o irrespetuosa, con intenciones cuestionables',
         intimidation: 'Intimidación',
         intimidationDescription: 'Persigue agresivamente una agenda sobre objeciones válidas',
         bullying: 'Bullying',
-        bullyingDescription: 'Apunta a un individuo para obtener obediencia',
+        bullyingDescription: 'Se dirige a un individuo para obtener obediencia',
         harassment: 'Acoso',
         harassmentDescription: 'Comportamiento racista, misógino u otro comportamiento discriminatorio',
         assault: 'Agresion',
@@ -2457,8 +2457,8 @@ export default {
         flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
         hideMessage: 'Ocultar mensaje',
         revealMessage: 'Revelar mensaje',
-        levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
-        levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
+        levelOneResult: 'Envía una advertencia anónima y el mensaje es reportado para revisión.',
+        levelTwoResult: 'Mensaje ocultado en el canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
     teachersUnitePage: {
@@ -2491,7 +2491,7 @@ export default {
         companySpend: 'Gastos de empresa',
     },
     distance: {
-        addStop: 'Agregar parada',
+        addStop: 'Añadir parada',
         deleteWaypoint: 'Eliminar punto de ruta',
         deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
         address: 'Dirección',
@@ -2565,21 +2565,21 @@ export default {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
         billableExpense: 'La opción facturable ya no es válida',
-        cashExpenseWithNoReceipt: ({amount}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para montos mayores a ${amount}`,
+        cashExpenseWithNoReceipt: ({amount}: ViolationsCashExpenseWithNoReceiptParams) => `Recibo obligatorio para cantidades mayores de ${amount}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% de recargo aplicado`,
-        customUnitOutOfPolicy: 'Unidad ya no es válida',
-        duplicatedTransaction: 'Potencial duplicado',
+        customUnitOutOfPolicy: 'La unidad ya no es válida',
+        duplicatedTransaction: 'Posible duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Incrementado un ${invoiceMarkup}%`,
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
-        missingComment: 'Descripción obligatoria para categoría seleccionada',
+        missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName}`,
         modifiedAmount: 'Importe superior al del recibo escaneado',
         modifiedDate: 'Fecha difiere del recibo escaneado',
-        nonExpensiworksExpense: 'Gasto no es de Expensiworks',
+        nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: ({formattedLimitAmount}: ViolationsOverAutoApprovalLimitParams) => `Importe supera el límite de aprobación automática de ${formattedLimitAmount}`,
         overCategoryLimit: ({categoryLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría de ${categoryLimit}/persona`,
         overLimit: ({amount}: ViolationsOverLimitParams) => `Importe supera el límite de ${amount}/persona`,
@@ -2590,22 +2590,22 @@ export default {
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
-                    ? `No se puede adjuntar recibo debido a una conexión con su banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a una conexión con su banco que necesitas arreglar';
+                    ? `No se puede adjuntar recibo debido a un problema con la conexión a su banco que ${email} necesita arreglar`
+                    : 'No se puede adjuntar recibo debido a un problema con la conexión a su banco que necesitas arreglar';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
-                    ? `Pídele a ${member} que marque la transacción como efectivo o espera 7 días e intenta de nuevo`
-                    : 'Esperando adjuntar automáticamente a transacción de tarjeta de crédito';
+                    ? `Píde a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
+                    : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
             }
             return '';
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
         someTagLevelsRequired: 'Falta etiqueta',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `Le etiqueta ${tagName} ya no es válida`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `La etiqueta ${tagName} ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
-        taxRequired: 'Falta tasa de impuesto',
+        taxRequired: 'Falta la tasa de impuesto',
     },
 } satisfies EnglishTranslation;
