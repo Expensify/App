@@ -1,5 +1,4 @@
 import Str from 'expensify-common/lib/str';
-import lodashExtend from 'lodash/extend';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -24,6 +23,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
@@ -56,10 +56,12 @@ type AttachmentModalOnyxProps = {
 };
 
 type Attachment = {
-    source: string;
+    source: AvatarSource;
     isAuthTokenRequired: boolean;
-    file: File;
+    file: FileObject;
     isReceipt: boolean;
+    hasBeenFlagged?: boolean;
+    reportActionID?: string;
 };
 
 type ImagePickerResponse = {
@@ -83,7 +85,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     source?: AvatarSource;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: ((file: Partial<File>) => void) | null;
+    onConfirm?: ((file: Partial<FileObject>) => void) | null;
 
     /** Whether the modal should be open by default */
     defaultOpen?: boolean;
@@ -101,7 +103,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     headerTitle?: string;
 
     /** The report that has this attachment */
-    report?: OnyxEntry<OnyxTypes.Report>;
+    report?: OnyxEntry<OnyxTypes.Report> | EmptyObject;
 
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow?: () => void;
@@ -165,7 +167,7 @@ function AttachmentModal({
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
-    const [file, setFile] = useState<Partial<File> | undefined>(
+    const [file, setFile] = useState<Partial<FileObject> | undefined>(
         originalFileName
             ? {
                   name: originalFileName,
@@ -242,7 +244,7 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            onConfirm(lodashExtend(file, {source: sourceState}));
+            onConfirm({...file, source: ''});
         }
 
         setIsModalOpen(false);
@@ -299,7 +301,7 @@ function AttachmentModal({
             if (!isDirectoryCheck(data)) {
                 return;
             }
-            let fileObject: FileObject = data;
+            let fileObject = data;
             if ('getAsFile' in data && typeof data.getAsFile === 'function') {
                 fileObject = data.getAsFile();
             }
@@ -558,7 +560,7 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     transaction: {
         key: ({report}) => {
             const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-            const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '' : '';
+            const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
@@ -573,3 +575,5 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
         canEvict: false,
     },
 })(AttachmentModal);
+
+export type {Attachment};
