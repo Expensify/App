@@ -1,11 +1,11 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import lodashPick from 'lodash/pick';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
@@ -110,14 +110,13 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
         if (!route.params || !route.params.reportID) {
             return null;
         }
+        if (report && !ReportUtils.isTaskReport(report)) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.dismissModal(report.reportID);
+            });
+        }
         return reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`];
     }, [reports, route]);
-
-    if (report && !ReportUtils.isTaskReport(report)) {
-        Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(report.reportID);
-        });
-    }
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -184,6 +183,8 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
         [session.accountID, task.shareDestination, report],
     );
 
+    const handleBackButtonPress = useCallback(() => (lodashGet(route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)), [route.params]);
+
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID, lodashGet(rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
@@ -197,20 +198,18 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={translate('task.assignee')}
-                        onBackButtonPress={() => (lodashGet(route.params, 'reportID') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
+                        onBackButtonPress={handleBackButtonPress}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <SelectionList
-                            sections={sections}
+                            sections={didScreenTransitionEnd && !isLoading ? sections : CONST.EMPTY_ARRAY}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             textInputValue={searchValue}
                             headerMessage={headerMessage}
-                            showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd && !isLoading}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            autoFocus={false}
+                            showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
                         />
                     </View>
                 </FullPageNotFoundView>
@@ -222,7 +221,6 @@ function TaskAssigneeSelectorModal({reports, task, rootParentReportPolicy}) {
 TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 TaskAssigneeSelectorModal.propTypes = propTypes;
 TaskAssigneeSelectorModal.defaultProps = defaultProps;
-TaskAssigneeSelectorModal.whyDidYouRender = true;
 
 export default compose(
     withOnyx({
@@ -240,7 +238,7 @@ export default compose(
                 const rootParentReport = ReportUtils.getRootParentReport(report);
                 return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
             },
-            selector: (policy) => _.pick(policy, ['role']),
+            selector: (policy) => lodashPick(policy, ['role']),
         },
     }),
 )(TaskAssigneeSelectorModal);
