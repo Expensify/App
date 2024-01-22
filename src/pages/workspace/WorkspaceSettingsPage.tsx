@@ -45,7 +45,7 @@ function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSett
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
-    const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${policy?.outputCurrency ?? ''} - ${currencyList?.[policy?.outputCurrency ?? ''].symbol ?? ''}` : '';
+    const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${policy?.outputCurrency ?? ''} - ${currencyList?.[policy?.outputCurrency ?? '']?.symbol ?? ''}` : '';
 
     const submit = useCallback(
         (values: WorkSpaceSettingsPageValues) => {
