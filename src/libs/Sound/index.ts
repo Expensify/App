@@ -25,5 +25,4 @@ const playSound = (soundFile: string) => {
     });
 };
 
-// TODO: where to move this file?
 export default playSound;

@@ -17,11 +17,11 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound from '@libs/Sound';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import playSound from '@hooks/usePlaySound';
 
 const propTypes = {
     /** Task Creation Data */
