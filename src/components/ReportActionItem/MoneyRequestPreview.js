@@ -264,7 +264,7 @@ function MoneyRequestPreview(props) {
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
-    }, [hasPendingWaypoints, isDistanceRequest, isScanning, props.transaction, requestAmount, requestCurrency, translate]);
+    }, [hasPendingWaypoints, isDistanceRequest, isScanning, isSettled, props.transaction, requestAmount, requestCurrency, translate]);
 
     const displayDeleteAmountText = useMemo(() => {
         const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
