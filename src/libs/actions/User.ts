@@ -871,7 +871,24 @@ function clearDraftCustomStatus() {
 }
 
 function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) {
-    API.write('DismissReferralBanner', {type});
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                dismissedReferralBanners: {
+                    [type]: true,
+                },
+            },
+        },
+    ];
+    API.write(
+        'DismissReferralBanner',
+        {type},
+        {
+            optimisticData,
+        },
+    );
 }
 
 export {
