@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
+import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,6 +24,8 @@ type ReportScreenIDSetterComponentProps = {
 
     /** The report metadata */
     reportMetadata: OnyxCollection<ReportMetadata>;
+
+    accountID?: number;
 };
 
 type ReportScreenIDSetterProps = ReportScreenIDSetterComponentProps & ReportScreenWrapperProps;
@@ -54,7 +57,7 @@ const getLastAccessedReportID = (
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata}: ReportScreenIDSetterProps) {
+function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata, accountID}: ReportScreenIDSetterProps) {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
@@ -70,9 +73,7 @@ function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, nav
             return;
         }
 
-        const policyMemberAccountIDs = policyMembers
-            ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${activeWorkspaceID}`] ?? {}).map((accountID) => Number(accountID))
-            : [];
+        const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
         const reportID = getLastAccessedReportID(
@@ -93,7 +94,7 @@ function ReportScreenIDSetter({route, reports, policies, policyMembers = {}, nav
         } else {
             App.confirmReadyToOpenApp();
         }
-    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportMetadata, activeWorkspaceID, policyMembers]);
+    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportMetadata, activeWorkspaceID, policyMembers, accountID]);
 
     // The ReportScreen without the reportID set will display a skeleton
     // until the reportID is loaded and set in the route param
@@ -124,5 +125,9 @@ export default withOnyx<ReportScreenIDSetterProps, ReportScreenIDSetterComponent
     reportMetadata: {
         key: ONYXKEYS.COLLECTION.REPORT_METADATA,
         allowStaleData: true,
+    },
+    accountID: {
+        key: ONYXKEYS.SESSION,
+        selector: (session) => session?.accountID,
     },
 })(ReportScreenIDSetter);
