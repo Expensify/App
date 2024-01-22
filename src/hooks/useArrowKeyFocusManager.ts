@@ -94,11 +94,19 @@ export default function useArrowKeyFocusManager({
 
         setFocusedIndex((actualIndex) => {
             let currentFocusedIndex = -1;
-            if (allowHorizontalArrowKeys) {
+
+            if (actualIndex === -1) {
+                currentFocusedIndex = 0;
+            } else if (allowHorizontalArrowKeys) {
                 currentFocusedIndex = actualIndex < maxIndex ? actualIndex + itemsPerRow : nextIndex;
             } else {
                 currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
             }
+
+            if (disableCyclicTraversal && currentFocusedIndex > maxIndex) {
+                currentFocusedIndex = maxIndex;
+            }
+
             let newFocusedIndex = currentFocusedIndex;
             while (disabledIndexes.includes(newFocusedIndex)) {
                 if (actualIndex < 0) {
