@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,48 +11,45 @@ import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import transactionPropTypes from './transactionPropTypes';
 
-const propTypes = {
+type EReceiptOnyxProps = {
+    transaction: OnyxEntry<Transaction>;
+};
+
+type EReceiptProps = EReceiptOnyxProps & {
     /* TransactionID of the transaction this EReceipt corresponds to */
-    transactionID: PropTypes.string.isRequired,
-
-    /* Onyx Props */
-    transaction: transactionPropTypes,
+    transactionID: string;
 };
 
-const defaultProps = {
-    transaction: {},
-};
-
-function EReceipt({transaction, transactionID}) {
+function EReceipt({transaction, transactionID}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.
-    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
+    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
 
     const {
         amount: transactionAmount,
-        currency: transactionCurrency,
+        currency: transactionCurrency = '',
         merchant: transactionMerchant,
         created: transactionDate,
         cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency);
-    const amount = formattedAmount.replace(currency, '');
-    const cardDescription = CardUtils.getCardDescription(transactionCardID);
+    const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
+    const cardDescription = transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '';
 
-    const secondaryTextColorStyle = StyleUtils.getColorStyle(secondaryColor);
+    const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
 
     return (
-        <View style={[styles.eReceiptContainer, StyleUtils.getBackgroundColorStyle(primaryColor)]}>
+        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
             <View style={styles.fullScreen}>
                 <EReceiptThumbnail transactionID={transactionID} />
             </View>
@@ -99,10 +96,8 @@ function EReceipt({transaction, transactionID}) {
 }
 
 EReceipt.displayName = 'EReceipt';
-EReceipt.propTypes = propTypes;
-EReceipt.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<EReceiptProps, EReceiptOnyxProps>({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
