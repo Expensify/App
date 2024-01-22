@@ -43,6 +43,8 @@ type BusinessInfoProps = BusinessInfoOnyxProps & {
     onCloseButtonPress: () => void;
 };
 
+const BUSINESS_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     NameBusiness,
     TaxIdBusiness,
@@ -54,8 +56,6 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     IncorporationStateBusiness,
     ConfirmationBusiness,
 ];
-
-const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
 function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
@@ -69,7 +69,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
         BankAccounts.updateCompanyInformationForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {

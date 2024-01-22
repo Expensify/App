@@ -7,6 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -31,14 +32,21 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
 
     const ssnLast4InputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
     const defaultSsnLast4 = reimbursementAccountDraft?.[ssnLast4InputID] ?? '';
+    const stepFields = [ssnLast4InputID];
 
     const validate = (values: FormValues) => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [ssnLast4InputID]);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
         if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
             errors[ssnLast4InputID] = 'bankAccount.error.ssnLast4';
         }
         return errors;
     };
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: stepFields,
+        isEditing,
+        onNext,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -46,7 +54,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -65,7 +73,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
-                        shouldSaveDraft
+                        shouldSaveDraft={!isEditing}
                     />
                 </View>
             </View>

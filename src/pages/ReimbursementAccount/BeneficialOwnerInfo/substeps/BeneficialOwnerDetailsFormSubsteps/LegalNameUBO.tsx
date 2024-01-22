@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -30,11 +31,17 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
 
     const firstNameInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
     const lastNameInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}`;
-
+    const stepFields = [firstNameInputID, lastNameInputID];
     const defaultFirstName = reimbursementAccountDraft?.[firstNameInputID] ?? '';
     const defaultLastName = reimbursementAccountDraft?.[lastNameInputID] ?? '';
 
-    const validate = (values: FormValues) => ValidationUtils.getFieldRequiredErrors(values, [firstNameInputID, lastNameInputID]);
+    const validate = (values: FormValues) => ValidationUtils.getFieldRequiredErrors(values, stepFields);
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: stepFields,
+        isEditing,
+        onNext,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -42,7 +49,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -56,7 +63,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
                 inputID={firstNameInputID}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultFirstName}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
             />
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -67,7 +74,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
                 inputID={lastNameInputID}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultLastName}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
             />
         </FormProvider>
     );

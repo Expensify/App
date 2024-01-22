@@ -31,7 +31,7 @@ type ValuesToValidate = {
     acceptTerms: boolean;
 };
 
-const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
 function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
@@ -56,16 +56,18 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? null);
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
+            (account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
+        );
 
         const bankAccountData = {
-            [bankInfoStepKeys.ROUTING_NUMBER]: selectedPlaidBankAccount?.[bankInfoStepKeys.ROUTING_NUMBER],
-            [bankInfoStepKeys.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.[bankInfoStepKeys.ACCOUNT_NUMBER],
-            [bankInfoStepKeys.PLAID_MASK]: selectedPlaidBankAccount?.mask,
-            [bankInfoStepKeys.IS_SAVINGS]: selectedPlaidBankAccount?.[bankInfoStepKeys.IS_SAVINGS],
-            [bankInfoStepKeys.BANK_NAME]: plaidData?.[bankInfoStepKeys.BANK_NAME] ?? '',
-            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.[bankInfoStepKeys.PLAID_ACCOUNT_ID],
-            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: plaidData?.[bankInfoStepKeys.PLAID_ACCESS_TOKEN] ?? '',
+            [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
+            [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER],
+            [BANK_INFO_STEP_KEYS.PLAID_MASK]: selectedPlaidBankAccount?.mask,
+            [BANK_INFO_STEP_KEYS.IS_SAVINGS]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.IS_SAVINGS],
+            [BANK_INFO_STEP_KEYS.BANK_NAME]: plaidData?.[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
+            [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID],
+            [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
         };
 
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
@@ -73,7 +75,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const selectedPlaidAccountID = reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '';
+    const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.

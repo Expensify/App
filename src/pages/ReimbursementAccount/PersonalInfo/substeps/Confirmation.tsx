@@ -27,14 +27,14 @@ type ConfirmationOnyxProps = {
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
-const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
-    const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     return (
@@ -46,7 +46,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.legalName')}
-                    title={`${values[personalInfoStepKeys.FIRST_NAME]} ${values[personalInfoStepKeys.LAST_NAME]}`}
+                    title={`${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(0);
@@ -54,7 +54,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.dob')}
-                    title={values[personalInfoStepKeys.DOB]}
+                    title={values[PERSONAL_INFO_STEP_KEYS.DOB]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(1);
@@ -62,7 +62,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.last4SSN')}
-                    title={values[personalInfoStepKeys.SSN_LAST_4]}
+                    title={values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(2);
@@ -70,7 +70,9 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.address')}
-                    title={`${values[personalInfoStepKeys.STREET]}, ${values[personalInfoStepKeys.CITY]}, ${values[personalInfoStepKeys.STATE]} ${values[personalInfoStepKeys.ZIP_CODE]}`}
+                    title={`${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${
+                        values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]
+                    }`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(3);

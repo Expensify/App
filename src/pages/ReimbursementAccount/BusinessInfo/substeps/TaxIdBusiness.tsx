@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -22,10 +23,11 @@ type TaxIdBusinessOnyxProps = {
 
 type TaxIdBusinessProps = TaxIdBusinessOnyxProps & SubStepProps;
 
-const companyTaxIdKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
+const COMPANY_TAX_ID_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
+const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [companyTaxIdKey]);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
         errors.companyTaxID = 'bankAccount.error.taxID';
@@ -39,8 +41,13 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
     const styles = useThemeStyles();
     const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
-
     const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        isEditing,
+        onNext,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -48,7 +55,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -56,14 +63,14 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={TextInput}
-                inputID={companyTaxIdKey}
+                inputID={COMPANY_TAX_ID_KEY}
                 label={translate('businessInfoStep.taxIDNumber')}
                 aria-label={translate('businessInfoStep.taxIDNumber')}
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={defaultCompanyTaxId}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableCompanyTaxID}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
                 shouldUseDefaultValue={shouldDisableCompanyTaxID}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}

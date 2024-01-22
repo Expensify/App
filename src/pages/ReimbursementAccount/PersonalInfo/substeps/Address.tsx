@@ -5,12 +5,12 @@ import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
-import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -24,19 +24,19 @@ type AddressOnyxProps = {
 
 type AddressProps = AddressOnyxProps & SubStepProps;
 
-const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_KEY = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 const INPUT_KEYS = {
-    street: personalInfoStepKey.STREET,
-    city: personalInfoStepKey.CITY,
-    state: personalInfoStepKey.STATE,
-    zipCode: personalInfoStepKey.ZIP_CODE,
+    street: PERSONAL_INFO_STEP_KEY.STREET,
+    city: PERSONAL_INFO_STEP_KEY.CITY,
+    state: PERSONAL_INFO_STEP_KEY.STATE,
+    zipCode: PERSONAL_INFO_STEP_KEY.ZIP_CODE,
 };
 
-const REQUIRED_FIELDS = [personalInfoStepKey.STREET, personalInfoStepKey.CITY, personalInfoStepKey.STATE, personalInfoStepKey.ZIP_CODE];
+const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.STATE, PERSONAL_INFO_STEP_KEY.ZIP_CODE];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
         errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
@@ -54,16 +54,17 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
     const styles = useThemeStyles();
 
     const defaultValues = {
-        street: reimbursementAccount?.achData?.[personalInfoStepKey.STREET] ?? '',
-        city: reimbursementAccount?.achData?.[personalInfoStepKey.CITY] ?? '',
-        state: reimbursementAccount?.achData?.[personalInfoStepKey.STATE] ?? '',
-        zipCode: reimbursementAccount?.achData?.[personalInfoStepKey.ZIP_CODE] ?? '',
+        street: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
+        city: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
+        state: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
+        zipCode: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
     };
 
-    const handleSubmit = (values: BankAccounts.PersonalAddress) => {
-        BankAccounts.addPersonalAddressForDraft(values);
-        onNext();
-    };
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        isEditing,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
@@ -74,13 +75,13 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
             onSubmit={handleSubmit}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldSaveDraft={!isEditing}
         >
             <View>
                 <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterYourAddress')}</Text>
                 <Text>{translate('common.noPO')}</Text>
                 <AddressForm
                     inputKeys={INPUT_KEYS}
-                    shouldSaveDraft
                     translate={translate}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}

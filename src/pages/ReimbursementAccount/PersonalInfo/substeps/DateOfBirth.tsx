@@ -7,6 +7,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -27,10 +28,11 @@ type DateOfBirthOnyxProps = {
 
 type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
 
-const personalInfoDobKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB;
+const PERSONAL_INFO_DOB_KEY = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB;
+const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoDobKey]);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.dob) {
         if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
@@ -47,10 +49,16 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const dobDefaultValue = reimbursementAccount?.achData?.[personalInfoDobKey] ?? reimbursementAccountDraft?.[personalInfoDobKey] ?? '';
+    const dobDefaultValue = reimbursementAccount?.achData?.[PERSONAL_INFO_DOB_KEY] ?? reimbursementAccountDraft?.[PERSONAL_INFO_DOB_KEY] ?? '';
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        isEditing,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
@@ -58,23 +66,23 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
+            shouldSaveDraft={!isEditing}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={DatePicker}
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                inputID={personalInfoDobKey}
+                inputID={PERSONAL_INFO_DOB_KEY}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}
                 defaultValue={dobDefaultValue}
                 minDate={minDate}
                 maxDate={maxDate}
-                shouldSaveDraft
             />
             <HelpLinks containerStyles={[styles.mt5]} />
         </FormProvider>

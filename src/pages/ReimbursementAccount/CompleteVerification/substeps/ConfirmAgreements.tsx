@@ -25,14 +25,14 @@ type ConfirmAgreementsOnyxProps = {
 type ConfirmAgreementsProps = SubStepProps & ConfirmAgreementsOnyxProps;
 
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
-const requiredFields = [
+const STEP_FIELDS = [
     CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
     CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.ACCEPT_TERMS_AND_CONDITIONS,
     CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY.CERTIFY_TRUE_INFORMATION,
 ];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
         errors.acceptTermsAndConditions = 'common.error.acceptTerms';

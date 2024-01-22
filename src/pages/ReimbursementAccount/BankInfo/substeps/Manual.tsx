@@ -23,15 +23,16 @@ type ManualProps = ManualOnyxProps & SubStepProps;
 
 type FormValues = {routingNumber: string; accountNumber: string};
 
-const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const STEP_FIELDS = [BANK_INFO_STEP_KEYS.ROUTING_NUMBER, BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER];
 
 function Manual({reimbursementAccount, onNext}: ManualProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultValues: FormValues = {
-        [bankInfoStepKeys.ROUTING_NUMBER]: reimbursementAccount?.achData?.[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
-        [bankInfoStepKeys.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
+        [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
+        [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
     };
 
     /**
@@ -40,8 +41,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
      */
     const validate = useCallback(
         (values: FormValues) => {
-            const requiredFields = [bankInfoStepKeys.ROUTING_NUMBER, bankInfoStepKeys.ACCOUNT_NUMBER];
-            const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
             const routingNumber = values.routingNumber?.trim();
 
             if (
@@ -80,11 +80,11 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
-                inputID={bankInfoStepKeys.ROUTING_NUMBER}
+                inputID={BANK_INFO_STEP_KEYS.ROUTING_NUMBER}
                 label={translate('bankAccount.routingNumber')}
                 aria-label={translate('bankAccount.routingNumber')}
                 role={CONST.ROLE.PRESENTATION}
-                defaultValue={defaultValues[bankInfoStepKeys.ROUTING_NUMBER]}
+                defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
                 shouldSaveDraft
@@ -93,12 +93,12 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
-                inputID={bankInfoStepKeys.ACCOUNT_NUMBER}
+                inputID={BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER}
                 containerStyles={[styles.mt4]}
                 label={translate('bankAccount.accountNumber')}
                 aria-label={translate('bankAccount.accountNumber')}
                 role={CONST.ROLE.PRESENTATION}
-                defaultValue={defaultValues[bankInfoStepKeys.ACCOUNT_NUMBER]}
+                defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableInputs}
                 shouldSaveDraft

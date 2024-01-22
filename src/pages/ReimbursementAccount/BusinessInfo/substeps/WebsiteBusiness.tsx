@@ -7,6 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -30,10 +31,11 @@ type WebsiteBusinessOnyxProps = {
 
 type WebsiteBusinessProps = WebsiteBusinessOnyxProps & SubStepProps;
 
-const companyWebsiteKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_WEBSITE;
+const COMPANY_WEBSITE_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_WEBSITE;
+const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [companyWebsiteKey]);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
         errors.website = 'bankAccount.error.website';
@@ -52,6 +54,12 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     );
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        isEditing,
+        onNext,
+    });
+
     useEffect(() => {
         BankAccounts.addBusinessWebsiteForDraft(defaultCompanyWebsite);
     }, [defaultCompanyWebsite]);
@@ -62,7 +70,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -71,13 +79,13 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={TextInput}
-                inputID={companyWebsiteKey}
+                inputID={COMPANY_WEBSITE_KEY}
                 label={translate('businessInfoStep.companyWebsite')}
                 aria-label={translate('businessInfoStep.companyWebsite')}
                 role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultCompanyWebsite}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
                 inputMode={CONST.INPUT_MODE.URL}
             />
         </FormProvider>

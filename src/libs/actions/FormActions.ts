@@ -31,4 +31,5 @@ function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
     Onyx.merge(FormUtils.getDraftKey(formID), undefined);
 }
 
+export type {OnyxFormKeyWithoutDraft};
 export {setDraftValues, setErrorFields, setErrors, setIsLoading, clearDraftValues};

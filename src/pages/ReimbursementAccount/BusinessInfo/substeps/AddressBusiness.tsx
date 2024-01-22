@@ -4,11 +4,11 @@ import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -22,19 +22,19 @@ type AddressBusinessOnyxProps = {
 
 type AddressBusinessProps = AddressBusinessOnyxProps & SubStepProps;
 
-const companyBusinessInfoKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+const COMPANY_BUSINESS_INFO_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
 const INPUT_KEYS = {
-    street: companyBusinessInfoKey.STREET,
-    city: companyBusinessInfoKey.CITY,
-    state: companyBusinessInfoKey.STATE,
-    zipCode: companyBusinessInfoKey.ZIP_CODE,
+    street: COMPANY_BUSINESS_INFO_KEY.STREET,
+    city: COMPANY_BUSINESS_INFO_KEY.CITY,
+    state: COMPANY_BUSINESS_INFO_KEY.STATE,
+    zipCode: COMPANY_BUSINESS_INFO_KEY.ZIP_CODE,
 };
 
-const REQUIRED_FIELDS = [companyBusinessInfoKey.STREET, companyBusinessInfoKey.CITY, companyBusinessInfoKey.STATE, companyBusinessInfoKey.ZIP_CODE];
+const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY.CITY, COMPANY_BUSINESS_INFO_KEY.STATE, COMPANY_BUSINESS_INFO_KEY.ZIP_CODE];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
         errors.addressStreet = 'bankAccount.error.addressStreet';
@@ -58,10 +58,11 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
         zipCode: reimbursementAccount?.achData?.addressZipCode ?? '',
     };
 
-    const handleSubmit = (values: BankAccounts.BusinessAddress) => {
-        BankAccounts.addBusinessAddressForDraft(values);
-        onNext();
-    };
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        isEditing,
+        onNext,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -77,7 +78,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
             <Text>{translate('common.noPO')}</Text>
             <AddressForm
                 inputKeys={INPUT_KEYS}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
                 translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.companyAddress"

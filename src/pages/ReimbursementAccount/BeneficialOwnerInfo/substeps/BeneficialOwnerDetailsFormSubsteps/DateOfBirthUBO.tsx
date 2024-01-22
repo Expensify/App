@@ -7,6 +7,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -30,6 +31,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
     const styles = useThemeStyles();
 
     const dobInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}`;
+    const stepFields = [dobInputID];
 
     const dobDefaultValue = reimbursementAccountDraft?.[dobInputID] ?? '';
 
@@ -37,7 +39,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     const validate = (values: FormValues) => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [dobInputID]);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
         if (values[dobInputID]) {
             if (!ValidationUtils.isValidPastDate(values[dobInputID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[dobInputID])) {
@@ -49,13 +51,20 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
 
         return errors;
     };
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: stepFields,
+        isEditing,
+        onNext,
+    });
+
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -65,14 +74,13 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
                 InputComponent={DatePicker}
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={dobInputID}
-                z
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}
                 defaultValue={dobDefaultValue}
                 minDate={minDate}
                 maxDate={maxDate}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
             />
         </FormProvider>
     );

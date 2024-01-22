@@ -6,6 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -22,14 +23,21 @@ type IncorporationStateBusinessOnyxProps = {
 
 type IncorporationStateBusinessProps = IncorporationStateBusinessOnyxProps & SubStepProps;
 
-const companyIncorporationStateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
+const COMPANY_INCORPORATION_STATE_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
+const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
 
-const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationStateKey]);
+const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
 function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: IncorporationStateBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultCompanyIncorporationState = reimbursementAccount?.achData?.incorporationState ?? '';
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        isEditing,
+        onNext,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -37,7 +45,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
@@ -46,10 +54,10 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={StatePicker}
                 fomrID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                inputID={companyIncorporationStateKey}
+                inputID={COMPANY_INCORPORATION_STATE_KEY}
                 label={translate('businessInfoStep.incorporationState')}
                 defaultValue={defaultCompanyIncorporationState}
-                shouldSaveDraft
+                shouldSaveDraft={!isEditing}
                 wrapperStyle={[styles.ph0, styles.mt4]}
             />
         </FormProvider>

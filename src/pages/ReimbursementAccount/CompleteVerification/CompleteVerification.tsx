@@ -33,8 +33,8 @@ type CompleteVerificationProps = CompleteVerificationOnyxProps & {
     onCloseButtonPress: () => void;
 };
 
-const BODY_CONTENT: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
 function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
@@ -50,7 +50,7 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
         });
     }, [reimbursementAccount, values]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {

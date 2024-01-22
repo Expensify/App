@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -27,35 +28,41 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const INPUT_KEYS: Record<string, keyof FormValues> = {
+    const inputKeys: Record<string, keyof FormValues> = {
         street: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.STREET}`,
         city: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.CITY}`,
         state: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.STATE}`,
         zipCode: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.ZIP_CODE}`,
     };
 
-    const REQUIRED_FIELDS = [INPUT_KEYS.street, INPUT_KEYS.city, INPUT_KEYS.state, INPUT_KEYS.zipCode];
+    const stepFields = [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode];
 
     const defaultValues = {
-        street: reimbursementAccountDraft?.[INPUT_KEYS.street] ?? '',
-        city: reimbursementAccountDraft?.[INPUT_KEYS.city] ?? '',
-        state: reimbursementAccountDraft?.[INPUT_KEYS.state] ?? '',
-        zipCode: reimbursementAccountDraft?.[INPUT_KEYS.zipCode] ?? '',
+        street: reimbursementAccountDraft?.[inputKeys.street] ?? '',
+        city: reimbursementAccountDraft?.[inputKeys.city] ?? '',
+        state: reimbursementAccountDraft?.[inputKeys.state] ?? '',
+        zipCode: reimbursementAccountDraft?.[inputKeys.zipCode] ?? '',
     };
 
     const validate = (values: FormValues) => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
-        if (values[INPUT_KEYS.street] && !ValidationUtils.isValidAddress(values[INPUT_KEYS.street])) {
-            errors[INPUT_KEYS.street] = 'bankAccount.error.addressStreet';
+        if (values[inputKeys.street] && !ValidationUtils.isValidAddress(values[inputKeys.street])) {
+            errors[inputKeys.street] = 'bankAccount.error.addressStreet';
         }
 
-        if (values[INPUT_KEYS.zipCode] && !ValidationUtils.isValidZipCode(values[INPUT_KEYS.zipCode])) {
-            errors[INPUT_KEYS.zipCode] = 'bankAccount.error.zipCode';
+        if (values[inputKeys.zipCode] && !ValidationUtils.isValidZipCode(values[inputKeys.zipCode])) {
+            errors[inputKeys.zipCode] = 'bankAccount.error.zipCode';
         }
 
         return errors;
     };
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: stepFields,
+        isEditing,
+        onNext,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
@@ -63,15 +70,15 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadline]}>{translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}</Text>
             <Text>{translate('common.noPO')}</Text>
             <AddressForm
-                inputKeys={INPUT_KEYS}
-                shouldSaveDraft
+                inputKeys={inputKeys}
+                shouldSaveDraft={!isEditing}
                 translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.streetAddress"

@@ -7,6 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -24,10 +25,11 @@ type SocialSecurityNumberOnyxProps = {
 
 type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
 
-const personalInfoStepKey = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const PERSONAL_INFO_STEP_KEY = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoStepKey.SSN_LAST_4]);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
         errors.ssnLast4 = 'bankAccount.error.ssnLast4';
@@ -39,7 +41,13 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultSsnLast4 = reimbursementAccount?.achData?.[personalInfoStepKey.SSN_LAST_4] ?? '';
+    const defaultSsnLast4 = reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
+
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        isEditing,
+    });
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
@@ -47,10 +55,10 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
-            shouldSaveDraft
+            shouldSaveDraft={!isEditing}
         >
             <View>
                 <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterTheLast4')}</Text>
@@ -59,7 +67,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
                     <InputWrapper
                         // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
-                        inputID={personalInfoStepKey.SSN_LAST_4}
+                        inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
                         label={translate('personalInfoStep.last4SSN')}
                         aria-label={translate('personalInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
@@ -67,7 +75,6 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
-                        shouldSaveDraft
                     />
                 </View>
                 <HelpLinks containerStyles={[styles.mt5]} />

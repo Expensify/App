@@ -34,10 +34,10 @@ type ConfirmationBusinessProps = ConfirmationBusinessOnyxProps & SubStepProps;
 
 type States = keyof typeof COMMON_CONST.STATES;
 
-const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
+const BUSINESS_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
 const validate = (values: FormValues): OnyxCommon.Errors => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS]);
+    const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
 
     if (!values.hasNoConnectionToCannabis) {
         errors.hasNoConnectionToCannabis = 'bankAccount.error.restrictedBusiness';
@@ -50,11 +50,11 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
-    const defaultCheckboxState = reimbursementAccountDraft?.[businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
+    const defaultCheckboxState = reimbursementAccountDraft?.[BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
 
     return (
         <ScreenWrapper
@@ -65,7 +65,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb0]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.businessName')}
-                    title={values[businessInfoStepKeys.COMPANY_NAME]}
+                    title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(0);
@@ -73,7 +73,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.taxIDNumber')}
-                    title={values[businessInfoStepKeys.COMPANY_TAX_ID]}
+                    title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(1);
@@ -81,7 +81,9 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.companyAddress')}
-                    title={`${values[businessInfoStepKeys.STREET]}, ${values[businessInfoStepKeys.CITY]}, ${values[businessInfoStepKeys.STATE]} ${values[businessInfoStepKeys.ZIP_CODE]}`}
+                    title={`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${
+                        values[BUSINESS_INFO_STEP_KEYS.ZIP_CODE]
+                    }`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(4);
@@ -89,7 +91,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.phoneNumber')}
-                    title={values[businessInfoStepKeys.COMPANY_PHONE]}
+                    title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(3);
@@ -97,7 +99,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.companyWebsite')}
-                    title={values[businessInfoStepKeys.COMPANY_WEBSITE]}
+                    title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(2);
@@ -105,7 +107,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.companyType')}
-                    title={values[businessInfoStepKeys.INCORPORATION_TYPE]}
+                    title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(5);
@@ -113,7 +115,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.incorporationDate')}
-                    title={values[businessInfoStepKeys.INCORPORATION_DATE]}
+                    title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(6);
@@ -121,7 +123,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.incorporationState')}
-                    title={translate(`allStates.${values[businessInfoStepKeys.INCORPORATION_STATE] as States}.stateName`)}
+                    title={translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(7);
@@ -138,7 +140,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 >
                     <CheckboxWithLabel
                         aria-label={`${translate('businessInfoStep.confirmCompanyIsNot')} ${translate('businessInfoStep.listOfRestrictedBusinesses')}`}
-                        inputID={businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS}
+                        inputID={BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS}
                         defaultValue={defaultCheckboxState}
                         LabelComponent={() => (
                             <Text>

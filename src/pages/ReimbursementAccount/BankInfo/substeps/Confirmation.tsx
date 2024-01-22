@@ -31,7 +31,7 @@ type ConfirmationOnyxProps = {
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
-const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}: ConfirmationProps) {
     const {translate} = useLocalize();
@@ -41,7 +41,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const setupType = reimbursementAccount?.achData?.subStep ?? '';
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     const handleConnectDifferentAccount = () => {
@@ -50,13 +50,13 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
             return;
         }
         const bankAccountData = {
-            [bankInfoStepKeys.ROUTING_NUMBER]: '',
-            [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
-            [bankInfoStepKeys.PLAID_MASK]: '',
-            [bankInfoStepKeys.IS_SAVINGS]: '',
-            [bankInfoStepKeys.BANK_NAME]: '',
-            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
-            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
+            [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
+            [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
+            [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
+            [BANK_INFO_STEP_KEYS.IS_SAVINGS]: '',
+            [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
+            [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
+            [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
@@ -81,11 +81,11 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
                             <View>
                                 <View style={[styles.mb3]}>
                                     <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.routingNumber')}</Text>
-                                    <Text style={styles.confirmBankInfoNumber}>{values[bankInfoStepKeys.ROUTING_NUMBER]}</Text>
+                                    <Text style={styles.confirmBankInfoNumber}>{values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}</Text>
                                 </View>
                                 <View>
                                     <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.accountNumber')}</Text>
-                                    <Text style={styles.confirmBankInfoNumber}>{values[bankInfoStepKeys.ACCOUNT_NUMBER]}</Text>
+                                    <Text style={styles.confirmBankInfoNumber}>{values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}</Text>
                                 </View>
                             </View>
                         </View>
@@ -98,8 +98,8 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
                             iconStyles={[styles.confirmBankInfoCompanyIcon]}
                             iconFill={theme.iconHovered}
                             wrapperStyle={[styles.pl0, styles.mb6]}
-                            title={values[bankInfoStepKeys.BANK_NAME]}
-                            description={`${translate('bankAccount.accountEnding')} ${(values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
+                            title={values[BANK_INFO_STEP_KEYS.BANK_NAME]}
+                            description={`${translate('bankAccount.accountEnding')} ${(values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
                         />
                     )}
                     <Text style={[styles.confirmBankInfoText, styles.mb4]}>{translate('bankAccount.thisBankAccount')}</Text>
