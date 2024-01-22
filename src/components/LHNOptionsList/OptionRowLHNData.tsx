@@ -41,7 +41,7 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport?.reportID, receiptTransactions, reportActions]);
 
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction);
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -49,10 +49,10 @@ function OptionRowLHNData({
             report: fullReport,
             reportActions,
             personalDetails,
-            preferredLocale,
+            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations,
+            hasViolations: !!hasViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;

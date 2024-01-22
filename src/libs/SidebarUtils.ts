@@ -11,6 +11,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -247,15 +248,23 @@ type ActorDetails = {
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
-function getOptionData(
-    report: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: OnyxEntry<Policy>,
-    parentReportAction: OnyxEntry<ReportAction>,
-    hasViolations: boolean,
-): ReportUtils.OptionData | undefined {
+function getOptionData({
+    report,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    policy,
+    parentReportAction,
+    hasViolations,
+}: {
+    report: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
+    policy: OnyxEntry<Policy> | undefined;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
+    hasViolations: boolean;
+}): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.

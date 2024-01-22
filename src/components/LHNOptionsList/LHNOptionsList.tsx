@@ -4,6 +4,7 @@ import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,8 +31,10 @@ function LHNOptionsList({
     transactions = {},
     currentReportID = '',
     draftComments = {},
+    transactionViolations = {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
+    const {canUseViolations} = usePermissions();
     /**
      * Function which renders a row in the list
      */
@@ -64,10 +67,26 @@ function LHNOptionsList({
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
+                    transactionViolations={transactionViolations}
+                    canUseViolations={canUseViolations}
                 />
             );
         },
-        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [
+            currentReportID,
+            draftComments,
+            onSelectRow,
+            optionMode,
+            personalDetails,
+            policy,
+            preferredLocale,
+            reportActions,
+            reports,
+            shouldDisableFocusOptions,
+            transactions,
+            transactionViolations,
+            canUseViolations,
+        ],
     );
 
     return (
@@ -112,6 +131,9 @@ export default withCurrentReportID(
         },
         draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     })(LHNOptionsList),
 );

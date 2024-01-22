@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -31,6 +31,9 @@ type LHNOptionsListOnyxProps = {
 
     /** List of draft comments */
     draftComments: OnyxCollection<string>;
+
+    /** The list of transaction violations */
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
 };
 
 type CustomLHNOptionsListProps = {
@@ -88,6 +91,12 @@ type OptionRowLHNDataProps = {
 
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
+
+    /** List of transaction violation */
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+
+    /** Whether the user can use violations */
+    canUseViolations: boolean | undefined;
 };
 
 type OptionRowLHNProps = {
