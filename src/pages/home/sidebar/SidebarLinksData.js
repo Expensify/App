@@ -272,7 +272,7 @@ export default compose(
             initialValue: {},
         },
         transactionViolations: {
-            key: ONYXKEYS.TRANSACTION_VIOLATIONS,
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
             initialValue: {},
         },
     }),
