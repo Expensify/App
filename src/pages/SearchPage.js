@@ -14,6 +14,7 @@ import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -161,6 +162,10 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
         }
     };
 
+    const dismissCallToAction = (referralContentType) => {
+        User.dismissReferralBanner(referralContentType);
+    };
+
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
@@ -189,6 +194,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
                             shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             shouldShowReferralCTA
+                            onCallToActionClose={dismissCallToAction}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onLayout={searchRendered}
