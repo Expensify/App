@@ -376,7 +376,7 @@ type OnyxValues = {
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
-    [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
+    [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;

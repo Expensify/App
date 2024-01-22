@@ -7,6 +7,7 @@ import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
+import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
 import type {AddDebitCardForm, DateOfBirthForm} from './Form';
@@ -78,6 +79,7 @@ export type {
     Card,
     Credentials,
     Currency,
+    CurrencyList,
     CustomStatusDraft,
     DateOfBirthForm,
     Download,

@@ -11,17 +11,17 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Currency} from '@src/types/onyx';
+import type {CurrencyList} from '@src/types/onyx/Currency';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceSettingsCurrentPageWithOnyxProps = {
+type WorkspaceSettingsCurrentPageOnyxProps = {
     /** Constant, list of available currencies */
-    currencyList: OnyxEntry<Record<string, Currency>>;
+    currencyList: OnyxEntry<CurrencyList>;
 };
 
-type WorkspaceSettingsCurrentPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceSettingsCurrentPageWithOnyxProps;
+type WorkspaceSettingsCurrentPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceSettingsCurrentPageOnyxProps;
 
 type WorkspaceSettingsCurrencyPageSectionItem = {
     text: string;
@@ -31,7 +31,7 @@ type WorkspaceSettingsCurrencyPageSectionItem = {
 
 const getDisplayText = (currencyCode: string, currencySymbol: string) => `${currencyCode} - ${currencySymbol}`;
 
-function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportData}: WorkspaceSettingsCurrentPageProps) {
+function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingReportData = true}: WorkspaceSettingsCurrentPageProps) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
@@ -106,7 +106,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
 WorkspaceSettingsCurrencyPage.displayName = 'WorkspaceSettingsCurrencyPage';
 
 export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceSettingsCurrentPageProps, WorkspaceSettingsCurrentPageWithOnyxProps>({
+    withOnyx<WorkspaceSettingsCurrentPageProps, WorkspaceSettingsCurrentPageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceSettingsCurrencyPage),
 );

@@ -22,7 +22,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Currency} from '@src/types/onyx';
+import type {CurrencyList} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
@@ -31,7 +31,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkSpaceSettingsPageOnyxProps = {
     /** Constant, list of available currencies */
-    currencyList: OnyxEntry<Record<string, Currency>>;
+    currencyList:  OnyxEntry<CurrencyList>;
 };
 
 type WorkSpaceSettingsPageProps = WithPolicyProps & WorkSpaceSettingsPageOnyxProps;
