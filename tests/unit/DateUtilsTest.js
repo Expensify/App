@@ -213,4 +213,30 @@ describe('DateUtils', () => {
             });
         });
     });
+
+    describe('getLastBusinessDayOfMonth', () => {
+        const scenarios = [
+            {
+                // Last business of May in 2025
+                inputDate: new Date(2025, 4),
+                expectedResult: 30,
+            },
+            {
+                // Last business of January in 2024
+                inputDate: new Date(2024, 0),
+                expectedResult: 31,
+            },
+            {
+                // Last business of September in 2023
+                inputDate: new Date(2023, 8),
+                expectedResult: 29,
+            },
+        ];
+
+        test.each(scenarios)('returns a last business day of an input date', ({inputDate, expectedResult}) => {
+            const lastBusinessDay = DateUtils.getLastBusinessDayOfMonth(inputDate);
+
+            expect(lastBusinessDay).toEqual(expectedResult);
+        });
+    });
 });
