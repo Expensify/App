@@ -22,7 +22,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import pkg from '../../../../package.json';
+import pkg from '../../../package.json';
 
 const propTypes = {
     ...withLocalizePropTypes,
