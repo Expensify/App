@@ -10,7 +10,8 @@ const test = () => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for chat opening');
 
-    const reportID = ''; // report.onyxData[0].value; // TODO: get report ID!
+    // #announce Chat with many messages
+    const reportID = '5421294415618529';
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
