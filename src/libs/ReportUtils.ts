@@ -14,7 +14,20 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyReportField,
+    Report,
+    ReportAction,
+    ReportMetadata,
+    Session,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -25,6 +38,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -36,8 +50,8 @@ import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
@@ -91,9 +105,35 @@ type ReportAndWorkspaceName = {
     workspaceName?: string;
 };
 
+type OptimisticAddCommentReportAction = Pick<
+    ReportAction,
+    | 'reportActionID'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'person'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'message'
+    | 'isFirstItem'
+    | 'isAttachment'
+    | 'attachmentInfo'
+    | 'pendingAction'
+    | 'shouldShow'
+    | 'originalMessage'
+    | 'childReportID'
+    | 'parentReportID'
+    | 'childType'
+    | 'childReportName'
+    | 'childManagerAccountID'
+    | 'childStatusNum'
+    | 'childStateNum'
+    | 'errors'
+> & {isOptimisticAction: boolean};
+
 type OptimisticReportAction = {
     commentText: string;
-    reportAction: Partial<ReportAction>;
+    reportAction: OptimisticAddCommentReportAction;
 };
 
 type UpdateOptimisticParentReportAction = {
@@ -110,6 +150,7 @@ type OptimisticExpenseReport = Pick<
     | 'policyID'
     | 'type'
     | 'ownerAccountID'
+    | 'managerID'
     | 'currency'
     | 'reportName'
     | 'stateNum'
@@ -223,6 +264,7 @@ type OptimisticChatReport = Pick<
 
 type OptimisticTaskReportAction = Pick<
     ReportAction,
+    | 'reportActionID'
     | 'actionName'
     | 'actorAccountID'
     | 'automatic'
@@ -233,9 +275,11 @@ type OptimisticTaskReportAction = Pick<
     | 'originalMessage'
     | 'person'
     | 'pendingAction'
-    | 'reportActionID'
     | 'shouldShow'
     | 'isFirstItem'
+    | 'previousMessage'
+    | 'errors'
+    | 'linkMetadata'
 >;
 
 type OptimisticWorkspaceChats = {
@@ -273,6 +317,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'parentReportActionID'
     | 'lastVisibleActionCreated'
 >;
 
@@ -431,6 +476,19 @@ Onyx.connect({
     },
 });
 
+const reportActionsByReport: OnyxCollection<ReportActions> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActionsByReport[reportID] = actions;
+    },
+});
+
 function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
@@ -453,7 +511,7 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 /**
  * Returns the parentReport if the given report is a thread.
  */
-function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
+function getParentReport(report: OnyxEntry<Report> | EmptyObject): OnyxEntry<Report> | EmptyObject {
     if (!report?.parentReportID) {
         return {};
     }
@@ -616,17 +674,22 @@ function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean 
 }
 
 /**
- * Given a collection of reports returns them sorted by last read
+ * Checks if the supplied report has a common policy member with the array passed in params.
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
-    return Object.values(reports ?? {})
-        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
-        .sort((a, b) => {
-            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
-            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
+function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[]) {
+    if (!report.participantAccountIDs) {
+        return false;
+    }
 
-            return aTime.valueOf() - bTime.valueOf();
-        });
+    const policyMemberAccountIDsSet = new Set(policyMemberAccountIDs);
+
+    for (const reportParticipant of report.participantAccountIDs) {
+        if (policyMemberAccountIDsSet.has(reportParticipant)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -827,6 +890,37 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
+ * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
+ */
+function doesReportBelongToWorkspace(report: Report, policyID: string, policyMemberAccountIDs: number[]) {
+    return (
+        isConciergeChatReport(report) || (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report.policyID === policyID)
+    );
+}
+
+/**
+ * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
+ */
+function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyID = '', policyMemberAccountIDs: number[] = []) {
+    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
+}
+
+/**
+ * Given an array of reports, return them sorted by the last read timestamp.
+ */
+function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
+    return reports
+        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
+        .sort((a, b) => {
+            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
+            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
+
+            return aTime.valueOf() - bTime.valueOf();
+        });
+}
+
+/**
  * Returns true if report is still being processed
  */
 function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
@@ -896,13 +990,22 @@ function findLastAccessedReport(
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
     reportMetadata: OnyxCollection<ReportMetadata> = {},
+    policyID?: string,
+    policyMemberAccountIDs: number[] = [],
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports, reportMetadata);
+
+    let reportsValues = Object.values(reports ?? {}) as Report[];
+
+    if (!!policyID || policyMemberAccountIDs.length > 0) {
+        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyID, policyMemberAccountIDs);
+    }
+
+    let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {
@@ -912,14 +1015,6 @@ function findLastAccessedReport(
         });
     }
 
-    if (isFirstTimeNewExpensifyUser) {
-        if (sortedReports.length === 1) {
-            return sortedReports[0];
-        }
-
-        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
-    }
-
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
@@ -927,6 +1022,14 @@ function findLastAccessedReport(
         sortedReports = sortedReports.filter(
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(report?.participantAccountIDs ?? []),
         );
+    }
+
+    if (isFirstTimeNewExpensifyUser) {
+        if (sortedReports.length === 1) {
+            return sortedReports[0];
+        }
+
+        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
     }
 
     return adminReport ?? sortedReports.at(-1) ?? null;
@@ -942,7 +1045,7 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
-function isAllowedToComment(report: Report): boolean {
+function isAllowedToComment(report: OnyxEntry<Report>): boolean {
     // Default to allowing all users to post
     const capability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -2489,11 +2592,11 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  */
 function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string, parentReportID = '', parentReportActionID = ''): OnyxUpdate | EmptyObject {
     const report = getReport(reportID);
-    if (!report || !!isEmptyObject(report)) {
+    if (!report || isEmptyObject(report)) {
         return {};
     }
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (!parentReportAction || !!isEmptyObject(parentReportAction)) {
+    if (!parentReportAction || isEmptyObject(parentReportAction)) {
         return {};
     }
 
@@ -2602,7 +2705,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const stateNum = isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN;
     const statusNum = isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    return {
+    const expenseReport: OptimisticExpenseReport = {
         reportID: generateReportID(),
         chatReportID,
         policyID,
@@ -2619,6 +2722,13 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
+
+    // The account defined in the policy submitsTo field is the approver/ manager for this report
+    if (policy?.submitsTo) {
+        expenseReport.managerID = policy.submitsTo;
+    }
+
+    return expenseReport;
 }
 
 /**
@@ -3434,13 +3544,57 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
+ * Checks to see if a report's parentAction is a money request that contains a violation
+ */
+function doesTransactionThreadHaveViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: ReportAction): boolean {
+    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return false;
+    }
+    const {IOUTransactionID, IOUReportID} = parentReportAction.originalMessage ?? {};
+    if (!IOUTransactionID || !IOUReportID) {
+        return false;
+    }
+    if (!isCurrentUserSubmitter(IOUReportID)) {
+        return false;
+    }
+    if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
+        return false;
+    }
+    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
+}
+
+/**
+ * Checks to see if a report contains a violation
+ */
+function hasViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(reportID);
+    return transactions.some((transaction) => TransactionUtils.hasViolation(transaction.transactionID, transactionViolations));
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
  * filter out the majority of reports before filtering out very specific minority of reports.
  */
-function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: string, isInGSDMode: boolean, betas: Beta[], policies: OnyxCollection<Policy>, excludeEmptyChats = false) {
+function shouldReportBeInOptionList({
+    report,
+    currentReportId,
+    isInGSDMode,
+    betas,
+    policies,
+    excludeEmptyChats,
+    doesReportHaveViolations,
+}: {
+    report: OnyxEntry<Report>;
+    currentReportId: string;
+    isInGSDMode: boolean;
+    betas: Beta[];
+    policies: OnyxCollection<Policy>;
+    excludeEmptyChats: boolean;
+    doesReportHaveViolations: boolean;
+}) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
@@ -3496,6 +3650,11 @@ function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: 
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (report.errorFields?.addWorkspaceRoom) {
+        return true;
+    }
+
+    // Always show IOU reports with violations
+    if (isExpenseRequest(report) && doesReportHaveViolations) {
         return true;
     }
 
@@ -4131,7 +4290,7 @@ function getTaskAssigneeChatOnyxData(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: optimisticAssigneeAddComment.reportAction},
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: optimisticAssigneeAddComment.reportAction as ReportAction},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4567,6 +4726,8 @@ export {
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    doesTransactionThreadHaveViolations,
+    hasViolations,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
@@ -4575,7 +4736,17 @@ export {
     getReportFieldTitle,
     shouldDisplayThreadReplies,
     shouldDisableThread,
+    doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticClosedReportAction, OptimisticCreatedReportAction};
+export type {
+    ExpenseOriginalMessage,
+    OptionData,
+    OptimisticChatReport,
+    DisplayNameWithTooltips,
+    OptimisticTaskReportAction,
+    OptimisticAddCommentReportAction,
+    OptimisticCreatedReportAction,
+    OptimisticClosedReportAction,
+};

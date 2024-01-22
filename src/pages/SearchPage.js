@@ -33,6 +33,13 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
+
+    /**
+     * The navigation prop passed by the navigator.
+     *
+     * This is required because transitionEnd event doesn't trigger in the automated testing environment.
+     */
+    navigation: PropTypes.shape({}),
 };
 
 const defaultProps = {
@@ -40,9 +47,10 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
+    navigation: {},
 };
 
-function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
+function SearchPage({betas, personalDetails, reports, isSearchingForReports, navigation}) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
         recentReports: {},
@@ -166,6 +174,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             testID={SearchPage.displayName}
             onEntryTransitionEnd={updateOptions}
             shouldReturnFocusOnDeactivate={false}
+            navigation={navigation}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
