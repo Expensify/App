@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {
@@ -27,6 +27,7 @@ const defaultProps = {
 
 function SignInHeroCopy(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return (
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
             <Text

@@ -76,9 +76,11 @@ Note: Refunds apply to Collect or Control Group Workspaces with one month of bil
 
 Once you’ve successfully downgraded to a free Expensify account, your Workspace will be deleted and you will see a refund line item added to your Billing History.
 
-# FAQ
+{% include faq-begin.md %}
 ## Will I be charged for a monthly subscription even if I don't use SmartScans?
 Yes, the Monthly Subscription is prepaid and not based on activity, so you'll be charged regardless of usage.
 
 ## I'm on a group policy; do I need the monthly subscription too?
 Probably not. Group policy members already have unlimited SmartScans, so there's usually no need to buy the subscription. However, you can use it for personal use if you leave your company's Workspace.
+
+{% include faq-end.md %}

@@ -69,11 +69,11 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
 /**
  * Download the file based on type(image, video, other file types)for iOS
  */
-const fileDownload: FileDownload = (fileUrl, fileName) =>
+const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = FileUtils.getFileType(fileUrl);
-        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(fileUrl);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(fileUrl));
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
@@ -93,7 +93,7 @@ const fileDownload: FileDownload = (fileUrl, fileName) =>
                     return;
                 }
 
-                FileUtils.showSuccessAlert();
+                FileUtils.showSuccessAlert(successMessage);
             })
             .catch((err) => {
                 // iOS shows permission popup only once. Subsequent request will only throw an error.

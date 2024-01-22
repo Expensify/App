@@ -108,7 +108,7 @@ const defaultProps = {
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sectionHeaderStyle: undefined,
-    listContainerStyles: [{flex: 1}],
+    listContainerStyles: undefined,
     sections: [],
     focusedIndex: 0,
     selectedOptions: [],

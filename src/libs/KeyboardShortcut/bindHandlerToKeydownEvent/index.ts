@@ -1,6 +1,6 @@
 import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import BindHandlerToKeydownEvent from './types';
+import type BindHandlerToKeydownEvent from './types';
 
 /**
  * Checks if an event for that key is configured and if so, runs it.

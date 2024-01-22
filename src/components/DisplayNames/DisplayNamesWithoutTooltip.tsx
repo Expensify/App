@@ -1,9 +1,9 @@
 import React from 'react';
-import {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import StringUtils from '@libs/StringUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type DisplayNamesWithoutTooltipProps = {
     /** The full title of the DisplayNames component (not split up) */

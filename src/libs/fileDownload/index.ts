@@ -29,10 +29,7 @@ const fileDownload: FileDownload = (url, fileName) => {
             // adding href to anchor
             link.href = href;
             link.style.display = 'none';
-            link.setAttribute(
-                'download',
-                FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url), // generating the file name
-            );
+            link.download = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
 
             // Append to html link element page
             document.body.appendChild(link);

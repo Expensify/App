@@ -5,9 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 

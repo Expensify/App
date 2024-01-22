@@ -9,18 +9,22 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import refPropTypes from '@components/refPropTypes';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
     amount: PropTypes.number,
+
+    /** Calculated tax amount based on selected tax rate */
+    taxAmount: PropTypes.number,
 
     /** Currency chosen by user or saved in Onyx */
     currency: PropTypes.string,
@@ -38,15 +42,16 @@ const propTypes = {
     onSubmitButtonPress: PropTypes.func.isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+    selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
 };
 
 const defaultProps = {
     amount: 0,
+    taxAmount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
-    selectedTab: CONST.TAB.MANUAL,
+    selectedTab: CONST.TAB_REQUEST.MANUAL,
 };
 
 /**
@@ -63,17 +68,19 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
 };
 
 const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isTaxAmountInvalid = (currentAmount, taxAmount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
+    const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
@@ -88,6 +95,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     });
 
     const forwardDeletePressedRef = useRef(false);
+
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -123,9 +132,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         initializeAmount(amount);
-        // we want to update the state only when the amount is changed
+        // we want to re-initialize the state only when the selected tab changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    }, [selectedTab]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -219,7 +228,12 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         if (isAmountInvalid(currentAmount)) {
-            setFormError('iou.error.invalidAmount');
+            setFormError(translate('iou.error.invalidAmount'));
+            return;
+        }
+
+        if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
+            setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
             return;
         }
 
@@ -228,8 +242,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
-        onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, initializeAmount]);
+        onSubmitButtonPress({amount: currentAmount, currency});
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -260,7 +274,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             <View
                 id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
@@ -290,7 +304,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
             </View>

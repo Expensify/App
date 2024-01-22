@@ -1,14 +1,36 @@
-$color-green400: #03D47C;
-$color-green-icons: #8B9C8F;
-$color-green-borders: #1A3D32;
-$color-button-background: #1A3D32;
-$color-button-hovered: #2C6755;
-$color-green-highlightBG: #07271F;
-$color-green-highlightBG-hover: #06231c;
-$color-green-appBG: #061B09;
-$color-green-hover: #00a862;
-$color-light-gray-green: #AFBBB0;
-$color-blue300: #5AB0FF;
+// Product Color Spectrum
+$color-product-dark-100: #061B09;
+$color-product-dark-200: #072419;
+$color-product-dark-300: #0A2E25;
+$color-product-dark-400: #1A3D32;
+$color-product-dark-500: #224F41;
+$color-product-dark-600: #2A604F;
+$color-product-dark-700: #8B9C8F;
+$color-product-dark-800: #AFBBB0;
+$color-product-dark-900: #E7ECE9;
+
+// Colors for Links and Success
 $color-blue200: #B0D9FF;
-$color-white: #E7ECE9;
-$color-gray-label: #afbbb0;
+$color-blue300: #5AB0FF;
+$color-green400: #03D47C;
+$color-green500: #00a862;
+
+// Overlay BG color
+$color-overlay-background: rgba(26, 61, 50, 0.72);
+
+// UI Colors
+$color-text: $color-product-dark-900;
+$color-text-supporting: $color-product-dark-800;
+$color-icons: $color-product-dark-700;
+$color-borders: $color-product-dark-400;
+$color-highlightBG: $color-product-dark-200;
+$color-row-hover: $color-product-dark-300;
+$color-appBG: $color-product-dark-100;
+$color-success: $color-green400;
+$color-accent : $color-green400;
+$color-link: $color-blue300;
+$color-link-hovered: $color-blue200;
+$color-button-background: $color-product-dark-400;
+$color-button-background-hover: $color-product-dark-500;
+$color-button-success-background: $color-green400;
+$color-button-success-background-hover: $color-green500;

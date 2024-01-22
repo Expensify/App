@@ -12,11 +12,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import useThemeStyles from '@styles/useThemeStyles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,7 +101,7 @@ function ReportWelcomeMessagePage(props) {
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el) => {

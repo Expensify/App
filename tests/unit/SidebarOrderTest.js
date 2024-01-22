@@ -9,13 +9,14 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
 jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+    IS_LOADING_APP: 'isLoadingApp',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -69,7 +70,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                         }),
                     )
 
@@ -94,7 +95,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -126,7 +127,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -172,7 +173,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -215,7 +216,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -255,7 +256,7 @@ describe('Sidebar', () => {
                 reportName: taskReportName,
                 managerID: 2,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
             // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
@@ -309,11 +310,12 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 2,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             report3.iouReportID = iouReport.reportID;
 
@@ -371,11 +373,10 @@ describe('Sidebar', () => {
                 ownerAccountID: 7,
                 managerID: 7,
                 policyName: 'Workspace',
-                hasOutstandingIOU: true,
                 total: -10000,
                 currency: 'USD',
-                state: CONST.REPORT.STATE.SUBMITTED,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 chatReportID: report3.reportID,
                 parentReportID: report3.reportID,
             };
@@ -443,7 +444,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -488,7 +489,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -525,7 +526,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -570,11 +571,12 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 2,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             report3.iouReportID = iouReport.reportID;
             const currentReportId = report2.reportID;
@@ -587,7 +589,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [ONYXKEYS.SESSION]: {accountID: currentlyLoggedInUserAccountID},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -639,7 +641,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -699,7 +701,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -737,8 +739,8 @@ describe('Sidebar', () => {
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
@@ -749,7 +751,7 @@ describe('Sidebar', () => {
             Report.addComment(report3.reportID, 'Hi, this is a comment');
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
@@ -759,7 +761,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -796,7 +798,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -834,14 +836,14 @@ describe('Sidebar', () => {
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
@@ -851,7 +853,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -886,7 +888,6 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                hasOutstandingIOU: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
@@ -908,55 +909,60 @@ describe('Sidebar', () => {
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 2,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport2 = {
                 ...LHNTestUtils.getFakeReport([9, 10]),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 3,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport3 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 4,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 100000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport4 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 5,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const iouReport5 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
                 type: CONST.REPORT.TYPE.IOU,
                 ownerAccountID: 2,
                 managerID: 6,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 total: 10000,
                 currency: 'USD',
                 chatReportID: report3.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
             report1.iouReportID = iouReport1.reportID;
@@ -974,7 +980,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [ONYXKEYS.SESSION]: {accountID: currentlyLoggedInUserAccountID},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -1032,7 +1038,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,

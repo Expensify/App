@@ -7,10 +7,10 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
 import withLocalize from '@components/withLocalize';
+import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
@@ -19,6 +19,7 @@ const propTypes = {
     ...pdfViewPropTypes,
     ...keyboardStatePropTypes,
     ...withThemeStylesPropTypes,
+    ...withStyleUtilsPropTypes,
 };
 
 /**
@@ -128,7 +129,7 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
-        const pdfStyles = [this.props.themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
+        const pdfStyles = [this.props.themeStyles.imageModalPDF, this.props.StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -185,7 +186,7 @@ class PDFView extends Component {
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
                 style={[this.props.themeStyles.flex1, this.props.themeStyles.flexRow, this.props.themeStyles.alignSelfStretch]}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >
                 {this.renderPDFView()}
@@ -199,4 +200,4 @@ class PDFView extends Component {
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles, withStyleUtils)(PDFView);

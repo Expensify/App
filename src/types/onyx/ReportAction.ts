@@ -1,9 +1,12 @@
-import {ValueOf} from 'type-fest';
-import {AvatarSource} from '@libs/UserUtils';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
-import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
-import {Receipt} from './Transaction';
+import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type * as OnyxCommon from './OnyxCommon';
+import type {Decision, Reaction} from './OriginalMessage';
+import type OriginalMessage from './OriginalMessage';
+import type {NotificationPreference} from './Report';
+import type {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -50,6 +53,43 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** resolution for actionable mention whisper */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+};
+
+type ImageMetadata = {
+    /**  The height of the image. */
+    height?: number;
+
+    /**  The width of the image. */
+    width?: number;
+
+    /**  The URL of the image. */
+    url?: string;
+
+    /**  The type of the image. */
+    type?: string;
+};
+
+type LinkMetadata = {
+    /**  The URL of the link. */
+    url?: string;
+
+    /**  A description of the link. */
+    description?: string;
+
+    /**  The title of the link. */
+    title?: string;
+
+    /**  The publisher of the link. */
+    publisher?: string;
+
+    /**  The image associated with the link. */
+    image?: ImageMetadata;
+
+    /**  The provider logo associated with the link. */
+    logo?: ImageMetadata;
 };
 
 type Person = {
@@ -78,6 +118,9 @@ type ReportActionBase = {
 
     /** report action message */
     message?: Message[];
+
+    /** report action message */
+    previousMessage?: Message[];
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -109,19 +152,20 @@ type ReportActionBase = {
     childManagerAccountID?: number;
 
     /** The status of the child report */
-    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
     childLastReceiptTransactionIDs?: string;
     childLastMoneyRequestComment?: string;
+    childLastActorAccountID?: number;
     timestamp?: number;
     reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
+    attachmentInfo?: File | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -129,15 +173,33 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
+    /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
     delegateAccountID?: string;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
 
+    /** Whether the report action is attachment */
     isAttachment?: boolean;
+
+    /** Recent receipt transaction IDs keyed by reportID */
     childRecentReceiptTransactionIDs?: Record<string, string>;
+
+    /** ReportID of the report action */
     reportID?: string;
+
+    /** Metadata of the link */
+    linkMetadata?: LinkMetadata[];
+
+    /** The current user's notification preference for this report's child */
+    childReportNotificationPreference?: NotificationPreference;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
+
+    /** Flag for checking if data is from optimistic data */
+    isOptimisticAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
@@ -145,4 +207,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {Message, ReportActions};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};

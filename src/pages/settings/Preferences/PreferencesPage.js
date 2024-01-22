@@ -11,9 +11,9 @@ import TestToolMenu from '@components/TestToolMenu';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +24,9 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
+    /** The app's color theme */
+    preferredTheme: PropTypes.string,
+
     /** The details about the user that is signed in */
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
@@ -33,6 +36,7 @@ const propTypes = {
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    preferredTheme: CONST.DEFAULT_THEME,
     user: {},
 };
 
@@ -46,7 +50,7 @@ function PreferencesPage(props) {
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
         >
             <View style={styles.mb6}>
@@ -80,6 +84,12 @@ function PreferencesPage(props) {
                     description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
+                    description={translate('themePage.theme')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                />
                 {/* Enable additional test features in non-production environments */}
                 {!isProduction && (
                     <View style={[styles.ml5, styles.mr8, styles.mt6]}>
@@ -101,5 +111,8 @@ export default withOnyx({
     },
     user: {
         key: ONYXKEYS.USER,
+    },
+    preferredTheme: {
+        key: ONYXKEYS.PREFERRED_THEME,
     },
 })(PreferencesPage);

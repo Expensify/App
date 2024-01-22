@@ -18,6 +18,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -26,7 +27,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -271,7 +271,7 @@ function WorkspaceInitialPage(props) {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                 accessibilityLabel={translate('workspace.common.settings')}
-                                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                role={CONST.ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -291,7 +291,7 @@ function WorkspaceInitialPage(props) {
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
                                                     accessibilityLabel={translate('workspace.common.settings')}
-                                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                    role={CONST.ROLE.BUTTON}
                                                 >
                                                     <Text
                                                         numberOfLines={1}

@@ -6,16 +6,13 @@ import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
 const propTypes = {
     /** Style for wrapping View */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
-    onFieldChange: PropTypes.func,
 
     /** Form values */
     values: PropTypes.shape({
@@ -127,7 +124,6 @@ const defaultProps = {
         ssnLast4: '',
     },
     shouldSaveDraft: false,
-    onFieldChange: () => {},
 };
 
 function IdentityForm(props) {
@@ -149,10 +145,9 @@ function IdentityForm(props) {
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
                         aria-label={props.translate('common.firstName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
-                        onChangeText={(value) => props.onFieldChange({firstName: value})}
                         errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
                     />
                 </View>
@@ -163,22 +158,21 @@ function IdentityForm(props) {
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
                         aria-label={props.translate('common.lastName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
-                        onChangeText={(value) => props.onFieldChange({lastName: value})}
                         errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
                     />
                 </View>
             </View>
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={props.translate('common.dateFormat')}
                 defaultValue={props.values.dob || props.defaultValues.dob}
-                onInputChange={(value) => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
                 minDate={minDate}
                 maxDate={maxDate}
@@ -189,11 +183,10 @@ function IdentityForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
                 aria-label={props.translate('common.ssnLast4')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}
-                onChangeText={(value) => props.onFieldChange({ssnLast4: value})}
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
@@ -205,7 +198,6 @@ function IdentityForm(props) {
                 values={_.omit(props.values, identityFormInputKeys)}
                 defaultValues={_.omit(props.defaultValues, identityFormInputKeys)}
                 errors={props.errors}
-                onFieldChange={props.onFieldChange}
             />
         </View>
     );

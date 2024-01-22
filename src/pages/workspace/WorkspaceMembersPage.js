@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -18,8 +19,9 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
-import * as Browser from '@libs/Browser';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -27,11 +29,11 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -84,6 +86,14 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(() => () => (SearchInputManager.searchInput = ''), []);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -354,7 +364,7 @@ function WorkspaceMembersPage(props) {
                     details.login === props.policy.owner ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                     !_.isEmpty(policyMember.errors),
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 rightElement: isAdmin ? (
                     <View style={[styles.badge, styles.peopleBadge]}>
@@ -466,7 +476,11 @@ function WorkspaceMembersPage(props) {
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}
@@ -474,7 +488,7 @@ function WorkspaceMembersPage(props) {
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
                             showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             inputRef={textInputRef}
                         />
                     </View>

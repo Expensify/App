@@ -10,12 +10,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -103,7 +103,7 @@ PrivateNotesViewPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withReportAndPrivateNotesOrNotFound,
+    withReportAndPrivateNotesOrNotFound('privateNotes.title'),
     withOnyx({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

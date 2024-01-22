@@ -5,7 +5,6 @@ import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as SessionUtils from '@libs/SessionUtils';
-import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -32,6 +31,10 @@ const defaultProps = {
     },
 };
 
+// This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
+// out if the transition is for another user.
+//
+// This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage(props) {
     useEffect(() => {
         Linking.getInitialURL().then((transitionURL) => {
@@ -52,15 +55,11 @@ function LogOutPreviousUserPage(props) {
                 const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
-
-            const exitTo = lodashGet(props, 'route.params.exitTo', '');
-            if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser) {
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.navigate(exitTo);
-                });
-            }
         });
-    }, [props]);
+
+        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return <FullScreenLoadingIndicator />;
 }

@@ -4,12 +4,12 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import stylePropTypes from '@styles/stylePropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
@@ -19,6 +19,7 @@ import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import sourcePropTypes from './Image/sourcePropTypes';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -27,7 +28,7 @@ import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** Avatar source to display */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Additional style props */
     style: stylePropTypes,
@@ -56,13 +57,13 @@ const propTypes = {
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    fallbackIcon: sourcePropTypes,
 
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
     /** Image crop vector mask */
-    editorMaskImage: PropTypes.func,
+    editorMaskImage: sourcePropTypes,
 
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
@@ -81,7 +82,7 @@ const propTypes = {
     headerTitle: PropTypes.string,
 
     /** Avatar source for avatar preview modal */
-    previewSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    previewSource: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** File name of the avatar */
     originalFileName: PropTypes.string,
@@ -297,7 +298,7 @@ function AvatarWithImagePicker({
                     <Tooltip text={translate('avatarWithImagePicker.editImage')}>
                         <PressableWithoutFeedback
                             onPress={() => setIsMenuVisible((prev) => !prev)}
-                            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen}
                             ref={anchorRef}
@@ -321,7 +322,7 @@ function AvatarWithImagePicker({
                                     src={Expensicons.Camera}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
-                                    fill={theme.textLight}
+                                    fill={theme.icon}
                                 />
                             </View>
                         </PressableWithoutFeedback>

@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type PersonalBankAccount = {
     /** An error message to display to the user */

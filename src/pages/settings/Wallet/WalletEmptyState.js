@@ -6,8 +6,8 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -36,7 +36,7 @@ function WalletEmptyState({onAddPaymentMethod}) {
     const {translate} = useLocalize();
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET.ROOT].backgroundColor}
             illustration={LottieAnimations.FastMoney}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}

@@ -6,11 +6,11 @@ import {withOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -23,6 +23,9 @@ const propTypes = {
 
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
+
+    /** Position index of the report parent action in the overall report FlatList view */
+    index: PropTypes.number.isRequired,
 
     /** The id of the parent report */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -47,6 +50,7 @@ const defaultProps = {
 
 function ReportActionItemParentAction(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
 
     // In case of transaction threads, we do not want to render the parent report action.
@@ -71,7 +75,7 @@ function ReportActionItemParentAction(props) {
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={props.shouldDisplayNewMarker}
-                        index={0}
+                        index={props.index}
                     />
                 )}
             </View>

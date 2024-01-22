@@ -3,7 +3,7 @@ import React from 'react';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {

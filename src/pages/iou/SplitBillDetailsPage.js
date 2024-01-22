@@ -11,6 +11,7 @@ import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -19,7 +20,6 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,7 +143,7 @@ function SplitBillDetailsPage(props) {
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction.reportActionID}
-                            transactionID={props.transaction.transactionID}
+                            transaction={isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
                             policyID={ReportUtils.isPolicyExpenseChat(props.report) && props.report.policyID}

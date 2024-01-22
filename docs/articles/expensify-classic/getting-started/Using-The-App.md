@@ -39,7 +39,9 @@ SmartScan's performance can vary depending on factors such as receipt quality, l
 **Receipt quality**: The clarity and condition of a receipt can impact SmartScan's accuracy. For best results, ensure your environment is well-lit and the receipt is straight and free of obstructions.
 **Language support**: While SmartScan supports multiple languages, its accuracy may differ from one language to another. Users dealing with non-English receipts should be aware of potential variations in data extraction.
 **Handwriting recognition**: Handwritten receipts might pose challenges for SmartScan. In such cases, manual verification may be necessary to ensure accurate data entry.
-# FAQ
+
+{% include faq-begin.md %}
+
 ## Can I use the mobile app for both personal and business expenses?
 Yes, you can use Expensify for personal and business expenses. It's versatile and suitable for both individual and corporate use. Check out our personal and business plans [here](https://www.expensify.com/pricing) to see what might be right for you.
 ## Is it possible to categorize and tag expenses on the mobile app?
@@ -50,3 +52,5 @@ If you experience issues, first make sure you’re using the most recent version
 Expensify takes security seriously and employs encryption and other security measures to protect your data. It's important to use strong, unique passwords and enable device security features like biometric authentication.
 ## Can I use the mobile app offline, and will my data sync when I'm back online?
 Yes, you can use the mobile app offline to capture receipts and create expenses. The app will sync your data once you have an internet connection.
+
+{% include faq-end.md %}

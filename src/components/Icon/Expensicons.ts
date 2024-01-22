@@ -27,6 +27,8 @@ import Camera from '@assets/images/camera.svg';
 import Car from '@assets/images/car.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
+import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
@@ -51,10 +53,10 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
+import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
-import ExpensifyCard from '@assets/images/expensifycard.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Flag from '@assets/images/flag.svg';
@@ -86,6 +88,7 @@ import Menu from '@assets/images/menu.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
+import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -117,6 +120,7 @@ import Youtube from '@assets/images/social-youtube.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -220,6 +224,7 @@ export {
     MoneyBag,
     MoneyCircle,
     Monitor,
+    NewExpensify,
     NewWindow,
     NewWorkspace,
     Offline,
@@ -242,6 +247,7 @@ export {
     Shield,
     Sync,
     Task,
+    ThumbsUp,
     ThreeDots,
     Transfer,
     Trashcan,
@@ -260,4 +266,6 @@ export {
     Podcast,
     Linkedin,
     Instagram,
+    ChatBubbleAdd,
+    ChatBubbleUnread,
 };

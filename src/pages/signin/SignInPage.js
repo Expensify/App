@@ -5,19 +5,19 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import CustomStatusBar from '@components/CustomStatusBar';
+import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import ThemeProvider from '@components/ThemeProvider';
+import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as StyleUtils from '@styles/StyleUtils';
-import ThemeProvider from '@styles/themes/ThemeProvider';
-import ThemeStylesProvider from '@styles/ThemeStylesProvider';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -134,11 +134,13 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 
 function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef();
+    const loginFormRef = useRef();
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
@@ -241,6 +243,11 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         Log.warn('SignInPage in unexpected state!');
     }
 
+    const navigateFocus = () => {
+        signInPageLayoutRef.current.scrollPageToTop();
+        loginFormRef.current.clearDataAndFocus();
+    };
+
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
@@ -252,10 +259,12 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
                 shouldShowSmallScreen={shouldShowSmallScreen}
+                navigateFocus={navigateFocus}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
              so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
+                    ref={loginFormRef}
                     isInModal={isInModal}
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
@@ -287,7 +296,7 @@ function SignInPage(props) {
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
-                    <CustomStatusBar isNested />
+                    <CustomStatusBarAndBackground isNested />
                     <SignInPageInner
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}

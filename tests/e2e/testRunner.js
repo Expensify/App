@@ -30,15 +30,22 @@ const compare = require('./compare/compare');
 
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
+const getArg = (argName) => {
+    const argIndex = args.indexOf(argName);
+    if (argIndex === -1) {
+        return undefined;
+    }
+    return args[argIndex + 1];
+};
 
 let branch = 'main';
 if (args.includes('--branch')) {
-    branch = args[args.indexOf('--branch') + 1];
+    branch = getArg('--branch');
 }
 
 let label = branch;
 if (args.includes('--label')) {
-    label = args[args.indexOf('--label') + 1];
+    label = getArg('--label');
 }
 
 let config = defaultConfig;
@@ -71,17 +78,17 @@ if (isDevMode) {
 }
 
 if (args.includes('--buildMode')) {
-    buildMode = args[args.indexOf('--buildMode') + 1];
+    buildMode = getArg('--buildMode');
 }
 
 if (args.includes('--config')) {
-    const configPath = args[args.indexOf('--config') + 1];
+    const configPath = getArg('--config');
     setConfigPath(configPath);
 }
 
 // Important set app path after correct config file has been set
-let mainAppPath = args[args.indexOf('--mainAppPath') + 1] || config.MAIN_APP_PATH;
-let deltaAppPath = args[args.indexOf('--deltaAppPath') + 1] || config.DELTA_APP_PATH;
+let mainAppPath = getArg('--mainAppPath') || config.MAIN_APP_PATH;
+let deltaAppPath = getArg('--deltaAppPath') || config.DELTA_APP_PATH;
 
 // Create some variables after the correct config file has been loaded
 const OUTPUT_FILE = `${config.OUTPUT_DIR}/${label}.json`;

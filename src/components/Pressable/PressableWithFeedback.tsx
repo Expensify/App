@@ -1,10 +1,11 @@
-import React, {ForwardedRef, forwardRef, useState} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {AnimatedStyle} from 'react-native-reanimated';
+import React, {forwardRef, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
 import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
-import PressableProps from './GenericPressable/types';
+import type {PressableRef} from './GenericPressable/types';
+import type PressableProps from './GenericPressable/types';
 
 type PressableWithFeedbackProps = PressableProps & {
     /** Style for the wrapper view */
@@ -37,7 +38,7 @@ function PressableWithFeedback(
         hoverDimmingValue = variables.hoverDimValue,
         ...rest
     }: PressableWithFeedbackProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -88,3 +89,4 @@ function PressableWithFeedback(
 PressableWithFeedback.displayName = 'PressableWithFeedback';
 
 export default forwardRef(PressableWithFeedback);
+export type {PressableWithFeedbackProps};
