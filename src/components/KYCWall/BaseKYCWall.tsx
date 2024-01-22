@@ -159,10 +159,8 @@ function KYCWall({
                 return;
             }
 
-
             // Use event target as fallback if anchorRef is null for safety
             const targetElement = anchorRef.current ?? (event?.currentTarget as HTMLElement);
-
 
             transferBalanceButtonRef.current = targetElement;
 
