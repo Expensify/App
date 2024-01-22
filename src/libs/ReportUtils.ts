@@ -1714,7 +1714,8 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
 
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
-    const {amount, currency} = originalMessage;
+    const amount = originalMessage?.amount;
+    const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
         const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
@@ -1728,7 +1729,7 @@ function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAct
  * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticCancelPaymentReportAction(expenseReportID: string): OptimisticCancelPaymentReportAction {
+function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amount: number, currency: string): OptimisticCancelPaymentReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
         actorAccountID: currentUserAccountID,
@@ -1738,11 +1739,15 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string): Opti
                 expenseReportID,
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: '',
+                amount,
+                currency,
             },
         ],
         originalMessage: {
             cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
             expenseReportID,
+            amount,
+            currency
         },
         person: [
             {

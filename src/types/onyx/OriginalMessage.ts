@@ -52,6 +52,9 @@ type IOUMessage = {
 
 type ReimbursementDeQueuedMessage = {
     cancellationReason: string;
+    expenseReportID?: string;
+    amount: number;
+    currency: string;
 };
 
 type OriginalMessageIOU = {
