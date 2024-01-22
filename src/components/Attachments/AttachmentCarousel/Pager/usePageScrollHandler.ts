@@ -2,11 +2,17 @@ import type {PagerViewProps} from 'react-native-pager-view';
 import {useEvent, useHandler} from 'react-native-reanimated';
 
 type PageScrollHandler = NonNullable<PagerViewProps['onPageScroll']>;
-type OnPageScrollEventData = Parameters<PageScrollHandler>[0]['nativeEvent'];
-type OnPageScrollREAHandler = Parameters<typeof useHandler<OnPageScrollEventData, Record<string, unknown>>>[0][string];
+
+type PageScrollEventData = Parameters<PageScrollHandler>[0]['nativeEvent'];
+type PageScrollContext = Record<string, unknown>;
+
+// Reanimated doesn't expose the type for animated event handlers, therefore we must infer it from the useHandler hook.
+// The AnimatedPageScrollHandler type is the type of the onPageScroll prop from react-native-pager-view as an animated handler.
+type AnimatedHandlers = Parameters<typeof useHandler<PageScrollEventData, PageScrollContext>>[0];
+type AnimatedPageScrollHandler = AnimatedHandlers[string];
 
 type Handlers = {
-    onPageScroll?: OnPageScrollREAHandler;
+    onPageScroll?: AnimatedPageScrollHandler;
 };
 type Deps = Parameters<typeof useHandler>[1];
 
