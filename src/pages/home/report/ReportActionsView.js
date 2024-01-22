@@ -115,7 +115,6 @@ function ReportActionsView(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === 'anonymousAccount' && !props.session.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(props.report)) {
