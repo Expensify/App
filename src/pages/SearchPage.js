@@ -198,8 +198,8 @@ function SearchPage({betas, dismissedReferralBanners, personalDetails, reports, 
                             shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             shouldShowReferralCTA={dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND] !== true}
-                            onCallToActionClose={dismissCallToAction}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
+                            onCallToActionClose={dismissCallToAction}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onLayout={searchRendered}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}

@@ -20,6 +20,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -35,6 +36,9 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -45,6 +49,7 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
+    dismissedReferralBanners: {},
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
@@ -52,7 +57,7 @@ const defaultProps = {
 
 const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports}) {
+function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, isSearchingForReports, dismissedReferralBanners}) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -235,6 +240,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setSearchTerm(text);
     }, []);
 
+    const dismissCallToAction = (referralContentType) => {
+        User.dismissReferralBanner(referralContentType);
+    };
+
     const {inputCallbackRef} = useAutoFocusInput();
 
     return (
@@ -270,8 +279,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
-                            shouldShowReferralCTA
+                            shouldShowReferralCTA={dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT] !== true}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
+                            onCallToActionClose={dismissCallToAction}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onConfirmSelection={createGroup}
@@ -296,6 +306,10 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
+        dismissedReferralBanners: {
+            key: ONYXKEYS.ACCOUNT,
+            selector: (data) => data.dismissedReferralBanners || {},
+        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
