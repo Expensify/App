@@ -4,7 +4,7 @@ import useKeyboardShortcut from './useKeyboardShortcut';
 
 type Config = {
     maxIndex: number;
-    onFocusedIndexChange?: (index: number, keyboardShortcut?: 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown') => void;
+    onFocusedIndexChange?: (index: number) => void;
     initialFocusedIndex?: number;
     disabledIndexes?: readonly number[];
     shouldExcludeTextAreaNodes?: boolean;
@@ -45,7 +45,6 @@ export default function useArrowKeyFocusManager({
 }: Config): UseArrowKeyFocusManager {
     const allowHorizontalArrowKeys = !!itemsPerRow;
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
-    const [lastUsedArrowKey, setLastUsedArrowKey] = useState<'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'>();
     const arrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
@@ -55,7 +54,7 @@ export default function useArrowKeyFocusManager({
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onFocusedIndexChange(focusedIndex, lastUsedArrowKey), [focusedIndex, onFocusedIndexChange]);
+    useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex, onFocusedIndexChange]);
 
     const arrowUpCallback = useCallback(() => {
         if (maxIndex < 0) {
@@ -71,15 +70,16 @@ export default function useArrowKeyFocusManager({
                 currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
             }
             let newFocusedIndex = currentFocusedIndex;
-
             while (disabledIndexes.includes(newFocusedIndex)) {
-                newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : nextIndex;
+                newFocusedIndex -= allowHorizontalArrowKeys ? itemsPerRow : 1;
+                if (newFocusedIndex < 0) {
+                    break;
+                }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
                     return actualIndex; // no-op
                 }
             }
-            setLastUsedArrowKey('ArrowUp');
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
@@ -102,13 +102,15 @@ export default function useArrowKeyFocusManager({
 
             let newFocusedIndex = currentFocusedIndex;
             while (disabledIndexes.includes(newFocusedIndex)) {
-                newFocusedIndex = newFocusedIndex < maxIndex ? newFocusedIndex + 1 : nextIndex;
+                newFocusedIndex += allowHorizontalArrowKeys ? itemsPerRow : 1;
+                if (newFocusedIndex < 0) {
+                    break;
+                }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
                     return actualIndex;
                 }
             }
-            setLastUsedArrowKey('ArrowDown');
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
@@ -138,7 +140,6 @@ export default function useArrowKeyFocusManager({
                     return actualIndex; // no-op
                 }
             }
-            setLastUsedArrowKey('ArrowLeft');
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
@@ -168,7 +169,6 @@ export default function useArrowKeyFocusManager({
                     return actualIndex;
                 }
             }
-            setLastUsedArrowKey('ArrowRight');
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
