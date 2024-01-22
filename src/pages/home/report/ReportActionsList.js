@@ -435,6 +435,7 @@ function ReportActionsList({
 
         Report.readNewestAction(report.reportID, false);
         userActiveSince.current = DateUtils.getDBTime();
+        lastReadTimeRef.current = userInactiveSince.current;
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
