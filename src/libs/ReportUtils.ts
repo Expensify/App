@@ -21,12 +21,12 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyReportField,
+    PolicyReportFields,
     Report,
     ReportAction,
     ReportMetadata,
     Session,
     Transaction,
-    TransactionViolation,
 } from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
@@ -455,6 +455,19 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let allPolicyReportFields: OnyxCollection<PolicyReportFields>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyReportFields = value),
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 let loginList: OnyxEntry<Login>;
@@ -1898,9 +1911,33 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 }
 
 /**
+ * Given a report field and a report, get the title of the field.
+ * This is specially useful when we have a report field of type formula.
+ */
+function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
+    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
+
+    if (reportField.type !== 'formula') {
+        return value;
+    }
+
+    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
+        if (report && property in report) {
+            return report[property as keyof Report]?.toString() ?? match;
+        }
+        return match;
+    });
+}
+
+/**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
+    const reportFields = Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === report?.policyID)?.[1];
+    const titleReportField = Object.values(reportFields ?? {})?.find((field) => field.type === 'formula');
+    if (titleReportField && Permissions.canUseReportFields(allBetas ?? [])) {
+        return getReportFieldTitle(report, titleReportField);
+    }
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
@@ -4502,25 +4539,6 @@ function navigateToPrivateNotes(report: Report, session: Session) {
         return;
     }
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
-}
-
-/**
- * Given a report field and a report, get the title of the field.
- * This is specially useful when we have a report field of type formula.
- */
-function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
-    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
-
-    if (reportField.type !== 'formula') {
-        return value;
-    }
-
-    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
-        if (report && property in report) {
-            return report[property as keyof Report]?.toString() ?? match;
-        }
-        return match;
-    });
 }
 
 /**
