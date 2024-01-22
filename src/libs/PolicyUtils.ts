@@ -16,7 +16,7 @@ type UnitRate = {rate: number};
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            policy !== null && policy && (policy.isPolicyExpenseChatEnabled || policy.areChatRoomsEnabled) && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            policy !== null && policy && policy.isPolicyExpenseChatEnabled && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 

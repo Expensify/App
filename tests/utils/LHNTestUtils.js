@@ -252,7 +252,6 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         avatar: '',
         employeeList: [],
         isPolicyExpenseChatEnabled: true,
-        areChatRoomsEnabled: true,
         lastModified: 1697323926777105,
         autoReporting: true,
         autoReportingFrequency: 'immediate',

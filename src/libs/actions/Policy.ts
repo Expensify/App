@@ -1181,7 +1181,6 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
                 makeMeAdmin,
             },
@@ -1242,7 +1241,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                areChatRoomsEnabled: true,
                 customUnits,
             },
         },
@@ -1660,7 +1658,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        areChatRoomsEnabled: true,
         customUnits,
     };
 
