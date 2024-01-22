@@ -3132,6 +3132,8 @@ const CONST = {
     },
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
+
+    USER_DEFAULT: {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false},
 } as const;
 
 export default CONST;

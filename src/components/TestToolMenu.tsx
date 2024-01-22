@@ -8,6 +8,7 @@ import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
@@ -26,9 +27,7 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
     network: OnyxEntry<NetworkOnyx>;
 };
 
-const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
-
-function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
+function TestToolMenu({user = CONST.USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
 

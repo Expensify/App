@@ -14,6 +14,7 @@ import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -73,18 +74,18 @@ function fetchData(skipVBBACal?: boolean) {
 }
 
 function WorkspacePageWithSections({
-    backButtonRoute,
-    children,
-    footer,
-    guidesCallTaskID,
+    backButtonRoute = '',
+    children = () => null,
+    footer = null,
+    guidesCallTaskID = '',
     headerText,
     policy,
-    reimbursementAccount,
+    reimbursementAccount = {},
     route,
-    shouldUseScrollView,
-    shouldSkipVBBACall,
-    user,
-    shouldShowLoading,
+    shouldUseScrollView = false,
+    shouldSkipVBBACall = false,
+    user = CONST.USER_DEFAULT,
+    shouldShowLoading = true,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
