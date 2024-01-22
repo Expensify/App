@@ -1,5 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -43,20 +42,6 @@ type NoteListItem = {
 function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
-
-    useEffect(() => {
-        const navigateToEditPageTimeout = setTimeout(() => {
-            if (Object.values(report.privateNotes ?? {}).some((item) => item.note) || !isFocused) {
-                return;
-            }
-            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session?.accountID ?? ''));
-        }, CONST.ANIMATED_TRANSITION);
-
-        return () => {
-            clearTimeout(navigateToEditPageTimeout);
-        };
-    }, [report.privateNotes, report.reportID, session?.accountID, isFocused]);
 
     /**
      * Gets the menu item for each workspace

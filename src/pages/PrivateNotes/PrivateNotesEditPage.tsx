@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
@@ -18,6 +18,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
@@ -25,6 +26,7 @@ import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
@@ -35,12 +37,11 @@ type PrivateNotesEditPageOnyxProps = {
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
-type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps & {
-    /** The report currently being looked at */
-    report: Report;
-
-    route: RouteProp<{params: {reportID: string; accountID: string}}>;
-};
+type PrivateNotesEditPageProps = PrivateNotesEditPageOnyxProps &
+    StackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
+        /** The report currently being looked at */
+        report: Report;
+    };
 
 function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotesEditPageProps) {
     const styles = useThemeStyles();
