@@ -2576,7 +2576,7 @@ export default {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para categoría seleccionada',
-        missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: 'Importe superior al del recibo escaneado',
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no es de Expensiworks',
