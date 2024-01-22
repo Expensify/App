@@ -54,7 +54,7 @@ export default function useArrowKeyFocusManager({
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex, onFocusedIndexChange]);
+    useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex]);
 
     const arrowUpCallback = useCallback(() => {
         if (maxIndex < 0) {
@@ -99,10 +99,14 @@ export default function useArrowKeyFocusManager({
             } else {
                 currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
             }
-
             let newFocusedIndex = currentFocusedIndex;
             while (disabledIndexes.includes(newFocusedIndex)) {
-                newFocusedIndex += allowHorizontalArrowKeys ? itemsPerRow : 1;
+                if (actualIndex < 0) {
+                    newFocusedIndex += 1;
+                } else {
+                    newFocusedIndex += allowHorizontalArrowKeys ? itemsPerRow : 1;
+                }
+
                 if (newFocusedIndex < 0) {
                     break;
                 }
