@@ -19,7 +19,7 @@ type OnLoadNativeEvent = {
 
 type ImageWithSizeCalculationProps = {
     /** Url for image to display */
-    url: string;
+    url: string | number;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
