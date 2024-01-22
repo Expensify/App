@@ -223,7 +223,7 @@ function MoneyRequestPreview({
             return translate('iou.receiptScanning');
         }
 
-        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(transaction)) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
