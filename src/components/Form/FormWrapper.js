@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef} from 'react';
-import {Keyboard, ScrollView, StyleSheet, View} from 'react-native';
+import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormElement from '@components/FormElement';
 import refPropTypes from '@components/refPropTypes';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -110,7 +111,7 @@ function FormWrapper(props) {
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (
-            <View
+            <FormElement
                 key={formID}
                 ref={formContentRef}
                 style={StyleSheet.flatten([style, safeAreaPaddingBottomStyle])}
@@ -158,7 +159,7 @@ function FormWrapper(props) {
                         shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                     />
                 )}
-            </View>
+            </FormElement>
         ),
         [
             children,
