@@ -1,5 +1,4 @@
 import Str from 'expensify-common/lib/str';
-import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -11,8 +10,8 @@ import type {Transaction} from '@src/types/onyx';
 import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
-    image: ImageSourcePropType | string;
-    thumbnail: ImageSourcePropType | string | null;
+    image: number | string;
+    thumbnail: number | string | null;
     transaction?: Transaction;
     isLocalFile?: boolean;
 };
@@ -68,8 +67,9 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
-    return {thumbnail: image, image: path, isLocalFile};
+    return {thumbnail: image as string | number, image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export
 export {getThumbnailAndImageURIs};
+export type {ThumbnailAndImageURI};

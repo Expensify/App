@@ -258,7 +258,6 @@ function MoneyRequestPreview({
                 >
                     {hasReceipt && (
                         <ReportActionItemImages
-                            // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                             images={receiptImages}
                             isHovered={isHovered || isScanning}
                             size={1}

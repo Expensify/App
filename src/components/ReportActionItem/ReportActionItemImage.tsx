@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import React from 'react';
 import type {ReactElement} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
@@ -17,16 +18,16 @@ import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
-    thumbnail?: string | number;
+    thumbnail?: string | number | null;
 
     /** URI for the image or local numeric reference for the image  */
-    image: string | number;
+    image?: string | number;
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal?: boolean;
 
     /* The transaction associated with this image, if any. Passed for handling eReceipts. */
-    transaction?: Transaction;
+    transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
     isLocalFile?: boolean;

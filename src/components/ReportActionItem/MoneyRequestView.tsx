@@ -205,9 +205,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
-                                // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                                 thumbnail={receiptURIs?.thumbnail}
-                                // @ts-expect-error TODO: Remove this once ReportActionItemImages (https://github.com/Expensify/App/issues/31969) is migrated to TypeScript.
                                 image={receiptURIs?.image}
                                 isLocalFile={receiptURIs?.isLocalFile}
                                 transaction={transaction}
