@@ -71,11 +71,7 @@ export default function useArrowKeyFocusManager({
             let newFocusedIndex = currentFocusedIndex;
 
             while (disabledIndexes.includes(newFocusedIndex)) {
-                if (allowHorizontalArrowKeys) {
-                    newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - itemsPerRow : nextIndex;
-                } else {
-                    newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : nextIndex;
-                }
+                newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : nextIndex;
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
                     return actualIndex; // no-op
@@ -104,11 +100,7 @@ export default function useArrowKeyFocusManager({
             let newFocusedIndex = currentFocusedIndex;
 
             while (disabledIndexes.includes(newFocusedIndex)) {
-                if (allowHorizontalArrowKeys) {
-                    newFocusedIndex = newFocusedIndex < maxIndex ? newFocusedIndex + itemsPerRow : nextIndex;
-                } else {
-                    newFocusedIndex = newFocusedIndex < maxIndex ? newFocusedIndex + 1 : nextIndex;
-                }
+                newFocusedIndex = newFocusedIndex < maxIndex ? newFocusedIndex + 1 : nextIndex;
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
                     return actualIndex;
@@ -129,11 +121,8 @@ export default function useArrowKeyFocusManager({
 
         setFocusedIndex((actualIndex) => {
             let currentFocusedIndex = -1;
-            if (allowHorizontalArrowKeys) {
-                currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
-            } else {
-                currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
-            }
+            currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : nextIndex;
+
             let newFocusedIndex = currentFocusedIndex;
 
             while (disabledIndexes.includes(newFocusedIndex)) {
@@ -161,11 +150,7 @@ export default function useArrowKeyFocusManager({
 
         setFocusedIndex((actualIndex) => {
             let currentFocusedIndex = -1;
-            if (allowHorizontalArrowKeys) {
-                currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
-            } else {
-                currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
-            }
+            currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : nextIndex;
 
             let newFocusedIndex = currentFocusedIndex;
 
