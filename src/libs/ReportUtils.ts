@@ -1719,7 +1719,7 @@ function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAct
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
         const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
-        return Localize.translateLocal('iou.adminCanceledRequest', {'manager': payerOrApproverName, formattedAmount});
+        return Localize.translateLocal('iou.adminCanceledRequest', {'manager': payerOrApproverName, 'amount': formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, formattedAmount});
