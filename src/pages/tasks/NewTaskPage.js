@@ -21,6 +21,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import playSound from '@hooks/usePlaySound';
 
 const propTypes = {
     /** Task Creation Data */
@@ -124,6 +125,7 @@ function NewTaskPage(props) {
             return;
         }
 
+        playSound('done');
         Task.createTaskAndNavigate(
             parentReport.reportID,
             props.task.title,

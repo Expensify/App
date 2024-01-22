@@ -26,6 +26,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import playSound from '@hooks/usePlaySound';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
@@ -540,6 +541,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
+                playSound('done');
                 setDidConfirm(true);
                 onConfirm(selectedParticipants);
             }

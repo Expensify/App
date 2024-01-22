@@ -13,6 +13,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import playSound from '@hooks/usePlaySound';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
@@ -211,6 +212,7 @@ function SettlementButton({
             return;
         }
 
+        playSound('done');
         onPress(iouPaymentType);
     };
 

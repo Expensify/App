@@ -256,6 +256,7 @@ function ReportActionCompose({
      */
     const addAttachment = useCallback(
         (file) => {
+            playSound('done');
             const newComment = composerRef.current.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
             setTextInputShouldClear(false);
