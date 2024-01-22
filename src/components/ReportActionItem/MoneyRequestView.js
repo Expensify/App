@@ -263,7 +263,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
             return '';
         },
-        [transactionAmount, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
     return (
