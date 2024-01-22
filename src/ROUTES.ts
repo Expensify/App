@@ -144,6 +144,19 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
+    SETTINGS_EXIT_SURVEY_REASON: {
+        route: 'settings/exit-survey/reason',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
+    },
+    SETTINGS_EXIT_SURVEY_RESPONSE: {
+        route: 'settings/exit-survey/response',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/response', backTo),
+    },
+    SETTINGS_EXIT_SURVEY_CONFIRM: {
+        route: 'settings/exit-survey/confirm',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
+    },
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
