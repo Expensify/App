@@ -22,7 +22,7 @@ type SuggestionProps = {
     measureParentContainer: () => void;
     isComposerFullSize: boolean;
     isComposerFocused?: boolean;
-    resetKeyboardInput: () => void;
+    resetKeyboardInput?: () => void;
     isAutoSuggestionPickerLarge?: boolean;
     composerHeight?: number;
 };

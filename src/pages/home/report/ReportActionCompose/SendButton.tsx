@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -11,21 +10,21 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type SendButtonProps = {
     /** Whether the button is disabled */
-    isDisabled: PropTypes.bool.isRequired,
+    isDisabled: boolean;
 
     /** Handle clicking on send button */
-    handleSendMessage: PropTypes.func.isRequired,
+    handleSendMessage: () => void;
 };
 
-function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
+function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
-        .enabled()
+        .enabled(!isDisabledProp)
         .onEnd(() => {
             handleSendMessage();
         });
@@ -46,6 +45,8 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
                         ]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
+                        accessible
+                        onPress={() => {}}
                     >
                         {({pressed}) => (
                             <Icon
@@ -60,7 +61,6 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
     );
 }
 
-SendButton.propTypes = propTypes;
 SendButton.displayName = 'SendButton';
 
 export default SendButton;

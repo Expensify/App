@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -28,7 +28,7 @@ type SuggestionEmojiOnyxProps = {
 
 type SuggestionEmojiProps = {
     /** Function to clear the input */
-    resetKeyboardInput: () => void;
+    resetKeyboardInput: (() => void) | undefined;
 } & SuggestionEmojiOnyxProps &
     SuggestionProps;
 
@@ -92,7 +92,7 @@ function SuggestionEmoji(
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
             // a workaround to reset the keyboard natively.
-            resetKeyboardInput();
+            resetKeyboardInput?.();
 
             setSelection({
                 start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -239,11 +239,9 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-const SuggestionEmojiForwardedRef = forwardRef(SuggestionEmoji);
-
-export default withOnyx<SuggestionEmojiProps, SuggestionEmojiOnyxProps>({
+export default withOnyx<SuggestionEmojiProps & RefAttributes<SuggestionsRef>, SuggestionEmojiOnyxProps>({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         selector: EmojiUtils.getPreferredSkinToneIndex,
     },
-})(SuggestionEmojiForwardedRef);
+})(forwardRef(SuggestionEmoji));
