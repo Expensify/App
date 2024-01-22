@@ -1,9 +1,10 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const closeModals: Array<() => void> = [];
+const closeModals: Array<(isNavigating?: boolean) => void> = [];
 
 let onModalClose: null | (() => void);
+let isNavigate: undefined | boolean;
 
 /**
  * Allows other parts of the app to call modal close function
@@ -28,18 +29,23 @@ function closeTop() {
     if (closeModals.length === 0) {
         return;
     }
+    if (onModalClose) {
+        closeModals[closeModals.length - 1](isNavigate);
+        return;
+    }
     closeModals[closeModals.length - 1]();
 }
 
 /**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void) {
+function close(onModalCloseCallback: () => void, isNavigating = true) {
     if (closeModals.length === 0) {
         onModalCloseCallback();
         return;
     }
     onModalClose = onModalCloseCallback;
+    isNavigate = isNavigating;
     closeTop();
 }
 
