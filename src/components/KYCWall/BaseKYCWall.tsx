@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
 import {Dimensions} from 'react-native';
-import type {EmitterSubscription, NativeTouchEvent} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -146,7 +146,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => {
+        (event?: GestureResponderEvent | KeyboardEvent | SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -161,7 +161,7 @@ function KYCWall({
             }
 
             // Use event target as fallback if anchorRef is null for safety
-            const targetElement = anchorRef.current ?? (event?.nativeEvent.target as HTMLDivElement);
+            const targetElement = anchorRef.current ?? ((event as SyntheticEvent<NativeTouchEvent>)?.nativeEvent.target as HTMLDivElement);
 
             transferBalanceButtonRef.current = targetElement;
 

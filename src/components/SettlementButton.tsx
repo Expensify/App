@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,9 +24,9 @@ import KYCWall from './KYCWall';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: string) => void;
-
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
+
+type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentType) => void;
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
@@ -213,9 +213,9 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: RefObject<View>) => (
+            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: ForwardedRef<HTMLElement>) => (
                 <ButtonWithDropdownMenu
-                    buttonRef={buttonRef}
+                    buttonRef={buttonRef as RefObject<View>}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event: KYCFlowEvent, iouPaymentType: PaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
