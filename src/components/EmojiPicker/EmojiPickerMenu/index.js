@@ -64,6 +64,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
     const [highlightEmoji, setHighlightEmoji] = useState(false);
     const [highlightFirstEmoji, setHighlightFirstEmoji] = useState(false);
@@ -72,7 +73,6 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
         if (!arePointerEventsDisabled) {
             return;
         }
-
         setArePointerEventsDisabled(false);
     }, [arePointerEventsDisabled]);
 
@@ -134,7 +134,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
     const keyDownHandler = useCallback(
         (keyBoardEvent) => {
             if (keyBoardEvent.key.startsWith('Arrow')) {
-                if (keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
+                if (!isFocused || keyBoardEvent.key === 'ArrowUp' || keyBoardEvent.key === 'ArrowDown') {
                     keyBoardEvent.preventDefault();
                 }
 
@@ -311,8 +311,10 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onFocus={() => {
                         setHighlightedIndex(-1);
+                        setIsFocused(true);
                         setIsUsingKeyboardMovement(false);
                     }}
+                    onBlur={() => setIsFocused(false)}
                     autoCorrect={false}
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
