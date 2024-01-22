@@ -106,7 +106,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
     /**
      * Returns the sections needed for the OptionsSelector
      */
-    const getSections: SearchPageSectionList = () => {
+    const getSections = (): SearchPageSectionList => {
         const sections: SearchPageSectionList = [];
         let indexOffset = 0;
 
