@@ -14,7 +14,20 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyReportField,
+    Report,
+    ReportAction,
+    ReportMetadata,
+    Session,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -37,10 +50,9 @@ import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
-import {hasViolation} from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
 
@@ -93,9 +105,35 @@ type ReportAndWorkspaceName = {
     workspaceName?: string;
 };
 
+type OptimisticAddCommentReportAction = Pick<
+    ReportAction,
+    | 'reportActionID'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'person'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'message'
+    | 'isFirstItem'
+    | 'isAttachment'
+    | 'attachmentInfo'
+    | 'pendingAction'
+    | 'shouldShow'
+    | 'originalMessage'
+    | 'childReportID'
+    | 'parentReportID'
+    | 'childType'
+    | 'childReportName'
+    | 'childManagerAccountID'
+    | 'childStatusNum'
+    | 'childStateNum'
+    | 'errors'
+> & {isOptimisticAction: boolean};
+
 type OptimisticReportAction = {
     commentText: string;
-    reportAction: Partial<ReportAction>;
+    reportAction: OptimisticAddCommentReportAction;
 };
 
 type UpdateOptimisticParentReportAction = {
@@ -112,6 +150,7 @@ type OptimisticExpenseReport = Pick<
     | 'policyID'
     | 'type'
     | 'ownerAccountID'
+    | 'managerID'
     | 'currency'
     | 'reportName'
     | 'stateNum'
@@ -225,6 +264,7 @@ type OptimisticChatReport = Pick<
 
 type OptimisticTaskReportAction = Pick<
     ReportAction,
+    | 'reportActionID'
     | 'actionName'
     | 'actorAccountID'
     | 'automatic'
@@ -235,9 +275,11 @@ type OptimisticTaskReportAction = Pick<
     | 'originalMessage'
     | 'person'
     | 'pendingAction'
-    | 'reportActionID'
     | 'shouldShow'
     | 'isFirstItem'
+    | 'previousMessage'
+    | 'errors'
+    | 'linkMetadata'
 >;
 
 type OptimisticWorkspaceChats = {
@@ -275,6 +317,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'parentReportActionID'
     | 'lastVisibleActionCreated'
 >;
 
@@ -354,6 +397,8 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: ReportAction;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    isDisabled?: boolean | null;
+    name?: string | null;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -468,7 +513,7 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 /**
  * Returns the parentReport if the given report is a thread.
  */
-function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
+function getParentReport(report: OnyxEntry<Report> | EmptyObject): OnyxEntry<Report> | EmptyObject {
     if (!report?.parentReportID) {
         return {};
     }
@@ -972,14 +1017,6 @@ function findLastAccessedReport(
         });
     }
 
-    if (isFirstTimeNewExpensifyUser) {
-        if (sortedReports.length === 1) {
-            return sortedReports[0];
-        }
-
-        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
-    }
-
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
@@ -987,6 +1024,14 @@ function findLastAccessedReport(
         sortedReports = sortedReports.filter(
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(report?.participantAccountIDs ?? []),
         );
+    }
+
+    if (isFirstTimeNewExpensifyUser) {
+        if (sortedReports.length === 1) {
+            return sortedReports[0];
+        }
+
+        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
     }
 
     return adminReport ?? sortedReports.at(-1) ?? null;
@@ -1002,7 +1047,7 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
-function isAllowedToComment(report: Report): boolean {
+function isAllowedToComment(report: OnyxEntry<Report>): boolean {
     // Default to allowing all users to post
     const capability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -2549,11 +2594,11 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  */
 function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string, parentReportID = '', parentReportActionID = ''): OnyxUpdate | EmptyObject {
     const report = getReport(reportID);
-    if (!report || !!isEmptyObject(report)) {
+    if (!report || isEmptyObject(report)) {
         return {};
     }
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (!parentReportAction || !!isEmptyObject(parentReportAction)) {
+    if (!parentReportAction || isEmptyObject(parentReportAction)) {
         return {};
     }
 
@@ -2662,7 +2707,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const stateNum = isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN;
     const statusNum = isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN;
 
-    return {
+    const expenseReport: OptimisticExpenseReport = {
         reportID: generateReportID(),
         chatReportID,
         policyID,
@@ -2679,6 +2724,13 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
+
+    // The account defined in the policy submitsTo field is the approver/ manager for this report
+    if (policy?.submitsTo) {
+        expenseReport.managerID = policy.submitsTo;
+    }
+
+    return expenseReport;
 }
 
 /**
@@ -3510,7 +3562,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
     if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
-    return hasViolation(IOUTransactionID, transactionViolations);
+    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
 }
 
 /**
@@ -3518,7 +3570,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
  */
 function hasViolations(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations));
+    return transactions.some((transaction) => TransactionUtils.hasViolation(transaction.transactionID, transactionViolations));
 }
 
 /**
@@ -4240,7 +4292,7 @@ function getTaskAssigneeChatOnyxData(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: optimisticAssigneeAddComment.reportAction},
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: optimisticAssigneeAddComment.reportAction as ReportAction},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4690,4 +4742,13 @@ export {
     getChildReportNotificationPreference,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticClosedReportAction, OptimisticCreatedReportAction};
+export type {
+    ExpenseOriginalMessage,
+    OptionData,
+    OptimisticChatReport,
+    DisplayNameWithTooltips,
+    OptimisticTaskReportAction,
+    OptimisticAddCommentReportAction,
+    OptimisticCreatedReportAction,
+    OptimisticClosedReportAction,
+};
