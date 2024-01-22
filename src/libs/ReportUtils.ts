@@ -1811,13 +1811,13 @@ function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsD
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
-        const reimbursableTotal = (moneyRequestReport?.total ?? 0) - (moneyRequestReport?.nonReimbursableTotal ?? 0);
+        const total = moneyRequestReport?.total ?? 0;
 
-        if (reimbursableTotal !== 0) {
+        if (total !== 0) {
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
-            return isExpenseReport(moneyRequestReport) ? reimbursableTotal * -1 : Math.abs(reimbursableTotal);
+            return isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total);
         }
     }
     return 0;
