@@ -26,6 +26,9 @@ const propTypes = {
 
     /** Function to call when the user closes the modal */
     onClose: PropTypes.func,
+
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,9 +37,10 @@ const defaultProps = {
     label: '',
     onClose: () => {},
     onItemSelected: () => {},
+    shouldShowTooltips: true,
 };
 
-function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected}) {
+function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onItemSelected, shouldShowTooltips}) {
     const styles = useThemeStyles();
     const [sectionsData, setSectionsData] = useState([]);
 
@@ -69,6 +73,7 @@ function ValueSelectorModal({items, selectedItem, label, isVisible, onClose, onI
                     onSelectRow={onItemSelected}
                     initiallyFocusedOptionKey={selectedItem.value}
                     shouldStopPropagation
+                    shouldShowTooltips={shouldShowTooltips}
                 />
             </ScreenWrapper>
         </Modal>

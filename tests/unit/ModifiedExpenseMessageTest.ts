@@ -275,5 +275,42 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when the created date is changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    created: '2023-12-27',
+                    oldCreated: '2023-12-26',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26).';
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the created date was not changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    created: '2023-12-27',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = 'changed the request';
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
