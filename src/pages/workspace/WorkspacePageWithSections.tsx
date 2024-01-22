@@ -96,7 +96,7 @@ function WorkspacePageWithSections({
     const policyID = route.params.policyID;
     const policyName = policy?.name;
     const hasVBA = achState === BankAccount.STATE.OPEN;
-    const content = children && children(hasVBA, policyID, isUsingECard);
+    const content = children(hasVBA, policyID, isUsingECard);
     const firstRender = useRef(true);
 
     useEffect(() => {
