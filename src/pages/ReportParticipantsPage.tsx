@@ -8,7 +8,6 @@ import OptionsList from '@components/OptionsList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,11 +20,12 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import type { ValueOf } from 'type-fest';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportParticipantsPageOnyxProps = {
+    /** Personal details of all the users */
     personalDetails: OnyxCollection<PersonalDetails>;
 };
 
@@ -35,12 +35,7 @@ type ParticipantData = {
     alternateText: string;
     displayName: string;
     accountID: number;
-    icons: Array<{
-        id: number;
-        source: UserUtils.AvatarSource;
-        name: string;
-        type: ValueOf<typeof CONST.ICON_TYPE_AVATAR>;
-    }>;
+    icons: Icon[];
     keyForList: string;
     login: string;
     text: string;
@@ -48,8 +43,8 @@ type ParticipantData = {
     participantsList: Array<{
         accountID: number;
         displayName: string;
-    }>;            
-}
+    }>;
+};
 
 /**
  * Returns all the participants in the active report
@@ -120,7 +115,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         {participants?.length && (
                             <OptionsList
-                                // @ts-expect-error TODO: #25129
+                                // @ts-expect-error TODO: Remove this once OptionsList (https://github.com/Expensify/App/issues/25129) is migrated to TypeScript.
                                 sections={[
                                     {
                                         title: '',
@@ -153,11 +148,10 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
 
 ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
-export default compose(
+export default withReportOrNotFound()(
     withOnyx<ReportParticipantsPageProps, ReportParticipantsPageOnyxProps>({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-    }),
-    withReportOrNotFound(),
-)(ReportParticipantsPage);
+    })(ReportParticipantsPage),
+);
