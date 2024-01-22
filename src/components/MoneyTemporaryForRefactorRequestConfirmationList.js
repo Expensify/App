@@ -253,9 +253,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
 
-    // A flag for checking if the associated policy is of type Team or Corporate ("Control" or "Collect")
-    const isFromPaidPolicy = policy && (policy.type === CONST.POLICY.TYPE.TEAM || policy.type === CONST.POLICY.TYPE.CORPORATE);
-
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
@@ -652,19 +649,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ) : (
-                isFromPaidPolicy &&
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(policy) &&
                 !isDistanceRequest &&
                 iouType === CONST.IOU.TYPE.REQUEST && (
                     <ReceiptEmptyState
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    CONST.IOU.ACTION.CREATE,
-                                    iouType,
-                                    transaction.transactionID,
-                                    reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                             )
                         }
                     />

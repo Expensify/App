@@ -223,9 +223,6 @@ function MoneyRequestConfirmationList(props) {
     const isSplitBill = props.iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = props.iouType === CONST.IOU.TYPE.SEND;
 
-    // A flag for checking if the associated policy is of type Team or Corporate ("Control" or "Collect")
-    const isFromPaidPolicy = props.policy && (props.policy.type === CONST.POLICY.TYPE.TEAM || props.policy.type === CONST.POLICY.TYPE.CORPORATE);
-
     const isSplitWithScan = isSplitBill && props.isScanRequest;
 
     const {unit, rate, currency} = props.mileageRate;
@@ -618,16 +615,16 @@ function MoneyRequestConfirmationList(props) {
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
             ) : (
-```suggestion
-                isFromPaidPolicy &&
-                !isDistanceRequest &&
-                iouType === CONST.IOU.TYPE.REQUEST && (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(props.policy) &&
+                !props.isDistanceRequest &&
+                props.iouType === CONST.IOU.TYPE.REQUEST && (
                     <ReceiptEmptyState
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                     CONST.IOU.ACTION.CREATE,
-                                    iouType
+                                    props.iouType,
                                     transaction.transactionID,
                                     props.reportID,
                                     Navigation.getActiveRouteWithoutParams(),
