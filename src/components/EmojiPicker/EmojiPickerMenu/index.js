@@ -102,7 +102,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
 
     const [highlightedIndex, setHighlightedIndex] = useArrowKeyFocusManager({
         maxIndex: filteredEmojis.length - 1,
-        // Spacers indexes need to be disabled so that the arrow keys don't focus them
+        // Spacers indexes need to be disabled so that the arrow keys don't focus them. All headers are hidden when list is filtered
         disabledIndexes: isListFiltered ? [] : [...headerIndices, ...spacersIndexes],
         itemsPerRow: CONST.EMOJI_NUM_PER_ROW,
         initialFocusedIndex: -1,

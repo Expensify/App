@@ -104,7 +104,7 @@ export default function useArrowKeyFocusManager({
             }
 
             if (disableCyclicTraversal && currentFocusedIndex > maxIndex) {
-                currentFocusedIndex = maxIndex;
+                return actualIndex;
             }
 
             let newFocusedIndex = currentFocusedIndex;
