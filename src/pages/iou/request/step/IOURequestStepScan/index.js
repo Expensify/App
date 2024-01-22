@@ -174,22 +174,8 @@ function IOURequestStepScan({
         setIsTorchAvailable(!!capabilities.torch);
     };
 
-    const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
-            return;
-        }
-        if (trackRef.current && isFlashLightOn) {
-            trackRef.current.applyConstraints({
-                advanced: [{torch: true}],
-            });
-        }
+    const getScreenshot = useCallback(() => {
         const imageBase64 = cameraRef.current.getScreenshot();
-
-        if (trackRef.current && isFlashLightOn) {
-            trackRef.current.applyConstraints({
-                advanced: [{torch: false}],
-            });
-        }
 
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64, filename);
@@ -202,7 +188,28 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, isFlashLightOn]);
+    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+
+    const capturePhoto = useCallback(() => {
+        if (!cameraRef.current.getScreenshot) {
+            return;
+        }
+
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current.applyConstraints({
+                advanced: [{torch: true}],
+            });
+            setTimeout(() => {
+                getScreenshot();
+                trackRef.current.applyConstraints({
+                    advanced: [{torch: false}],
+                });
+            }, CONST.TORCH_EFFECT);
+            return;
+        }
+
+        getScreenshot();
+    }, [cameraRef, isFlashLightOn, getScreenshot]);
 
     const panResponder = useRef(
         PanResponder.create({

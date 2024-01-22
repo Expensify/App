@@ -47,6 +47,7 @@ const CONST = {
         OUT: 'out',
     },
     ARROW_HIDE_DELAY: 3000,
+    TORCH_EFFECT: 1000,
 
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
