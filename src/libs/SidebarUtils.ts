@@ -199,7 +199,7 @@ function getOrderedReportIDs(
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(report, allReports).totalDisplaySpend;
 
         const isPinned = report.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
@@ -458,7 +458,7 @@ function getOptionData({
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result as Report);
+    result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result as Report).totalDisplaySpend;
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

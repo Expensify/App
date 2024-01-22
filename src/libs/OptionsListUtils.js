@@ -568,7 +568,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result).totalDisplaySpend;
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
