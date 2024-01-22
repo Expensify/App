@@ -44,6 +44,14 @@ type SearchOptions = {
     userToInvite: ReportUtils.OptionData | null;
 };
 
+type SearchPageSectionItem = {
+    data: ReportUtils.OptionData[];
+    shouldShow: boolean;
+    indexOffset: number;
+};
+
+type SearchPageSectionList = SearchPageSectionItem[]
+
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}: SearchPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<SearchOptions>({
@@ -98,8 +106,8 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
     /**
      * Returns the sections needed for the OptionsSelector
      */
-    const getSections = () => {
-        const sections = [];
+    const getSections: SearchPageSectionList = () => {
+        const sections: SearchPageSectionList = [];
         let indexOffset = 0;
 
         if (searchOptions.recentReports.length > 0) {
