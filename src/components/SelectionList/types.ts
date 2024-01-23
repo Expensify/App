@@ -1,7 +1,6 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {SubscriptAvatarProps} from '@components/SubscriptAvatar';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type CommonListItemProps<TItem> = {
@@ -59,7 +58,7 @@ type User = {
     rightElement?: ReactElement;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
-    icons?: SubscriptAvatarProps[];
+    icons?: Icon[];
 
     /** Errors that this user may contain */
     errors?: Errors;
