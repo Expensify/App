@@ -2121,7 +2121,10 @@ export default {
     },
     exitSurvey: {
         header: 'Before you go',
-        title: 'Before you go, please tell us why you’d like to switch to Expensify Classic.',
+        reasonPage: {
+            title: "Please tell us why you're leaving",
+            subtitle: 'Before you go, please tell us why you’d like to switch to Expensify Classic.',
+        },
         reasons: {
             // TODO: use consts for these keys
             [CONST.EXIT_SURVEY_REASONS.FEATURE_NOT_AVAILABLE]: "I need a feature that's only available in Expensify Classic.",

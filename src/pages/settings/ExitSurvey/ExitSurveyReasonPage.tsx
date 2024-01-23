@@ -59,8 +59,8 @@ function ExitSurveyReasonPage() {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <Text style={styles.headerAnonymousFooter}>Please tell us why you&apos;re leaving</Text>
-                <Text style={styles.mt2}>Before you go, please tell us why you&apos;d like to switch to Expensify Classic</Text>
+                <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
+                <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
                 <InputWrapper
                     // @ts-expect-error - InputWrapper is not yet migrated to TS
                     InputComponent={RadioButtons}
