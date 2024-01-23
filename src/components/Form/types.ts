@@ -36,13 +36,13 @@ type BaseInputProps = {
     shouldSaveDraft?: boolean;
     shouldUseDefaultValue?: boolean;
     key?: Key | null | undefined;
-    ref?: Ref<BaseInputProps>;
+    ref?: Ref<unknown>;
     isFocused?: boolean;
     measureLayout?: (ref: unknown, callback: MeasureLayoutOnSuccessCallback) => void;
     focus?: () => void;
 };
 
-type InputWrapperProps<TInput extends ValidInputs> = BaseInputProps &
+type InputWrapperProps<TInput extends ValidInputs> = Omit<BaseInputProps, 'ref'> &
     ComponentProps<TInput> & {
         InputComponent: TInput;
         inputID: string;
@@ -65,7 +65,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     isSubmitButtonVisible?: boolean;
 
     /** Callback to submit the form */
-    onSubmit: (values?: Record<string, unknown>) => void;
+    onSubmit: (values: OnyxFormValuesFields<TFormID>) => void;
 
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;

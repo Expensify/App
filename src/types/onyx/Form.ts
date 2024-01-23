@@ -38,6 +38,18 @@ type NewRoomForm = Form<{
     visibility?: string;
 }>;
 
+type IKnowATeacherForm = Form<{
+    firstName: string;
+    lastName: string;
+    partnerUserID: string;
+}>;
+
+type IntroSchoolPrincipalForm = Form<{
+    firstName: string;
+    lastName: string;
+    partnerUserID: string;
+}>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm};
+export type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};

@@ -33,6 +33,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** Assuming refs are React refs */
         inputRefs: RefObject<InputRefs>;
+
+        /** Callback to submit the form */
+        onSubmit: () => void;
     };
 
 function FormWrapper({
