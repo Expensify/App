@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import ReceiptHTML from '@assets/images/receipt-html.png';

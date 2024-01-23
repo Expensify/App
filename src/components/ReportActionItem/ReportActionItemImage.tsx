@@ -1,7 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import React from 'react';
 import type {ReactElement} from 'react';
-import {ImageSourcePropType, View} from 'react-native';
+import {View} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';

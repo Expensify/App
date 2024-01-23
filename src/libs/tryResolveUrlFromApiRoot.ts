@@ -1,4 +1,4 @@
-import {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import Config from '@src/CONFIG';
 import type {Request} from '@src/types/onyx';
 import * as ApiUtils from './ApiUtils';
