@@ -44,7 +44,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
 
-    return {isThumbnail: true, isLocalFile};
+    return {isThumbnail: true, image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export
