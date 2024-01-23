@@ -478,6 +478,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                         screens: {
                             [SCREENS.EDIT_REQUEST.ROOT]: ROUTES.EDIT_REQUEST.route,
                             [SCREENS.EDIT_REQUEST.CURRENCY]: ROUTES.EDIT_CURRENCY_REQUEST.route,
+                            [SCREENS.EDIT_REQUEST.REPORT_FIELD]: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.SIGN_IN]: {

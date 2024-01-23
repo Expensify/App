@@ -1,39 +1,30 @@
-import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {forwardRef, useEffect} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {Country} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import refPropTypes from './refPropTypes';
 
-const propTypes = {
+type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
-    errorText: PropTypes.string,
+    errorText?: string;
 
     /** Callback called when the country changes. */
-    onInputChange: PropTypes.func.isRequired,
+    onInputChange: (value?: string) => void;
 
     /** Current selected country  */
-    value: PropTypes.string,
+    value?: Country;
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
-    inputID: PropTypes.string.isRequired,
-
-    /** React ref being forwarded to the MenuItemWithTopDescription */
-    forwardedRef: refPropTypes,
+    inputID: string;
 };
 
-const defaultProps = {
-    errorText: '',
-    value: undefined,
-    forwardedRef: () => {},
-};
-
-function CountrySelector({errorText, value: countryCode, onInputChange, forwardedRef}) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -51,12 +42,12 @@ function CountrySelector({errorText, value: countryCode, onInputChange, forwarde
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={title}
-                ref={forwardedRef}
+                ref={ref}
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRouteWithoutParams();
-                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode, activeRoute));
+                    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
                 }}
             />
             <View style={styles.ml5}>
@@ -66,18 +57,6 @@ function CountrySelector({errorText, value: countryCode, onInputChange, forwarde
     );
 }
 
-CountrySelector.propTypes = propTypes;
-CountrySelector.defaultProps = defaultProps;
 CountrySelector.displayName = 'CountrySelector';
 
-const CountrySelectorWithRef = React.forwardRef((props, ref) => (
-    <CountrySelector
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-CountrySelectorWithRef.displayName = 'CountrySelectorWithRef';
-
-export default CountrySelectorWithRef;
+export default forwardRef(CountrySelector);
