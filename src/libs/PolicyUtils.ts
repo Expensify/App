@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyMember, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -210,8 +210,8 @@ function getPathWithoutPolicyID(path: string) {
 function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<PolicyMembers>, currentPolicyID?: string, currentUserAccountID?: number) {
     return policyMembers
         ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${currentPolicyID}`] ?? {})
-            .map((policyMemberAccountID) => Number(policyMemberAccountID))
-            .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
+              .map((policyMemberAccountID) => Number(policyMemberAccountID))
+              .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
         : [];
 }
 
