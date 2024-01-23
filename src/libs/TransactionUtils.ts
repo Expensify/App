@@ -364,7 +364,11 @@ function getBillable(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Return the tag from the transaction. This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxEntry<Transaction>): string {
+function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+    if (tagIndex !== undefined) {
+        return transaction?.tag?.split(':')[tagIndex] ?? '';
+    }
+
     return transaction?.tag ?? '';
 }
 
