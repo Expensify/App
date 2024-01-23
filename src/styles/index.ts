@@ -2288,9 +2288,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportActionContextMenuMiniButton: {
-            ...spacing.p1,
-            ...spacing.mv1,
-            ...spacing.mh1,
+            height: 28,
+            width: 28,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
             ...{borderRadius: variables.buttonBorderRadius},
         },
 
@@ -3325,8 +3326,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         miniQuickEmojiReactionText: {
-            fontSize: 15,
-            lineHeight: 20,
+            fontSize: 18,
+            lineHeight: 22,
             verticalAlign: 'middle',
         },
 
