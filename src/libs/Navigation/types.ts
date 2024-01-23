@@ -466,6 +466,11 @@ type CentralPaneName = keyof CentralPaneNavigatorParamList;
 
 type FullScreenName = keyof SettingsCentralPaneNavigatorParamList;
 
+type switchPolicyIDParams = {
+    policyID?: string;
+    route?: Routes;
+};
+
 export type {
     NavigationRef,
     StackNavigationAction,
@@ -510,4 +515,5 @@ export type {
     ReimbursementAccountNavigatorParamList,
     State,
     WorkspaceSwitcherNavigatorParamList,
+    switchPolicyIDParams,
 };

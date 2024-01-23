@@ -45,9 +45,9 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
                 // If targetReport is an empty object, it means that it's a new report, so it can't belong to any workspace
                 const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs);
                 if (shouldOpenAllWorkspace) {
-                    switchPolicyID(navigationRef, undefined, ROUTES.HOME);
+                    switchPolicyID(navigationRef, {route: ROUTES.HOME});
                 } else {
-                    switchPolicyID(navigationRef, policyID, ROUTES.HOME);
+                    switchPolicyID(navigationRef, {policyID, route: ROUTES.HOME});
                 }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
