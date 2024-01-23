@@ -88,6 +88,22 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     /**
+     * Toggles the arrows visibility
+     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
+     */
+    const toggleArrows = useCallback(
+        (showArrows) => {
+            if (showArrows) {
+                setShouldShowArrows(showArrows);
+                return;
+            }
+
+            setShouldShowArrows(!shouldShowArrows);
+        },
+        [setShouldShowArrows, shouldShowArrows],
+    );
+
+    /**
      * Defines how a single attachment should be rendered
      * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
      * @returns {JSX.Element}
@@ -134,8 +150,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 items={attachments}
                                 renderItem={renderItem}
                                 initialIndex={page}
-                                shouldShowArrows={shouldShowArrows}
-                                setShouldShowArrows={setShouldShowArrows}
+                                onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                                 ref={pagerRef}
                             />

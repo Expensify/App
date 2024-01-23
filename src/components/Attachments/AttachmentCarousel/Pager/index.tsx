@@ -27,24 +27,19 @@ type PagerItem = {
 
 type AttachmentCarouselPagerProps = {
     items: PagerItem[];
-    isZoomedOut?: boolean;
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
     onPageSelected: () => void;
-    shouldShowArrows: boolean;
-    setShouldShowArrows: (shouldShowArrows: boolean) => void;
+    onRequestToggleArrows: (showArrows?: boolean) => void;
 };
 
-function AttachmentCarouselPager(
-    {items, isZoomedOut = true, renderItem, initialIndex, onPageSelected, shouldShowArrows, setShouldShowArrows}: AttachmentCarouselPagerProps,
-    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
-) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onRequestToggleArrows}: AttachmentCarouselPagerProps, ref: ForwardedRef<AttachmentCarouselPagerHandle>) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
-    const scale = useSharedValue(1);
+    const scale = useRef(1);
     const isPagerScrolling = useSharedValue(false);
-    const isScrollEnabled = useSharedValue(isZoomedOut);
+    const isScrollEnabled = useSharedValue(true);
 
     const activePage = useSharedValue(initialIndex);
     const [activePageState, setActivePageState] = useState(initialIndex);
@@ -68,22 +63,22 @@ function AttachmentCarouselPager(
 
     const handleScaleChange = useCallback(
         (newScale: number) => {
-            if (newScale === scale.value) {
+            if (newScale === scale.current) {
                 return;
             }
 
-            scale.value = newScale;
+            scale.current = newScale;
 
-            const newIsZoomedOut = newScale === 1;
+            const newIsScrollEnabled = newScale === 1;
 
-            if (isZoomedOut === newIsZoomedOut) {
+            if (isScrollEnabled.value === newIsScrollEnabled) {
                 return;
             }
 
-            isScrollEnabled.value = newIsZoomedOut;
-            setShouldShowArrows(newIsZoomedOut);
+            isScrollEnabled.value = newIsScrollEnabled;
+            onRequestToggleArrows(newIsScrollEnabled);
         },
-        [isScrollEnabled, isZoomedOut, scale, setShouldShowArrows],
+        [isScrollEnabled, onRequestToggleArrows],
     );
 
     const onTap = useCallback(() => {
@@ -91,8 +86,8 @@ function AttachmentCarouselPager(
             return;
         }
 
-        setShouldShowArrows(!shouldShowArrows);
-    }, [isScrollEnabled.value, setShouldShowArrows, shouldShowArrows]);
+        onRequestToggleArrows();
+    }, [isScrollEnabled.value, onRequestToggleArrows]);
 
     const contextValue = useMemo(
         () => ({
