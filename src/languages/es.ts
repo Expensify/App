@@ -1426,10 +1426,9 @@ export default {
                 'la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
                 'generalmente se completa dentro de varios minutos. La tarifa es el 1,5% del importe de la ' +
                 'transferencia (con una tarifa mínima de US$0,25). ',
-            fdicInsuranceBancorp:
-                'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
-                `transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, tus fondos ` +
-                `están asegurados hasta US$250.000 por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
+            fdicInsuranceBancorp: ({amount}: TermsParams) => 'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
+                    `transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, tus fondos ` +
+                    `están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
             fdicInsuranceBancorp2: 'para más detalles.',
             contactExpensifyPayments: `Comunícate con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, o por correo electrónico a`,
             contactExpensifyPayments2: 'o inicie sesión en',

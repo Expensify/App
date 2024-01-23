@@ -88,7 +88,7 @@ function LongTermsForm() {
             <CollapsibleSection title={translate('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
 
             <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.fdicInsuranceBancorp')} {CONST.TERMS.FDIC_PREPAID}{' '}
+                {translate('termsStep.longTermsForm.fdicInsuranceBancorp', {amount: CurrencyUtils.convertToDisplayString(25000000, 'USD')})} {CONST.TERMS.FDIC_PREPAID}{' '}
                 {translate('termsStep.longTermsForm.fdicInsuranceBancorp2')}
             </Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
