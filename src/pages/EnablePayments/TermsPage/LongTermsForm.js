@@ -6,11 +6,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useLocalize from "@hooks/useLocalize";
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
-import * as CurrencyUtils from "@libs/CurrencyUtils";
 
 function LongTermsForm() {
     const theme = useTheme();
@@ -93,8 +93,8 @@ function LongTermsForm() {
             </Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE}{' '}
-                {translate('termsStep.longTermsForm.contactExpensifyPayments2')} {CONST.NEW_EXPENSIFY_URL}.
+                {translate('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE} {translate('termsStep.longTermsForm.contactExpensifyPayments2')}{' '}
+                {CONST.NEW_EXPENSIFY_URL}.
             </Text>
             <Text style={[styles.mb6, styles.textMicroSupporting]}>
                 {translate('termsStep.longTermsForm.generalInformation')} {CONST.TERMS.CFPB_PREPAID}

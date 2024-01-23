@@ -1401,12 +1401,14 @@ export default {
                 'There is no fee to transfer funds from your Expensify Wallet ' +
                 'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
                 ' days.',
-            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) => 'There is a fee to transfer funds from your Expensify Wallet to ' +
+            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
+                'There is a fee to transfer funds from your Expensify Wallet to ' +
                 'your linked debit card using the instant transfer option. This transfer usually completes within ' +
                 `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
-            fdicInsuranceBancorp: ({amount}: TermsParams) => 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                    `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                    `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
+            fdicInsuranceBancorp: ({amount}: TermsParams) =>
+                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
+                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
+                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
             contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
