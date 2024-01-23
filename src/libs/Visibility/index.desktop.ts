@@ -8,7 +8,7 @@ import type {HasFocus, IsVisible, OnVisibilityChange} from './types';
  */
 const isVisible: IsVisible = () => !!window.electron.sendSync(ELECTRON_EVENTS.REQUEST_VISIBILITY);
 
-const hasFocus: HasFocus = () => true;
+const hasFocus: HasFocus = () => !!window.electron.sendSync(ELECTRON_EVENTS.REQUEST_HAS_FOCUS);
 
 /**
  * Adds event listener for changes in visibility state
