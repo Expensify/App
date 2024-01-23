@@ -61,7 +61,7 @@ jobs:
                   const issueTitle = `Investigate workflow job failing on main: ${ jobName }`;
                   const issueBody = `🚨 **Failure Summary** 🚨:\n\n` +
                   `- **📋 Job Name**: [${ jobName }](${ jobLink })\n` +
-                  `- **🔧 Failure in Workflow**: Main branch\n` +
+                  `- **🔧 Failure in Workflow**: Process new code merged to main\n` +
                   `- **🔗 Triggered by PR**: [PR Link](${ prLink })\n` +
                   `- **👤 PR Author**: @${ prAuthor }\n` +
                   `- **🤝 Merged by**: @${ prMerger }\n\n` +
