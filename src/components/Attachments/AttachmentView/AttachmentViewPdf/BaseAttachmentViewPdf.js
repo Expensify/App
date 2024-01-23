@@ -1,7 +1,21 @@
+import PropTypes from 'prop-types';
 import React, {memo, useCallback, useContext, useEffect} from 'react';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
+
+const baseAttachmentViewPdfPropTypes = {
+    ...attachmentViewPdfPropTypes,
+
+    /** Triggered when the PDF's onScaleChanged event is triggered */
+    onScaleChanged: PropTypes.func,
+};
+
+const baseAttachmentViewPdfDefaultProps = {
+    ...attachmentViewPdfDefaultProps,
+
+    onScaleChanged: undefined,
+};
 
 function BaseAttachmentViewPdf({
     file,
@@ -68,8 +82,8 @@ function BaseAttachmentViewPdf({
     );
 }
 
-BaseAttachmentViewPdf.propTypes = attachmentViewPdfPropTypes;
-BaseAttachmentViewPdf.defaultProps = attachmentViewPdfDefaultProps;
+BaseAttachmentViewPdf.propTypes = baseAttachmentViewPdfPropTypes;
+BaseAttachmentViewPdf.defaultProps = baseAttachmentViewPdfDefaultProps;
 BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
 export default memo(BaseAttachmentViewPdf);
