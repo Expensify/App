@@ -3,13 +3,18 @@ import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import {findLastIndex} from 'lodash';
 import Log from '@libs/Log';
+import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import type {RootStackParamList, StackNavigationAction} from './types';
+import switchPolicyID from './switchPolicyID';
+import type {RootStackParamList, StackNavigationAction, State} from './types';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
@@ -34,6 +39,16 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(state)) {
                 const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
+                const policyID = getPolicyIdFromState(state as State<RootStackParamList>);
+                const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
+                const targetReport = getReport(targetReportID);
+                // If targetReport is an empty object, it means that it's a new report, so it can't belong to any workspace
+                const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs);
+                if (shouldOpenAllWorkspace) {
+                    switchPolicyID(navigationRef, {route: ROUTES.HOME});
+                } else {
+                    switchPolicyID(navigationRef, {policyID, route: ROUTES.HOME});
+                }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
                 if (action) {

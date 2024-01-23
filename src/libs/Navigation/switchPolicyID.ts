@@ -11,7 +11,7 @@ import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
 import TAB_TO_CENTRAL_PANE_MAPPING from './linkingConfig/TAB_TO_CENTRAL_PANE_MAPPING';
-import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
+import type {NavigationRoot, RootStackParamList, StackNavigationAction, State, switchPolicyIDParams} from './types';
 
 type ActionPayloadParams = {
     screen?: string;
@@ -60,7 +60,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     };
 }
 
-export default function switchPolicyID(navigation: NavigationContainerRef<RootStackParamList> | null, policyID: string) {
+export default function switchPolicyID(navigation: NavigationContainerRef<RootStackParamList> | null, {policyID, route}: switchPolicyIDParams) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -75,7 +75,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
-    const newPath = getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
+    const newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
@@ -86,6 +86,12 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     root.dispatch(actionForBottomTabNavigator);
+
+    // If path is passed to this method, it means that screen is pushed to the Central Pane from another place in code
+    if (route) {
+        return;
+    }
+
     // If the layout is wide we need to push matching central pane route to the stack.
     if (!getIsSmallScreenWidth()) {
         // Case when the user selects "All" workspace from the specific workspace settings
@@ -137,7 +143,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
             });
         }
     } else {
-        // // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
+        // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
         root.dispatch({
             type: 'POP_TO_TOP',
             target: rootState.key,
