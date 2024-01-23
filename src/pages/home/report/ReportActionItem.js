@@ -292,6 +292,7 @@ function ReportActionItem(props) {
                 actionSheetAwareScrollViewContext.transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
                     payload: {
+                        popoverHeight: 0,
                         fy,
                         height,
                     },
