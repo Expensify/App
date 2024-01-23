@@ -26,13 +26,12 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
-
-type PaymentVerbTranslationPath = 'iou.payerSpent' | 'iou.payerOwes' | 'iou.payerPaid';
 
 type ReportPreviewOnyxProps = {
     /** The policy tied to the money request report */
@@ -202,7 +201,7 @@ function ReportPreview({
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        let paymentVerb: PaymentVerbTranslationPath = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        let paymentVerb: TranslationPaths = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
         }
