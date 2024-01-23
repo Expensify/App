@@ -58,13 +58,24 @@ jobs:
                 });
                 const existingIssue = issues.data.find(issue => issue.title.includes(jobName));
                 if (!existingIssue) {
+                  const annotations = await github.rest.checks.listAnnotations({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    check_run_id: jobs.jobs[i].id,
+                  });
+                  let errorMessage = "";
+                  for(let j = 0; j < annotations.data.length; j++) {
+                    errorMessage += annotations.data[j].annotation_level + ": "; 
+                    errorMessage += annotations.data[j].message + "\n";  
+                  }
                   const issueTitle = `Investigate workflow job failing on main: ${ jobName }`;
                   const issueBody = `🚨 **Failure Summary** 🚨:\n\n` +
                   `- **📋 Job Name**: [${ jobName }](${ jobLink })\n` +
                   `- **🔧 Failure in Workflow**: Process new code merged to main\n` +
                   `- **🔗 Triggered by PR**: [PR Link](${ prLink })\n` +
                   `- **👤 PR Author**: @${ prAuthor }\n` +
-                  `- **🤝 Merged by**: @${ prMerger }\n\n` +
+                  `- **🤝 Merged by**: @${ prMerger }\n` +
+                  `- **🐛 Error Message**: \n ${errorMessage}\n\n` +
                   `⚠️ **Action Required** ⚠️:\n\n` +
                   `🛠️ A recent merge appears to have caused a failure in the job named [${ jobName }](${ jobLink }).\n` +
                   `This issue has been automatically created and labeled with \`${ failureLabel }\` for investigation. \n\n` +
