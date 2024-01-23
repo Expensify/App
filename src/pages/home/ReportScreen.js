@@ -511,7 +511,14 @@ function ReportScreen({
         fetchReport();
     };
 
-    if (!shouldShowSkeleton && reportActionIDFromRoute && _.isEmpty(reportActions) && !isLinkingToMessage) {
+    const isLinkedReportActionDeleted = useMemo(() => {
+        if (!reportActionIDFromRoute) {
+            return false;
+        }
+        return ReportActionsUtils.isDeletedAction(allReportActions[reportActionIDFromRoute]);
+    }, [reportActionIDFromRoute, allReportActions]);
+
+    if (isLinkedReportActionDeleted || (!shouldShowSkeleton && reportActionIDFromRoute && _.isEmpty(reportActions) && !isLinkingToMessage)) {
         return (
             <BlockingView
                 icon={Illustrations.ToddBehindCloud}
