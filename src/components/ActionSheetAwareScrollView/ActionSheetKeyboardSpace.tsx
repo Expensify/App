@@ -335,11 +335,12 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                         }),
                         withSpring(nextOffset < 0 ? 0 : nextOffset, config)
                     );
-                    return setAndTiming(lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
+                    // return setAndTiming(lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                 }
 
                 console.log("TRANSITION #18 -> ", lastKeyboardHeight);
-                return lastKeyboardHeight;
+                return keyboard.heightWhenOpened.value - safeArea.bottom;
+                // return lastKeyboardHeight;
             }
 
             case States.KEYBOARD_CLOSED_POPOVER: {
