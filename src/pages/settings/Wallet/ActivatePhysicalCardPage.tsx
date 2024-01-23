@@ -55,7 +55,7 @@ function ActivatePhysicalCardPage({
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
     const domainCards = CardUtils.getDomainCards(cardList ?? {})[domain];
-    const physicalCard = domainCards.find((card) => card.isVirtual);
+    const physicalCard = domainCards.find((card) => !card.isVirtual);
     const cardID = physicalCard?.cardID ?? 0;
     const cardError = ErrorUtils.getLatestErrorMessage(physicalCard ?? {});
 

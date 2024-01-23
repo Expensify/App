@@ -31,6 +31,9 @@ function ChooseTransferAccountPage({walletTransfer = {}}: ChooseTransferAccountP
     const {translate} = useLocalize();
     /**
      * Go back to transfer balance screen with the selected bank account set
+     * @param event Click event object
+     * @param accountType of the selected account type
+     * @param account of the selected account data
      */
     const selectAccountAndNavigateBack = (event: GestureResponderEvent | KeyboardEvent, accountType: string, account: BankAccountData | FundAccountData) => {
         PaymentMethods.saveWalletTransferAccountTypeAndID(

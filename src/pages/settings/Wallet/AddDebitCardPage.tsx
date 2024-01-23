@@ -58,6 +58,9 @@ function DebitCardPage({formData}: DebitCardPageProps) {
         PaymentMethods.continueSetup();
     }, [prevFormDataSetupComplete, setupComplete]);
 
+    /**
+     * @param values - form input values passed by the Form component
+     */
     const validate = (values: Errors): Errors => {
         const requiredFields = ['nameOnCard', 'cardNumber', 'expirationDate', 'securityCode', 'addressStreet', 'addressZipCode', 'addressState'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
