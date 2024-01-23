@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -29,6 +30,7 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
+            {/* @ts-expect-error - FormProvider is not yet migrated to TS */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mt3, styles.mh5]}
@@ -37,14 +39,20 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <Text style={styles.headerAnonymousFooter}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={RESPONSE_INPUT_ID}
-                    containerStyles={styles.mt7}
-                    placeholder={translate(`exitSurvey.responsePlaceholder`)}
-                    multiline
-                />
+                <>
+                    <Text style={styles.headerAnonymousFooter}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
+                    <InputWrapper
+                        // @ts-expect-error – InputWrapper is not yet implemented in TS
+                        InputComponent={TextInput}
+                        inputID={RESPONSE_INPUT_ID}
+                        containerStyles={styles.mt7}
+                        label={translate(`exitSurvey.responsePlaceholder`)}
+                        accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
+                        multiline
+                        role={CONST.ROLE.PRESENTATION}
+                        shouldSaveDraft
+                    />
+                </>
             </FormProvider>
         </ScreenWrapper>
     );

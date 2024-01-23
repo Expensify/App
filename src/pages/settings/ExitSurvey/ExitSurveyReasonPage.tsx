@@ -59,15 +59,17 @@ function ExitSurveyReasonPage() {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
-                <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
-                <InputWrapper
-                    // @ts-expect-error - InputWrapper is not yet migrated to TS
-                    InputComponent={RadioButtons}
-                    inputID={REASON_INPUT_ID}
-                    items={reasons}
-                    onPress={(value: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => setReason(value)}
-                />
+                <>
+                    <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
+                    <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                    <InputWrapper
+                        // @ts-expect-error – InputWrapper is not yet implemented in TS
+                        InputComponent={RadioButtons}
+                        inputID={REASON_INPUT_ID}
+                        items={reasons}
+                        onPress={(value: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => setReason(value)}
+                    />
+                </>
             </FormProvider>
         </ScreenWrapper>
     );
