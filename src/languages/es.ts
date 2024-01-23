@@ -788,6 +788,10 @@ export default {
                 label: 'macOS',
             },
         },
+        troubleshooting: {
+            resetAndRefresh: 'Restablecer y actualizar',
+            viewConsole: 'Ver consola',
+        },
         security: 'Seguridad',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',

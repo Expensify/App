@@ -793,6 +793,10 @@ export default {
                 label: 'macOS',
             },
         },
+        troubleshooting: {
+            resetAndRefresh: 'Reset and refresh',
+            viewConsole: 'View console',
+        },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
