@@ -30,10 +30,7 @@ jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
-jest.doMock('../../src/components/ConfirmedRoute.tsx', () => {
-    const Comp = (props) => props.children;
-    return Comp;
-});
+jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({

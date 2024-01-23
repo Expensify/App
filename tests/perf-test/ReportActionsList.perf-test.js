@@ -44,10 +44,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.doMock('../../src/components/ConfirmedRoute.tsx', () => {
-    const Comp = (props) => props.children;
-    return Comp;
-});
+jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({
