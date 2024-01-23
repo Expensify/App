@@ -11,11 +11,6 @@ import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propT
 // If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
 const SCROLL_THRESHOLD = 10;
 
-function roundToDecimal(value, decimalPlaces = 0) {
-    const valueWithExponent = Math.round(`${value}e${decimalPlaces}`);
-    return Number(`${valueWithExponent}e${-decimalPlaces}`);
-}
-
 function AttachmentViewPdf(props) {
     const styles = useThemeStyles();
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
@@ -71,7 +66,7 @@ function AttachmentViewPdf(props) {
                     // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
                     // even though we're not pinching/zooming
                     // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
-                    scale.value = roundToDecimal(newScale, 2);
+                    scale.value = Math.round(newScale * 1e2) / 1e2;
                 }}
             />
         ),
