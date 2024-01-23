@@ -1,10 +1,8 @@
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,71 +20,66 @@ import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LoginList} from '@src/types/onyx';
 
-const propTypes = {
-    /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-    }),
+type IntroSchoolPrincipalFormData = {
+    firstName: string;
+    lastName: string;
+    partnerUserID: string;
 };
 
-const defaultProps = {
-    loginList: {},
+type IntroSchoolPrincipalPageOnyxProps = {
+    loginList: OnyxEntry<LoginList>;
 };
 
-function IntroSchoolPrincipalPage(props) {
+type IntroSchoolPrincipalPageProps = IntroSchoolPrincipalPageOnyxProps;
+
+function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
     /**
-     * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.partnerUserID
-     * @param {String} values.lastName
+     * Submit form to pass firstName, partnerUserID and lastName
      */
-    const onSubmit = (values) => {
+    const onSubmit = (values: IntroSchoolPrincipalFormData) => {
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
         TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
     };
 
     /**
-     * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.partnerUserID
-     * @returns {Object} - An object containing the errors for each inputID
+     * @returns - An object containing the errors for each inputID
      */
     const validate = useCallback(
-        (values) => {
+        (values: IntroSchoolPrincipalFormData) => {
             const errors = {};
 
             if (!ValidationUtils.isValidLegalName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
-            } else if (_.isEmpty(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+                ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (!values.firstName) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
             if (!ValidationUtils.isValidLegalName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
-            } else if (_.isEmpty(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
+                ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
+            } else if (!values.lastName) {
+                ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
-            if (_.isEmpty(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
+            if (!values.partnerUserID) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterEmail');
             }
-            if (!_.isEmpty(values.partnerUserID) && lodashGet(props.loginList, values.partnerUserID.toLowerCase())) {
+            if (values.partnerUserID && props.loginList?.[values.partnerUserID.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
             }
-            if (!_.isEmpty(values.partnerUserID) && !Str.isValidEmail(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
+            if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterValidEmail');
             }
-            if (!_.isEmpty(values.partnerUserID) && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+            if (values.partnerUserID && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
             }
 
             return errors;
         },
-        [props.loginList, translate],
+        [props.loginList],
     );
 
     return (
@@ -98,6 +91,7 @@ function IntroSchoolPrincipalPage(props) {
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
             />
+            {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
@@ -109,6 +103,7 @@ function IntroSchoolPrincipalPage(props) {
                 <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID="firstName"
                         name="firstName"
@@ -121,6 +116,7 @@ function IntroSchoolPrincipalPage(props) {
                 </View>
                 <View style={styles.mv4}>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID="lastName"
                         name="lastName"
@@ -133,6 +129,7 @@ function IntroSchoolPrincipalPage(props) {
                 </View>
                 <View>
                     <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID="partnerUserID"
                         name="partnerUserID"
@@ -148,10 +145,8 @@ function IntroSchoolPrincipalPage(props) {
     );
 }
 
-IntroSchoolPrincipalPage.propTypes = propTypes;
-IntroSchoolPrincipalPage.defaultProps = defaultProps;
 IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
-export default withOnyx({
+export default withOnyx<IntroSchoolPrincipalPageProps, IntroSchoolPrincipalPageOnyxProps>({
     loginList: {key: ONYXKEYS.LOGIN_LIST},
 })(IntroSchoolPrincipalPage);
