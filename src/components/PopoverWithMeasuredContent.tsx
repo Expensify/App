@@ -69,14 +69,15 @@ function PopoverWithMeasuredContent({
      * Measure the size of the popover's content.
      */
     const measurePopover = ({nativeEvent}: LayoutChangeEvent) => {
-        setPopoverWidth(nativeEvent.layout.width);
-        setPopoverHeight(nativeEvent.layout.height);
+        const {width, height} = nativeEvent.layout;
+        setPopoverWidth(width);
+        setPopoverHeight(height);
         setIsContentMeasured(true);
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
             payload: {
-                popoverHeight,
+                popoverHeight: height,
             },
         });
     };
