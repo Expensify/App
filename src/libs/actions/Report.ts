@@ -53,6 +53,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
@@ -68,7 +69,7 @@ import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -324,8 +325,8 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  */
 function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
-    let reportCommentAction: Partial<ReportAction> | undefined;
-    let attachmentAction: Partial<ReportAction> | undefined;
+    let reportCommentAction: OptimisticAddCommentReportAction | undefined;
+    let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text) {
@@ -359,12 +360,12 @@ function addActions(reportID: string, text = '', file?: File) {
 
     const report = ReportUtils.getReport(reportID);
 
-    if (isNotEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     if (text && reportCommentAction?.reportActionID) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
@@ -395,7 +396,7 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportActions,
+            value: optimisticReportActions as ReportActions,
         },
     ];
 
@@ -431,11 +432,12 @@ function addActions(reportID: string, text = '', file?: File) {
         };
     }
 
-    const failureReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
         failureReportActions[actionKey] = {
-            ...action,
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            ...(action as OptimisticAddCommentReportAction),
             errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
         };
     });
@@ -449,13 +451,13 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: failureReportActions,
+            value: failureReportActions as ReportActions,
         },
     ];
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (isNotEmptyObject(optimisticParentReportData)) {
+    if (!isEmptyObject(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
     }
 
@@ -592,7 +594,7 @@ function openReport(
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    if (isNotEmptyObject(newReportObject)) {
+    if (!isEmptyObject(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = Onyx.METHOD.SET;
@@ -1176,7 +1178,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        if (isNotEmptyObject(optimisticParentReportData)) {
+        if (!isEmptyObject(optimisticParentReportData)) {
             optimisticData.push(optimisticParentReportData);
         }
     }
@@ -1365,7 +1367,7 @@ function updateNotificationPreference(
     report: OnyxEntry<Report> | EmptyObject = {},
 ) {
     if (previousValue === newValue) {
-        if (navigate && isNotEmptyObject(report) && report.reportID) {
+        if (navigate && !isEmptyObject(report) && report.reportID) {
             ReportUtils.goBackToDetailsPage(report);
         }
         return;
@@ -1403,7 +1405,7 @@ function updateNotificationPreference(
     const parameters: UpdateReportNotificationPreferenceParams = {reportID, notificationPreference: newValue};
 
     API.write(WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE, parameters, {optimisticData, failureData});
-    if (navigate && isNotEmptyObject(report)) {
+    if (navigate && !isEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
 }
@@ -2102,14 +2104,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         (accountID): accountID is number => typeof accountID === 'number',
     );
 
-    type PersonalDetailsOnyxData = {
-        optimisticData: OnyxUpdate[];
-        successData: OnyxUpdate[];
-        failureData: OnyxUpdate[];
-    };
-
     const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs) as PersonalDetailsOnyxData;
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2123,7 +2119,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.successData;
+    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2134,7 +2130,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
             },
         },
-        ...newPersonalDetailsOnyxData.failureData,
+        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     const parameters: InviteToRoomParams = {
