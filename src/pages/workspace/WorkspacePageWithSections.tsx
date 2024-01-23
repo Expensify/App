@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
@@ -14,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PolicyRoute} from '@pages/workspace/withPolicy';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,10 +40,10 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         headerText: string;
 
         /** The route object passed to this page from the navigator */
-        route: RouteProp<{params: {policyID: string}}>;
+        route: PolicyRoute;
 
         /** Main content of the page */
-        children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
+        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
