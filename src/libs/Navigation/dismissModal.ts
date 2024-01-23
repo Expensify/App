@@ -44,6 +44,8 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
                 const targetReport = getReport(targetReportID);
                 if (policyID && (isNotEmptyObject(targetReport) ? !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs) : true)) {
                     navigateToGlobalWorkspaceHome(navigationRef);
+                } else {
+                    navigateToGlobalWorkspaceHome(navigationRef, policyID);
                 }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
