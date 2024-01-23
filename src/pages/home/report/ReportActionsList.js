@@ -417,7 +417,9 @@ function ReportActionsList({
             userInactiveSince.current = DateUtils.getDBTime();
             return;
         }
-
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         if (
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
             !(
@@ -425,8 +427,8 @@ function ReportActionsList({
                 _.some(
                     sortedVisibleReportActions,
                     (reportAction) =>
-                        userInactiveSince.current < reportAction.created &&
-                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
+                        newMessageTimeReference < reportAction.created &&
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
                 )
             )
         ) {
@@ -435,7 +437,7 @@ function ReportActionsList({
 
         Report.readNewestAction(report.reportID, false);
         userActiveSince.current = DateUtils.getDBTime();
-        lastReadTimeRef.current = userInactiveSince.current;
+        lastReadTimeRef.current = newMessageTimeReference;
         setCurrentUnreadMarker(null);
         cacheUnreadMarkers.delete(report.reportID);
         calculateUnreadMarker();
