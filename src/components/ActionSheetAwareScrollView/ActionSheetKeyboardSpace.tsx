@@ -37,7 +37,7 @@ const useAnimatedKeyboard2 = () => {
                 heightWhenOpened.value = height.value;
             }
 
-            // console.log("onStart", e, new Date().getTime());
+            console.log("onStart", e, new Date().getTime());
 
             if (e.height > 0) {
                 state.value = KeyboardState.OPENING;
@@ -56,7 +56,7 @@ const useAnimatedKeyboard2 = () => {
         onEnd: (e) => {
             "worklet";
 
-            // console.log("onEnd", e, new Date().getTime());
+            console.log("onEnd", e, new Date().getTime());
 
             if (e.height > 0) {
                 state.value = KeyboardState.OPEN;
@@ -263,7 +263,14 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: {
                 return interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]);
             }
-            case States.CALL_POPOVER_WITH_KEYBOARD_OPEN:
+            case States.CALL_POPOVER_WITH_KEYBOARD_OPEN: {
+                console.log("TRANSITION #14 (1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
+
+                return withSequence(
+                    withTiming(lastKeyboardHeight, { duration: 0 }),
+                    withSpring(popoverHeight - composerHeight, config)
+                );
+            }
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
                     console.log("TRANSITION #14 -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());

@@ -12,7 +12,9 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
-        <ActionSheetKeyboardSpace>{props.children}</ActionSheetKeyboardSpace>
+        <ActionSheetKeyboardSpace>
+            {props.children}
+        </ActionSheetKeyboardSpace>
     </ScrollView>
 ));
 

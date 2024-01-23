@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useContext} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import { Actions, ActionSheetAwareScrollViewContext } from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
@@ -75,6 +76,7 @@ const defaultProps = {
 };
 
 function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
@@ -82,10 +84,16 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
     const {translate} = useLocalize();
 
     const showPopoverMenu = () => {
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.OPEN_CALL_POPOVER,
+        });
         setPopupMenuVisible(true);
     };
 
     const hidePopoverMenu = () => {
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.CLOSE_CALL_POPOVER,
+        });
         setPopupMenuVisible(false);
     };
 
