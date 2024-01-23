@@ -2037,7 +2037,7 @@ function startSplitBill(
         });
     });
 
-    _.each(participants, (participant) => {
+    participants.forEach((participant) => {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         if (!isPolicyExpenseChat) {
             return;
@@ -2046,7 +2046,7 @@ function startSplitBill(
         const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
 
-        if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
+        if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${participant.policyID}`,
@@ -2054,7 +2054,7 @@ function startSplitBill(
             });
         }
 
-        if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+        if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${participant.policyID}`,
@@ -3499,7 +3499,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: policy.submitsTo || expenseReport.managerID,
+        managerAccountID: policy.submitsTo ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
