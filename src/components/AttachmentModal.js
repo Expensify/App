@@ -496,7 +496,7 @@ function AttachmentModal(props) {
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}
-                        {!_.isEmpty(props.report) ? (
+                        {!_.isEmpty(props.report) && !props.isReceiptAttachment ? (
                             <AttachmentCarousel
                                 report={props.report}
                                 onNavigate={onNavigate}
