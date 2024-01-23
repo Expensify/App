@@ -163,7 +163,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             console.log("update keyboard height", keyboardHeight);
             syncLocalWorkletState.lastKeyboardHeight = keyboardHeight;
         }
-        const lastKeyboardHeight = syncLocalWorkletState.lastKeyboardHeight;
+        const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom; // syncLocalWorkletState.lastKeyboardHeight;
 
         const {popoverHeight, fy, height, composerHeight} = current.payload || {};
 
@@ -330,17 +330,18 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                 if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
                     console.log("TRANSITION #17", lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                     return withSequence(
-                        withTiming(lastKeyboardHeight, {
+                        // test with kiryl+1@margelo.io and multiline text overlapped by keyboard why it's not needed
+                        /*withTiming(lastKeyboardHeight, {
                             duration: 0,
-                        }),
+                        }),*/
                         withSpring(nextOffset < 0 ? 0 : nextOffset, config)
                     );
                     // return setAndTiming(lastKeyboardHeight, nextOffset < 0 ? 0 : nextOffset);
                 }
 
                 console.log("TRANSITION #18 -> ", lastKeyboardHeight);
-                return keyboard.heightWhenOpened.value - safeArea.bottom;
-                // return lastKeyboardHeight;
+                // return keyboard.heightWhenOpened.value - safeArea.bottom;
+                return lastKeyboardHeight;
             }
 
             case States.KEYBOARD_CLOSED_POPOVER: {
