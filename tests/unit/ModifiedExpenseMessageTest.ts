@@ -25,6 +25,27 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the amount is changed while the original value was partial', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 0,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the amount to $18.00.`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount is changed and the description is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
