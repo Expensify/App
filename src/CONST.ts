@@ -3130,6 +3130,13 @@ const CONST = {
         REPORT: 'REPORT',
     },
 
+    INTRO_CHOICES: {
+        TRACK: 'newDotTrack',
+        SUBMIT: 'newDotSubmit',
+        MANAGE_TEAM: 'newDotManageTeam',
+        CHAT_SPLIT: 'newDotSplitChat',
+    },
+
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
