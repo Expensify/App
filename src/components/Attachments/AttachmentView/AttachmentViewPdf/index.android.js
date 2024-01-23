@@ -1,7 +1,7 @@
 import React, {memo, useCallback, useContext} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useSharedValue} from 'react-native-reanimated';
+import Animated, {runOnJS, useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
@@ -34,9 +34,9 @@ function AttachmentViewPdf(props) {
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
                 if (Math.abs(evt.allTouches[0].absoluteX - offsetX.value) > Math.abs(evt.allTouches[0].absoluteY - offsetY.value) && scaleRef.value === 1) {
-                    setScrollEnabled(true);
+                    runOnJS(setScrollEnabled)(true);
                 } else {
-                    setScrollEnabled(false);
+                    runOnJS(setScrollEnabled)(false);
                 }
             }
             offsetX.value = evt.allTouches[0].absoluteX;
