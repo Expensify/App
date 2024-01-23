@@ -347,6 +347,8 @@ const ONYXKEYS = {
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
         GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
+        POLICY_REPORT_FIELD_EDIT_FORM: 'policyReportFieldEditForm',
+        POLICY_REPORT_FIELD_EDIT_FORM_DRAFT: 'policyReportFieldEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
     },
@@ -440,7 +442,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportField;
+    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
@@ -526,6 +528,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;

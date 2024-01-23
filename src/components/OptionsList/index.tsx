@@ -1,12 +1,11 @@
 import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
-import _ from 'underscore';
-import withWindowDimensions from '@components/withWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseOptionsList from './BaseOptionsList';
-import {defaultProps, propTypes} from './optionsListPropTypes';
+import type {OptionsListProps, OptionsList as OptionsListType} from './types';
 
-function OptionsList(props) {
+function OptionsList(props: OptionsListProps, ref: ForwardedRef<OptionsListType>) {
     const isScreenTouched = useRef(false);
 
     useEffect(() => {
@@ -43,25 +42,13 @@ function OptionsList(props) {
     return (
         <BaseOptionsList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, 'forwardedRef')}
-            ref={props.forwardedRef}
+            {...props}
+            ref={ref}
             onScroll={onScroll}
         />
     );
 }
 
 OptionsList.displayName = 'OptionsList';
-OptionsList.propTypes = propTypes;
-OptionsList.defaultProps = defaultProps;
 
-const OptionsListWithRef = forwardRef((props, ref) => (
-    <OptionsList
-        forwardedRef={ref}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    />
-));
-
-OptionsListWithRef.displayName = 'OptionsListWithRef';
-
-export default withWindowDimensions(OptionsListWithRef);
+export default forwardRef(OptionsList);
