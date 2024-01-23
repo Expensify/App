@@ -448,7 +448,7 @@ function AddressSearch(
                             container: [{maxHeight: '100%'}],
                         }}
                         numberOfLines={2}
-                        isRowScrollable
+                        isRowScrollable={false}
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event: LayoutChangeEvent) => {
