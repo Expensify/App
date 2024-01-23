@@ -24,8 +24,9 @@ function ExitSurveyReasonPage() {
             Object.values(CONST.EXIT_SURVEY_REASONS).map((value) => ({
                 value,
                 label: translate(`exitSurvey.reasons.${value}`),
+                style: styles.mt6,
             })),
-        [translate],
+        [styles, translate],
     );
 
     return (

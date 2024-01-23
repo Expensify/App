@@ -1,11 +1,13 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
 type Choice = {
     label: string;
     value: string;
+    style?: StyleProp<ViewStyle>;
 };
 
 type RadioButtonsProps = {
@@ -26,7 +28,7 @@ function RadioButtons({items, onPress}: RadioButtonsProps) {
                 <RadioButtonWithLabel
                     key={item.value}
                     isChecked={item.value === checkedValue}
-                    style={styles.mt4}
+                    style={[styles.mt4, item.style]}
                     onPress={() => {
                         setCheckedValue(item.value);
                         return onPress(item.value);
