@@ -1,10 +1,9 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -20,132 +19,113 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {ProfileNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as PersonalDetails from '@userActions/PersonalDetails';
-import * as Report from '@userActions/Report';
-import * as Session from '@userActions/Session';
+import * as PersonalDetailsActions from '@userActions/PersonalDetails';
+import * as ReportActions from '@userActions/Report';
+import * as SessionActions from '@userActions/Session';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import personalDetailsPropType from './personalDetailsPropType';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails, PersonalDetailsList, Report, Session} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
-const matchType = PropTypes.shape({
-    params: PropTypes.shape({
-        /** accountID passed via route /a/:accountID */
-        accountID: PropTypes.string,
+type ProfilePageOnyxProps = {
+    /** The personal details of the person who is logged in */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
-        /** report ID passed */
-        reportID: PropTypes.string,
-    }),
-});
-
-const propTypes = {
-    /* Onyx Props */
-
-    /** The personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** Route params */
-    route: matchType.isRequired,
+    /** The report currently being looked at */
+    report: OnyxEntry<Report>;
 
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
-
-    ...withLocalizePropTypes,
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    // When opening someone else's profile (via deep link) before login, this is empty
-    personalDetails: {},
-    session: {
-        accountID: 0,
-    },
-};
+type ProfilePageProps = ProfilePageOnyxProps & StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
 /**
  * Gets the phone number to display for SMS logins
- *
- * @param {Object} details
- * @param {String} details.login
- * @param {String} details.displayName
- * @returns {String}
  */
-const getPhoneNumber = (details) => {
-    // If the user hasn't set a displayName, it is set to their phone number, so use that
-    const displayName = lodashGet(details, 'displayName', '');
+const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyObject): string | undefined => {
+    // If the user hasn't set a displayName, it is set to their phone number
     const parsedPhoneNumber = parsePhoneNumber(displayName);
+
     if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber.number.e164;
+        return parsedPhoneNumber?.number?.e164;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return details.login ? Str.removeSMSDomain(details.login) : '';
+    return login ? Str.removeSMSDomain(login) : '';
 };
 
-function ProfilePage(props) {
+function ProfilePage({personalDetails = {}, route, session, report}: ProfilePageProps) {
     const styles = useThemeStyles();
-    const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
-    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
+    const {translate, formatPhoneNumber} = useLocalize();
+    const accountID = Number(route.params?.accountID ?? 0);
+    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {isLoading: false, accountID: 0, avatar: ''});
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
-    const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
-    const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
-    const login = lodashGet(details, 'login', '');
-    const timezone = lodashGet(details, 'timezone', {});
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const avatar = details?.avatar || UserUtils.getDefaultAvatar();
+    const fallbackIcon = details?.fallbackIcon ?? '';
+    const login = details?.login ?? '';
+    const timezone = details?.timezone;
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !_.isEmpty(timezone);
-    let pronouns = lodashGet(details, 'pronouns', '');
-    if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !isEmptyObject(timezone);
+    let pronouns = details?.pronouns ?? '';
+    if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-        pronouns = props.translate(`pronouns.${localeKey}`);
+        pronouns = translate(`pronouns.${localeKey}` as TranslationPaths);
     }
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const isCurrentUser = props.session.accountID === accountID;
-    const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
+    const isCurrentUser = session?.accountID === accountID;
+    const hasMinimumDetails = !isEmptyObject(details.avatar);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isLoading = details?.isLoading || false || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
-    const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
-    const statusText = lodashGet(details, 'status.text', '');
+    const statusEmojiCode = details?.status?.emojiCode ?? '';
+    const statusText = details?.status?.text ?? '';
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo');
+    const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
+    const shouldShowNotificationPreference = !isEmptyObject(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const notificationPreference = shouldShowNotificationPreference
+        ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
+        : '';
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (ValidationUtils.isValidAccountRoute(accountID) && !hasMinimumDetails) {
-            PersonalDetails.openPublicProfilePage(accountID);
+            PersonalDetailsActions.openPublicProfilePage(accountID);
         }
     }, [accountID, hasMinimumDetails]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
             <HeaderWithBackButton
-                title={props.translate('common.profile')}
+                title={translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
@@ -155,10 +135,10 @@ function ProfilePage(props) {
                             <PressableWithoutFocus
                                 style={[styles.noOutline]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                accessibilityLabel={props.translate('common.profile')}
+                                accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             >
-                                <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                     <Avatar
                                         containerStyles={[styles.avatarXLarge, styles.mb3]}
                                         imageStyles={[styles.avatarXLarge]}
@@ -182,7 +162,7 @@ function ProfilePage(props) {
                                         style={[styles.textLabelSupporting, styles.mb1]}
                                         numberOfLines={1}
                                     >
-                                        {props.translate('statusPage.status')}
+                                        {translate('statusPage.status')}
                                     </Text>
                                     <Text>{statusContent}</Text>
                                 </View>
@@ -194,11 +174,11 @@ function ProfilePage(props) {
                                         style={[styles.textLabelSupporting, styles.mb1]}
                                         numberOfLines={1}
                                     >
-                                        {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                     </Text>
-                                    <CommunicationsLink value={phoneOrEmail}>
+                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
                                         <UserDetailsTooltip accountID={details.accountID}>
-                                            <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : login}</Text>
+                                            <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
                                         </UserDetailsTooltip>
                                     </CommunicationsLink>
                                 </View>
@@ -209,7 +189,7 @@ function ProfilePage(props) {
                                         style={[styles.textLabelSupporting, styles.mb1]}
                                         numberOfLines={1}
                                     >
-                                        {props.translate('profilePage.preferredPronouns')}
+                                        {translate('profilePage.preferredPronouns')}
                                     </Text>
                                     <Text numberOfLines={1}>{pronouns}</Text>
                                 </View>
@@ -220,30 +200,30 @@ function ProfilePage(props) {
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={notificationPreference}
-                                description={props.translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(props.report.reportID))}
+                                description={translate('notificationPreferencesPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
                                 wrapperStyle={[styles.mtn6, styles.mb5]}
                             />
                         )}
-                        {!isCurrentUser && !Session.isAnonymousUser() && (
+                        {!isCurrentUser && !SessionActions.isAnonymousUser() && (
                             <MenuItem
-                                title={`${props.translate('common.message')}${displayName}`}
+                                title={`${translate('common.message')}${displayName}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.ChatBubble}
-                                onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
+                                onPress={() => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                             />
                         )}
-                        {!_.isEmpty(props.report) && (
+                        {!isEmptyObject(report) && (
                             <MenuItem
-                                title={`${props.translate('privateNotes.title')}`}
+                                title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
-                                brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                                brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
                     </ScrollView>
@@ -254,9 +234,8 @@ function ProfilePage(props) {
                         icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
-                        title={props.translate('notFound.notHere')}
+                        title={translate('notFound.notHere')}
                         shouldShowLink
-                        link={props.translate('notFound.goBackHome')}
                     />
                 )}
             </View>
@@ -264,28 +243,26 @@ function ProfilePage(props) {
     );
 }
 
-ProfilePage.propTypes = propTypes;
-ProfilePage.defaultProps = defaultProps;
 ProfilePage.displayName = 'ProfilePage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    report: {
+        key: ({route, session}) => {
+            const accountID = Number(route.params?.accountID ?? 0);
+            const reportID = ReportUtils.getChatByParticipants([accountID])?.reportID ?? '';
+
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((session && Number(session.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+                return `${ONYXKEYS.COLLECTION.REPORT}0`;
+            }
+
+            return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        report: {
-            key: ({route, session}) => {
-                const accountID = Number(lodashGet(route.params, 'accountID', 0));
-                const reportID = lodashGet(ReportUtils.getChatByParticipants([accountID]), 'reportID', '');
-                if ((session && Number(session.accountID) === accountID) || Session.isAnonymousUser() || !reportID) {
-                    return null;
-                }
-                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-            },
-        },
-    }),
-)(ProfilePage);
+    },
+})(ProfilePage);
