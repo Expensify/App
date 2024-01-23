@@ -2320,7 +2320,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
  * @param originalMessage
  */
 function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
-    if (typeof originalMessage === 'object') {
+    if (originalMessage && typeof originalMessage === 'object') {
         return originalMessage;
     }
     return undefined;
