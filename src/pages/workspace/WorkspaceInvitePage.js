@@ -15,7 +15,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -306,7 +305,7 @@ function WorkspaceInvitePage(props) {
                                 isAlertVisible={shouldShowAlertPrompt}
                                 buttonText={translate('common.next')}
                                 onSubmit={inviteUser}
-                                message={ErrorUtils.getErrorsWithTranslationData(props.policy.alertMessage)}
+                                message={[props.policy.alertMessage, {isTranslated: true}]}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                 enabledWhenOffline
                                 disablePressOnEnter

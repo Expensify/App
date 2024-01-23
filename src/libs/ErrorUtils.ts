@@ -52,7 +52,7 @@ function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<nu
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
-function getErrorWithTranslationData(error: Localize.MaybePhraseKey): Localize.MaybePhraseKey {
+function getErrorMessageWithTranslationData(error: Localize.MaybePhraseKey): Localize.MaybePhraseKey {
     return typeof error === 'string' ? [error, {isTranslated: true}] : error;
 }
 
@@ -68,7 +68,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     }
 
     const key = Object.keys(errors).sort().reverse()[0];
-    return getErrorWithTranslationData(errors[key]);
+    return getErrorMessageWithTranslationData(errors[key]);
 }
 
 type OnyxDataWithErrorFields = {
@@ -83,7 +83,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     }
 
     const key = Object.keys(errorsForField).sort().reverse()[0];
-    return {[key]: getErrorWithTranslationData(errorsForField[key])};
+    return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
 function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, Localize.MaybePhraseKey> {
@@ -94,7 +94,7 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     }
 
     const key = Object.keys(errorsForField).sort()[0];
-    return {[key]: getErrorWithTranslationData(errorsForField[key])};
+    return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
 type ErrorsList = Record<string, Localize.MaybePhraseKey>;
@@ -111,10 +111,10 @@ function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | ErrorsLi
 
     if (typeof errors === 'string' || Array.isArray(errors)) {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        return {'0': getErrorWithTranslationData(errors)};
+        return {'0': getErrorMessageWithTranslationData(errors)};
     }
 
-    return mapValues(errors, getErrorWithTranslationData);
+    return mapValues(errors, getErrorMessageWithTranslationData);
 }
 
 /**

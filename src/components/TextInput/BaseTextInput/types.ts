@@ -65,7 +65,7 @@ type CustomBaseTextInputProps = {
     hideFocusedState?: boolean;
 
     /** Hint text to display below the TextInput */
-    hint?: string;
+    hint?: MaybePhraseKey;
 
     /** Prefix character */
     prefixCharacter?: string;
