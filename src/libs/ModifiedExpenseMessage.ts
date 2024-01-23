@@ -102,7 +102,7 @@ function getForReportAction(reportAction: ReportAction): string {
     const reportActionOriginalMessage = reportAction.originalMessage as ExpenseOriginalMessage | undefined;
     const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, 0) || Localize.translateLocal('common.tag');
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];

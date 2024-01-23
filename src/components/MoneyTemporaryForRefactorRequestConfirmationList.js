@@ -78,9 +78,6 @@ const propTypes = {
     /** IOU category */
     iouCategory: PropTypes.string,
 
-    /** IOU tag */
-    iouTag: PropTypes.string,
-
     /** IOU isBillable */
     iouIsBillable: PropTypes.bool,
 
@@ -175,7 +172,6 @@ const defaultProps = {
     onSelectParticipant: () => {},
     iouType: CONST.IOU.TYPE.REQUEST,
     iouCategory: '',
-    iouTag: '',
     iouIsBillable: false,
     onToggleBillable: () => {},
     payeePersonalDetails: null,
@@ -215,7 +211,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     iouCurrencyCode,
     iouIsBillable,
     iouMerchant,
-    iouTag,
     iouType,
     isDistanceRequest,
     isEditingSplitBill,
@@ -268,13 +263,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
 
-    // Fetches the first tag list of the policy
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
+    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
 
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(policyTagValueList);
 
     // A flag for showing tax rate
     const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
@@ -796,21 +789,23 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
-                    {shouldShowTags && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
-                            title={iouTag}
-                            description={policyTagListName}
-                            numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
-                            style={[styles.moneyRequestMenuItem]}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
-                        />
-                    )}
+                    {shouldShowTags &&
+                        _.map(policyTagList, ({name}, index) => (
+                            <MenuItemWithTopDescription
+                                key={name}
+                                shouldShowRightIcon={!isReadOnly}
+                                title={TransactionUtils.getTag(transaction, index)}
+                                description={name}
+                                numberOfLinesTitle={2}
+                                onPress={() =>
+                                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                }
+                                style={[styles.moneyRequestMenuItem]}
+                                disabled={didConfirm}
+                                interactive={!isReadOnly}
+                                rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
+                            />
+                        ))}
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}

@@ -1,9 +1,10 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import categoryPropTypes from '@components/categoryPropTypes';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -165,13 +166,12 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
-    // Fetches only the first tag, for now
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagsList = lodashGet(policyTag, 'tags', {});
+    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
 
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagValueList)));
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
@@ -346,20 +346,24 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('category')} />}
                     </OfflineWithFeedback>
                 )}
-                {shouldShowTag && (
-                    <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
-                        <MenuItemWithTopDescription
-                            description={lodashGet(policyTag, 'name', translate('common.tag'))}
-                            title={transactionTag}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
-                            brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                        />
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
-                    </OfflineWithFeedback>
-                )}
+                {shouldShowTag &&
+                    _.map(policyTagList, ({name}, index) => (
+                        <OfflineWithFeedback
+                            key={name}
+                            pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}
+                        >
+                            <MenuItemWithTopDescription
+                                description={name}
+                                title={TransactionUtils.getTag(transaction, index)}
+                                interactive={canEdit}
+                                shouldShowRightIcon={canEdit}
+                                titleStyle={styles.flex1}
+                                onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG, index))}
+                                brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            />
+                            {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
+                        </OfflineWithFeedback>
+                    ))}
                 {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                         <MenuItemWithTopDescription
@@ -369,7 +373,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         />
                     </OfflineWithFeedback>
                 )}
-
                 {shouldShowBillable && (
                     <>
                         <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>

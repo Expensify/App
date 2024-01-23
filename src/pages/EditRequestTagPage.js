@@ -18,11 +18,14 @@ const propTypes = {
     /** The tag name to which the default tag belongs to */
     tagName: PropTypes.string.isRequired,
 
+    // TODO: Comment
+    tagIndex: PropTypes.number.isRequired,
+
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
+function EditRequestTagPage({defaultTag, policyID, tagName, tagIndex, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,6 +49,7 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
                     <TagPicker
                         selectedTag={defaultTag}
                         tag={tagName}
+                        tagIndex={tagIndex}
                         policyID={policyID}
                         shouldShowDisabledAndSelectedOption
                         insets={insets}

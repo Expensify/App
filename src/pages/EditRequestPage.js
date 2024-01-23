@@ -1,8 +1,9 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -40,6 +41,9 @@ const propTypes = {
 
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
+
+            // TODO: Comment
+            tagIndex: PropTypes.string,
         }),
     }).isRequired,
 
@@ -77,16 +81,18 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
-        tag: transactionTag,
+        // tag: reportTags,
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
+    const rawTagIndex = lodashGet(route, ['params', 'tagIndex'], undefined);
+    const tagIndex = +rawTagIndex;
 
-    // For now, it always defaults to the first tag of the policy
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagList = lodashGet(policyTag, 'tags', {});
-    const tagListName = PolicyUtils.getTagListName(policyTags);
+    const transactionTag = TransactionUtils.getTag(transaction, +tagIndex);
+    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, +tagIndex);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -95,7 +101,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(policyTagValueList));
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -251,7 +257,8 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         return (
             <EditRequestTagPage
                 defaultTag={transactionTag}
-                tagName={tagListName}
+                tagName={policyTagListName}
+                tagIndex={tagIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={saveTag}
             />

@@ -57,7 +57,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
 
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, 0) || translate('common.tag');
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));

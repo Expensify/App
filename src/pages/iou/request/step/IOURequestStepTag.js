@@ -1,6 +1,5 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
@@ -10,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,16 +44,17 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {transactionID, backTo},
+        params: {tagIndex: rawTagIndex, transactionID, backTo},
     },
-    transaction: {tag},
+    transaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // Fetches the first tag list of the policy
-    const tagListKey = _.first(_.keys(policyTags));
-    const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
+    const tagIndex = +rawTagIndex;
+    const reportTags = TransactionUtils.getTag(transaction);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -64,10 +65,10 @@ function IOURequestStepTag({
      * @param {String} selectedTag.searchText
      */
     const updateTag = (selectedTag) => {
-        if (selectedTag.searchText === tag) {
-            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
+        if (tag === selectedTag.searchText) {
+            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, selectedTag.searchText);
         } else {
-            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, selectedTag.searchText);
+            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, selectedTag.searchText, tagIndex);
         }
         navigateBack();
     };
@@ -79,13 +80,20 @@ function IOURequestStepTag({
             shouldShowWrapper
             testID={IOURequestStepTag.displayName}
         >
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-            <TagPicker
-                policyID={report.policyID}
-                tag={tagListKey}
-                selectedTag={tag || ''}
-                onSubmit={updateTag}
-            />
+            {({insets}) => (
+                <>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+
+                    <TagPicker
+                        policyID={report.policyID}
+                        tag={policyTagListName}
+                        tagIndex={tagIndex}
+                        selectedTag={tag}
+                        insets={insets}
+                        onSubmit={updateTag}
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
