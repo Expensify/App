@@ -3133,4 +3133,8 @@ const CONST = {
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 } as const;
 
+type Country = keyof typeof CONST.ALL_COUNTRIES;
+
+export type {Country};
+
 export default CONST;

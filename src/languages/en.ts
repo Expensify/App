@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {
     AddressLineParams,
     AlreadySignedInParams,
@@ -106,7 +107,7 @@ type StateValue = {
 
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
-type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
+type AllCountries = Record<Country, string>;
 
 /* eslint-disable max-len */
 export default {
