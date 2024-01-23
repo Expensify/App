@@ -40,6 +40,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -1870,7 +1871,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    const onClick = () => Modal.close(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);

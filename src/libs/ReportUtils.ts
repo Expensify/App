@@ -29,7 +29,7 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1616,8 +1616,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
-    if (personalDetails.isOptimisticPersonalDetail === true) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (personalDetails.isOptimisticPersonalDetail === true && formattedLogin) {
         return formattedLogin;
     }
 
@@ -2319,6 +2318,48 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
 }
 
 /**
+ * Check if original message is an object and can be used as a ChangeLog type
+ * @param originalMessage
+ */
+function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
+    if (originalMessage && typeof originalMessage === 'object') {
+        return originalMessage;
+    }
+    return undefined;
+}
+
+/**
+ * Build invited usernames for admin chat threads
+ * @param parentReportAction
+ * @param parentReportActionMessage
+ */
+function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
+    if (!parentReportAction?.originalMessage) {
+        return '';
+    }
+    const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
+    const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
+
+    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
+    const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
+    if (!users) {
+        return parentReportActionMessage;
+    }
+    const actionType = parentReportAction.actionName;
+    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+
+    const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
+    const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
+
+    const verb = Localize.translateLocal(verbKey);
+    const preposition = Localize.translateLocal(prepositionKey);
+
+    const roomName = originalMessage?.roomName ?? '';
+
+    return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
+}
+
+/**
  * Get the title for a report.
  */
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
@@ -2339,6 +2380,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
+        }
+        if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
+            return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
