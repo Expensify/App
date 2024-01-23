@@ -73,7 +73,8 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [isHovered, elementRef]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [elementRef]);
 
     useEffect(() => {
         const unsetHoveredWhenDocumentIsHidden = () => {
@@ -139,7 +140,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         onMouseEnter: hoverAndForwardOnMouseEnter,
         onMouseLeave: unhoverAndForwardOnMouseLeave,
         onBlur: unhoverAndForwardOnBlur,
-        ...(isVisibiltyHidden.current && !isHovered ? {onMouseMove: handleAndForwardOnMouseMove} : null),
+        ...(isVisibiltyHidden.current && !isHovered ? {onMouseMove: handleAndForwardOnMouseMove} : {}),
     });
 }
 
