@@ -3,7 +3,7 @@ import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import {findLastIndex} from 'lodash';
 import Log from '@libs/Log';
-import getPolicyMemberAccountIDs, {getPolicyMembers} from '@libs/PolicyMembersUtils';
+import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -42,8 +42,7 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
                 const policyID = getPolicyIdFromState(state as State<RootStackParamList>);
                 const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
                 const targetReport = getReport(targetReportID);
-
-                if (policyID && isNotEmptyObject(targetReport) && !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs)) {
+                if (policyID && (isNotEmptyObject(targetReport) ? !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs) : true)) {
                     navigateToGlobalWorkspaceHome(navigationRef);
                 }
 

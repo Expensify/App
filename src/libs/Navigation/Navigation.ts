@@ -12,6 +12,7 @@ import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
+import navigateToGlobalWorkspaceHome from './navigateToGlobalWorkspaceHome';
 import navigationRef from './navigationRef';
 import switchPolicyID from './switchPolicyID';
 import type {State, StateOrRoute} from './types';
@@ -318,6 +319,14 @@ function navigateWithSwitchPolicyID(policyID: string) {
     return switchPolicyID(navigationRef.current, policyID);
 }
 
+function navigateToGlobalWorkspace() {
+    if (!canNavigate('navigateToGlobalWorkspaceHome')) {
+        return;
+    }
+
+    return navigateToGlobalWorkspaceHome(navigationRef.current);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -335,6 +344,7 @@ export default {
     waitForProtectedRoutes,
     closeFullScreen,
     navigateWithSwitchPolicyID,
+    navigateToGlobalWorkspace,
 };
 
 export {navigationRef};
