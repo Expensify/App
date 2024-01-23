@@ -89,7 +89,11 @@ function getActionForBottomTabNavigator(
 
     // Check if the current bottom tab is the same as the one we want to navigate to. If it is, we don't need to do anything.
     const bottomTabCurrentTab = getTopmostBottomTabRoute(state);
-    if (bottomTabCurrentTab?.name === screen && !shouldNavigate) {
+    const bottomTabParams = bottomTabCurrentTab?.params as Record<string, string | undefined>;
+
+    // Verify if the policyID is different than the one we are currently on. If it is, we need to navigate to the new policyID.
+    const isNewPolicy = bottomTabParams?.policyID !== payloadParams?.policyID;
+    if (bottomTabCurrentTab?.name === screen && !shouldNavigate && !isNewPolicy) {
         return;
     }
 

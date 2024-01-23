@@ -3127,6 +3127,7 @@ const CONST = {
     WORKSPACE_SWITCHER: {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
+        MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
     },
 } as const;
 

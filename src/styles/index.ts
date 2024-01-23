@@ -2529,7 +2529,6 @@ const styles = (theme: ThemeColors) =>
         avatarSectionWrapperSettings: {
             width: '100%',
             alignItems: 'center',
-            paddingTop: 20,
         },
 
         accountSettingsSectionContainer: {
