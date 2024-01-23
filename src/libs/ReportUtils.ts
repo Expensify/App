@@ -29,7 +29,12 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import type {
+    ChangeLog,
+    IOUMessage,
+    OriginalMessageActionName,
+    OriginalMessageCreated
+} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1615,7 +1620,6 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
     if (personalDetails.isOptimisticPersonalDetail === true && formattedLogin) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formattedLogin;
     }
 
@@ -2317,6 +2321,17 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
 }
 
 /**
+ * Check if original message is an object and can be used as a ChangeLog type
+ * @param originalMessage
+ */
+function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
+    if (typeof originalMessage === 'object') {
+        return originalMessage;
+    }
+    return undefined;
+}
+
+/**
  * Build invited usernames for admin chat threads
  * @param parentReportAction
  * @param parentReportActionMessage
@@ -2325,9 +2340,9 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     if (!parentReportAction?.originalMessage) {
         return '';
     }
-    const originalMessage = parentReportAction.originalMessage as ChangeLog;
+    const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
+    const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
-    const participantAccountIDs = originalMessage.targetAccountIDs ?? [];
     const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     if (!users) {
@@ -2342,7 +2357,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     const verb = Localize.translateLocal(verbKey);
     const preposition = Localize.translateLocal(prepositionKey);
 
-    const roomName = originalMessage.roomName ?? '';
+    const roomName = originalMessage?.roomName ?? '';
 
     return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
 }
