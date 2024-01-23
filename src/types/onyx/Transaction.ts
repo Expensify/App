@@ -49,7 +49,7 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
-type Transaction = {
+type TransactionValue = {
     amount: number;
     billable: boolean;
     category: string;
@@ -94,7 +94,7 @@ type Transaction = {
     originalCurrency?: string;
 };
 
-type TransactionWithOfflineFeedback = OnyxCommon.OnyxValueWithOfflineFeedback<Transaction, keyof Transaction | keyof Comment>;
+type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<TransactionValue, keyof TransactionValue | keyof Comment>;
 
-export default TransactionWithOfflineFeedback;
+export default Transaction;
 export type {WaypointCollection, Comment, Receipt, Waypoint};
