@@ -33,7 +33,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, fieldID}: Edi
     const inputRef = useRef<AnimatedTextInputRef>(null);
 
     const validate = useCallback(
-        (values: OnyxFormValuesFields<'policyReportFieldEditForm'>) => {
+        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
             const errors: Errors = {};
             const value = values[fieldID];
             if (typeof value === 'string' && value.trim() === '') {
