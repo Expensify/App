@@ -75,7 +75,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 return;
             }
 
-            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            const {adaptedState} = getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            return adaptedState;
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],

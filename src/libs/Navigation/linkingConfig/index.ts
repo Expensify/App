@@ -7,7 +7,10 @@ import customGetPathFromState from './customGetPathFromState';
 import getAdaptedStateFromPath from './getAdaptedStateFromPath';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    getStateFromPath: getAdaptedStateFromPath,
+    getStateFromPath: (...args) => {
+        const {adaptedState} = getAdaptedStateFromPath(...args);
+        return adaptedState;
+    },
     getPathFromState: customGetPathFromState,
     prefixes: [
         'app://-/',
