@@ -310,7 +310,7 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
  */
 function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>): boolean {
     const personalDetailsKeys = Object.keys(personalDetails ?? {});
-    return personalDetailsKeys.some((key) => personalDetails?.[Number(key)]?.accountID);
+    return personalDetailsKeys.some((key) => personalDetails?.[key]?.accountID);
 }
 
 /**
@@ -318,7 +318,8 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  */
 function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
-    const login = detail?.login ?? participant.login ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const login = detail?.login || participant.login || '';
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
     return {
         keyForList: String(detail?.accountID),
@@ -622,13 +623,14 @@ function createOption(
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
         const lastActorDisplayName =
             hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-                ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+                ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
                 : '';
 
         let lastMessageText = lastMessageTextFromReport;
         const lastReportAction = lastReportActions[report.reportID ?? ''];
         if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            const archiveReason = lastReportAction.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            const archiveReason = lastReportAction.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             if (archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT || archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
                 lastMessageText = Localize.translate(preferredLocale, 'reportArchiveReasons.default');
             } else {
@@ -657,7 +659,8 @@ function createOption(
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) ?? LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
         result.keyForList = String(accountIDs[0]);
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1520,7 +1523,11 @@ function getOptions(
             }
 
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (!includeThreads && optionsToExclude.some((option) => 'login' in option && option.login === reportOption.login)) {
+            if (
+                !includeThreads &&
+                (!!reportOption.login || reportOption.reportID) &&
+                optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
+            ) {
                 continue;
             }
 
@@ -1604,8 +1611,10 @@ function getOptions(
         });
         userToInvite.isOptimisticAccount = true;
         userToInvite.login = searchValue;
-        userToInvite.text = userToInvite.text ?? searchValue;
-        userToInvite.alternateText = userToInvite.alternateText ?? searchValue;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.text = userToInvite.text || searchValue;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
