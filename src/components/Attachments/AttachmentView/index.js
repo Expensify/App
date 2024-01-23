@@ -67,7 +67,6 @@ function AttachmentView({
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
     containerStyles,
-    onScaleChanged,
     onToggleKeyboard,
     translate,
     isFocused,
@@ -141,7 +140,6 @@ function AttachmentView({
                     carouselItemIndex={carouselItemIndex}
                     carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
-                    onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
@@ -174,7 +172,6 @@ function AttachmentView({
                 carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
-                onScaleChanged={onScaleChanged}
                 onError={() => {
                     setImageError(true);
                 }}

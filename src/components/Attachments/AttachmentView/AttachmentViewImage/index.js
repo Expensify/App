@@ -25,13 +25,11 @@ function AttachmentViewImage({
     onPress,
     onError,
     isImage,
-    onScaleChanged,
     translate,
 }) {
     const styles = useThemeStyles();
     const children = (
         <ImageView
-            onScaleChanged={onScaleChanged}
             onError={onError}
             url={source}
             fileName={file.name}

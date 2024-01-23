@@ -1,19 +1,25 @@
-import React, {memo, useCallback, useContext} from 'react';
+import React, {memo, useContext, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useSharedValue} from 'react-native-reanimated';
+import Animated, {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
+// If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the thouch will most probably be a tap.
+// If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
+const SCROLL_THRESHOLD = 10;
+
+function roundToDecimal(value, decimalPlaces = 0) {
+    const valueWithExponent = Math.round(`${value}e${decimalPlaces}`);
+    return Number(`${valueWithExponent}e${-decimalPlaces}`);
+}
+
 function AttachmentViewPdf(props) {
     const styles = useThemeStyles();
-    const {onScaleChanged, ...restProps} = props;
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const scaleRef = useSharedValue(1);
-    const offsetX = useSharedValue(0);
-    const offsetY = useSharedValue(0);
+    const scale = useSharedValue(1);
 
     // Reanimated freezes all objects captured in the closure of a worklet.
     // Since Reanimated 3, entire objects are captured instead of just the relevant properties.
@@ -22,32 +28,54 @@ function AttachmentViewPdf(props) {
     // frozen, which combined with Reanimated using strict mode since 3.6.0 was resulting in errors.
     // Without strict mode, it would just silently fail.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#description
-    const isScrollEnabled = attachmentCarouselPagerContext !== null ? attachmentCarouselPagerContext.isScrollEnabled : undefined;
+    const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
+
+    const offsetX = useSharedValue(0);
+    const offsetY = useSharedValue(0);
+    const isPanRunning = useSharedValue(false);
 
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0 && attachmentCarouselPagerContext !== null && isScrollEnabled) {
-                const {setScrollEnabled} = attachmentCarouselPagerContext;
+            if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled) {
+                const translateX = Math.abs(evt.allTouches[0].absoluteX - offsetX.value);
+                const translateY = Math.abs(evt.allTouches[0].absoluteY - offsetY.value);
+
+                const allowEnablingScroll = !isPanRunning.value || isScrollEnabled.value;
 
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
-                if (Math.abs(evt.allTouches[0].absoluteX - offsetX.value) > Math.abs(evt.allTouches[0].absoluteY - offsetY.value) && scaleRef.value === 1) {
-                    runOnJS(setScrollEnabled)(true);
-                } else {
-                    runOnJS(setScrollEnabled)(false);
+                if (translateX > translateY && translateX > SCROLL_THRESHOLD && scale.value === 1 && allowEnablingScroll) {
+                    isScrollEnabled.value = true;
+                } else if (translateY > SCROLL_THRESHOLD) {
+                    isScrollEnabled.value = false;
                 }
             }
+
+            isPanRunning.value = true;
             offsetX.value = evt.allTouches[0].absoluteX;
             offsetY.value = evt.allTouches[0].absoluteY;
+        })
+        .onTouchesUp(() => {
+            isPanRunning.value = false;
+            isScrollEnabled.value = true;
         });
 
-    const updateScale = useCallback(
-        (scale) => {
-            scaleRef.value = scale;
-        },
-        [scaleRef],
+    const Content = useMemo(
+        () => (
+            <BaseAttachmentViewPdf
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                onScaleChanged={(newScale) => {
+                    // The react-native-pdf library's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
+                    // even though we're not pinching/zooming
+                    // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
+                    scale.value = roundToDecimal(newScale, 2);
+                }}
+            />
+        ),
+        [props, scale],
     );
 
     return (
@@ -55,21 +83,18 @@ function AttachmentViewPdf(props) {
             collapsable={false}
             style={styles.flex1}
         >
-            <GestureDetector gesture={Pan}>
-                <Animated.View
-                    collapsable={false}
-                    style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}
-                >
-                    <BaseAttachmentViewPdf
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...restProps}
-                        onScaleChanged={(scale) => {
-                            updateScale(scale);
-                            onScaleChanged();
-                        }}
-                    />
-                </Animated.View>
-            </GestureDetector>
+            {attachmentCarouselPagerContext === null ? (
+                Content
+            ) : (
+                <GestureDetector gesture={Pan}>
+                    <Animated.View
+                        collapsable={false}
+                        style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}
+                    >
+                        {Content}
+                    </Animated.View>
+                </GestureDetector>
+            )}
         </View>
     );
 }

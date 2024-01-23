@@ -5,7 +5,7 @@ import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
 import {createNativeWrapper} from 'react-native-gesture-handler';
 import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
-import Animated, {useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
@@ -43,10 +43,10 @@ function AttachmentCarouselPager(
     const pagerRef = useRef<PagerView>(null);
 
     const isPagerScrolling = useSharedValue(false);
-    const [isScrollEnabled, setScrollEnabled] = useState(isZoomedOut);
+    const isScrollEnabled = useSharedValue(isZoomedOut);
     useEffect(() => {
-        setScrollEnabled(isZoomedOut);
-    }, [isZoomedOut]);
+        isScrollEnabled.value = isZoomedOut;
+    }, [isScrollEnabled, isZoomedOut]);
 
     const activePage = useSharedValue(initialIndex);
     const [activePageState, setActivePageState] = useState(initialIndex);
@@ -58,6 +58,7 @@ function AttachmentCarouselPager(
 
                 activePage.value = e.position;
                 isPagerScrolling.value = e.offset !== 0;
+                isScrollEnabled.value = true;
             },
         },
         [],
@@ -73,12 +74,15 @@ function AttachmentCarouselPager(
             pagerRef,
             isPagerScrolling,
             isScrollEnabled,
-            setScrollEnabled,
             onTap,
             onScaleChanged,
         }),
         [isPagerScrolling, isScrollEnabled, onTap, onScaleChanged],
     );
+
+    const animatedProps = useAnimatedProps(() => ({
+        scrollEnabled: isScrollEnabled.value,
+    }));
 
     useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
         ref,
@@ -93,7 +97,6 @@ function AttachmentCarouselPager(
     return (
         <AttachmentCarouselPagerContext.Provider value={contextValue}>
             <AnimatedPagerView
-                scrollEnabled={isScrollEnabled}
                 pageMargin={40}
                 offscreenPageLimit={1}
                 onPageScroll={pageScrollHandler}
@@ -101,6 +104,7 @@ function AttachmentCarouselPager(
                 ref={pagerRef}
                 style={styles.flex1}
                 initialPage={initialIndex}
+                animatedProps={animatedProps}
             >
                 {items.map((item, index) => (
                     <View
