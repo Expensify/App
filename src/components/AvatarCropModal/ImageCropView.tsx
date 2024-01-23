@@ -1,13 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import {PanGestureHandler} from 'react-native-gesture-handler';
-import type {GestureEvent, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {PanGesture} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -37,15 +36,14 @@ type ImageCropViewProps = {
     /** The scale factor of the image */
     scale: SharedValue<number>;
 
-    /** React-native-reanimated lib handler which executes when the user is panning image */
-    panGestureEventHandler?: (event: GestureEvent<PanGestureHandlerEventPayload>) => void;
+    /** Configuration object for pan gesture for handling image panning */
+    panGesture?: PanGesture;
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
 };
 
-function ImageCropView({imageUri = '', containerSize = 0, panGestureEventHandler = () => {}, maskImage = Expensicons.ImageCropCircleMask, ...props}: ImageCropViewProps) {
-    const theme = useTheme();
+function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage = Expensicons.ImageCropCircleMask, ...props}: ImageCropViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(containerSize, containerSize);
@@ -71,11 +69,9 @@ function ImageCropView({imageUri = '', containerSize = 0, panGestureEventHandler
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
-        <PanGestureHandler onGestureEvent={panGestureEventHandler}>
+        <GestureDetector gesture={panGesture}>
             <Animated.View
-                ref={(el) => {
-                    ControlSelection.blockElement(el as HTMLElement | null);
-                }}
+                ref={(el) => ControlSelection.blockElement(el as HTMLElement | null)}
                 style={[containerStyle, styles.imageCropContainer]}
             >
                 <Animated.Image
@@ -86,13 +82,14 @@ function ImageCropView({imageUri = '', containerSize = 0, panGestureEventHandler
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
                         src={maskImage}
-                        fill={theme.iconReversed}
+                        // TODO uncomment the line once the tint color issue for android(https://github.com/expo/expo/issues/21530#issuecomment-1836283564) is fixed
+                        // fill={theme.iconReversed}
                         width={containerSize}
                         height={containerSize}
                     />
                 </View>
             </Animated.View>
-        </PanGestureHandler>
+        </GestureDetector>
     );
 }
 

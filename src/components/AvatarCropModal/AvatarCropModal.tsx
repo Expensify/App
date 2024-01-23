@@ -1,8 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {interpolate, runOnUI, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
+import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,7 +40,7 @@ type AvatarCropModalProps = {
     onClose?: () => void;
 
     /** Callback to be called when user saves the image */
-    onSave?: (image: File | CustomRNImageManipulatorResult) => void;
+    onSave?: (newImage: File | CustomRNImageManipulatorResult) => void;
 
     /** Modal visibility */
     isVisible: boolean;
@@ -48,14 +49,8 @@ type AvatarCropModalProps = {
     maskImage?: IconAsset;
 };
 
-type PanHandlerContextType = {
-    translateX: number;
-    translateY: number;
-    translateSliderX: number;
-};
-
 // This component can't be written using class since reanimated API uses hooks.
-function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose = () => {}, onSave = () => {}, ...props}: AvatarCropModalProps) {
+function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -67,6 +62,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
+
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -184,25 +180,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
-    const panGestureEventHandler = useAnimatedGestureHandler(
-        {
-            onStart: (a, context: PanHandlerContextType) => {
-                // we have to assign translate values to a context
-                // since that is required for proper work of turbo modules.
-                // eslint-disable-next-line no-param-reassign
-                context.translateX = translateX.value;
-                // eslint-disable-next-line no-param-reassign
-                context.translateY = translateY.value;
-            },
-            onActive: (event, context) => {
-                const newX = event.translationX + context.translateX;
-                const newY = event.translationY + context.translateY;
+    const panGesture = Gesture.Pan().onChange((event) => {
+        const newX = translateX.value + event.changeX;
+        const newY = translateY.value + event.changeY;
 
-                updateImageOffset(newX, newY);
-            },
-        },
-        [imageContainerSize, updateImageOffset, translateX, translateY],
-    );
+        updateImageOffset(newX, newY);
+    });
 
     // This effect is needed to recalculate the maximum offset values
     // when the browser window is resized.
@@ -232,32 +215,33 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
      * Calculates new scale value and updates images offset to ensure
      * that image stays in the center of the container after changing scale.
      */
-    const panSliderGestureEventHandler = useAnimatedGestureHandler(
-        {
-            onStart: (a, context: PanHandlerContextType) => {
-                // we have to assign this value to a context
-                // since that is required for proper work of turbo modules.
-                // eslint-disable-next-line no-param-reassign
-                context.translateSliderX = translateSlider.value;
-                isPressableEnabled.value = false;
-            },
-            onActive: (event, context) => {
-                const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
-                const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+    const sliderPanGestureCallbacks = {
+        onBegin: () => {
+            'worklet';
 
-                const differential = newScale / scale.value;
-
-                scale.value = newScale;
-                translateSlider.value = newSliderValue;
-
-                const newX = translateX.value * differential;
-                const newY = translateY.value * differential;
-                updateImageOffset(newX, newY);
-            },
-            onEnd: () => (isPressableEnabled.value = true),
+            isPressableEnabled.value = false;
         },
-        [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize, isPressableEnabled],
-    );
+        onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+            'worklet';
+
+            const newSliderValue = clamp(translateSlider.value + event.changeX, [0, sliderContainerSize]);
+            const newScale = newScaleValue(newSliderValue, sliderContainerSize);
+
+            const differential = newScale / scale.value;
+
+            scale.value = newScale;
+            translateSlider.value = newSliderValue;
+
+            const newX = translateX.value * differential;
+            const newY = translateY.value * differential;
+            updateImageOffset(newX, newY);
+        },
+        onFinalize: () => {
+            'worklet';
+
+            isPressableEnabled.value = true;
+        },
+    };
 
     // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
@@ -305,23 +289,23 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         // Svg images are converted to a png blob to preserve transparency, so we need to update the
         // image name and type accordingly.
         const isSvg = imageType.includes('image/svg');
-        const imgName = isSvg ? 'fileName.png' : imageName;
-        const imgType = isSvg ? 'image/png' : imageType;
+        const name = isSvg ? 'fileName.png' : imageName;
+        const type = isSvg ? 'image/png' : imageType;
 
-        cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: imgName, type: imgType})
+        cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
-                onClose();
-                onSave(newImage);
+                onClose?.();
+                onSave?.(newImage);
             })
             .catch(() => {
                 isLoading.value = false;
             });
     }, [
-        imageName,
         imageUri,
+        imageName,
         imageType,
-        onSave,
         onClose,
+        onSave,
         originalImageHeight.value,
         originalImageWidth.value,
         scale.value,
@@ -353,8 +337,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     return (
         <Modal
-            onClose={onClose}
-            isVisible={props.isVisible}
+            onClose={() => onClose?.()}
+            isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
         >
@@ -386,14 +370,14 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                             <ImageCropView
                                 imageUri={imageUri}
                                 containerSize={imageContainerSize}
-                                panGestureEventHandler={panGestureEventHandler}
+                                panGesture={panGesture}
                                 originalImageHeight={originalImageHeight}
                                 originalImageWidth={originalImageWidth}
                                 scale={scale}
                                 translateY={translateY}
                                 translateX={translateX}
                                 rotation={rotation}
-                                maskImage={props.maskImage}
+                                maskImage={maskImage}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
@@ -405,13 +389,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
                                     onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
-                                    accessible={false}
                                     accessibilityLabel="slider"
                                     role={CONST.ROLE.SLIDER}
                                 >
                                     <Slider
                                         sliderValue={translateSlider}
-                                        onGesture={panSliderGestureEventHandler}
+                                        gestureCallbacks={sliderPanGestureCallbacks}
                                     />
                                 </PressableWithoutFeedback>
                                 <Tooltip
