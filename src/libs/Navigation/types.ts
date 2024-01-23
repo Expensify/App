@@ -124,11 +124,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
-    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => undefined;
-    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => {
+    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         reason: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>;
     };
-    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => undefined;
+    [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: undefined;
 };
 
 type NewChatNavigatorParamList = {

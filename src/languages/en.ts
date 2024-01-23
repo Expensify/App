@@ -2134,8 +2134,9 @@ export default {
         prompts: {
             [CONST.EXIT_SURVEY_REASONS.FEATURE_NOT_AVAILABLE]: "What feature do you need that isn't available in New Expensify?",
             [CONST.EXIT_SURVEY_REASONS.DONT_UNDERSTAND]: 'What are you trying to do?',
-            [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: 'Why to you prefer Classic Expensify?',
+            [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: 'Why to you prefer Expensify Classic?',
         },
+        responsePlaceholder: 'Your response',
         thankYou: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
         goToExpensifyClassic: 'Switch to Expensify Classic',
         offline:
