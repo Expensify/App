@@ -232,7 +232,7 @@ function MoneyRequestPreview(props) {
             return translate('iou.receiptScanning');
         }
 
-        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
