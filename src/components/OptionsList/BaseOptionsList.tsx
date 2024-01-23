@@ -241,6 +241,7 @@ function BaseOptionsList(
                     <SectionList<OptionData, Section>
                         ref={ref}
                         style={listStyles}
+                        indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode={keyboardDismissMode}
                         nestedScrollEnabled={nestedScrollEnabled}
