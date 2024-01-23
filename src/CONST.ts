@@ -927,6 +927,9 @@ const CONST = {
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
+    ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE: 'data-expensify-thumbnail-url',
+    ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
+    ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
