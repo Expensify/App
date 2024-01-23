@@ -54,6 +54,18 @@ const policyPropTypes = {
          * }
          */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+
+        /** Whether or not the policy requires tags */
+        requiresTag: PropTypes.bool,
+
+        /** Whether or not the policy requires categories */
+        requiresCategory: PropTypes.bool,
+
+        /** Whether or not the policy has multiple tag lists */
+        hasMultipleTagLists: PropTypes.bool,
+
+        /** Whether or not the policy has tax tracking enabled */
+        isTaxTrackingEnabled: PropTypes.bool,
     }),
 
     /** The employee list of this policy */

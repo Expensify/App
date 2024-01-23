@@ -37,6 +37,11 @@ function PopoverWithMeasuredContent({
     children,
     withoutOverlay = false,
     fullscreen = true,
+    shouldCloseOnOutsideClick = false,
+    shouldSetModalVisibility = true,
+    statusBarTranslucent = true,
+    avoidKeyboard = false,
+    hideModalContentWhileAnimating = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -117,6 +122,11 @@ function PopoverWithMeasuredContent({
             isVisible={isVisible}
             withoutOverlay={withoutOverlay}
             fullscreen={fullscreen}
+            shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
+            shouldSetModalVisibility={shouldSetModalVisibility}
+            statusBarTranslucent={statusBarTranslucent}
+            avoidKeyboard={avoidKeyboard}
+            hideModalContentWhileAnimating={hideModalContentWhileAnimating}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}

@@ -58,12 +58,13 @@ function addStop(transactionID: string) {
 }
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
             },
         },
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -132,6 +133,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
+        amount: CONST.IOU.DEFAULT_AMOUNT,
     };
 
     if (!isRemovedWaypointEmpty) {
@@ -244,7 +246,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         comment: {
             waypoints,
         },
-
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,
