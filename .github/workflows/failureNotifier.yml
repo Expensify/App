@@ -45,7 +45,7 @@ jobs:
             const prAuthor = pr.user.login;
             const prMerger = "${{ github.event.workflow_run.actor.login }}";
 
-            const failureLabel = 'workflow-failure';
+            const failureLabel = 'Workflow Failure';
             for (let i = 0; i < jobs.total_count; i++) {
               if (jobs.jobs[i].conclusion == 'failure') {
                 const jobName = jobs.jobs[i].name;
