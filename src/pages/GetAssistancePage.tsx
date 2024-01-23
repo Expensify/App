@@ -1,4 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,12 +13,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
 type GetAssistanceOnyxProps = {
@@ -26,10 +27,7 @@ type GetAssistanceOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type GetAssistancePageProps = GetAssistanceOnyxProps & {
-    /** Route object from navigation */
-    route: RouteProp<{params: {backTo: Route}}>;
-};
+type GetAssistancePageProps = GetAssistanceOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.GET_ASSISTANCE>;
 
 function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();
