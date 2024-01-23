@@ -209,7 +209,7 @@ function WorkspaceSwitcherPage({policies}) {
         );
     }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles, theme.textSupporting, translate]);
 
-    const headerMessage = filteredUserWorkspaces.length === 0 ? translate('common.noResultsFound') : '';
+    const headerMessage = filteredAndSortedUserWorkspaces.length === 0 ? translate('common.noResultsFound') : '';
 
     const workspacesSection = useMemo(
         () => (
