@@ -35,6 +35,9 @@ type ACHData = BeneficialOwnersStepProps &
 
         /** Bank account owner name */
         addressName?: string;
+
+        /** Policy ID of the workspace the bank account is being set up on */
+        policyID?: string;
     };
 
 type ReimbursementAccount = {

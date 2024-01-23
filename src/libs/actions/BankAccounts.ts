@@ -141,7 +141,7 @@ function addBusinessWebsiteForDraft(website: string) {
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccountToConnect) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccountToConnect, policyID: string) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
     type ConnectBankAccountWithPlaidParams = {
@@ -152,6 +152,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         plaidAccountID: string;
         plaidAccessToken: string;
         canUseNewVbbaFlow: boolean;
+        policyID?: string;
     };
 
     const parameters: ConnectBankAccountWithPlaidParams = {
@@ -162,6 +163,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
         canUseNewVbbaFlow: true,
+        policyID,
     };
 
     API.write(commandName, parameters, getVBBADataForOnyx());
@@ -329,7 +331,7 @@ function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
 
-function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep) {
+function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep, policyID: string) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -364,12 +366,16 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         stepToOpen: ReimbursementAccountStep;
         subStep: ReimbursementAccountSubStep;
         localCurrentStep: ReimbursementAccountStep;
+        policyID: string;
+        canUseNewVbbaFlow: boolean;
     };
 
     const parameters: OpenReimbursementAccountPageParams = {
         stepToOpen,
         subStep,
         localCurrentStep,
+        policyID,
+        canUseNewVbbaFlow: true,
     };
 
     return API.read('OpenReimbursementAccountPage', parameters, onyxData);
@@ -424,13 +430,14 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
  * Create the bank account with manually entered data.
  *
  */
-function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string) {
+function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string, policyID?: string) {
     type ConnectBankAccountManuallyParams = {
         bankAccountID: number;
         accountNumber?: string;
         routingNumber?: string;
         plaidMask?: string;
         canUseNewVbbaFlow: boolean;
+        policyID?: string;
     };
 
     const parameters: ConnectBankAccountManuallyParams = {
@@ -439,6 +446,7 @@ function connectBankAccountManually(bankAccountID: number, accountNumber?: strin
         routingNumber,
         plaidMask,
         canUseNewVbbaFlow: true,
+        policyID,
     };
 
     API.write('ConnectBankAccountManually', parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT));

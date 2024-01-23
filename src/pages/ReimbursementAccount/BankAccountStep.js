@@ -96,7 +96,7 @@ function BankAccountStep(props) {
     };
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankInfo />;
+        return <BankInfo onBackButtonPress={props.onBackButtonPress} />;
     }
 
     return (

@@ -4,19 +4,14 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -33,10 +28,9 @@ type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}: ConfirmationProps) {
+function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const setupType = reimbursementAccount?.achData?.subStep ?? '';
@@ -44,23 +38,11 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
     const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
-    const handleConnectDifferentAccount = () => {
+    const handleModifyAccountNumbers = () => {
         if (bankAccountID) {
-            ReimbursementAccount.requestResetFreePlanBankAccount();
             return;
         }
-        const bankAccountData = {
-            [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
-            [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
-            [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-            [BANK_INFO_STEP_KEYS.IS_SAVINGS]: '',
-            [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
-            [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
-            [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
-        };
-        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
-
-        BankAccounts.setBankAccountSubStep(null);
+        onMove(0);
     };
 
     return (
@@ -70,48 +52,32 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}:
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb6]}>{translate('bankAccount.letsDoubleCheck')}</Text>
-                <View style={[styles.cardSection]}>
-                    {setupType === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL && (
-                        <View style={[styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
-                            <Icon
-                                src={Expensicons.Bank}
-                                additionalStyles={[styles.confirmBankInfoCompanyIcon, styles.mr3]}
-                                fill={theme.iconHovered}
-                            />
-                            <View>
-                                <View style={[styles.mb3]}>
-                                    <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.routingNumber')}</Text>
-                                    <Text style={styles.confirmBankInfoNumber}>{values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}</Text>
-                                </View>
-                                <View>
-                                    <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.accountNumber')}</Text>
-                                    <Text style={styles.confirmBankInfoNumber}>{values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}</Text>
-                                </View>
-                            </View>
-                        </View>
-                    )}
-                    {setupType === CONST.BANK_ACCOUNT.SUBSTEP.PLAID && (
-                        <MenuItem
-                            interactive={false}
-                            icon={Expensicons.Bank}
-                            iconType={CONST.ICON_TYPE_ICON}
-                            iconStyles={[styles.confirmBankInfoCompanyIcon]}
-                            iconFill={theme.iconHovered}
-                            wrapperStyle={[styles.pl0, styles.mb6]}
-                            title={values[BANK_INFO_STEP_KEYS.BANK_NAME]}
-                            description={`${translate('bankAccount.accountEnding')} ${(values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
+                {setupType === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL && (
+                    <View style={[styles.mb5]}>
+                        <MenuItemWithTopDescription
+                            description={translate('bankAccount.routingNumber')}
+                            title={values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
+                            shouldShowRightIcon={!bankAccountID}
+                            onPress={handleModifyAccountNumbers}
                         />
-                    )}
-                    <Text style={[styles.confirmBankInfoText, styles.mb4]}>{translate('bankAccount.thisBankAccount')}</Text>
-                    <MenuItem
-                        icon={Expensicons.Bank}
-                        iconType={CONST.ICON_TYPE_ICON}
-                        title={translate('bankAccount.connectDifferentAccount')}
-                        onPress={handleConnectDifferentAccount}
-                        shouldShowRightIcon
-                        wrapperStyle={[styles.cardMenuItem, styles.pl0]}
+
+                        <MenuItemWithTopDescription
+                            description={translate('bankAccount.accountNumber')}
+                            title={values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
+                            shouldShowRightIcon={!bankAccountID}
+                            onPress={handleModifyAccountNumbers}
+                        />
+                    </View>
+                )}
+                {setupType === CONST.BANK_ACCOUNT.SUBSTEP.PLAID && (
+                    <MenuItemWithTopDescription
+                        description={values[BANK_INFO_STEP_KEYS.BANK_NAME]}
+                        title={`${translate('bankAccount.accountEnding')} ${(values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
+                        shouldShowRightIcon={!bankAccountID}
+                        onPress={handleModifyAccountNumbers}
                     />
-                </View>
+                )}
+                <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>{translate('bankAccount.thisBankAccount')}</Text>
                 <View style={[styles.ph5, styles.mtAuto]}>
                     {error.length > 0 && (
                         <DotIndicatorMessage
