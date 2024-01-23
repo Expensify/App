@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import {ImageSourcePropType} from 'react-native';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import ReceiptHTML from '@assets/images/receipt-html.png';
@@ -9,8 +10,8 @@ import type {Transaction} from '@src/types/onyx';
 import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
-    image: number | string;
-    thumbnail: number | string | null;
+    image: ImageSourcePropType | string;
+    thumbnail: ImageSourcePropType | string | null;
     transaction?: Transaction;
     isLocalFile?: boolean;
 };
@@ -29,7 +30,7 @@ type FileNameAndExtension = {
  */
 function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
     if (Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
-        return {thumbnail: null, image: ReceiptGeneric as string | number, isLocalFile: true};
+        return {thumbnail: null, image: ReceiptGeneric, isLocalFile: true};
     }
 
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
@@ -67,7 +68,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
     }
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
-    return {thumbnail: image as string | number, image: path, isLocalFile};
+    return {thumbnail: image, image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export
