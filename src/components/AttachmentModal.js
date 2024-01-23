@@ -49,6 +49,9 @@ const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
+    /** Whether thumnail should be display */
+    isThumbnail: PropTypes.bool,
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
@@ -101,6 +104,7 @@ const propTypes = {
 
 const defaultProps = {
     source: '',
+    isThumbnail: false,
     onConfirm: null,
     defaultOpen: false,
     originalFileName: '',
@@ -471,7 +475,7 @@ function AttachmentModal(props) {
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
                         ) : (
-                            Boolean(sourceForAttachmentView) &&
+                            (Boolean(sourceForAttachmentView) || props.isThumbnail) &&
                             shouldLoadAttachment && (
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}
