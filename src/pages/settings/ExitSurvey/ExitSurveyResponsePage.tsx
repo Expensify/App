@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useRef, useState} from 'react';
-import {useSafeAreaFrame} from 'react-native-safe-area-context';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,8 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as NumberUtils from '@libs/NumberUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -27,23 +29,27 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {height: safeAreaFrameHeight} = useSafeAreaFrame();
+    const {windowHeight} = useWindowDimensions();
+    const {top: safeAreaInsetsTop} = useSafeAreaInsets();
 
     const {reason} = route.params;
 
     const [response, setResponse] = useState('');
     const responseInputRef = useRef(null);
 
-    const formTopPaddingStyle = styles.mt3;
+    const formTopMarginsStyle = styles.mt3;
     const textStyle = styles.headerAnonymousFooter;
     const baseResponseInputContainerStyle = styles.mt7;
-    const responseInputMaxHeight = Math.floor(
-        // approximation for window height minus safe areas
-        safeAreaFrameHeight -
+    const formMaxHeight = Math.floor(
+        windowHeight -
+            safeAreaInsetsTop -
             // Minus the height of HeaderWithBackButton
             variables.contentHeaderHeight -
-            // Minus the top padding on the form
-            formTopPaddingStyle.marginTop -
+            // Minus the top margins on the form
+            formTopMarginsStyle.marginTop,
+    );
+    const responseInputMaxHeight = NumberUtils.roundDownToLargestMultiple(
+        formMaxHeight -
             // Minus the height of the text component
             textStyle.lineHeight -
             // Minus the response input margins (multiplied by 2 to create the effect of margins on top and bottom).
@@ -51,8 +57,14 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
             // so it's maxHeight is what dictates space between it and the button.
             baseResponseInputContainerStyle.marginTop * 2 -
             // Minus the approximate size of a default button
-            variables.componentSizeLarge,
+            variables.componentSizeLarge -
+            // Minus the vertical margins around the form button
+            40,
+
+        // Round down to the largest number of full lines
+        styles.baseTextInput.lineHeight,
     );
+
     return (
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
             <HeaderWithBackButton
@@ -62,7 +74,7 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
             {/* @ts-expect-error - FormProvider is not yet migrated to TS */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
-                style={[styles.flex1, styles.mh5, formTopPaddingStyle]}
+                style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
                 onSubmit={() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM)}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur

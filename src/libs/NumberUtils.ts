@@ -50,7 +50,7 @@ function generateHexadecimalValue(num: number): string {
 /**
  * Clamp a number in a range.
  * This is a worklet so it should be used only from UI thread.
- 
+
  * @returns clamped value between min and max
  */
 function clampWorklet(num: number, min: number, max: number): number {
@@ -81,4 +81,11 @@ function parseFloatAnyLocale(value: string): number {
     return parseFloat(value ? value.replace(',', '.') : value);
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, clampWorklet, parseFloatAnyLocale};
+/**
+ * Given an input number q and another number n, returns the largest number x that's less than p and divisible by q.
+ */
+function roundDownToLargestMultiple(p: number, q: number) {
+    return Math.floor(p / q) * q;
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, clampWorklet, parseFloatAnyLocale, roundDownToLargestMultiple};
