@@ -7,6 +7,7 @@ import MenuItemList from '@components/MenuItemList';
 import TestToolMenu from '@components/TestToolMenu';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyxWipe from '@hooks/useOnyxWipe';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,13 +19,14 @@ function TroubleshootingPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
+    const wipeOnyx = useOnyxWipe();
 
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
                 translationKey: 'initialSettingsPage.troubleshooting.resetAndRefresh',
                 icon: Expensicons.RotateLeft,
-                action: () => console.log('ok'),
+                action: () => wipeOnyx(),
             },
             {
                 translationKey: 'initialSettingsPage.troubleshooting.viewConsole',
@@ -39,7 +41,7 @@ function TroubleshootingPage() {
             icon: item.icon,
             onPress: item.action,
         }));
-    }, [translate]);
+    }, [translate, wipeOnyx]);
 
     return (
         <IllustratedHeaderPageLayout
