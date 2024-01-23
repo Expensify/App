@@ -119,7 +119,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
-        taskID: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
@@ -323,7 +323,9 @@ type SignInNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.REFERRAL_DETAILS]: undefined;
+    [SCREENS.REFERRAL_DETAILS]: {
+        contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+    };
 };
 
 type ProcessMoneyRequestHoldNavigatorParamList = {
