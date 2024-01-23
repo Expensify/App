@@ -61,6 +61,11 @@ function BaseVideoPlayer({
     videoControlsStyle,
     shouldUseSharedVideoElement,
     shouldUseSmallVideoControls,
+    // TODO: investigate what is the root cause of the bug with unexpected video switching
+    // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
+    // but current workaround is just not to use it here for now. This causes not displaying the video controls when
+    // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
+    // eslint-disable-next-line no-unused-vars
     isVideoHovered,
 }) {
     const styles = useThemeStyles();
@@ -140,8 +145,8 @@ function BaseVideoPlayer({
                                     ref={sharedVideoPlayerParentRef}
                                     style={[styles.flex1]}
                                 />
-                                {/* We are adding transaprent absolute View between appended video component and conttrol buttons to enable
-                                    catching onMosue events from Attachment Carousel. Due to late appending React doesn't handle
+                                {/* We are adding transparent absolute View between appended video component and control buttons to enable
+                                    catching onMouse events from Attachment Carousel. Due to late appending React doesn't handle
                                     element's events properly. */}
                                 <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
                             </>
@@ -164,7 +169,7 @@ function BaseVideoPlayer({
                                         style={videoPlayerStyle || [styles.w100, styles.h100]}
                                         videoStyle={videoStyle || [styles.w100, styles.h100]}
                                         source={{
-                                            uri: sourceURL, // testing video url: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                            uri: sourceURL,
                                         }}
                                         shouldPlay={false}
                                         useNativeControls={false}
