@@ -58,7 +58,7 @@ jobs:
                 });
                 const existingIssue = issues.data.find(issue => issue.title.includes(jobName));
                 if (!existingIssue) {
-                  const issueTitle = `🔍 Investigation Needed: ${ jobName } Failure due to PR Merge 🔍`;
+                  const issueTitle = `Investigate workflow job failing on main: ${ jobName }`;
                   const issueBody = `🚨 **Failure Summary** 🚨:\n\n` +
                   `- **📋 Job Name**: [${ jobName }](${ jobLink })\n` +
                   `- **🔧 Failure in Workflow**: Main branch\n` +
