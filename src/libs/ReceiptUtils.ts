@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import * as FileUtils from './fileDownload/FileUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
@@ -29,7 +30,7 @@ type FileNameAndExtension = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+    if (TransactionUtils.hasPendingRoute(transaction)) {
         return {thumbnail: null, image: ReceiptGeneric, isLocalFile: true};
     }
 
