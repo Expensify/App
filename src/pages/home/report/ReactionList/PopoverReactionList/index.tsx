@@ -1,17 +1,11 @@
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import type {InnerReactionListRefType} from '@hooks/useBasePopoverReactionList/types';
+import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 type PopoverReactionListProps = {
-    ref: ForwardedRef<InnerReactionListRefType>;
-};
-
-type ShowReactionList = (event: React.MouseEvent, reactionListAnchor: HTMLElement, emojiName: string, reportActionID: string) => void;
-
-type InnerReactionListRefType = {
-    showReactionList: ShowReactionList;
-    hideReactionList: () => void;
-    isActiveReportAction: (actionID: number | string) => boolean;
+    ref: ForwardedRef<ReactionListRef>;
 };
 
 function PopoverReactionList(props: PopoverReactionListProps) {
@@ -19,10 +13,10 @@ function PopoverReactionList(props: PopoverReactionListProps) {
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
     const [reactionListEmojiName, setReactionListEmojiName] = useState('');
 
-    const showReactionList: ShowReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
+    const showReactionList: ReactionListRef['showReactionList'] = (event, reactionListAnchor, emojiName, reportActionID) => {
         setReactionListReportActionID(reportActionID);
         setReactionListEmojiName(emojiName);
-        innerReactionListRef.current?.showReactionList(event, reactionListAnchor, emojiName, reportActionID);
+        innerReactionListRef.current?.showReactionList(event, reactionListAnchor);
     };
 
     const hideReactionList = () => {
@@ -45,7 +39,7 @@ function PopoverReactionList(props: PopoverReactionListProps) {
 PopoverReactionList.displayName = 'PopoverReactionList';
 
 export default React.memo(
-    forwardRef<InnerReactionListRefType>((props, ref) => (
+    forwardRef<ReactionListRef>((props, ref) => (
         <PopoverReactionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
