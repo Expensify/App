@@ -68,7 +68,7 @@ function AttachmentViewPdf(props) {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onScaleChanged={(newScale) => {
-                    // The react-native-pdf library's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
+                    // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
                     // even though we're not pinching/zooming
                     // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
                     scale.value = roundToDecimal(newScale, 2);
