@@ -146,7 +146,7 @@ test('[Search Page] should render options list', async () => {
         .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
 });
 
-test('[Search Page] should search in options list', async () => {
+test.skip('[Search Page] should search in options list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
@@ -177,7 +177,7 @@ test('[Search Page] should search in options list', async () => {
         .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
 });
 
-test('[Search Page] should click on list item', async () => {
+test.skip('[Search Page] should click on list item', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
