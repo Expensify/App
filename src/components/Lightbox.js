@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useDebounce from '@hooks/useDebounce';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -74,6 +74,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         cachedDimensions.set(source, newDimensions);
     };
 
+    const hasCache = useRef(!!cachedDimensions.get(source));
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
     const [isImageLoaded, setImageLoaded] = useState(false);
@@ -183,7 +184,13 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                     style={[imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}, {opacity: isImageLoaded ? 1 : 0}]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
-                                    onLoadEnd={() => debouncedSetImageLoaded(true)}
+                                    onLoadEnd={() => {
+                                        if (!hasCache.current) {
+                                            debouncedSetImageLoaded(true);
+                                            return;
+                                        }
+                                        setImageLoaded(true);
+                                    }}
                                     onLoad={(e) => {
                                         const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
                                         const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
