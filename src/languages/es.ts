@@ -2595,7 +2595,7 @@ export default {
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
-                    ? `Píde a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
+                    ? `Pide a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
                     : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
             }
             return '';
