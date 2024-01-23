@@ -10,6 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import type {AnchorAlignment} from './Popover/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
