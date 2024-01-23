@@ -117,7 +117,7 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (props.report.parentReportID || isUserCreatedPolicyRoom) {
+                    if ((props.report.type === CONST.REPORT.TYPE.CHAT && props.report.parentReportID) || isUserCreatedPolicyRoom) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(props.report.reportID));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
