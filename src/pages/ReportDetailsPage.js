@@ -123,7 +123,7 @@ function ReportDetailsPage(props) {
                     }
                 },
             });
-        } else if (ReportUtils.canInviteToReport(props.report)) {
+        } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !props.report.parentReportID) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',

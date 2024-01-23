@@ -970,15 +970,6 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Returns whether it's possible to invite to a report.
- * Only chat reports that aren't DMs can be invited to. (threads in DMs are eligible for invites)
- *
- */
-function canInviteToReport(report: OnyxEntry<Report>): boolean {
-    return isChatReport(report) && (!isDM(report) || !lodashIsEmpty(getParentReport(report)));
-}
-
-/**
  * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
  * by cross-referencing the accountIDs with personalDetails.
  */
