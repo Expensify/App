@@ -22,7 +22,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
-import ViolationsUtils from '@libs/ViolationsUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -3259,6 +3259,7 @@ function submitReport(expenseReport) {
 
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
+    const policy = ReportUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
 
     const optimisticData = [
@@ -3361,7 +3362,7 @@ function submitReport(expenseReport) {
         'SubmitReport',
         {
             reportID: expenseReport.reportID,
-            managerAccountID: expenseReport.managerID,
+            managerAccountID: policy.submitsTo || expenseReport.managerID,
             reportActionID: optimisticSubmittedReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},

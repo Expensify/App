@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -27,6 +28,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -108,6 +110,9 @@ const propTypes = {
     /** All the transactions, used to update ReportPreview label and status */
     transactions: PropTypes.objectOf(transactionPropTypes),
 
+    /** All of the transaction violations */
+    transactionViolations: transactionViolationsPropType,
+
     ...withLocalizePropTypes,
 };
 
@@ -121,6 +126,9 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
+    transactionViolations: {
+        violations: [],
+    },
     policy: {
         isHarvestingEnabled: false,
     },
@@ -131,6 +139,7 @@ function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyDistanceRequests, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -162,7 +171,7 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasReceipts && hasMissingSmartscanFields;
+    const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(props.iouReportID, props.transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
@@ -364,6 +373,9 @@ export default compose(
         },
         transactions: {
             key: ONYXKEYS.COLLECTION.TRANSACTION,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     }),
 )(ReportPreview);
