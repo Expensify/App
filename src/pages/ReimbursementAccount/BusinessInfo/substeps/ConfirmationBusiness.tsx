@@ -17,6 +17,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import type {FormValues} from '@src/types/onyx/Form';
@@ -107,7 +108,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.companyType')}
-                    title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}
+                    title={translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(5);
