@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,14 +19,14 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportParticipantsPageOnyxProps = {
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type ReportParticipantsPageProps = ReportParticipantsPageOnyxProps & WithReportOrNotFoundProps;
@@ -55,7 +55,7 @@ type ParticipantData = {
  */
 const getAllParticipants = (
     report: OnyxEntry<Report>,
-    personalDetails: OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string,
 ): ParticipantData[] =>
     ReportUtils.getVisibleMemberIDs(report)
@@ -83,7 +83,7 @@ const getAllParticipants = (
                 participantsList: [{accountID, displayName}],
             };
         })
-        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+        .sort((a, b) => a.displayName.localeCompare(b.displayName.toLowerCase()));
 
 function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPageProps) {
     const {translate} = useLocalize();
