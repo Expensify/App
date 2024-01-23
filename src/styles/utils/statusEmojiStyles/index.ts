@@ -1,5 +1,5 @@
 import type StatusEmojiStyles from './types';
 
-const statusEmojiStyles: StatusEmojiStyles = {};
+const statusEmojiStyles: StatusEmojiStyles = {marginTop: -2};
 
 export default statusEmojiStyles;

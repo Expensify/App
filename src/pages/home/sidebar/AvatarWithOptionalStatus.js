@@ -46,12 +46,13 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 role={CONST.ROLE.BUTTON}
                 onPress={showStatusPage}
-                style={styles.sidebarStatusAvatar}
+                style={[styles.sidebarStatusAvatar]}
             >
                 <Tooltip text={translate('statusPage.status')}>
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.statusEmojiStyles]}>
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {/* <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.statusEmojiStyles]}> */}
                         <Text
-                            style={styles.emojiStatusLHN}
+                            style={[{fontSize: 9}, styles.statusEmojiStyles]}
                             numberOfLines={1}
                         >
                             {emojiStatus}
