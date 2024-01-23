@@ -3,7 +3,18 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import PDFView from '@components/PDFView';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
-function BaseAttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress: onPressProp, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}) {
+function BaseAttachmentViewPdf({
+    file,
+    encryptedSourceUrl,
+    isFocused,
+    isUsedInCarousel,
+    onPress: onPressProp,
+    onScaleChanged: onScaleChangedProp,
+    onToggleKeyboard,
+    onLoadComplete,
+    errorLabelStyles,
+    style,
+}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
 
@@ -17,13 +28,16 @@ function BaseAttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCar
 
     const onScaleChanged = useCallback(
         (newScale) => {
-            // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (!isUsedInCarousel || !attachmentCarouselPagerContext) {
-                return;
+            if (onScaleChangedProp !== undefined) {
+                onScaleChangedProp(newScale);
             }
-            attachmentCarouselPagerContext.onScaleChanged(newScale);
+
+            // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
+            if (isUsedInCarousel && attachmentCarouselPagerContext) {
+                attachmentCarouselPagerContext.onScaleChanged(newScale);
+            }
         },
-        [attachmentCarouselPagerContext, isUsedInCarousel],
+        [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp],
     );
 
     const onPress = useCallback(
