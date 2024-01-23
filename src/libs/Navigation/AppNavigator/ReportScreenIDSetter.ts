@@ -6,7 +6,7 @@ import usePermissions from '@hooks/usePermissions';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyMember, Report, ReportMetadata} from '@src/types/onyx';
+import type {Policy, PolicyMembers, Report, ReportMetadata} from '@src/types/onyx';
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
 
 type ReportScreenIDSetterComponentProps = {
@@ -16,7 +16,7 @@ type ReportScreenIDSetterComponentProps = {
     /** The policies which the user has access to */
     policies: OnyxCollection<Policy>;
 
-    policyMembers: OnyxCollection<PolicyMember>;
+    policyMembers: OnyxCollection<PolicyMembers>;
 
     /** Whether user is a new user */
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>;
@@ -114,8 +114,6 @@ export default withOnyx<ReportScreenIDSetterProps, ReportScreenIDSetterComponent
     policyMembers: {
         key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         allowStaleData: true,
-        initialValue: {},
-        selector: (policyMembers) => policyMembers,
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,

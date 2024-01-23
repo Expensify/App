@@ -305,7 +305,7 @@ function BaseTextInput(
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {iconLeft && (
-                                <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={styles.textInputLeftIconContainer}>
                                     <Icon
                                         src={iconLeft}
                                         fill={theme.icon}

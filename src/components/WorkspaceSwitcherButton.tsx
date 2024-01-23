@@ -19,7 +19,7 @@ function WorkspaceSwitcherButton() {
         }
 
         const policy = getPolicy(activeWorkspaceID);
-        const avatar = policy?.avatar && policy?.avatar?.length > 0 ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name,

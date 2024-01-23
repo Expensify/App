@@ -1,7 +1,8 @@
 import React, {useMemo, useState} from 'react';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ActiveWorkspaceContext from './ActiveWorkspaceContext';
 
-function ActiveWorkspaceContextProvider({children}: React.PropsWithChildren) {
+function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
     const [activeWorkspaceID, setActiveWorkspaceID] = useState<string | undefined>(undefined);
 
     const value = useMemo(

@@ -205,7 +205,7 @@ function BaseOptionsList({
         return (
             <OptionRow
                 keyForList={item.keyForList}
-                option={{...item, brickRoadIndicator: isSelected ? undefined : item.brickRoadIndicator}}
+                option={item}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
