@@ -84,7 +84,7 @@ function WorkspacePageWithSections({
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
-    user = CONST.USER_DEFAULT,
+    user = null,
     shouldShowLoading = true,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
