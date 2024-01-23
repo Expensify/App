@@ -69,7 +69,6 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
-            shouldSaveDraft={!isEditing}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <InputWrapper
@@ -83,6 +82,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
                 defaultValue={dobDefaultValue}
                 minDate={minDate}
                 maxDate={maxDate}
+                shouldSaveDraft={!isEditing}
             />
             <HelpLinks containerStyles={[styles.mt5]} />
         </FormProvider>

@@ -54,7 +54,6 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
-            shouldSaveDraft={!isEditing}
         >
             <View>
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
@@ -67,6 +66,7 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
                         aria-label={translate('personalInfoStep.legalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultValues.firstName}
+                        shouldSaveDraft={!isEditing}
                     />
                 </View>
                 <View style={[styles.flex2, styles.mb3]}>
@@ -78,6 +78,7 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
                         aria-label={translate('personalInfoStep.legalLastName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultValues.lastName}
+                        shouldSaveDraft={!isEditing}
                     />
                 </View>
                 <HelpLinks />

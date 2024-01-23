@@ -75,7 +75,6 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
             onSubmit={handleSubmit}
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
-            shouldSaveDraft={!isEditing}
         >
             <View>
                 <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterYourAddress')}</Text>
@@ -85,6 +84,7 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
                     translate={translate}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
+                    shouldSaveDraft={!isEditing}
                 />
                 <HelpLinks containerStyles={[styles.mt5]} />
             </View>

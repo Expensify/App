@@ -58,7 +58,6 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
-            shouldSaveDraft={!isEditing}
         >
             <View>
                 <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterTheLast4')}</Text>
@@ -75,6 +74,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        shouldSaveDraft={!isEditing}
                     />
                 </View>
                 <HelpLinks containerStyles={[styles.mt5]} />
