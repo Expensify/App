@@ -1,6 +1,6 @@
 import Config from '../../../tests/e2e/config';
 import Routes from '../../../tests/e2e/server/routes';
-import type {NetworkCacheMap} from './types';
+import type {NetworkCacheMap, TestConfig} from './types';
 
 type TestResult = {
     name: string;
@@ -8,10 +8,6 @@ type TestResult = {
     duration?: number;
     error?: string;
     renderCount?: number;
-};
-
-type TestConfig = {
-    name: string;
 };
 
 type NativeCommandPayload = {

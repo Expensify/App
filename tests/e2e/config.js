@@ -1,10 +1,5 @@
 const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
-/**
- * @typedef TestConfig
- * @property {string} name
- */
-
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
@@ -82,9 +77,13 @@ module.exports = {
             reportScreen: {
                 autoFocus: true,
             },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
         },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
+            // #announce Chat with many messages
+            reportID: '5421294415618529',
         },
     },
 };

@@ -1,17 +1,18 @@
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
+import type {TestConfig} from '@libs/E2E/types';
+import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const test = () => {
+const test = (config: TestConfig) => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for chat opening');
 
-    // #announce Chat with many messages
-    const reportID = '5421294415618529';
+    const reportID = getConfigValueOrThrow('reportID', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {

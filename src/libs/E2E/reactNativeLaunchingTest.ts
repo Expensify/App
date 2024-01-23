@@ -13,8 +13,9 @@ import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 import installNetworkInterceptor from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
+import type { TestConfig } from './types';
 
-type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, () => void>;
+type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, (config: TestConfig) => void>;
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
@@ -74,7 +75,7 @@ E2EClient.getTestConfig()
             .then(() => {
                 console.debug('[E2E] App is ready, running test…');
                 Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
-                test();
+                test(config);
             })
             .catch((error) => {
                 console.error('[E2E] Error while waiting for app to become ready', error);

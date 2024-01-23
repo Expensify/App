@@ -18,4 +18,9 @@ type NetworkCacheMap = Record<
     NetworkCacheEntry
 >;
 
-export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry};
+type TestConfig = {
+    name: string;
+    [key: string]: string;
+};
+
+export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig};
