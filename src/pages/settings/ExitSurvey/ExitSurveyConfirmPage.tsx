@@ -7,9 +7,9 @@ import Navigation from '@navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 
-function ExitSurveyReasonPage() {
+function ExitSurveyConfirmPage() {
     return (
-        <ScreenWrapper testID={ExitSurveyReasonPage.displayName}>
+        <ScreenWrapper testID={ExitSurveyConfirmPage.displayName}>
             <HeaderWithBackButton
                 title="Before you go"
                 onBackButtonPress={() => Navigation.goBack()}
@@ -25,6 +25,6 @@ function ExitSurveyReasonPage() {
     );
 }
 
-ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
+ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
-export default ExitSurveyReasonPage;
+export default ExitSurveyConfirmPage;

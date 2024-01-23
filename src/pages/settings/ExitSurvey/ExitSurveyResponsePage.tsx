@@ -3,12 +3,15 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-function ExitSurveyReasonPage() {
+function ExitSurveyResponsePage() {
+    const {translate} = useLocalize();
+
     return (
-        <ScreenWrapper testID={ExitSurveyReasonPage.displayName}>
+        <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
             <HeaderWithBackButton
                 title="Before you go"
                 onBackButtonPress={() => Navigation.goBack()}
@@ -22,6 +25,6 @@ function ExitSurveyReasonPage() {
     );
 }
 
-ExitSurveyReasonPage.displayName = 'ExitSurveyReasonPage';
+ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
-export default ExitSurveyReasonPage;
+export default ExitSurveyResponsePage;
