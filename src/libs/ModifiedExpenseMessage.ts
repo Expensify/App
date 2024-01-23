@@ -118,7 +118,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency);
+        const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldAmount = oldAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency ?? '';
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
