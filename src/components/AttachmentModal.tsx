@@ -244,7 +244,7 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            onConfirm({...file, source: ''});
+            onConfirm(Object.assign(file ?? {}, {source: sourceState as string}));
         }
 
         setIsModalOpen(false);

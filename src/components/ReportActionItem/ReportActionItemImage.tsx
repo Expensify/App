@@ -92,7 +92,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                             <PressableWithoutFocus
                                 style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                                 onPress={show}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                             >
                                 {receiptImageComponent}
