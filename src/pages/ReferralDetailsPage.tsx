@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
@@ -14,33 +14,22 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Account} from '@src/types/onyx';
 import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** The type of the content from where CTA was called */
-            contentType: PropTypes.string,
-        }),
-    }).isRequired,
-
+type ReferralDetailsPageOnyxProps = {
     /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** The primaryLogin associated with the account */
-        primaryLogin: PropTypes.string,
-    }),
+    account: OnyxEntry<Account>;
 };
 
-const defaultProps = {
-    account: null,
-};
+type ReferralDetailsPageProps = ReferralDetailsPageOnyxProps & StackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
-function ReferralDetailsPage({route, account}) {
+function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -48,7 +37,7 @@ function ReferralDetailsPage({route, account}) {
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
 
-    if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
+    if (!Object.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES).includes(contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     }
 
@@ -56,7 +45,7 @@ function ReferralDetailsPage({route, account}) {
     const contentBody = translate(`referralProgram.${contentType}.body`);
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
-    const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(account.primaryLogin)}`;
+    const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}${account?.primaryLogin ? `/?thanks=${account.primaryLogin}` : ''}`;
 
     return (
         <HeaderPageLayout
@@ -102,9 +91,7 @@ function ReferralDetailsPage({route, account}) {
 }
 
 ReferralDetailsPage.displayName = 'ReferralDetailsPage';
-ReferralDetailsPage.propTypes = propTypes;
-ReferralDetailsPage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<ReferralDetailsPageProps, ReferralDetailsPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
 })(ReferralDetailsPage);
