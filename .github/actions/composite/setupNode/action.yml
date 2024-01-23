@@ -24,16 +24,21 @@ runs:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}
 
+    - name: Setup git for OSBotify
+      uses: ../setupGitForOSBotifyApp
+      with:
+        GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+        OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+        OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+      id: setupGitForOSBotify
+
     - name: Install root project node packages
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
         max_attempts: 3
-        command: | 
-          echo "@expensify:registry=https://npm.pkg.github.com/" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=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" >> .npmrc
-          npm ci
+        command: npm ci
 
     - name: Install node packages for desktop submodule
       if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
