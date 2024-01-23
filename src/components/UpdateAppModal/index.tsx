@@ -1,8 +1,8 @@
 import React from 'react';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
-import {propTypes} from './updateAppModalPropTypes';
+import type UpdateAppModalProps from './types';
 
-function UpdateAppModal(props) {
+function UpdateAppModal(props: UpdateAppModalProps) {
     return (
         <BaseUpdateAppModal
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -10,6 +10,7 @@ function UpdateAppModal(props) {
         />
     );
 }
-UpdateAppModal.propTypes = propTypes;
+
 UpdateAppModal.displayName = 'UpdateAppModal';
+
 export default UpdateAppModal;
