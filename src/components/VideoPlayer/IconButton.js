@@ -5,8 +5,10 @@ import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
+    // use IconAsset as soon as it will be migrated to TS
     // eslint-disable-next-line react/forbid-prop-types
     src: PropTypes.any.isRequired,
 
@@ -16,11 +18,9 @@ const propTypes = {
 
     tooltipText: PropTypes.string,
 
-    // eslint-disable-next-line react/forbid-prop-types,
-    style: PropTypes.object,
+    style: stylePropTypes,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    hoverStyle: PropTypes.object,
+    hoverStyle: stylePropTypes,
 
     small: PropTypes.bool,
 

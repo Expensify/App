@@ -9,7 +9,6 @@ function VideoPlayer(props, ref) {
             {...props}
             isVideoHovered
             shouldUseSharedVideoElement={false}
-            // eslint-disable-next-line react/prop-types
             videoControlsStyle={[{bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NATIVE}, props.style]}
             ref={ref}
         />

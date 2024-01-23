@@ -14,8 +14,10 @@ import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 const propTypes = {
     videoUrl: PropTypes.string.isRequired,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    videoDimensions: PropTypes.object,
+    videoDimensions: PropTypes.shape({
+        width: PropTypes.number.isRequired,
+        height: PropTypes.number.isRequired,
+    }),
 
     thumbnailUrl: PropTypes.string,
 

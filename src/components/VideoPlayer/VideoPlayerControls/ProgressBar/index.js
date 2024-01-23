@@ -6,7 +6,6 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
-    // eslint-disable-next-line react/forbid-prop-types
     duration: PropTypes.number.isRequired,
 
     position: PropTypes.number.isRequired,
