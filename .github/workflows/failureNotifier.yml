@@ -31,7 +31,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const jobs = ${{steps.fetch-workflow-jobs.outputs.result}};
+            const jobs = ${{ steps.fetch-workflow-jobs.outputs.result }};
 
             const headCommit = "${{ github.event.workflow_run.head_commit.id }}";            
             const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
