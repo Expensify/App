@@ -1184,6 +1184,21 @@ function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
 }
 
 /**
+ * Updates the category of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} category
+ */
+function updateMoneyRequestCategory(transactionID, transactionThreadReportID, category) {
+    const transactionChanges = {
+        category,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestCategory', params, onyxData);
+}
+
+/**
  * Updates the description of a money request
  *
  * @param {String} transactionID
@@ -3719,6 +3734,7 @@ export {
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
+    updateMoneyRequestCategory,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestDescription,
     replaceReceipt,
