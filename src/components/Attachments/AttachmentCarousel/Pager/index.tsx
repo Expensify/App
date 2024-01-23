@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
 import {createNativeWrapper} from 'react-native-gesture-handler';
@@ -30,23 +30,21 @@ type AttachmentCarouselPagerProps = {
     isZoomedOut?: boolean;
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
-    onTap: () => void;
     onPageSelected: () => void;
-    onScaleChanged: (scale: number) => void;
+    shouldShowArrows: boolean;
+    setShouldShowArrows: (shouldShowArrows: boolean) => void;
 };
 
 function AttachmentCarouselPager(
-    {items, isZoomedOut = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
+    {items, isZoomedOut = true, renderItem, initialIndex, onPageSelected, shouldShowArrows, setShouldShowArrows}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
+    const scale = useSharedValue(1);
     const isPagerScrolling = useSharedValue(false);
     const isScrollEnabled = useSharedValue(isZoomedOut);
-    useEffect(() => {
-        isScrollEnabled.value = isZoomedOut;
-    }, [isScrollEnabled, isZoomedOut]);
 
     const activePage = useSharedValue(initialIndex);
     const [activePageState, setActivePageState] = useState(initialIndex);
@@ -68,15 +66,43 @@ function AttachmentCarouselPager(
         activePage.value = initialIndex;
     }, [activePage, initialIndex]);
 
+    const handleScaleChange = useCallback(
+        (newScale: number) => {
+            if (newScale === scale.value) {
+                return;
+            }
+
+            scale.value = newScale;
+
+            const newIsZoomedOut = newScale === 1;
+
+            if (isZoomedOut === newIsZoomedOut) {
+                return;
+            }
+
+            isScrollEnabled.value = newIsZoomedOut;
+            setShouldShowArrows(newIsZoomedOut);
+        },
+        [isScrollEnabled, isZoomedOut, scale, setShouldShowArrows],
+    );
+
+    const onTap = useCallback(() => {
+        if (!isScrollEnabled.value) {
+            return;
+        }
+
+        setShouldShowArrows(!shouldShowArrows);
+    }, [isScrollEnabled.value, setShouldShowArrows, shouldShowArrows]);
+
     const contextValue = useMemo(
         () => ({
             pagerRef,
             isPagerScrolling,
             isScrollEnabled,
             onTap,
-            onScaleChanged,
+            onScaleChanged: handleScaleChange,
         }),
-        [isPagerScrolling, isScrollEnabled, onTap, onScaleChanged],
+        [isPagerScrolling, isScrollEnabled, onTap, handleScaleChange],
     );
 
     const animatedProps = useAnimatedProps(() => ({
