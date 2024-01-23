@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -16,26 +18,14 @@ function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // FIXME: use the reason!
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [reason, setReason] = useState<string>();
-
+    const [reason, setReason] = useState<ValueOf<typeof CONST.EXIT_SURVEY_REASONS>>();
     const reasons: Choice[] = useMemo(
-        () => [
-            {
-                label: 'Choice A',
-                value: 'choiceA',
-            },
-            {
-                label: 'Choice B',
-                value: 'choiceB',
-            },
-            {
-                label: 'Choice C',
-                value: 'choiceC',
-            },
-        ],
-        [],
+        () =>
+            Object.values(CONST.EXIT_SURVEY_REASONS).map((value) => ({
+                value,
+                label: translate(`exitSurvey.reasons.${value}`),
+            })),
+        [translate],
     );
 
     return (
@@ -50,7 +40,12 @@ function ExitSurveyReasonPage() {
                 style={[styles.flex1, styles.mt3, styles.mh5]}
                 // TODO: validation?
                 validate={() => {}}
-                onSubmit={() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(ROUTES.SETTINGS))}
+                onSubmit={() => {
+                    if (!reason) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS));
+                }}
                 submitButtonText={translate('common.next')}
                 shouldValidateOnBlur
                 shouldValidateOnChange
@@ -62,7 +57,7 @@ function ExitSurveyReasonPage() {
                     InputComponent={RadioButtons}
                     inputID="reason"
                     items={reasons}
-                    onPress={(value: string) => setReason(value)}
+                    onPress={(value: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => setReason(value)}
                 />
             </FormProvider>
         </ScreenWrapper>

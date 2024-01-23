@@ -150,7 +150,7 @@ const ROUTES = {
     },
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/response', backTo),
+        getRoute: (reason: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>, backTo?: string) => getUrlWithBackToParam(`settings/exit-survey/response&reason=${encodeURIComponent(reason)}`, backTo),
     },
     SETTINGS_EXIT_SURVEY_CONFIRM: {
         route: 'settings/exit-survey/confirm',
