@@ -33,7 +33,7 @@ function BaseOptionsList(
         optionHoveredStyle,
         contentContainerStyles,
         sectionHeaderStyle,
-        showScrollIndicator = false,
+        showScrollIndicator = true,
         listContainerStyles: listContainerStylesProp,
         shouldDisableRowInnerPadding = false,
         shouldPreventDefaultFocusOnSelectRow = false,

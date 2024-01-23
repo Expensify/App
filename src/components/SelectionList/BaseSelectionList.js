@@ -52,7 +52,7 @@ function BaseSelectionList({
     onConfirm,
     headerContent,
     footerContent,
-    showScrollIndicator = false,
+    showScrollIndicator = true,
     showLoadingPlaceholder = false,
     showConfirmButton = false,
     shouldPreventDefaultFocusOnSelectRow = false,
