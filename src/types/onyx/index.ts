@@ -30,7 +30,7 @@ import type Policy from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
-import type PolicyReportField from './PolicyReportField';
+import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
@@ -56,6 +56,7 @@ import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
+import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserWallet from './UserWallet';
@@ -126,6 +127,7 @@ export type {
     Task,
     Transaction,
     TransactionViolation,
+    TransactionViolations,
     User,
     UserLocation,
     UserWallet,
@@ -138,5 +140,6 @@ export type {
     WalletTransfer,
     ReportUserIsTyping,
     PolicyReportField,
+    PolicyReportFields,
     RecentlyUsedReportFields,
 };

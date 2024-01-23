@@ -1221,7 +1221,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-util (0.18.6):
+  - react-native-blob-util (0.19.4):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1379,7 +1379,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pdf (6.7.4):
+  - react-native-pdf (6.7.3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1851,7 +1851,7 @@ PODS:
     - Yoga
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.14.0):
+  - RNGestureHandler (2.14.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2497,7 +2497,7 @@ SPEC CHECKSUMS:
   React-logger: 66b168e2b2bee57bd8ce9e69f739d805732a5570
   React-Mapbuffer: 9ee041e1d7be96da6d76a251f92e72b711c651d6
   react-native-airship: 2ed75ff2278f11ff1c1ab08ed68f5bf02727b971
-  react-native-blob-util: 37e966b7bbf2e5cdec981dc97d7c7d43bef0bc42
+  react-native-blob-util: a3ee23cfdde79c769c138d505670055de233b07a
   react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 7c17be47bf7f525b485687c7116320f0944b0585
@@ -2507,7 +2507,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 74d18ad516037536c2f671ef0914bcce7739b2f5
   react-native-netinfo: 6479e7e2198f936e5abc14a3ec4d469ccbaf81e2
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
-  react-native-pdf: 1f3a43699056642f8810f4103980fa980bf80a0b
+  react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
   react-native-plaid-link-sdk: e52cefc2c3407884718416706214068937546359
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
@@ -2550,7 +2550,7 @@ SPEC CHECKSUMS:
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
   RNFlashList: 5b0e8311e4cf1ad91e410fd7c8526a89fb5826d1
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: 38016feaff9bd5d8282c78ddce37a89b3a1d595b
+  RNGestureHandler: 1190c218cdaaf029ee1437076a3fbbc3297d89fb
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 9b2eade43eab9b1f208415795f39d7449d045b2b
