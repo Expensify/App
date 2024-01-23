@@ -519,6 +519,7 @@ function AttachmentModal(props) {
                                     isWorkspaceAvatar={props.isWorkspaceAvatar}
                                     fallbackSource={props.fallbackSource}
                                     isUsedInAttachmentModal
+                                    transactionID={props.transaction.transactionID}
                                 />
                             )
                         )}
