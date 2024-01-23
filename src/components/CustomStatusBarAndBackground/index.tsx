@@ -36,7 +36,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         };
     }, [isNested, setRootStatusBarEnabled]);
 
-    const initialBgColor = getPlatform() === CONST.PLATFORM.WEB ? theme.splashScreen : theme.splashBG;
+    const initialBgColor = getPlatform() === CONST.PLATFORM.WEB ? theme.splashBGWeb : theme.splashBG;
     const prevStatusBarBackgroundColor = useRef(initialBgColor);
     const statusBarBackgroundColor = useRef(initialBgColor);
     const statusBarAnimation = useSharedValue(0);

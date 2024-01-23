@@ -78,7 +78,7 @@ type ThemeColors = {
     mentionBG: Color;
     ourMentionText: Color;
     ourMentionBG: Color;
-    splashScreen: Color;
+    splashBGWeb: Color;
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
     skeletonLHNIn: Color;
