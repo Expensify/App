@@ -1801,9 +1801,12 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
     const accountID = member.accountID;
 
     return {
-        text: member.text ?? member.displayName ?? '',
-        alternateText: member.alternateText ?? member.login ?? '',
-        keyForList: member.keyForList ?? String(accountID ?? 0) ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        text: member.text || member.displayName || '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        alternateText: member.alternateText || member.login || '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        keyForList: member.keyForList || String(accountID ?? 0) || '',
         isSelected: false,
         isDisabled: false,
         accountID,
