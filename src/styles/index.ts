@@ -1261,9 +1261,17 @@ const styles = (theme: ThemeColors) =>
 
         signInBackground: {
             position: 'absolute',
-            bottom: 0,
             left: 0,
             minHeight: 700,
+        },
+
+        signInBackgroundFillView: {
+            position: 'absolute',
+            left: 0,
+            bottom: 0,
+            height: '50%',
+            width: '100%',
+            backgroundColor: theme.signInPage
         },
 
         signInPageInner: {

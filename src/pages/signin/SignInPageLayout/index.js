@@ -162,6 +162,7 @@ function SignInPageLayout(props) {
                     ref={scrollViewRef}
                 >
                     <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
+                        <View style={styles.signInBackgroundFillView}/>
                         <BackgroundImage
                             isSmallScreen
                             pointerEvents="none"

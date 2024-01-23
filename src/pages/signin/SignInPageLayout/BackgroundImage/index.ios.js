@@ -6,6 +6,7 @@ import MobileBackgroundImage from '@assets/images/home-background--mobile-new.sv
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
+import useWindowDimensions from "@hooks/useWindowDimensions";
 
 const defaultProps = {
     isSmallScreen: false,
@@ -20,12 +21,13 @@ const propTypes = {
 function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions()
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
 
     return (
         <Image
             source={src}
-            style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width)]}
+            style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width), {top: windowHeight - 700}]}
         />
     );
 }
