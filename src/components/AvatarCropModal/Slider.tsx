@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 
 type SliderProps = {
-
     /** React-native-reanimated lib handler which executes when the user is panning slider */
     gestureCallbacks: {
         onBegin: () => void;
