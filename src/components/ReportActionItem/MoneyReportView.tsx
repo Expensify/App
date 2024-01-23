@@ -16,11 +16,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 
 type MoneyReportViewComponentProps = {
     /** The report currently being looked at */
@@ -75,7 +77,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, 
                 {canUseReportFields &&
                     sortedPolicyReportFields.map((reportField) => {
                         const title = ReportUtils.getReportFieldTitle(report, reportField);
-                        const isDisabled = !isAdmin || isSettled;
+                        const isDisabled = !isAdmin || isSettled || ReportUtils.isReportFieldOfTypeTitle(reportField);
                         return (
                             <OfflineWithFeedback
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
@@ -84,8 +86,8 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, 
                                 <MenuItemWithTopDescription
                                     description={reportField.name}
                                     title={title}
-                                    onPress={() => {}}
-                                    shouldShowRightIcon={!isDisabled}
+                                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
+                                    shouldShowRightIcon
                                     disabled={isDisabled}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
