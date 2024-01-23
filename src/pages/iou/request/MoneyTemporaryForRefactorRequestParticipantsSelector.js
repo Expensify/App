@@ -242,7 +242,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback(
         (text = '') => {
-            if (text.length && !maxParticipantsReached) {
+            if (text && !maxParticipantsReached) {
                 Report.searchInServer(text);
             }
             setSearchTerm(text);
