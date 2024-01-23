@@ -114,3 +114,9 @@ export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMem
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as UpdateWorkspaceCustomUnitAndRateParams} from './UpdateWorkspaceCustomUnitAndRateParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as CreateTaskParams} from './CreateTaskParams';
+export type {default as CancelTaskParams} from './CancelTaskParams';
+export type {default as EditTaskAssigneeParams} from './EditTaskAssigneeParams';
+export type {default as EditTaskParams} from './EditTaskParams';
+export type {default as ReopenTaskParams} from './ReopenTaskParams';
+export type {default as CompleteTaskParams} from './CompleteTaskParams';

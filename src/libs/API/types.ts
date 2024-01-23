@@ -105,6 +105,12 @@ const WRITE_COMMANDS = {
     UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE: 'UpdateWorkspaceCustomUnitAndRate',
     CREATE_WORKSPACE: 'CreateWorkspace',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
+    CREATE_TASK: 'CreateTask',
+    CANCEL_TASK: 'CancelTask',
+    EDIT_TASK_ASSIGNEE: 'EditTaskAssignee',
+    EDIT_TASK: 'EditTask',
+    REOPEN_TASK: 'ReopenTask',
+    COMPLETE_TASK: 'CompleteTask',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -207,6 +213,12 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT_AND_RATE]: Parameters.UpdateWorkspaceCustomUnitAndRateParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
+    [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
+    [WRITE_COMMANDS.CANCEL_TASK]: Parameters.CancelTaskParams;
+    [WRITE_COMMANDS.EDIT_TASK_ASSIGNEE]: Parameters.EditTaskAssigneeParams;
+    [WRITE_COMMANDS.EDIT_TASK]: Parameters.EditTaskParams;
+    [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
+    [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
 };
 
 const READ_COMMANDS = {
