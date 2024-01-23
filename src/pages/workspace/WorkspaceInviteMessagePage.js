@@ -99,6 +99,7 @@ function WorkspaceInviteMessagePage(props) {
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(props.invitedEmailsToAccountIDsDraft, welcomeNote, props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
         SearchInputManager.searchInput = '';

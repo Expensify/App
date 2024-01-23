@@ -2236,7 +2236,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write('InviteToRoom', parameters, {optimisticData, successData, failureData});
 }
 
-/** Removes people from a room */
+/** Removes people from a room
+ *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+ */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = allReports?.[reportID];
 

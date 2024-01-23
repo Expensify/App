@@ -100,6 +100,7 @@ function RoomMembersPage(props) {
 
     /**
      * Remove selected users from the room
+     * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
         Report.removeFromRoom(props.report.reportID, selectedMembers);

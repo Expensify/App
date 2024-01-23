@@ -16,6 +16,7 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
+* [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 
@@ -391,6 +392,66 @@ This application is built with the following principles.
     1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+
+----
+
+# Security
+Updated rules for managing all types of chats (add/remove people)
+
+1. ### DM
+    |  | Member
+    | :---: | :---: 
+    | **Invite** | ❌ 
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌
+
+2. ### Workspace
+    1. #### Workspace
+        |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: | :---: 
+        | **Invite** | ✅ |  ❌ |  ✅ | ❌
+        | **Remove** | ✅ |  ❌ |  ✅ | ❌
+        | **Leave**  | ❌ |  ❌ |  ❌ | ❌
+        | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
+
+    2. #### Workspace #announce room
+        |   |  Member(Employee/User) | Admin |  Auditor?
+        | :---: | :---:  |  :---: | :---: 
+        | **Invite** | ❌ |  ❌ |  ❌
+        | **Remove** | ❌ |  ❌ |  ❌
+        | **Leave**  | ❌ |  ❌ |  ❌
+        | **Can be removed**  | ❌ |  ❌ |  ❌ |
+
+    3. #### Workspace #admin room
+        |   |  Admin |
+        | :---: | :---: 
+        | **Invite** | ❌  
+        | **Remove** | ❌   
+        | **Leave**  | ❌ 
+        | **Can be removed**  | ❌
+    
+    4. #### Workspace rooms
+        |   |  Creator | Member | 
+        | :---: | :---:  |  :---: 
+        | **Invite** | ✅ |  ✅ 
+        | **Remove** | ✅ |  ✅   
+        | **Leave**  | ❌ |  ❌  
+        | **Can be removed**  | ✅ | ✅
+
+3. ### Domain chat
+    |   |  Member
+    | :---: | :---:  
+    | **Remove** | ❌ 
+    | **Leave**  | ❌ 
+    | **Can be removed**  | ❌ 
+
+4. ### Reports
+    |   |  Submitter | Manager
+    | :---: | :---:  | :---:  
+    | **Remove** | ❌ | ❌
+    | **Leave**  | ❌ | ❌
+    | **Can be removed**  | ❌ | ❌
 
 ----
 
