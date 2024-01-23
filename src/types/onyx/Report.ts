@@ -116,10 +116,12 @@ type Report = {
     welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
+    ownerEmail?: string;
     participantAccountIDs?: number[];
     visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
+    managerEmail?: string;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
 
@@ -152,6 +154,8 @@ type Report = {
     isHidden?: boolean;
     isChatRoom?: boolean;
     participantsList?: PersonalDetails[];
+    text?: string;
+    updateReportInLHN?: boolean;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
 
