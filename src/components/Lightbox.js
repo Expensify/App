@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
+import useDebounce from '@hooks/useDebounce';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
@@ -76,6 +77,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
     const [isImageLoaded, setImageLoaded] = useState(false);
+    const debouncedSetImageLoaded = useDebounce(useCallback(setImageLoaded, []), 500, {maxWait: 1000});
 
     const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
     const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
@@ -178,10 +180,10 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                             >
                                 <Image
                                     source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
+                                    style={[imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}, {opacity: isImageLoaded ? 1 : 0}]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
-                                    onLoadEnd={() => setImageLoaded(true)}
+                                    onLoadEnd={() => debouncedSetImageLoaded(true)}
                                     onLoad={(e) => {
                                         const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
                                         const height = (e.nativeEvent?.height || 0) * PixelRatio.get();

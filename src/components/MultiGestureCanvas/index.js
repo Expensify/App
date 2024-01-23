@@ -559,8 +559,6 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
                 },
                 {scale: totalScale.value},
             ],
-            // Hide the image if the size is not ready yet
-            opacity: props.contentSize ? 1 : 0,
         };
     });
 
