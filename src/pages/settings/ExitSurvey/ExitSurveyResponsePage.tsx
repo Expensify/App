@@ -16,7 +16,7 @@ function ExitSurveyReasonPage() {
             <Text>Response page</Text>
             <Button
                 text="Next"
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route))}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM)}
             />
         </ScreenWrapper>
     );

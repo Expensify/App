@@ -144,18 +144,12 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
-    SETTINGS_EXIT_SURVEY_REASON: {
-        route: 'settings/exit-survey/reason',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
-    },
+    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
-        getRoute: (reason: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>, backTo?: string) => getUrlWithBackToParam(`settings/exit-survey/response&reason=${encodeURIComponent(reason)}`, backTo),
+        getRoute: (reason: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => `settings/exit-survey/response?reason=${encodeURIComponent(reason)}` as const,
     },
-    SETTINGS_EXIT_SURVEY_CONFIRM: {
-        route: 'settings/exit-survey/confirm',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
-    },
+    SETTINGS_EXIT_SURVEY_CONFIRM: 'settings/exit-survey/confirm',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 

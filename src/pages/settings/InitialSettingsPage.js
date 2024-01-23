@@ -267,7 +267,7 @@ function InitialSettingsPage(props) {
                 translationKey: 'initialSettingsPage.goToExpensifyClassic',
                 icon: Expensicons.NewExpensify,
                 action: () => {
-                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
+                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON);
                 },
             },
             {

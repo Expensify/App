@@ -275,13 +275,13 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
                             [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                                path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
+                                path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
                             },
                             [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                                 path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
                             },
                             [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
-                                path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
+                                path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM,
                             },
                         },
                     },
