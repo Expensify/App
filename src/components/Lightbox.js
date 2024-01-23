@@ -77,7 +77,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
     const [isImageLoaded, setImageLoaded] = useState(false);
-    const debouncedSetImageLoaded = useDebounce(useCallback(setImageLoaded, []), 500, {maxWait: 1000});
+    const debouncedSetImageLoaded = useDebounce(useCallback(setImageLoaded, [setImageLoaded]), 500, {maxWait: 1000});
 
     const isInactiveCarouselItem = hasSiblingCarouselItems && !isActive;
     const [isFallbackVisible, setFallbackVisible] = useState(isInactiveCarouselItem);
