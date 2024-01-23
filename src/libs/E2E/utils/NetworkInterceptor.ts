@@ -46,6 +46,9 @@ function fetchArgsGetRequestInit(args: Parameters<typeof fetch>): RequestInit {
     return firstArg;
 }
 
+/**
+ * This function extracts the url from the arguments of fetch.
+ */
 function fetchArgsGetUrl(args: Parameters<typeof fetch>): string {
     const [firstArg] = args;
     if (typeof firstArg === 'string') {
@@ -60,6 +63,9 @@ function fetchArgsGetUrl(args: Parameters<typeof fetch>): string {
     throw new Error('Could not get url from fetch args');
 }
 
+/**
+ * This function transforms a NetworkCacheEntry (internal representation) to a (fetch) Response.
+ */
 function networkCacheEntryToResponse({headers, status, statusText, body}: NetworkCacheEntry): Response {
     // Transform headers to Headers object:
     const newHeaders = new Headers();
@@ -87,6 +93,14 @@ function hashFetchArgs(args: Parameters<typeof fetch>) {
     return `${url}${JSON.stringify(headers)}`;
 }
 
+/**
+ * Install a network interceptor by overwriting the global fetch function:
+ * - Overwrites fetch globally with a custom implementation
+ * - For each fetch request we cache the request and the response
+ * - The cache is send to the test runner server to persist the network cache in between sessions
+ * - On e2e test start the network cache is requested and loaded
+ * - If a fetch request is already in the NetworkInterceptors cache instead of making a real API request the value from the cache is used.
+ */
 export default function installNetworkInterceptor(
     getNetworkCache: () => Promise<NetworkCacheMap>,
     updateNetworkCache: (networkCache: NetworkCacheMap) => Promise<unknown>,

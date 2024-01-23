@@ -1,19 +1,11 @@
 /* eslint-disable rulesdir/prefer-actions-set-data */
 
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
-import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
 import {Authenticate} from '@libs/Authentication';
+import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-function getConfigValueOrThrow(key: string): string {
-    const value = Config[key];
-    if (value == null) {
-        throw new Error(`Missing config value for ${key}`);
-    }
-    return value;
-}
 
 const e2eUserCredentials = {
     email: getConfigValueOrThrow('EXPENSIFY_PARTNER_PASSWORD_EMAIL'),
