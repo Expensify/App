@@ -191,7 +191,7 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string): Pol
     }
 
     const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-    return (policyTags?.[policyTagKey]?.tags as unknown as PolicyTags) ?? {};
+    return policyTags?.[policyTagKey]?.tags ?? {};
 }
 
 /**

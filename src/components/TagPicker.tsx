@@ -6,10 +6,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type SafeAreaInsetProps from '@pages/SafeAreaInsetProps';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {EdgeInsets} from "react-native-safe-area-context";
 import OptionsSelector from './OptionsSelector';
 
 type TagPickerOnyxProps = {
@@ -18,13 +18,11 @@ type TagPickerOnyxProps = {
 
     /** List of recently used tags */
     policyRecentlyUsedTags: OnyxCollection<RecentlyUsedTags>;
-
-    /** Should show the selected option that is disabled? */
-    shouldShowDisabledAndSelectedOption?: boolean;
 };
 
 type TagPickerProps = TagPickerOnyxProps & {
     /** The policyID we are getting tags for */
+    // It's used in withOnyx HOC.
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
 
@@ -41,10 +39,13 @@ type TagPickerProps = TagPickerOnyxProps & {
      * Safe area insets required for reflecting the portion of the view,
      * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
      */
-    insets: SafeAreaInsetProps;
+    insets: EdgeInsets;
+
+    /** Should show the selected option that is disabled? */
+    shouldShowDisabledAndSelectedOption?: boolean;
 };
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption, insets, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
