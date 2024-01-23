@@ -397,6 +397,7 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: ReportAction;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    isSelected: boolean;
     isDisabled?: boolean | null;
     name?: string | null;
 } & Report;
