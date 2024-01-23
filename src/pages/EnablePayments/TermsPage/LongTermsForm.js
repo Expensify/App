@@ -10,56 +10,57 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useLocalize from "@hooks/useLocalize";
 import CONST from '@src/CONST';
+import * as CurrencyUtils from "@libs/CurrencyUtils";
 
 function LongTermsForm() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
 
     const termsData = [
         {
             title: translate('termsStep.longTermsForm.openingAccountTitle'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.openingAccountDetails'),
         },
         {
             title: translate('termsStep.monthlyFee'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.monthlyFeeDetails'),
         },
         {
             title: translate('termsStep.longTermsForm.customerServiceTitle'),
             subTitle: translate('termsStep.longTermsForm.automated'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.customerServiceDetails'),
         },
         {
             title: translate('termsStep.longTermsForm.customerServiceTitle'),
             subTitle: translate('termsStep.longTermsForm.liveAgent'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.customerServiceDetails'),
         },
         {
             title: translate('termsStep.inactivity'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.inactivityDetails'),
         },
         {
             title: translate('termsStep.longTermsForm.sendingFundsTitle'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.sendingFundsDetails'),
         },
         {
             title: translate('termsStep.electronicFundsWithdrawal'),
             subTitle: translate('termsStep.standard'),
-            rightText: translate('termsStep.feeAmountZero'),
+            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.electronicFundsStandardDetails'),
         },
         {
             title: translate('termsStep.electronicFundsWithdrawal'),
             subTitle: translate('termsStep.longTermsForm.instant'),
-            rightText: translate('termsStep.electronicFundsInstantFee'),
-            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin'),
+            rightText: `${numberFormat(1.5)}%`,
+            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', {amount: CurrencyUtils.convertToDisplayString(25, 'USD')}),
             details: translate('termsStep.longTermsForm.electronicFundsInstantDetails'),
         },
     ];

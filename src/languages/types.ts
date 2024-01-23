@@ -287,6 +287,8 @@ type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
+type TermsParams = {amount: string};
+
 export type {
     ApprovedAmountParams,
     AddressLineParams,
@@ -353,6 +355,7 @@ export type {
     StepCounterParams,
     TagSelectionParams,
     TaskCreatedActionParams,
+    TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,

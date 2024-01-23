@@ -19,7 +19,7 @@ const defaultProps = {
 
 function ShortTermsForm(props) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
     return (
         <>
             <Text style={styles.mb5}>
@@ -130,8 +130,8 @@ function ShortTermsForm(props) {
                         </Text>
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
-                        <Text style={styles.label}>{translate('termsStep.electronicFundsInstantFee')} </Text>
-                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin')}</Text>
+                        <Text style={styles.label}>{numberFormat(1.5)}%</Text>
+                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: CurrencyUtils.convertToDisplayString(25, 'USD')})}</Text>
                     </View>
                 </View>
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>
