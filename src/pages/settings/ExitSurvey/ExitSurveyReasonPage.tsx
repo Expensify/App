@@ -14,6 +14,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+const REASON_INPUT_ID = 'reason';
+
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -39,8 +41,14 @@ function ExitSurveyReasonPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM}
                 style={[styles.flex1, styles.mt3, styles.mh5]}
-                // TODO: validation?
-                validate={() => {}}
+                validate={() => {
+                    if (reason) {
+                        return {};
+                    }
+                    return {
+                        [REASON_INPUT_ID]: translate('common.error.fieldRequired'),
+                    };
+                }}
                 onSubmit={() => {
                     if (!reason) {
                         return;
@@ -56,7 +64,7 @@ function ExitSurveyReasonPage() {
                 <InputWrapper
                     // @ts-expect-error - InputWrapper is not yet migrated to TS
                     InputComponent={RadioButtons}
-                    inputID="reason"
+                    inputID={REASON_INPUT_ID}
                     items={reasons}
                     onPress={(value: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => setReason(value)}
                 />
