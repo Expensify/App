@@ -151,3 +151,4 @@ function OfflineWithFeedback({
 OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default OfflineWithFeedback;
+export type {OfflineWithFeedbackProps};
