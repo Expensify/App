@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
-index bbfa7f7..00d14dd 100644
+index bbfa7f7..ed53872 100644
 --- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
 +++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
 @@ -140,6 +140,7 @@ class ReactNativeModules {
@@ -45,7 +45,7 @@ index bbfa7f7..00d14dd 100644
 +if(this.hasProperty('reactNativeProject')){
 +    autoModules = new ReactNativeModules(logger, projectRoot, new File(projectRoot, reactNativeProject))
 +} else {
-+    autoModules = new ReactNativeModules(logger, projectRoot)
++    autoModules = new ReactNativeModules(logger, projectRoot, projectRoot)
 +}
  
  def reactNativeVersionRequireNewArchEnabled(autoModules) {
