@@ -94,7 +94,7 @@ type Transaction = {
     originalCurrency?: string;
 };
 
-type TransactionWithOfflineFeedback = OnyxCommon.OnyxItemWithOfflineFeedback<Transaction, keyof Transaction | keyof Comment>;
+type TransactionWithOfflineFeedback = OnyxCommon.OnyxValueWithOfflineFeedback<Transaction, keyof Transaction | keyof Comment>;
 
 export default TransactionWithOfflineFeedback;
 export type {WaypointCollection, Comment, Receipt, Waypoint};

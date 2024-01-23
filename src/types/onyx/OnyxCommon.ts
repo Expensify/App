@@ -14,7 +14,7 @@ type OfflineFeedback<TKey extends string = string> = {
     pendingFields?: PendingFields<TKey>;
 };
 
-type OnyxItemWithOfflineFeedback<TOnyx, TKey extends string = string> = TOnyx & OfflineFeedback<TKey>;
+type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = string> = TOnyx & OfflineFeedback<TKey>;
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
@@ -39,4 +39,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OfflineFeedback, OnyxItemWithOfflineFeedback};
+export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OfflineFeedback, OnyxValueWithOfflineFeedback};

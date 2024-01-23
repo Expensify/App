@@ -23,7 +23,7 @@ type Status = {
     clearAfter: string; // ISO 8601 format;
 };
 
-type PersonalDetails = {
+type PersonalDetails = OnyxCommon.OfflineFeedback<'avatar' | 'originalFileName'> & {
     /** ID of the current user from their personal details */
     accountID: number;
 
@@ -81,10 +81,8 @@ type PersonalDetails = {
     status?: Status;
 };
 
-type PersonalDetailsWithOfflineFeedback = OnyxCommon.OnyxItemWithOfflineFeedback<PersonalDetails, keyof PersonalDetails>;
+type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
-type PersonalDetailsList = Record<string, PersonalDetailsWithOfflineFeedback | null>;
-
-export default PersonalDetailsWithOfflineFeedback;
+export default PersonalDetails;
 
 export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};

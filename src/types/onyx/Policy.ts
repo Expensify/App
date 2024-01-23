@@ -26,7 +26,7 @@ type CustomUnit = OnyxCommon.OfflineFeedback & {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
-type Policy = {
+type Policy = OnyxCommon.OfflineFeedback<'generalSettings' | 'avatar' | 'addWorkspaceRoom'> & {
     /** The ID of the policy */
     id: string;
 
@@ -106,8 +106,6 @@ type Policy = {
     primaryLoginsInvited?: Record<string, string>;
 };
 
-type PolicyWithOfflineFeedback = OnyxCommon.OnyxItemWithOfflineFeedback<Policy, keyof Policy | 'generalSettings' | 'addWorkspaceRoom'>;
-
-export default PolicyWithOfflineFeedback;
+export default Policy;
 
 export type {Unit, CustomUnit};
