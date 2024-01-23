@@ -4,10 +4,6 @@ const imageViewPropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** Handles scale changed event in image zoom component. Used on native only */
-    // eslint-disable-next-line react/no-unused-prop-types
-    onScaleChanged: PropTypes.func.isRequired,
-
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 

@@ -13,7 +13,7 @@ const propTypes = {
 };
 
 function AttachmentViewImage({
-    source,
+    url,
     file,
     isAuthTokenRequired,
     isUsedInCarousel,
@@ -31,7 +31,7 @@ function AttachmentViewImage({
     const children = (
         <ImageView
             onError={onError}
-            url={source}
+            url={url}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
             isFocused={isFocused}
