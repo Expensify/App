@@ -195,6 +195,13 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
     return policyTags?.[policyTagKey]?.tags ?? {};
 }
 
+/**
+ * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
+ */
+function getCleanedTagName(tag: string) {
+    return tag?.replace(/\\{1,2}:/g, ':');
+}
+
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
@@ -221,6 +228,7 @@ export {
     getTag,
     getTagListName,
     getTagList,
+    getCleanedTagName,
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,

@@ -40,6 +40,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -1870,7 +1871,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    const onClick = () => Modal.close(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
@@ -2499,6 +2500,115 @@ function getReportPrivateNote(reportID: string) {
     API.read('GetReportPrivateNote', parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Completes the engagement modal that new NewDot users see when they first sign up/log in by doing the following:
+ *
+ * - Sets the introSelected NVP to the choice the user made
+ * - Creates an optimistic report comment from concierge
+ */
+function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
+    const commandName = 'CompleteEngagementModal';
+    const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
+    const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
+    const lastComment = reportCommentAction?.message?.[0];
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
+    const reportCommentText = reportComment.commentText;
+    const currentTime = DateUtils.getDBTime();
+
+    const optimisticReport: Partial<Report> = {
+        lastVisibleActionCreated: currentTime,
+        lastMessageTranslationKey: lastComment?.translationKey ?? '',
+        lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
+        lastActorAccountID: currentUserAccountID,
+        lastReadTime: currentTime,
+    };
+
+    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
+    conciergeChatReportID = conciergeChatReport?.reportID;
+
+    const report = ReportUtils.getReport(conciergeChatReportID);
+
+    if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+
+    // Optimistically add the new actions to the store before waiting to save them to the server
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
+    if (reportCommentAction?.reportActionID) {
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+    }
+
+    type CompleteEngagementParameters = {
+        reportID: string;
+        reportActionID?: string;
+        commentReportActionID?: string | null;
+        reportComment?: string;
+        engagementChoice: string;
+        timezone?: string;
+    };
+
+    const parameters: CompleteEngagementParameters = {
+        reportID: conciergeChatReportID ?? '',
+        reportActionID: reportCommentAction.reportActionID,
+        reportComment: reportCommentText,
+        engagementChoice: choice,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: optimisticReportActions as ReportActions,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: {[reportCommentAction.reportActionID ?? '']: {pendingAction: null}},
+        },
+    ];
+
+    API.write(commandName, parameters, {
+        optimisticData,
+        successData,
+    });
+    notifyNewAction(conciergeChatReportID ?? '', reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
+}
+
+function dismissEngagementModal() {
+    const commandName = 'SetNameValuePair';
+    const parameters = {
+        name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
+            value: true,
+        },
+    ];
+
+    API.write(commandName, parameters, {
+        optimisticData,
+    });
+}
+
 /** Loads necessary data for rendering the RoomMembersPage */
 function openRoomMembersPage(reportID: string) {
     type OpenRoomMembersPageParameters = {
@@ -2709,6 +2819,8 @@ export {
     hasErrorInPrivateNotes,
     getOlderActions,
     getNewerActions,
+    completeEngagementModal,
+    dismissEngagementModal,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
