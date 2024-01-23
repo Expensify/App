@@ -77,7 +77,7 @@ jobs:
                     repo: context.repo.repo,
                     title: issueTitle,
                     body: issueBody,
-                    labels: [failureLabel, 'daily'],
+                    labels: [failureLabel, 'Daily'],
                     assignees: [prMerger, prAuthor]
                   });
                 }
