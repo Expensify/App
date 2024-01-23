@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -77,6 +78,7 @@ const getLongTermsSections = (styles) =>
     ));
 
 function LongTermsForm() {
+    const theme = useTheme();
     const styles = useThemeStyles();
     return (
         <>
@@ -99,6 +101,7 @@ function LongTermsForm() {
 
             <View style={styles.flexRow}>
                 <Icon
+                    fill={theme.icon}
                     style={styles.flex1}
                     src={Expensicons.Printer}
                 />

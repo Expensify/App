@@ -1,5 +1,5 @@
 import {AccessibilityInfo} from 'react-native';
-import MoveAccessibilityFocus from './types';
+import type MoveAccessibilityFocus from './types';
 
 const moveAccessibilityFocus: MoveAccessibilityFocus = (ref) => {
     if (!ref) {

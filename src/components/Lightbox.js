@@ -59,6 +59,8 @@ const defaultProps = {
     style: {},
 };
 
+const DEFAULT_IMAGE_SIZE = 200;
+
 function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, index, activeIndex, hasSiblingCarouselItems, zoomRange}) {
     const StyleUtils = useStyleUtils();
 
@@ -141,7 +143,10 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || (imageDimensions?.lightboxSize == null && imageDimensions?.fallbackSize == null) || containerSize.width === 0 || containerSize.height === 0) {
-            return;
+            return {
+                width: DEFAULT_IMAGE_SIZE,
+                height: DEFAULT_IMAGE_SIZE,
+            };
         }
 
         const imageSize = imageDimensions.lightboxSize || imageDimensions.fallbackSize;
@@ -173,13 +178,13 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                             >
                                 <Image
                                     source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize}
+                                    style={imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
                                     onLoad={(e) => {
-                                        const width = (e.nativeEvent?.width || 0) / PixelRatio.get();
-                                        const height = (e.nativeEvent?.height || 0) / PixelRatio.get();
+                                        const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+                                        const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
                                         setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
                                     }}
                                 />
@@ -200,8 +205,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoadEnd={() => setFallbackLoaded(true)}
                                 onLoad={(e) => {
-                                    const width = e.nativeEvent?.width || 0;
-                                    const height = e.nativeEvent?.height || 0;
+                                    const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+                                    const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
 
                                     if (imageDimensions?.lightboxSize != null) {
                                         return;

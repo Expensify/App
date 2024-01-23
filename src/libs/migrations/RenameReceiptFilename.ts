@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import {NullishDeep, OnyxCollection} from 'react-native-onyx/lib/types';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx/lib/types';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Transaction from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OldTransaction = Transaction & {receiptFilename?: string};

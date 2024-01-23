@@ -29,6 +29,7 @@ function WorkspaceReimbursePage(props) {
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
+            shouldShowLoading={false}
         >
             {() => <WorkspaceReimburseView policy={props.policy} />}
         </WorkspacePageWithSections>
