@@ -2875,6 +2875,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',

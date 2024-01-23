@@ -115,12 +115,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         });
     }, [parentReportAction, fieldToEdit]);
 
-    // Update the transaction object and close the modal
-    function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges, policy, policyTags, policyCategories);
-        Navigation.dismissModal(report.reportID);
-    }
-
     const saveAmountAndCurrency = useCallback(
         ({amount, currency: newCurrency}) => {
             const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -188,6 +182,16 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         [transactionTag, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
 
+    const saveCategory = useCallback(
+        ({category: newCategory}) => {
+            // In case the same category has been selected, reset the category.
+            const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
+            Navigation.dismissModal();
+        },
+        [transactionCategory, transaction.transactionID, report.reportID],
+    );
+
     const saveComment = useCallback(
         ({comment: newComment}) => {
             // Only update comment if it has changed
@@ -247,14 +251,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             <EditRequestCategoryPage
                 defaultCategory={transactionCategory}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedCategory = transactionChanges.category;
-                    // In case the same category has been selected, do reset of the category.
-                    if (transactionCategory === updatedCategory) {
-                        updatedCategory = '';
-                    }
-                    editMoneyRequest({category: updatedCategory});
-                }}
+                onSubmit={saveCategory}
             />
         );
     }
