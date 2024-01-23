@@ -32,7 +32,7 @@ runs:
         max_attempts: 3
         command: | 
           echo "registry=https://npm.pkg.github.com/" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ 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 }}" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=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" >> .npmrc
           npm ci
 
     - name: Install node packages for desktop submodule
