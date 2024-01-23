@@ -10,6 +10,12 @@ type PolicyTag = {
     'GL Code': string;
 };
 
-type PolicyTags = Record<string, PolicyTag>;
+type PolicyTagList = {
+    name: string;
+    required: boolean;
+    tags: PolicyTags;
+};
 
-export type {PolicyTag, PolicyTags};
+type PolicyTags = Record<string, PolicyTagList>;
+
+export type {PolicyTag, PolicyTags, PolicyTagList};
