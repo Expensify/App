@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -157,42 +157,40 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 }
 
 /**
- * Gets the tag from policy tags, defaults to the first if no key is provided.
+ * Gets a tag name from policy tags based on a tag index.
  */
-function getTag(policyTags: OnyxEntry<PolicyTags>, tagKey?: keyof typeof policyTags): PolicyTag | undefined | EmptyObject {
-    if (isEmptyObject(policyTags)) {
-        return {};
-    }
-
-    const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-
-    return policyTags?.[policyTagKey] ?? {};
-}
-
-/**
- * Gets the first tag name from policy tags.
- */
-function getTagListName(policyTags: OnyxEntry<PolicyTags>) {
+function getTagListName(policyTags: OnyxEntry<PolicyTags>, tagIndex: number) {
     if (Object.keys(policyTags ?? {})?.length === 0) {
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTags ?? {})[0] ?? [];
+    const policyTagKeys = Object.keys(policyTags ?? {})[tagIndex] ?? [];
 
     return policyTags?.[policyTagKeys]?.name ?? '';
 }
 
 /**
- * Gets the tags of a policy for a specific key. Defaults to the first tag if no key is provided.
+ * Gets all tag lists of a policy
  */
-function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
-    if (Object.keys(policyTags ?? {})?.length === 0) {
+function getTagLists(policyTags: OnyxCollection<PolicyTagList>): PolicyTagList[] {
+    if (isEmptyObject(policyTags)) {
+        return [];
+    }
+
+    return Object.values(policyTags).filter((policyTagList): policyTagList is PolicyTagList => policyTagList !== null);
+}
+
+/**
+ * Gets a tag list of a policy by a tag index
+ */
+function getTagList(policyTags: OnyxCollection<PolicyTagList>, tagIndex: number): PolicyTagList | EmptyObject {
+    const tagLists = getTagLists(policyTags);
+
+    if (tagLists.length === 0) {
         return {};
     }
 
-    const policyTagKey = tagKey ?? Object.keys(policyTags ?? {})[0];
-
-    return policyTags?.[policyTagKey]?.tags ?? {};
+    return tagLists[tagIndex];
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
@@ -218,7 +216,7 @@ export {
     isPolicyAdmin,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
-    getTag,
+    getTagLists,
     getTagListName,
     getTagList,
     isPendingDeletePolicy,
