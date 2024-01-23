@@ -17,6 +17,7 @@ import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -945,19 +946,23 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return _.map(tags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        return {
+            text: cleanedName,
+            keyForList: tag.name,
+            searchText: tag.name,
+            tooltipText: cleanedName,
+            isDisabled: !tag.enabled,
+        };
+    });
 }
 
 /**
  * Build the section list for tags
  *
- * @param {Object[]} rawTags
+ * @param {Object[]} tags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -967,14 +972,8 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const tags = _.map(rawTags, (tag) => {
-        // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
-
-        return {...tag, name: tagName};
-    });
     const sortedTags = sortTags(tags);
     const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
@@ -999,7 +998,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTags = _.filter(enabledTags, (tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section

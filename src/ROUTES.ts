@@ -163,6 +163,10 @@ const ROUTES = {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
     },
+    EDIT_REPORT_FIELD_REQUEST: {
+        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
+        getRoute: (reportID: string, policyID: string, fieldID: string) => `r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const,
+    },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
         getRoute: (reportID: string) => `r/${reportID}/details/shareCode` as const,
