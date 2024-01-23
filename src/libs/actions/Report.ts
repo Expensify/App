@@ -720,8 +720,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     if (shouldDismissModal) {
         Navigation.dismissModal(reportID);
     } else {
-    
-        Navigation.navigateToGlobalWorkspace();
+        Navigation.navigateWithSwitchPolicyID(undefined, ROUTES.HOME);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
