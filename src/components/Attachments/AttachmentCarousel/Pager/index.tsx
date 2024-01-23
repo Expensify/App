@@ -58,7 +58,6 @@ function AttachmentCarouselPager(
 
                 activePage.value = e.position;
                 isPagerScrolling.value = e.offset !== 0;
-                isScrollEnabled.value = true;
             },
         },
         [],
