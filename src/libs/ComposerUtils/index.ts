@@ -38,11 +38,13 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
  * Finds the length of common suffix between two texts
  * @param str1 - first string to compare
  * @param str2 - next string to compare
+ * @param cursorPosition - position of cursor
  * @returns number - Length of the common suffix
  */
-function findCommonSuffixLength(str1: string, str2: string) {
+function findCommonSuffixLength(str1: string, str2: string, cursorPosition: number) {
     let commonSuffixLength = 0;
-    const minLength = Math.min(str1.length, str2.length);
+    const minLength = Math.min(str1.length - cursorPosition, str2.length);
+
     for (let i = 1; i <= minLength; i++) {
         if (str1.charAt(str1.length - i) === str2.charAt(str2.length - i)) {
             commonSuffixLength++;
