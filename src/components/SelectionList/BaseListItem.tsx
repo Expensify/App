@@ -105,7 +105,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                         textStyles={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            isUserItem ? styles.sidebarLinkTextBold : null,
+                            styles.sidebarLinkTextBold,
                             styles.pre,
                             item.alternateText ? styles.mb1 : null,
                         ]}
