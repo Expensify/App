@@ -13,7 +13,6 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOU from '@libs/actions/IOU';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -142,7 +141,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            submitOnEnter={!canUseTouchScreen()}
+                            inputAllowsSubmit
                         />
                     </View>
                 </FormProvider>

@@ -12,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Task from '@userActions/Task';
@@ -111,7 +110,7 @@ function NewTaskDetailsPage(props) {
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
-                        submitOnEnter={!canUseTouchScreen()}
+                        inputAllowsSubmit
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}

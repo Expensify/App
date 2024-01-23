@@ -9,7 +9,6 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as IOU from '@userActions/IOU';
@@ -107,7 +106,7 @@ function IOURequestStepDescription({
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         inputStyle={[styles.verticalAlignTop]}
-                        submitOnEnter={!canUseTouchScreen()}
+                        inputAllowsSubmit
                     />
                 </View>
             </FormProvider>

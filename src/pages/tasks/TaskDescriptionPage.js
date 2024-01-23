@@ -16,7 +16,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -126,7 +125,7 @@ function TaskDescriptionPage(props) {
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
-                            submitOnEnter={!canUseTouchScreen()}
+                            inputAllowsSubmit
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
