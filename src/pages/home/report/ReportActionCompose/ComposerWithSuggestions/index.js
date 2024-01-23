@@ -1,26 +1,38 @@
 import {useIsFocused} from '@react-navigation/native';
 import {withOnyx} from 'react-native-onyx';
-import React, {useEffect, useCallback, useRef} from 'react';
+import React, {useEffect, useCallback, useRef, useMemo} from 'react';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import usePrevious from '@hooks/usePrevious';
 import * as InputFocus from '@userActions/InputFocus';
 import ONYXKEYS from '@src/ONYXKEYS';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
+
+const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
+// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+// prevent auto focus on existing chat for mobile device
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const ComposerWithSuggestionsWithFocus = React.forwardRef(({
     isNextModalWillOpenRef,
     editFocused,
+    shouldShowComposeInput,
+    reportActions,
+    parentReportActions,
+    report,
     ...props
 }, ref) => {
     const modal = props.modal;
-    const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
     const textInputRef = useRef(null);
-    const prevIsModalVisible = usePrevious(modal.isVisible);
-    const isFocused = useIsFocused();
-    const prevIsFocused = usePrevious(isFocused);
+    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
+    const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
 
     /**
      * Focus the composer text input
@@ -31,6 +43,8 @@ const ComposerWithSuggestionsWithFocus = React.forwardRef(({
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
+    const isFocused = useIsFocused();
     const prevIsModalVisible = usePrevious(modal.isVisible);
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
@@ -53,7 +67,7 @@ const ComposerWithSuggestionsWithFocus = React.forwardRef(({
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ComposerWithSuggestions ref={ref} {...props} textInputRef={textInputRef} />;
+    return <ComposerWithSuggestions ref={ref} {...props} textInputRef={textInputRef} reportActions={reportActions} report={report} shouldAutoFocus={shouldAutoFocus}/>;
 })
 
 ComposerWithSuggestionsWithFocus.displayName = 'ComposerWithSuggestionsWithRefAndFocus';

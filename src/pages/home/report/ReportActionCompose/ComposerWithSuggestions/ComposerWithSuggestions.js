@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
@@ -51,10 +50,6 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -67,10 +62,11 @@ function ComposerWithSuggestions({
     // Onyx
     modal,
     preferredSkinTone,
-    parentReportActions,
     numberOfLines,
     // HOCs
     isKeyboardShown,
+    shouldAutoFocus,
+    parentReportAction,
     // Props: Report
     reportID,
     report,
@@ -92,7 +88,6 @@ function ComposerWithSuggestions({
     setIsFullComposerAvailable,
     setIsCommentEmpty,
     handleSendMessage,
-    shouldShowComposeInput,
     measureParentContainer,
     listHeight,
     isScrollLikelyLayoutTriggered,
@@ -123,10 +118,6 @@ function ComposerWithSuggestions({
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -584,6 +575,16 @@ ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
+const ComposerWithSuggestionsWithRef = React.forwardRef((props, ref) => (
+    <ComposerWithSuggestions
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithSuggestionsWithRef.displayName = 'ComposerWithSuggestionsWithRef';
+
 export default compose(
     withKeyboardState,
     withOnyx({
@@ -606,4 +607,4 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
-)(ComposerWithSuggestions);
+)(ComposerWithSuggestionsWithRef);
