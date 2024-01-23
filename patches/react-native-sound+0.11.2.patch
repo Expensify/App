@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-native-sound/RNSound/RNSound.h b/node_modules/react-native-sound/RNSound/RNSound.h
+index 7f5b97b..f86168a 100644
+--- a/node_modules/react-native-sound/RNSound/RNSound.h
++++ b/node_modules/react-native-sound/RNSound/RNSound.h
+@@ -1,7 +1,7 @@
+ #if __has_include(<React/RCTBridgeModule.h>)
+ #import <React/RCTBridgeModule.h>
+ #else
+-#import "RCTBridgeModule.h"
++#import <React/RCTBridgeModule.h>
+ #endif
+ 
+ #import <AVFoundation/AVFoundation.h>
+@@ -9,7 +9,7 @@
+ #if __has_include(<React/RCTEventEmitter.h>)
+ #import <React/RCTEventEmitter.h>
+ #else
+-#import "RCTEventEmitter.h"
++#import <React/RCTEventEmitter.h>
+ #endif
+ 
+ @interface RNSound : RCTEventEmitter <RCTBridgeModule, AVAudioPlayerDelegate>
+diff --git a/node_modules/react-native-sound/RNSound/RNSound.m b/node_modules/react-native-sound/RNSound/RNSound.m
+index df3784e..d34ac01 100644
+--- a/node_modules/react-native-sound/RNSound/RNSound.m
++++ b/node_modules/react-native-sound/RNSound/RNSound.m
+@@ -1,10 +1,6 @@
+ #import "RNSound.h"
+ 
+-#if __has_include("RCTUtils.h")
+-#import "RCTUtils.h"
+-#else
+ #import <React/RCTUtils.h>
+-#endif
+ 
+ @implementation RNSound {
+     NSMutableDictionary *_playerPool;
