@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyMember, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -199,16 +199,21 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
-const extractPolicyIDFromPath = (path: string) => path.match(/\/w\/([a-zA-Z0-9]+)(\/|$)/)?.[1];
+function extractPolicyIDFromPath(path: string) {
+    return path.match(/\/w\/([a-zA-Z0-9]+)(\/|$)/)?.[1];
+}
 
-const getPathWithoutPolicyID = (path: string) => path.replace(/\/w\/[a-zA-Z0-9]+(\/|$)/, '/');
+function getPathWithoutPolicyID(path: string) {
+    return path.replace(/\/w\/[a-zA-Z0-9]+(\/|$)/, '/');
+}
 
-const getPolicyMembersByIdWithoutCurrentUser = (policyMembers: OnyxCollection<PolicyMember>, currentPolicyID?: string, currentUserAccountID?: number) =>
-    policyMembers
+function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<PolicyMembers>, currentPolicyID?: string, currentUserAccountID?: number) {
+    return policyMembers
         ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${currentPolicyID}`] ?? {})
               .map((policyMemberAccountID) => Number(policyMemberAccountID))
               .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
         : [];
+}
 
 export {
     getActivePolicies,

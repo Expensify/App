@@ -318,13 +318,13 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {!inputProps.secureTextEntry && iconLeft && (
+                            {iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={iconLeft}
                                         fill={theme.icon}
-                                        height={20}
-                                        width={20}
+                                        height={variables.iconSizeNormal}
+                                        width={variables.iconSizeNormal}
                                     />
                                 </View>
                             )}

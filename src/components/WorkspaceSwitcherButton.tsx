@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar, getPolicy} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -19,7 +20,7 @@ function WorkspaceSwitcherButton() {
         }
 
         const policy = getPolicy(activeWorkspaceID);
-        const avatar = policy?.avatar && policy?.avatar?.length > 0 ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name,
@@ -32,9 +33,11 @@ function WorkspaceSwitcherButton() {
             accessibilityRole={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('common.workspaces')}
             accessible
-            onPress={() => {
-                Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
-            }}
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
+                })
+            }
         >
             <SubscriptAvatar
                 mainAvatar={{source, name, type}}

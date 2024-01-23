@@ -144,6 +144,7 @@ function WorkspaceReimburseView(props) {
                     <OfflineWithFeedback
                         pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
                         shouldShowErrorMessages={false}
+                        style={styles.w100}
                     >
                         <MenuItemWithTopDescription
                             title={currentRatePerUnit}
