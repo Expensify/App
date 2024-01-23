@@ -1,9 +1,10 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyMember} from '@src/types/onyx';
+import type {PolicyMembers} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
 
-let policyMembers: OnyxEntry<PolicyMember>;
+let policyMembers: OnyxCollection<PolicyMembers>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     waitForCollectionCallback: true,

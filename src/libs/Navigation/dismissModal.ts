@@ -8,12 +8,12 @@ import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import navigateToGlobalWorkspaceHome from './navigateToGlobalWorkspaceHome';
+import switchPolicyID from './switchPolicyID';
 import type {RootStackParamList, StackNavigationAction, State} from './types';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
@@ -42,10 +42,12 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
                 const policyID = getPolicyIdFromState(state as State<RootStackParamList>);
                 const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
                 const targetReport = getReport(targetReportID);
-                if (policyID && (isNotEmptyObject(targetReport) ? !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs) : true)) {
-                    navigateToGlobalWorkspaceHome(navigationRef);
+                // If targetReport is an empty object, it means that it's a new report, so it can't belong to any workspace
+                const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs);
+                if (shouldOpenAllWorkspace) {
+                    switchPolicyID(navigationRef, undefined, ROUTES.HOME);
                 } else {
-                    navigateToGlobalWorkspaceHome(navigationRef, policyID);
+                    switchPolicyID(navigationRef, policyID, ROUTES.HOME);
                 }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
