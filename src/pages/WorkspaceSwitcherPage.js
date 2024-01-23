@@ -29,6 +29,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
+const sortWorkspacesBySelected = (workspace1, workspace2, selectedWorkspaceID) => {
+    if (workspace1.policyID === selectedWorkspaceID) {
+        return -1;
+    }
+    if (workspace2.policyID === selectedWorkspaceID) {
+        return 1;
+    }
+    return workspace1.text.toLowerCase().localeCompare(workspace2.text.toLowerCase());
+};
+
 const propTypes = {
     /** The list of this user's policies */
     policies: PropTypes.objectOf(
@@ -138,20 +148,25 @@ function WorkspaceSwitcherPage({policies}) {
                     boldStyle: hasUnreadData(policy.id),
                     keyForList: policy.id,
                 }))
-                .sortBy((policy) => policy.text.toLowerCase())
                 .value(),
         [policies, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
-    const filteredUserWorkspaces = useMemo(() => _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
+    const filteredAndSortedUserWorkspaces = useMemo(
+        () =>
+            _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().includes(searchTerm.toLowerCase())).sort((policy1, policy2) =>
+                sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID),
+            ),
+        [searchTerm, usersWorkspaces],
+    );
 
     const usersWorkspacesSectionData = useMemo(
         () => ({
-            data: filteredUserWorkspaces,
+            data: filteredAndSortedUserWorkspaces,
             shouldShow: true,
             indexOffset: 0,
         }),
-        [filteredUserWorkspaces],
+        [filteredAndSortedUserWorkspaces],
     );
 
     const everythingSection = useMemo(() => {
@@ -162,6 +177,7 @@ function WorkspaceSwitcherPage({policies}) {
                     source: Expensicons.ExpensifyAppIcon,
                     name: CONST.WORKSPACE_SWITCHER.NAME,
                     type: CONST.ICON_TYPE_AVATAR,
+                    displayInDefaultIconColor: true,
                 },
             ],
             brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
@@ -180,12 +196,13 @@ function WorkspaceSwitcherPage({policies}) {
                 </View>
                 <View>
                     <OptionRow
-                        option={{...option, brickRoadIndicator: option.policyID === activeWorkspaceID ? undefined : option.brickRoadIndicator}}
+                        option={{...option, brickRoadIndicator: !activeWorkspaceID ? undefined : option.brickRoadIndicator}}
                         onSelectRow={selectPolicy}
                         showTitleTooltip={false}
                         shouldShowSubscript={false}
                         highlightSelected
-                        isSelected={option.policyID === activeWorkspaceID}
+                        isSelected={!activeWorkspaceID}
+                        optionIsFocused={!activeWorkspaceID}
                     />
                 </View>
             </>
@@ -238,7 +255,7 @@ function WorkspaceSwitcherPage({policies}) {
                         highlightSelectedOptions
                         shouldShowOptions
                         autoFocus={false}
-                        disableFocusOptions
+                        disableFocusOptions={!activeWorkspaceID}
                         canSelectMultipleOptions={false}
                         shouldShowSubscript={false}
                         showTitleTooltip={false}
