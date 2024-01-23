@@ -32,6 +32,9 @@ PODS:
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
+  - EXAV (13.4.1):
+    - ExpoModulesCore
+    - ReactCommon/turbomodule/core
   - Expo (50.0.0-preview.7):
     - ExpoModulesCore
   - ExpoImage (1.10.1):
@@ -1458,6 +1461,7 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXAV (from `../node_modules/expo-av/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
@@ -1636,6 +1640,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXAV:
+    :path: "../node_modules/expo-av/ios"
   Expo:
     :path: "../node_modules/expo"
   ExpoImage:
@@ -1831,6 +1837,7 @@ SPEC CHECKSUMS:
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
+  EXAV: f393dfc0b28214d62855a31e06eb21d426d6e2da
   Expo: cd2dc043dd1cc3d9e8e4e035fb9a41b421e8f13f
   ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
   ExpoModulesCore: 01c0abfa6cd9c41c4bd76d8a1a079e6b591db10f
@@ -1967,7 +1974,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
-  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
+  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2
 
