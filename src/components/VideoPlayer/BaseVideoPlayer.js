@@ -77,7 +77,6 @@ function BaseVideoPlayer({
     const [sourceURL] = useState(url.includes('blob:') ? url : addEncryptedAuthTokenToURL(url));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
-
     const showPopoverMenu = (e) => {
         setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
         setIsPopoverVisible(true);
@@ -130,7 +129,6 @@ function BaseVideoPlayer({
             originalParent.appendChild(sharedElement);
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
-
     return (
         <>
             <Hoverable>
@@ -181,7 +179,7 @@ function BaseVideoPlayer({
 
                         {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                        {!isLoading && (isPopoverVisible || isVideoHovered || isHovered) && (
+                        {!isLoading && (isPopoverVisible || isHovered) && (
                             <VideoPlayerControls
                                 duration={duration}
                                 position={position}
