@@ -14,6 +14,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
     const isHoveredRef = useRef(false);
+    const isVisibiltyHidden = useRef(false);
 
     const updateIsHovered = useCallback(
         (hovered: boolean) => {
@@ -75,17 +76,25 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
     }, [isHovered, elementRef]);
 
     useEffect(() => {
-        const unsetHoveredWhenDocumentIsHidden = () => document.visibilityState === 'hidden' && setIsHovered(false);
+        const unsetHoveredWhenDocumentIsHidden = () => {
+            if (document.visibilityState !== 'hidden' || !isHovered) {
+                return;
+            }
+
+            isVisibiltyHidden.current = true;
+            setIsHovered(false);
+        };
 
         document.addEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
 
         return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
-    }, []);
+    }, [isHovered]);
 
     const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
 
     const childOnMouseEnter = child.props.onMouseEnter;
     const childOnMouseLeave = child.props.onMouseLeave;
+    const childOnMouseMove = child.props.onMouseMove;
 
     const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {
@@ -116,11 +125,21 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         [child.props],
     );
 
+    const handleAndForwardOnMouseMove = useCallback(
+        (e: MouseEvent) => {
+            isVisibiltyHidden.current = false;
+            updateIsHovered(true);
+            childOnMouseMove?.(e);
+        },
+        [updateIsHovered, childOnMouseMove],
+    );
+
     return cloneElement(child, {
         ref: mergeRefs(elementRef, outerRef, child.ref),
         onMouseEnter: hoverAndForwardOnMouseEnter,
         onMouseLeave: unhoverAndForwardOnMouseLeave,
         onBlur: unhoverAndForwardOnBlur,
+        ...(isVisibiltyHidden.current && !isHovered ? {onMouseMove: handleAndForwardOnMouseMove} : null),
     });
 }
 
