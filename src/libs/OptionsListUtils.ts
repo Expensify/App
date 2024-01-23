@@ -28,6 +28,7 @@ import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -1001,30 +1002,26 @@ function getCategoryListSections(
  * Transforms the provided tags into option objects.
  *
  * @param tags - an initial tag array
- * @param tags[].enabled - a flag to enable/disable option in a list
- * @param tags[].name - a name of an option
  */
 function getTagsOptions(tags: Category[]): Option[] {
-    return tags.map((tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return tags.map((tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        return {
+            text: cleanedName,
+            keyForList: tag.name,
+            searchText: tag.name,
+            tooltipText: cleanedName,
+            isDisabled: !tag.enabled,
+        };
+    });
 }
 
 /**
  * Build the section list for tags
  */
-function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
+function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
     const tagSections = [];
-    const tags = rawTags.map((tag) => {
-        // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const tagName = tag.name?.replace(/\\{1,2}:/g, ':');
-
-        return {...tag, name: tagName};
-    });
     const sortedTags = sortTags(tags);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
     const numberOfTags = enabledTags.length;
@@ -1049,7 +1046,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
     }
 
     if (searchInputValue) {
-        const searchTags = enabledTags.filter((tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTags = enabledTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section

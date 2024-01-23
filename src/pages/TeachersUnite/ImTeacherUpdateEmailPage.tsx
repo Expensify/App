@@ -11,10 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
-const propTypes = {};
-
-const defaultProps = {};
-
 function ImTeacherUpdateEmailPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,8 +45,6 @@ function ImTeacherUpdateEmailPage() {
     );
 }
 
-ImTeacherUpdateEmailPage.propTypes = propTypes;
-ImTeacherUpdateEmailPage.defaultProps = defaultProps;
 ImTeacherUpdateEmailPage.displayName = 'ImTeacherUpdateEmailPage';
 
 export default ImTeacherUpdateEmailPage;

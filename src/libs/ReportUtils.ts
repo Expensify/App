@@ -389,8 +389,9 @@ type OptionData = {
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
     isOptimisticAccount?: boolean;
-    isDisabled?: boolean;
     isSelected?: boolean;
+    isDisabled?: boolean;
+    name?: string | null;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -1009,14 +1010,6 @@ function findLastAccessedReport(
         });
     }
 
-    if (isFirstTimeNewExpensifyUser) {
-        if (sortedReports.length === 1) {
-            return sortedReports[0];
-        }
-
-        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
-    }
-
     if (ignoreDomainRooms) {
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
@@ -1024,6 +1017,14 @@ function findLastAccessedReport(
         sortedReports = sortedReports.filter(
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(report?.participantAccountIDs ?? []),
         );
+    }
+
+    if (isFirstTimeNewExpensifyUser) {
+        if (sortedReports.length === 1) {
+            return sortedReports[0];
+        }
+
+        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
     }
 
     return adminReport ?? sortedReports.at(-1) ?? null;
@@ -4518,6 +4519,13 @@ function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyRepor
 }
 
 /**
+ * Given a report field, check if the field is for the report title.
+ */
+function isReportFieldOfTypeTitle(reportField: PolicyReportField): boolean {
+    return reportField.type === 'formula' && reportField.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+}
+
+/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -4732,6 +4740,7 @@ export {
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    isReportFieldOfTypeTitle,
 };
 
 export type {
