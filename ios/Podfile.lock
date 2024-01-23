@@ -1158,7 +1158,7 @@ PODS:
   - react-native-airship (15.3.1):
     - AirshipFrameworkProxy (= 2.1.1)
     - React-Core
-  - react-native-blob-util (0.19.6):
+  - react-native-blob-util (0.19.4):
     - React-Core
   - react-native-cameraroll (5.4.0):
     - React-Core
@@ -1901,7 +1901,7 @@ SPEC CHECKSUMS:
   React-logger: 66b168e2b2bee57bd8ce9e69f739d805732a5570
   React-Mapbuffer: 9ee041e1d7be96da6d76a251f92e72b711c651d6
   react-native-airship: 6ded22e4ca54f2f80db80b7b911c2b9b696d9335
-  react-native-blob-util: d8fa1a7f726867907a8e43163fdd8b441d4489ea
+  react-native-blob-util: 30a6c9fd067aadf9177e61a998f2c7efb670598d
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: 69ca2094d8780cfc1e7e613894d15290fdc54bba
