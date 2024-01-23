@@ -349,8 +349,8 @@ function getOptionData({
             : null;
     }
 
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
     const lastActorDisplayName = OptionsListUtils.getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, lastActorDetails, policy);
 
     let lastMessageText = lastMessageTextFromReport;
 

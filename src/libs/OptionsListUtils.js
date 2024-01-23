@@ -397,11 +397,10 @@ function getAllReportErrors(report, reportActions) {
 
 /**
  * Get the last actor display name from last actor details.
- * @param lastActorDetails
- * @param hasMultipleParticipants
+ * @param {Object | null} lastActorDetails
+ * @param {Boolean} hasMultipleParticipants
  * @returns {String}
  */
-
 function getLastActorDisplayName(lastActorDetails, hasMultipleParticipants) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
         ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
