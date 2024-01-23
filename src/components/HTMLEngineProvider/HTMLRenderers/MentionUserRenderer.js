@@ -42,8 +42,8 @@ function MentionUserRenderer(props) {
     const tnode = cloneDeep(props.tnode);
 
     const getMentionDisplayText = (displayText, userAccountID, userLogin = '') => {
-        //  if the userAccountID does not exist, this is email-based mention so the displayName must be an email.
-        // If the userAccountID exists but userLogin is different from displayName, this means the displayName is either user display name, Hidden, or phone number, in which case we should return it as is.
+        //  if the userAccountID does not exist, this is email-based mention so the displayText must be an email.
+        // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
         if (userAccountID && userLogin !== displayText) {
             return displayText;
         }
