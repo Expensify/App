@@ -73,23 +73,26 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
+    }, [isHovered, elementRef]);
+
+    useEffect(
+        () => {
+            const unsetHoveredWhenDocumentIsHidden = () => {
+                if (document.visibilityState !== 'hidden' || !isHovered) {
+                    return;
+                }
+
+                isVisibiltyHidden.current = true;
+                setIsHovered(false);
+            };
+
+            document.addEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
+
+            return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [elementRef]);
-
-    useEffect(() => {
-        const unsetHoveredWhenDocumentIsHidden = () => {
-            if (document.visibilityState !== 'hidden' || !isHovered) {
-                return;
-            }
-
-            isVisibiltyHidden.current = true;
-            setIsHovered(false);
-        };
-
-        document.addEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
-
-        return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
-    }, [isHovered]);
+        [],
+    );
 
     const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
 
