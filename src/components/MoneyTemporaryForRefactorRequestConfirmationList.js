@@ -643,7 +643,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {receiptImage || receiptThumbnail || isThumbnail ? (
+            {receiptImage || receiptThumbnail ? (
                 <ReceiptImage
                     style={styles.moneyRequestImage}
                     isThumbnail={isThumbnail}
