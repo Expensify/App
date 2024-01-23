@@ -214,7 +214,7 @@ describe('DateUtils', () => {
         });
     });
 
-    describe.only('getLastBusinessDayOfMonth', () => {
+    describe('getLastBusinessDayOfMonth', () => {
         const scenarios = [
             {
                 // Last business day of May in 2025
