@@ -30,7 +30,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
     const {translate} = useLocalize();
 
     const sections = useMemo(() => {
-        const filteredOptions = fieldOptions.filter((option) => option.includes(searchValue));
+        const filteredOptions = fieldOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
         return [
             {
                 title: translate('common.recents'),
@@ -64,7 +64,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
                         contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}
                         optionHoveredStyle={styles.hoveredComponentBG}
                         sectionHeaderStyle={styles.mt5}
-                        selectedOptions={[{text: fieldValue}]}
+                        selectedOptions={[{name: fieldValue}]}
                         textInputLabel={translate('common.search')}
                         boldStyle
                         sections={sections}

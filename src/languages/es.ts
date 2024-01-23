@@ -2562,6 +2562,14 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Seguimiento de los gastos de empresa para fines fiscales',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Reclamar gastos a mi empleador',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
+        welcomeMessage: 'Bienvenido a Expensify',
+        welcomeSubtitle: '¿Qué te gustaría hacer?',
+    },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,

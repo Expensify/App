@@ -977,7 +977,6 @@ const CONST = {
         SUGGESTER_INNER_PADDING: 8,
         SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_SUGGESTIONS: 3,
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
@@ -3131,7 +3130,20 @@ const CONST = {
         REPORT: 'REPORT',
     },
 
+    INTRO_CHOICES: {
+        TRACK: 'newDotTrack',
+        SUBMIT: 'newDotSubmit',
+        MANAGE_TEAM: 'newDotManageTeam',
+        CHAT_SPLIT: 'newDotSplitChat',
+    },
+
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
+
+    REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 } as const;
+
+type Country = keyof typeof CONST.ALL_COUNTRIES;
+
+export type {Country};
 
 export default CONST;

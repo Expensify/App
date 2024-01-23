@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {
     AddressLineParams,
     AlreadySignedInParams,
@@ -106,7 +107,7 @@ type StateValue = {
 
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
-type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
+type AllCountries = Record<Country, string>;
 
 /* eslint-disable max-len */
 export default {
@@ -2073,6 +2074,14 @@ export default {
             body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
         },
         copyReferralLink: 'Copy invite link',
+    },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+        welcomeMessage: 'Welcome to Expensify',
+        welcomeSubtitle: 'What would you like to do?',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',

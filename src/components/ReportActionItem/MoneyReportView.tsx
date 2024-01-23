@@ -79,7 +79,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                                     title={title}
                                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon
-                                    disabled={false}
+                                    disabled={ReportUtils.isReportFieldOfTypeTitle(reportField)}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
                                     numberOfLinesTitle={0}
