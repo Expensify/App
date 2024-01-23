@@ -368,13 +368,12 @@ type CustomIcon = {
 type OptionData = {
     text: string;
     alternateText?: string | null;
-    allReportErrors?: Errors | null;
+    allReportErrors?: Errors;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
     customIcon?: CustomIcon;
-    descriptiveText?: string;
     subtitle?: string | null;
     login?: string | null;
     accountID?: number | null;
@@ -395,8 +394,9 @@ type OptionData = {
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
-    parentReportAction?: ReportAction;
+    parentReportAction?: OnyxEntry<ReportAction>;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    descriptiveText?: string;
     isDisabled?: boolean | null;
     name?: string | null;
 } & Report;
@@ -3548,8 +3548,8 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is a money request that contains a violation
  */
-function doesTransactionThreadHaveViolations(report: Report, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: ReportAction): boolean {
-    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+    if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
     const {IOUTransactionID, IOUReportID} = parentReportAction.originalMessage ?? {};
@@ -3559,7 +3559,7 @@ function doesTransactionThreadHaveViolations(report: Report, transactionViolatio
     if (!isCurrentUserSubmitter(IOUReportID)) {
         return false;
     }
-    if (report.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
+    if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
     return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
@@ -4526,6 +4526,13 @@ function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyRepor
 }
 
 /**
+ * Given a report field, check if the field is for the report title.
+ */
+function isReportFieldOfTypeTitle(reportField: PolicyReportField): boolean {
+    return reportField.type === 'formula' && reportField.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+}
+
+/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -4542,7 +4549,7 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string) {
+function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
@@ -4740,6 +4747,7 @@ export {
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    isReportFieldOfTypeTitle,
 };
 
 export type {
