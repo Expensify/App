@@ -98,6 +98,9 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
 
     const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {
+            if (isVisibiltyHidden.current) {
+                isVisibiltyHidden.current = false;
+            }
             updateIsHovered(true);
             childOnMouseEnter?.(e);
         },
@@ -139,7 +142,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         onMouseEnter: hoverAndForwardOnMouseEnter,
         onMouseLeave: unhoverAndForwardOnMouseLeave,
         onBlur: unhoverAndForwardOnBlur,
-        ...(isVisibiltyHidden.current && !isHovered ? {onMouseMove: handleAndForwardOnMouseMove} : {}),
+        ...(isVisibiltyHidden.current ? {onMouseMove: handleAndForwardOnMouseMove} : {}),
     });
 }
 
