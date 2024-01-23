@@ -154,7 +154,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
                             <AttachmentCarouselPager
                                 items={attachments}
-                                scrollEnabled={isZoomedOut}
+                                isZoomedOut={isZoomedOut}
                                 renderItem={renderItem}
                                 initialIndex={page}
                                 onTap={() => {

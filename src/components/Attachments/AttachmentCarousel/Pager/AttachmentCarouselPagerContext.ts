@@ -5,8 +5,9 @@ import type {SharedValue} from 'react-native-reanimated';
 
 type AttachmentCarouselPagerContextValue = {
     pagerRef: ForwardedRef<PagerView>;
-    isPagerSwiping: SharedValue<boolean>;
-    scrollEnabled: boolean;
+    isPagerScrolling: SharedValue<boolean>;
+    isScrollEnabled: boolean;
+    setScrollEnabled: (shouldPagerScroll: boolean) => void;
     onTap: () => void;
     onScaleChanged: (scale: number) => void;
 };

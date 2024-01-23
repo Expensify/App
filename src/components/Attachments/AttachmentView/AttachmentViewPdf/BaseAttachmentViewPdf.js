@@ -16,7 +16,7 @@ function BaseAttachmentViewPdf({
     style,
 }) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const scrollEnabled = attachmentCarouselPagerContext === null ? 1 : attachmentCarouselPagerContext.scrollEnabled;
+    const isScrollEnabled = attachmentCarouselPagerContext === null ? true : attachmentCarouselPagerContext.isScrollEnabled;
 
     useEffect(() => {
         if (!attachmentCarouselPagerContext) {
@@ -43,11 +43,11 @@ function BaseAttachmentViewPdf({
             if (onPressProp !== undefined) {
                 onPressProp(e);
             }
-            if (attachmentCarouselPagerContext !== null && scrollEnabled) {
+            if (attachmentCarouselPagerContext !== null && isScrollEnabled) {
                 attachmentCarouselPagerContext.onTap(e);
             }
         },
-        [attachmentCarouselPagerContext, scrollEnabled, onPressProp],
+        [attachmentCarouselPagerContext, isScrollEnabled, onPressProp],
     );
 
     return (

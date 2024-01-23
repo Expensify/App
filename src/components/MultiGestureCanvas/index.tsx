@@ -56,7 +56,7 @@ function MultiGestureCanvas({
     const {
         onTap,
         onScaleChanged: onScaleChangedContext,
-        isPagerSwiping,
+        isPagerScrolling: isPagerSwiping,
         pagerRef,
     } = useMemo(
         () =>
@@ -64,7 +64,7 @@ function MultiGestureCanvas({
                 onTap: () => {},
                 onScaleChanged: () => {},
                 pagerRef: undefined,
-                isPagerSwiping: isSwipingInPagerFallback,
+                isPagerScrolling: isSwipingInPagerFallback,
             },
         [attachmentCarouselPagerContext, isSwipingInPagerFallback],
     );

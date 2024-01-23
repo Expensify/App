@@ -27,7 +27,7 @@ type PagerItem = {
 
 type AttachmentCarouselPagerProps = {
     items: PagerItem[];
-    scrollEnabled?: boolean;
+    isZoomedOut?: boolean;
     renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
     onTap: () => void;
@@ -36,13 +36,18 @@ type AttachmentCarouselPagerProps = {
 };
 
 function AttachmentCarouselPager(
-    {items, scrollEnabled = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
+    {items, isZoomedOut = true, renderItem, initialIndex, onTap, onPageSelected, onScaleChanged}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
 
-    const isPagerSwiping = useSharedValue(false);
+    const isPagerScrolling = useSharedValue(false);
+    const [isScrollEnabled, setScrollEnabled] = useState(isZoomedOut);
+    useEffect(() => {
+        setScrollEnabled(isZoomedOut);
+    }, [isZoomedOut]);
+
     const activePage = useSharedValue(initialIndex);
     const [activePageState, setActivePageState] = useState(initialIndex);
 
@@ -52,7 +57,7 @@ function AttachmentCarouselPager(
                 'worklet';
 
                 activePage.value = e.position;
-                isPagerSwiping.value = e.offset !== 0;
+                isPagerScrolling.value = e.offset !== 0;
             },
         },
         [],
@@ -66,12 +71,13 @@ function AttachmentCarouselPager(
     const contextValue = useMemo(
         () => ({
             pagerRef,
-            isPagerSwiping,
-            scrollEnabled,
+            isPagerScrolling,
+            isScrollEnabled,
+            setScrollEnabled,
             onTap,
             onScaleChanged,
         }),
-        [isPagerSwiping, scrollEnabled, onTap, onScaleChanged],
+        [isPagerScrolling, isScrollEnabled, onTap, onScaleChanged],
     );
 
     useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
@@ -87,9 +93,9 @@ function AttachmentCarouselPager(
     return (
         <AttachmentCarouselPagerContext.Provider value={contextValue}>
             <AnimatedPagerView
+                scrollEnabled={isScrollEnabled}
                 pageMargin={40}
                 offscreenPageLimit={1}
-                scrollEnabled={scrollEnabled}
                 onPageScroll={pageScrollHandler}
                 onPageSelected={onPageSelected}
                 ref={pagerRef}
