@@ -231,17 +231,28 @@ function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
 
 /*
  * @param {String} transactionID
+ * @param {String} reportTags
  * @param {String} tag
+ * @param {Number} tagIndex
  */
-function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
+function setMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tag, tagIndex) {
+    const splittedReportTags = reportTags.split(CONST.COLON);
+    splittedReportTags[tagIndex] = tag;
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        tag: splittedReportTags.join(CONST.COLON),
+    });
 }
 
 /*
  * @param {String} transactionID
+ * @param {String} reportTags
+ * @param {String} tag
  */
-function resetMoneyRequestTag_temporaryForRefactor(transactionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag: null});
+function resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tag) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        tag: reportTags.replace(tag, '').replace(/:*$/, ''),
+    });
 }
 
 /**
@@ -743,8 +754,9 @@ function getMoneyRequestInformation(
     );
 
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
-
+    // TODO: Adapt
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    // const optimisticPolicyRecentlyUsedTags = {};
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
