@@ -319,7 +319,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('tag')}>
                         <MenuItemWithTopDescription
                             description={policyTag?.name ?? translate('common.tag')}
-                            title={PolicyUtils.getCleanedTagName(transactionTag)}
+                            title={PolicyUtils.getCleanedTagName(transactionTag ?? '')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
