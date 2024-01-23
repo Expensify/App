@@ -302,14 +302,14 @@ function ComposerWithSuggestions({
             }
         },
         [
-            raiseIsScrollLikelyLayoutTriggered,
+            debouncedUpdateFrequentlyUsedEmojis,
             findNewlyAddedChars,
-            preferredSkinTone,
             preferredLocale,
+            preferredSkinTone,
+            reportID,
             setIsCommentEmpty,
             suggestionsRef,
-            debouncedUpdateFrequentlyUsedEmojis,
-            reportID,
+            raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
             selection.end,
         ],
