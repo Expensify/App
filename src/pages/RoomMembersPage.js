@@ -238,7 +238,12 @@ function RoomMembersPage(props) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.report) || (ReportUtils.isUserCreatedPolicyRoom(props.report) && !isPolicyMember)}
+                // We want to show the full page not found view if:
+                // - the user doesn't have access to this report
+                // - this report is a user-created policy room and the user is not a member of the policy
+                // - this report is a default room (threads in default rooms are fine)
+                // - this report is a policy expense chat (threads in policy expense chats are fine)
+                shouldShow={_.isEmpty(props.report) || (_.isEmpty(ReportUtils.getParentReport(props.report)) && ReportUtils.isUserCreatedPolicyRoom(props.report) && !isPolicyMember) || (_.isEmpty(ReportUtils.getParentReport(props.report)) && (ReportUtils.isDefaultRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)))}
                 subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
             >
