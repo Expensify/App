@@ -734,7 +734,7 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
- * Returns the latest business day of input date month
+ * Returns the last business day of given date month
  *
  * param {Date} inputDate
  * returns {number}
