@@ -93,7 +93,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      */
     const toggleArrows = useCallback(
         (showArrows) => {
-            if (showArrows) {
+            if (showArrows !== undefined) {
                 setShouldShowArrows(showArrows);
                 return;
             }
