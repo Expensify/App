@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -22,7 +23,11 @@ type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, 
 function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     const {reason} = route.params;
+
+    const [response, setResponse] = useState('');
+    const responseInputRef = useRef(null);
 
     return (
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
@@ -45,11 +50,21 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                         // @ts-expect-error – InputWrapper is not yet implemented in TS
                         InputComponent={TextInput}
                         inputID={RESPONSE_INPUT_ID}
-                        containerStyles={styles.mt7}
                         label={translate(`exitSurvey.responsePlaceholder`)}
                         accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
-                        multiline
                         role={CONST.ROLE.PRESENTATION}
+                        autoGrowHeight
+                        maxLength={CONST.MAX_COMMENT_LENGTH}
+                        ref={(el) => {
+                            if (!el) {
+                                return;
+                            }
+                            responseInputRef.current = el;
+                            updateMultilineInputRange(el);
+                        }}
+                        value={response}
+                        onChangeText={setResponse}
+                        containerStyles={[styles.mt7, styles.autoGrowHeightMultilineInput]}
                         shouldSaveDraft
                     />
                 </>
