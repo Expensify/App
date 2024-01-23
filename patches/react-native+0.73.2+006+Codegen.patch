@@ -1,3 +1,18 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/jni/NativeCommon.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/jni/NativeCommon.h
+index b3b7bc0..6c860b6 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/jni/NativeCommon.h
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/jni/NativeCommon.h
+@@ -30,8 +30,8 @@ extern const char* gUnexpectedNativeTypeExceptionClass;
+ template <typename T>
+ void throwIfObjectAlreadyConsumed(const T& t, const char* msg) {
+   if (t->isConsumed) {
+-    jni::throwNewJavaException(
+-        "com/facebook/react/bridge/ObjectAlreadyConsumedException", msg);
++//    jni::throwNewJavaException(
++//        "com/facebook/react/bridge/ObjectAlreadyConsumedException", msg);
+   }
+ }
+ 
 diff --git a/node_modules/react-native/scripts/cocoapods/new_architecture.rb b/node_modules/react-native/scripts/cocoapods/new_architecture.rb
 index ba75b01..e5eaee8 100644
 --- a/node_modules/react-native/scripts/cocoapods/new_architecture.rb
