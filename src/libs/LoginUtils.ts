@@ -66,9 +66,7 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     if (isEmailPublicDomain(email1) || isEmailPublicDomain(email2)) {
         return false;
     }
-    const emailDomain1 = Str.extractEmailDomain(email1).toLowerCase();
-    const emailDomain2 = Str.extractEmailDomain(email2).toLowerCase();
-    return emailDomain1 === emailDomain2;
+    return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
 export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain};

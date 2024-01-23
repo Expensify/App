@@ -33,34 +33,39 @@ function MentionUserRenderer(props) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
-    const htmlAttribAccountID = lodashGet(props.tnode.attributes, 'accountid');
+    const htmlAttributeAccountID = lodashGet(props.tnode.attributes, 'accountid');
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     let accountID;
     let displayNameOrLogin;
     let navigationRoute;
     const tnode = cloneDeep(props.tnode);
-    const getMentionDisplayText = (displayText, accountId, userLogin = '') => {
-        if (accountId && userLogin !== displayText) {
+
+    const getMentionDisplayText = (displayText, userAccountID, userLogin = '') => {
+        //  if the userAccountID does not exist, this is email-based mention so the displayName must be an email.
+        // If the userAccountID exists but userLogin is different from displayName, this means the displayName is either user display name, Hidden, or phone number, in which case we should return it as is.
+        if (userAccountID && userLogin !== displayText) {
             return displayText;
         }
+        // If the emails are not in the same private domain, we also return the displayText
         if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, props.currentUserPersonalDetails.login)) {
             return displayText;
         }
-
+        // Otherwise, the emails must be of the same private domain, so we should remove the domain part
         return displayText.split('@')[0];
     };
 
-    if (!_.isEmpty(htmlAttribAccountID)) {
-        const user = lodashGet(personalDetails, htmlAttribAccountID);
-        accountID = parseInt(htmlAttribAccountID, 10);
+    if (!_.isEmpty(htmlAttributeAccountID)) {
+        const user = lodashGet(personalDetails, htmlAttributeAccountID);
+        accountID = parseInt(htmlAttributeAccountID, 10);
         displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || lodashGet(user, 'displayName', '') || translate('common.hidden');
-        displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID, lodashGet(user, 'login', ''));
-        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
+        displayNameOrLogin = getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID, lodashGet(user, 'login', ''));
+        navigationRoute = ROUTES.PROFILE.getRoute(htmlAttributeAccountID);
     } else if (!_.isEmpty(tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         displayNameOrLogin = tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
-        tnode.data = tnode.data.replace(displayNameOrLogin, getMentionDisplayText(displayNameOrLogin, htmlAttribAccountID));
+        // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
+        tnode.data = tnode.data.replace(displayNameOrLogin, getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID));
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
@@ -98,7 +103,7 @@ function MentionUserRenderer(props) {
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
                         >
-                            {!_.isEmpty(htmlAttribAccountID) ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={tnode} />}
+                            {!_.isEmpty(htmlAttributeAccountID) ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={tnode} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>
