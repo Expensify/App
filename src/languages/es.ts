@@ -18,6 +18,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    ElectronicFundsParams,
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
@@ -1421,11 +1422,10 @@ export default {
                 'No hay cargo por transferir fondos desde tu billetera Expensify ' +
                 'a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
                 '1-3 días laborables.',
-            electronicFundsInstantDetails:
-                'Hay una tarifa para transferir fondos desde tu billetera Expensify a ' +
+            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>  'Hay una tarifa para transferir fondos desde tu billetera Expensify a ' +
                 'la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
-                'generalmente se completa dentro de varios minutos. La tarifa es el 1,5% del importe de la ' +
-                'transferencia (con una tarifa mínima de US$0,25). ',
+                `generalmente se completa dentro de varios minutos. La tarifa es el ${percentage}% del importe de la ` +
+                `transferencia (con una tarifa mínima de ${amount}). `,
             fdicInsuranceBancorp: ({amount}: TermsParams) => 'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
                     `transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, tus fondos ` +
                     `están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,

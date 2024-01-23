@@ -289,6 +289,8 @@ type TranslationFlatObject = {
 
 type TermsParams = {amount: string};
 
+type ElectronicFundsParams = {percentage: string; amount: string};
+
 export type {
     ApprovedAmountParams,
     AddressLineParams,
@@ -307,6 +309,7 @@ export type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    ElectronicFundsParams,
     EnglishTranslation,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
