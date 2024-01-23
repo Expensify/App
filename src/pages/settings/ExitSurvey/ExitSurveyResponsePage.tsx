@@ -13,7 +13,7 @@ function ExitSurveyResponsePage() {
     return (
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
             <HeaderWithBackButton
-                title="Before you go"
+                title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <Text>Response page</Text>

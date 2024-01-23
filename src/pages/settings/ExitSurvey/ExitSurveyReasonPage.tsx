@@ -34,7 +34,7 @@ function ExitSurveyReasonPage() {
     return (
         <ScreenWrapper testID={ExitSurveyReasonPage.displayName}>
             <HeaderWithBackButton
-                title="Before you go"
+                title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {/* @ts-expect-error - FormProvider is not yet migrated to TS */}
