@@ -13,7 +13,6 @@ type WorkspaceCardPageProps = StackScreenProps<SettingsNavigatorParamList, typeo
 
 function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
     const {translate} = useLocalize();
-    
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
@@ -21,13 +20,13 @@ function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
         >
-            {(hasVBA: boolean, policyID: string, isUsingECard: boolean) => (
+            {(hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => (
                 <>
-                    {false && <WorkspaceCardNoVBAView policyID={policyID} />}
+                    {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID ?? ''} />}
 
-                    {false && <WorkspaceCardVBANoECardView />}
+                    {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 
-                    {true && <WorkspaceCardVBAWithECardView />}
+                    {hasVBA && isUsingECard && <WorkspaceCardVBAWithECardView />}
                 </>
             )}
         </WorkspacePageWithSections>
