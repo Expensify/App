@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
+import type {Emoji} from '@assets/emojis/types';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -389,7 +390,6 @@ function ReportActionCompose({
                             {({displayFileInModal}) => (
                                 <>
                                     <AttachmentPickerWithMenuItems
-                                        // @ts-expect-error TODO:  Remove this once AttachmentPickerWithMenuItems (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                                         displayFileInModal={displayFileInModal}
                                         reportID={reportID}
                                         report={report}
@@ -397,7 +397,7 @@ function ReportActionCompose({
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}
                                         isBlockedFromConcierge={isBlockedFromConcierge}
-                                        disabled={disabled}
+                                        disabled={!!disabled}
                                         setMenuVisibility={setMenuVisibility}
                                         isMenuVisible={isMenuVisible}
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
@@ -413,7 +413,6 @@ function ReportActionCompose({
                                     />
                                     <ComposerWithSuggestions
                                         ref={composerRef}
-                                        // @ts-expect-error TODO: Remove this once ComposerWithSuggestions is migrated to TypeScript.
                                         animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
@@ -429,7 +428,7 @@ function ReportActionCompose({
                                         textInputShouldClear={textInputShouldClear}
                                         setTextInputShouldClear={setTextInputShouldClear}
                                         isBlockedFromConcierge={isBlockedFromConcierge}
-                                        disabled={disabled}
+                                        disabled={!!disabled}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         setIsFullComposerAvailable={setIsFullComposerAvailable}
                                         setIsCommentEmpty={setIsCommentEmpty}
@@ -498,4 +497,4 @@ export default withCurrentUserPersonalDetails(
     })(ReportActionCompose),
 );
 
-export type {SuggestionsRef};
+export type {SuggestionsRef, ComposerRef};
