@@ -21,8 +21,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import ROUTES from '@src/ROUTES';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
 type MoneyReportViewComponentProps = {
     /** The report currently being looked at */
