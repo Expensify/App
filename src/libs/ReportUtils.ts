@@ -5,6 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashIsEmpty from 'lodash/isEmpty';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -966,6 +967,15 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
     }
 
     return true;
+}
+
+/**
+ * Returns whether it's possible to invite to a report.
+ * Only chat reports that aren't DMs can be invited to. (threads in DMs are eligible for invites)
+ *
+ */
+function canInviteToReport(report: OnyxEntry<Report>): boolean {
+    return isChatReport(report) && (!isDM(report) || !lodashIsEmpty(getParentReport(report)));
 }
 
 /**
