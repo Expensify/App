@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import {ActiveModalContext} from '@components/Modal/ActiveModalProvider';
+import {ModalBusinessTypeContext} from '@components/Modal/ModalBusinessTypeProvider';
 import ModalContent from '@components/Modal/ModalContent';
 import {PopoverContext} from '@components/PopoverProvider';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -38,7 +38,7 @@ function PopoverWithoutOverlay(
     const {windowWidth, windowHeight} = useWindowDimensions();
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
     const insets = useSafeAreaInsets();
-    const {businessType} = useContext(ActiveModalContext);
+    const {businessType} = useContext(ModalBusinessTypeContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles(
             'popover',

@@ -67,11 +67,5 @@ type BaseModalProps = Partial<ModalProps> & {
     restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
 };
 
-type ModalRef = {
-    removePromise: () => void;
-    setReadyToFocus: () => void;
-};
-
-export type {ModalRef};
 export default BaseModalProps;
 export type {PopoverAnchorPosition};

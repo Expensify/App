@@ -1,6 +1,7 @@
 import {filter, last} from 'lodash';
 import {TextInput} from 'react-native';
 import CONST from '@src/CONST';
+import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 let focusedInput = null;
 let uniqueModalId = 1;
@@ -8,6 +9,11 @@ const focusMap = new Map();
 const activeModals = [];
 const promiseMap = new Map();
 
+/**
+ * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible.
+ *
+ * @return {React.ElementRef|HTMLElement}
+ */
 function getActiveInput() {
     return TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField();
 }
@@ -35,7 +41,7 @@ function clearFocusedInput() {
 /**
  * When a TextInput is unmounted, we also should release the reference here to avoid potential issues.
  *
- * @param {TextInput | Falsy} input
+ * @param {Component|null} input
  */
 function releaseInput(input) {
     if (!input) {
@@ -95,7 +101,7 @@ function saveFocusState(id, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, sh
 
 /**
  * On web platform, if we intentionally click on another input box, there is no need to restore focus.
- * But if we are closing the RHP, we can ignore the focused input.
+ * Additionally, if we are closing the RHP, we can ignore the focused input.
  *
  * @param {TextInput} input
  * @param {Boolean} shouldIgnoreFocused
@@ -105,14 +111,14 @@ function focus(input, shouldIgnoreFocused = false) {
         return;
     }
     if (shouldIgnoreFocused) {
-        input.focus();
+        isWindowReadyToFocus().then(() => input.focus());
         return;
     }
     const activeInput = getActiveInput();
     if (activeInput) {
         return;
     }
-    input.focus();
+    isWindowReadyToFocus().then(() => input.focus());
 }
 
 /**
@@ -205,11 +211,6 @@ function setReadyToFocus(id) {
     promiseMap.delete(key);
 }
 
-function removePromise(id) {
-    const key = getKey(id);
-    promiseMap.delete(key);
-}
-
 function isReadyToFocus(id) {
     const key = getKey(id);
     const promise = promiseMap.get(key);
@@ -228,12 +229,16 @@ function tryRestoreFocusAfterClosedCompletely(id, businessType, restoreType) {
  * @param {String} businessType
  */
 function tryRestoreFocusByExternal(businessType) {
-    const [key, {input}] = last(filter([...focusMap], ([, value]) => value.businessType === businessType));
+    const stack = filter([...focusMap], ([, value]) => value.businessType === businessType && value.input);
+    if (stack.length < 1) {
+        return;
+    }
+    const [key, {input}] = last(stack);
     focusMap.delete(key);
     if (!input) {
         return;
     }
-    input.focus();
+    focus(input);
 }
 
 export default {
@@ -247,6 +252,5 @@ export default {
     setReadyToFocus,
     isReadyToFocus,
     tryRestoreFocusAfterClosedCompletely,
-    removePromise,
     tryRestoreFocusByExternal,
 };

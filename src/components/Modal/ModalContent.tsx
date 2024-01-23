@@ -1,5 +1,13 @@
+import type {ReactNode} from 'react';
 import React from 'react';
-import type ModalContentProps from './types';
+
+type ModalContentProps = {
+    /** Modal contents */
+    children: ReactNode;
+
+    /** called after modal content is dismissed */
+    onDismiss: () => void;
+};
 
 function ModalContent({children, onDismiss = () => {}}: ModalContentProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps

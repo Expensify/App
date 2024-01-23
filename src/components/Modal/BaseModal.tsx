@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -13,10 +13,9 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import {ActiveModalContext} from './ActiveModalProvider';
+import {ModalBusinessTypeContext} from './ModalBusinessTypeProvider';
 import ModalContent from './ModalContent';
 import type BaseModalProps from './types';
-import type {ModalRef} from './types';
 
 function BaseModal(
     {
@@ -44,7 +43,7 @@ function BaseModal(
         avoidKeyboard = false,
         children,
     }: BaseModalProps,
-    ref: React.ForwardedRef<ModalRef>,
+    ref: React.ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -57,7 +56,7 @@ function BaseModal(
     const wasVisible = usePrevious(isVisible);
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-    const {businessType} = useContext(ActiveModalContext);
+    const {businessType} = useContext(ModalBusinessTypeContext);
     const saveFocusState = () => {
         ComposerFocusManager.saveFocusState(modalId, businessType, shouldClearFocusWithType);
         ComposerFocusManager.resetReadyToFocus(modalId);
@@ -129,15 +128,6 @@ function BaseModal(
     const handleDismissModal = () => {
         ComposerFocusManager.setReadyToFocus(modalId);
     };
-
-    useImperativeHandle(
-        ref,
-        () => ({
-            removePromise: () => ComposerFocusManager.removePromise(modalId),
-            setReadyToFocus: () => ComposerFocusManager.setReadyToFocus(modalId),
-        }),
-        [modalId],
-    );
 
     const {
         modalStyle,
@@ -222,7 +212,10 @@ function BaseModal(
             avoidKeyboard={avoidKeyboard}
         >
             <ModalContent onDismiss={handleDismissModal}>
-                <View style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}>
+                <View
+                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                    ref={ref}
+                >
                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                 </View>
             </ModalContent>

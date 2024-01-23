@@ -9,7 +9,7 @@ import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
-import ActiveModalProvider from '@components/Modal/ActiveModalProvider';
+import ModalBusinessTypeProvider from '@components/Modal/ModalBusinessTypeProvider';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
@@ -341,7 +341,7 @@ function ReportActionCompose({
                             hasExceededMaxCommentLength && styles.borderColorDanger,
                         ]}
                     >
-                        <ActiveModalProvider businessType={CONST.MODAL.BUSINESS_TYPE.ATTACHMENT}>
+                        <ModalBusinessTypeProvider businessType={CONST.MODAL.BUSINESS_TYPE.ATTACHMENT}>
                             <AttachmentModal
                                 headerTitle={translate('reportActionCompose.sendAttachment')}
                                 onConfirm={addAttachment}
@@ -409,7 +409,7 @@ function ReportActionCompose({
                                     </>
                                 )}
                             </AttachmentModal>
-                        </ActiveModalProvider>
+                        </ModalBusinessTypeProvider>
 
                         {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
