@@ -472,7 +472,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
