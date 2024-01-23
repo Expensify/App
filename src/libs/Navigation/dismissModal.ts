@@ -3,13 +3,18 @@ import type {NavigationContainerRef} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import {findLastIndex} from 'lodash';
 import Log from '@libs/Log';
+import getPolicyMemberAccountIDs, {getPolicyMembers} from '@libs/PolicyMembersUtils';
+import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import type {RootStackParamList, StackNavigationAction} from './types';
+import navigateToGlobalWorkspaceHome from './navigateToGlobalWorkspaceHome';
+import type {RootStackParamList, StackNavigationAction, State} from './types';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
@@ -34,6 +39,13 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(state)) {
                 const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
+                const policyID = getPolicyIdFromState(state as State<RootStackParamList>);
+                const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
+                const targetReport = getReport(targetReportID);
+
+                if (policyID && isNotEmptyObject(targetReport) && !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs)) {
+                    navigateToGlobalWorkspaceHome(navigationRef);
+                }
 
                 const action: StackNavigationAction = getActionFromState(reportState, linkingConfig.config);
                 if (action) {
