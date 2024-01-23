@@ -1,14 +1,15 @@
 import React from 'react';
-import {Text, View} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
-import {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
+import Text from './Text';
 
 type AnonymousReportFooterProps = {
     /** The report currently being looked at */

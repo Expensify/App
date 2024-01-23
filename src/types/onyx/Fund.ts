@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
-import {BankName} from './Bank';
-import * as OnyxCommon from './OnyxCommon';
+import type CONST from '@src/CONST';
+import type {BankName} from './Bank';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isBillingCard?: boolean;
@@ -37,4 +37,7 @@ type Fund = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type FundList = Record<string, Fund>;
+
 export default Fund;
+export type {FundList};

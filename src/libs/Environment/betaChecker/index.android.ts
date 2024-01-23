@@ -4,7 +4,7 @@ import * as AppUpdate from '@userActions/AppUpdate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../../package.json';
-import IsBetaBuild from './types';
+import type IsBetaBuild from './types';
 
 let isLastSavedBeta = false;
 Onyx.connect({

@@ -1,23 +1,29 @@
 import {createRef} from 'react';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {MutableRefObject, SyntheticEvent} from 'react';
+import type {NativeTouchEvent} from 'react-native';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {ValueOf} from 'type-fest';
+import type {TransferMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import PaymentMethod from '@src/types/onyx/PaymentMethod';
-import {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
+import type {BankAccountList, FundList} from '@src/types/onyx';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
-    continueAction?: () => void;
+    continueAction?: (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => void;
 };
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
  */
-const kycWallRef = createRef<KYCWallRef>();
+const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
@@ -304,7 +310,7 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxValues[typeof ONYXKEYS.BANK_ACCOUNT_LIST], fundList: OnyxValues[typeof ONYXKEYS.FUND_LIST]): boolean {
+function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>): boolean {
     const combinedPaymentMethods = {...bankList, ...fundList};
 
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);

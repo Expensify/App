@@ -5,15 +5,16 @@ import _ from 'underscore';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
@@ -56,10 +57,12 @@ function DistanceEReceipt({transaction}) {
                 contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
             >
                 <View style={styles.eReceiptPanel}>
-                    <EReceiptBackground
+                    <ImageSVG
+                        src={EReceiptBackground}
                         style={styles.eReceiptBackground}
                         pointerEvents="none"
                     />
+
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                         {isOffline || !thumbnailSource ? (
                             <PendingMapView />

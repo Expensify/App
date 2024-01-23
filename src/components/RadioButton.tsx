@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -35,7 +35,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
             hoverDimmingValue={1}
             pressDimmingValue={1}
             accessibilityLabel={accessibilityLabel}
-            role={CONST.ACCESSIBILITY_ROLE.RADIO}
+            role={CONST.ROLE.RADIO}
         >
             <View style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}>
                 {isChecked && (

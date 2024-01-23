@@ -8,8 +8,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked permissions library or else the beta tests won't work
+// Be sure to include the mocked permissions library, as some components that are rendered
+// during the test depend on its methods.
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -154,20 +156,6 @@ describe('Sidebar', () => {
                         const optionRows = screen.queryAllByAccessibilityHint(hintText);
                         expect(optionRows).toHaveLength(1);
                     })
-
-                    // When the user is added to the policy rooms beta and the sidebar re-renders
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_ROOMS],
-                        }),
-                    )
-
-                    // Then the report is still rendered in the LHN
-                    .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(1);
-                    })
             );
         });
 
@@ -286,7 +274,7 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             // Given there are 6 boolean variables tested in the filtering logic:
             // 1. isArchived
@@ -295,8 +283,6 @@ describe('Sidebar', () => {
             // 4. isUnread
             // 5. isPinned
             // 6. hasDraft
-            // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-            // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
             const booleansWhichRemovesActiveReport = [
@@ -473,24 +459,24 @@ describe('Sidebar', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const archivedPolicyRoomReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             const archivedUserCreatedPolicyRoomReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             return (
                 waitForBatchedUpdates()
@@ -553,7 +539,7 @@ describe('Sidebar', () => {
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             return (
                 waitForBatchedUpdates()
@@ -611,7 +597,7 @@ describe('Sidebar', () => {
         };
 
         // Given the user is in all betas
-        const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+        const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
         // Given there are 6 boolean variables tested in the filtering logic:
         // 1. isArchived
@@ -620,8 +606,6 @@ describe('Sidebar', () => {
         // 4. isUnread
         // 5. isPinned
         // 6. hasDraft
-        // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-        // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
         // Given these combinations of booleans which result in the report being filtered out (not shown).
         const booleansWhichRemovesActiveReport = [
@@ -699,12 +683,12 @@ describe('Sidebar', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     lastVisibleActionCreated: '2022-11-22 03:48:27.267',
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
@@ -750,12 +734,12 @@ describe('Sidebar', () => {
                 // Given an archived report that has all comments read
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
@@ -799,12 +783,12 @@ describe('Sidebar', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     isPinned: false,
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()
@@ -844,12 +828,12 @@ describe('Sidebar', () => {
                 // Given an archived report that is not the active report
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    statusNum: CONST.REPORT.STATUS.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 };
 
                 // Given the user is in all betas
-                const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+                const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
                 return (
                     waitForBatchedUpdates()

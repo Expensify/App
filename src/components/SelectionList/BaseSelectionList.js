@@ -14,12 +14,13 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
-import useActiveElement from '@hooks/useActiveElement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -39,6 +40,7 @@ function BaseSelectionList({
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
+    textInputHint = '',
     textInputMaxLength,
     inputMode = CONST.INPUT_MODE.TEXT,
     onChangeText,
@@ -55,24 +57,29 @@ function BaseSelectionList({
     showConfirmButton = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     isKeyboardShown = false,
+    containerStyle = [],
+    disableInitialFocusOptionStyle = false,
     inputRef = null,
     disableKeyboardShortcuts = false,
     children,
     shouldStopPropagation = false,
+    shouldShowTooltips = true,
     shouldUseDynamicMaxToRenderPerBatch = false,
+    rightHandSideComponent,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(textInputLabel);
     const shouldShowSelectAll = Boolean(onSelectAll);
-    const activeElement = useActiveElement();
+    const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+    const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -151,7 +158,7 @@ function BaseSelectionList({
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -233,7 +240,7 @@ function BaseSelectionList({
     };
 
     const selectFocusedOption = (e) => {
-        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
         const focusedOption = focusedItemKey ? _.find(flattenedSections.allOptions, (option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {
@@ -298,7 +305,7 @@ function BaseSelectionList({
         const isDisabled = section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const showTooltip = normalizedIndex < 10;
+        const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
             <BaseListItem
@@ -309,8 +316,10 @@ function BaseSelectionList({
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
+                disableIsFocusStyle={disableInitialFocusOptionStyle}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
             />
         );
@@ -325,13 +334,13 @@ function BaseSelectionList({
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!firstLayoutRef.current) {
+            if (!isInitialSectionListRender) {
                 return;
             }
             scrollToIndex(focusedIndex, false);
-            firstLayoutRef.current = false;
+            setIsInitialSectionListRender(false);
         },
-        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -359,7 +368,7 @@ function BaseSelectionList({
 
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (firstLayoutRef.current) {
+        if (isInitialSectionListRender) {
             return;
         }
 
@@ -392,9 +401,10 @@ function BaseSelectionList({
             maxIndex={flattenedSections.allOptions.length - 1}
             onFocusedIndexChanged={updateAndScrollToFocusedIndex}
         >
+            {/* <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyle]}> */}
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, StyleUtils.parseStyleAsArray(containerStyle)]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
@@ -407,7 +417,8 @@ function BaseSelectionList({
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
-                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    hint={textInputHint}
+                                    role={CONST.ROLE.PRESENTATION}
                                     value={textInputValue}
                                     placeholder={textInputPlaceholder}
                                     maxLength={textInputMaxLength}
@@ -472,7 +483,7 @@ function BaseSelectionList({
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={scrollToFocusedIndexOnFirstRender}
-                                    style={!maxToRenderPerBatch && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                 />
                                 {children}
                             </>

@@ -315,10 +315,6 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (lodashGet(newProps.report, 'hasOutstandingIOU') !== lodashGet(oldProps.report, 'hasOutstandingIOU')) {
-        return false;
-    }
-
     if (newProps.isComposerFullSize !== oldProps.isComposerFullSize) {
         return false;
     }

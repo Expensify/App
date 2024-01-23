@@ -2,8 +2,8 @@ import React, {memo} from 'react';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
 
@@ -12,23 +12,44 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, onPress, isImage, onScaleChanged, translate, onError}) {
+function AttachmentViewImage({
+    source,
+    file,
+    isAuthTokenRequired,
+    isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
+    isFocused,
+    loadComplete,
+    onPress,
+    onError,
+    isImage,
+    onScaleChanged,
+    translate,
+}) {
     const styles = useThemeStyles();
     const children = (
         <ImageView
             onScaleChanged={onScaleChanged}
+            onError={onError}
             url={source}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            onError={onError}
+            isFocused={isFocused}
+            isUsedInCarousel={isUsedInCarousel}
+            isSingleCarouselItem={isSingleCarouselItem}
+            carouselItemIndex={carouselItemIndex}
+            carouselActiveItemIndex={carouselActiveItemIndex}
         />
     );
+
     return onPress ? (
         <PressableWithoutFeedback
             onPress={onPress}
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
         >
             {children}

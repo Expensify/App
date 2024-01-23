@@ -5,15 +5,14 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import ZeroWidthView from '@components/ZeroWidthView';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
 import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
-import editedLabelStyles from '@styles/editedLabelStyles';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import RenderCommentHTML from './RenderCommentHTML';
@@ -103,7 +102,7 @@ function TextCommentFragment(props) {
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[editedLabelStyles, styleAsDeleted ? styles.offlineFeedback.deleted : undefined, ...props.style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted ? styles.offlineFeedback.deleted : undefined, ...props.style]}
                     >
                         {props.translate('reportActionCompose.edited')}
                     </Text>

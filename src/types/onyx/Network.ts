@@ -7,6 +7,9 @@ type Network = {
 
     /** Whether we should fail all network requests */
     shouldFailAllRequests?: boolean;
+
+    /** Skew between the client and server clocks  */
+    timeSkew?: number;
 };
 
 export default Network;

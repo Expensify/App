@@ -1,11 +1,14 @@
 import lodashHas from 'lodash/has';
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
-import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
+import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
+import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
@@ -25,6 +28,13 @@ Onyx.connect({
         }
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 function isDistanceRequest(transaction: Transaction): boolean {
@@ -71,7 +81,8 @@ function isManualRequest(transaction: Transaction): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
+ * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(
     amount: number,
@@ -107,7 +118,7 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.TRANSACTION.DEFAULT_MERCHANT,
+        merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
@@ -130,16 +141,18 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function isMerchantMissing(transaction: Transaction) {
-    const isMerchantEmpty =
-        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+    const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
-    const isModifiedMerchantEmpty =
-        !transaction.modifiedMerchant ||
-        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
-        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        transaction.modifiedMerchant === '';
+    const isModifiedMerchantEmpty = !transaction.modifiedMerchant || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === '';
 
     return isMerchantEmpty && isModifiedMerchantEmpty;
+}
+
+/**
+ * Check if the merchant is partial i.e. `(none)`
+ */
+function isPartialMerchant(merchant: string): boolean {
+    return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
 function isAmountMissing(transaction: Transaction) {
@@ -151,7 +164,9 @@ function isCreatedMissing(transaction: Transaction) {
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
-    return isMerchantMissing(transaction) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**
@@ -513,8 +528,32 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
         .slice(0, size);
 }
 
+/**
+ * Checks if any violations for the provided transaction are of type 'violation'
+ */
+function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+/**
+ * this is the formulae to calculate tax
+ */
+function calculateTaxAmount(percentage: string, amount: number) {
+    const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
+    return Math.round(amount - amount / divisor) / 100;
+}
+
+/**
+ * Calculates count of all tax enabled options
+ */
+function getEnabledTaxRateCount(options: PolicyTaxRates) {
+    return Object.values(options).filter((option: PolicyTaxRate) => !option.isDisabled).length;
+}
+
 export {
     buildOptimisticTransaction,
+    calculateTaxAmount,
+    getEnabledTaxRateCount,
     getUpdatedTransaction,
     getTransaction,
     getDescription,
@@ -549,10 +588,12 @@ export {
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
+    isPartialMerchant,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasViolation,
 };

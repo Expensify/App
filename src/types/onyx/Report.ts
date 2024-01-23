@@ -1,14 +1,21 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
-import PersonalDetails from './PersonalDetails';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
+
+type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
+
+type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+
+type Note = {
+    note: string;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+};
 
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
-
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU?: boolean;
 
     /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
@@ -37,7 +44,7 @@ type Report = {
     /** The time of the last read of the report */
     lastReadCreated?: string;
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime?: string;
 
     /** The sequence number of the last report visit */
@@ -47,7 +54,7 @@ type Report = {
     lastMentionedTime?: string | null;
 
     /** The current user's notification preference for this report */
-    notificationPreference?: string | number;
+    notificationPreference?: NotificationPreference;
 
     /** The policy name to use */
     policyName?: string | null;
@@ -64,9 +71,6 @@ type Report = {
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
 
-    /** PayPalMe address of the submitter */
-    submitterPayPalMeAddress?: string;
-
     /** Linked policy's ID */
     policyID?: string;
 
@@ -79,17 +83,14 @@ type Report = {
     /** ID of the chat report */
     chatReportID?: string;
 
-    /** The state of the report */
-    state?: ValueOf<typeof CONST.REPORT.STATE>;
-
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
     /** The status of the current report */
-    statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Which user role is capable of posting messages on the report */
-    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+    writeCapability?: WriteCapability;
 
     /** The report type */
     type?: string;
@@ -115,9 +116,12 @@ type Report = {
     welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
+    ownerEmail?: string;
     participantAccountIDs?: number[];
+    visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
+    managerEmail?: string;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
 
@@ -136,6 +140,9 @@ type Report = {
     /** Total amount of money owed for IOU report */
     iouReportAmount?: number;
 
+    /** Is this action pending? */
+    pendingAction?: OnyxCommon.PendingAction;
+
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
@@ -146,9 +153,16 @@ type Report = {
     nonReimbursableTotal?: number;
     isHidden?: boolean;
     isChatRoom?: boolean;
-    participantsList?: Array<Partial<PersonalDetails>>;
+    participantsList?: PersonalDetails[];
     text?: string;
-    privateNotes?: Record<string, {note: string}>;
+    updateReportInLHN?: boolean;
+    privateNotes?: Record<number, Note>;
+    isLoadingPrivateNotes?: boolean;
+
+    /** If the report contains reportFields, save the field id and its value */
+    reportFields?: Record<string, string>;
 };
 
 export default Report;
+
+export type {NotificationPreference, WriteCapability};

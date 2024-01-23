@@ -36,7 +36,6 @@ function IOURequestStepParticipants({
     transaction: {participants = []},
 }) {
     const {translate} = useLocalize();
-    const optionsSelectorRef = useRef();
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -57,7 +56,9 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
+            // So we are resetting selectedReportID ref to the reportID coming from params.
             if (val.length !== 1) {
+                selectedReportID.current = reportID;
                 return;
             }
 
@@ -69,6 +70,8 @@ function IOURequestStepParticipants({
 
     const goToNextStep = useCallback(() => {
         const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
+        IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
+        IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
     }, [iouType, transactionID, reportID]);
 
@@ -82,10 +85,9 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+            includeSafeAreaPaddingBottom
         >
             <MoneyRequestParticipantsSelector
-                ref={(el) => (optionsSelectorRef.current = el)}
                 participants={participants}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}

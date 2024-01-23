@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
-import AccountData from './AccountData';
-import * as OnyxCommon from './OnyxCommon';
+import type CONST from '@src/CONST';
+import type AccountData from './AccountData';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isP2PDebitCard?: boolean;
@@ -45,5 +45,7 @@ type BankAccount = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type BankAccountList = Record<string, BankAccount>;
+
 export default BankAccount;
-export type {AccountData, AdditionalData};
+export type {AccountData, AdditionalData, BankAccountList};

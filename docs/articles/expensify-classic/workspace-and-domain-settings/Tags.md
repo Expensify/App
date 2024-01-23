@@ -78,7 +78,7 @@ Alternatively, if you update the tag details in your accounting integration, be 
 # Deep Dive
 ## Make tags required
 You can require tags for any workspace expenses by enabling People must tag expenses on the Tags page by navigating to Settings > Workspace > Group > [Workspace Name] > Tags.
-# FAQ
+{% include faq-begin.md %}
 
 ## What are the different tag options? 
 If you want your second tag to depend on the first one, use dependent tags. Include GL codes if needed, especially when using accounting integrations.
@@ -91,4 +91,4 @@ Multi-level tagging is only available with the Control type policy.
 ## I can’t see "Do you want to use multiple level tags" feature on my company's expense workspace. Why is that?
 If you are connected to an accounting integration, you will not see this feature. You will need to add those tags in your integration first, then sync the connection.
 
-
+{% include faq-end.md %}
