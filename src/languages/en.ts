@@ -780,6 +780,7 @@ export default {
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
+            troubleshooting: 'Troubleshooting',
         },
         appDownloadLinks: {
             android: {

@@ -206,6 +206,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.TROUBLESHOOTING]: () => require('../../../pages/settings/AboutPage/TroubleshootingPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,

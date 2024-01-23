@@ -78,6 +78,11 @@ function AboutPage(props) {
                 link: CONST.UPWORK_URL,
             },
             {
+                translationKey: 'initialSettingsPage.aboutPage.troubleshooting',
+                icon: Expensicons.Info,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOTING)),
+            },
+            {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
                 action: waitForNavigate(Report.navigateToConciergeChat),

@@ -775,6 +775,7 @@ export default {
             viewTheCode: 'Ver código',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reportar un error',
+            troubleshooting: 'Solución de problemas',
         },
         appDownloadLinks: {
             android: {
