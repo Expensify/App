@@ -12,7 +12,7 @@ type DisplayNameWithTooltip = {
     login?: string;
 
     /** The avatar for the tooltip fallback */
-    avatar: AvatarSource;
+    avatar?: AvatarSource;
 };
 
 type DisplayNamesProps = {
