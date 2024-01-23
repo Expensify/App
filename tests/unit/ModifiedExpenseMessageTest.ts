@@ -190,6 +190,25 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the merchant is changed while the previous merchant was partial', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: 'KFC',
+                    oldMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the merchant to "KFC".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the merchant and the description are removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
