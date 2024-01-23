@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
