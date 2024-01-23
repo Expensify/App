@@ -1,22 +1,9 @@
 import CONST from '@src/CONST';
 
-/** Return the max available index for arrow manager. */
-function getMaxArrowIndex(numRows: number, isAutoSuggestionPickerLarge: boolean): number {
-    // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
-    // and for large we show up to 20 items for mentions/emojis
-    const rowCount = isAutoSuggestionPickerLarge
-        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS)
-        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_SUGGESTIONS);
-
-    // -1 because we start at 0
-    return rowCount - 1;
-}
-
 /** Trims first character of the string if it is a space */
 function trimLeadingSpace(str: string): string {
     return str.startsWith(' ') ? str.slice(1) : str;
 }
-
 /** Checks if space is available to render large suggestion menu */
 function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight: number, totalSuggestions: number): boolean {
     const maxSuggestions = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER;
@@ -29,4 +16,4 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
     return availableHeight > menuHeight;
 }
 
-export {getMaxArrowIndex, trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu};
+export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu};
