@@ -88,7 +88,7 @@ function RoomNamePage({policy, report, reports, translate}) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
+                    style={styles.ph5}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
                     validate={validate}

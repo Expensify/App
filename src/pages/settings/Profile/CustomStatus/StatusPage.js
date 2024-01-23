@@ -73,7 +73,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
-            const clearAfterTime = draftClearAfter || currentUserClearAfter;
+            const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
             if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
                 setBrickRoadIndicator(isValidClearAfterDate() ? null : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -139,10 +139,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
-                style={[styles.flexGrow1, styles.flex1]}
                 ref={formRef}
                 submitButtonText={translate('statusPage.save')}
-                submitButtonStyles={[styles.mh5, styles.flexGrow1]}
+                submitButtonStyles={[styles.mh5]}
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline

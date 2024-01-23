@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -67,6 +67,8 @@ const propTypes = {
 
     inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
 
+    shouldHideFixErrorsAlert: PropTypes.bool,
+
     /** Scroll view styles */
     scrollViewStyles: stylePropTypes,
 };
@@ -83,6 +85,7 @@ const defaultProps = {
     style: [],
     scrollViewStyles: [],
     submitButtonStyles: [],
+    shouldHideFixErrorsAlert: false,
 };
 
 function FormWrapper(props) {
@@ -101,6 +104,7 @@ function FormWrapper(props) {
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
+        shouldHideFixErrorsAlert,
     } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
@@ -109,103 +113,78 @@ function FormWrapper(props) {
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [formState]);
 
-    const scrollViewContent = useCallback(
-        (safeAreaPaddingBottomStyle) => (
-            <FormSubmit
-                key={formID}
-                ref={formContentRef}
-                style={StyleSheet.flatten([style, safeAreaPaddingBottomStyle])}
-                onSubmit={onSubmit}
-            >
-                {children}
-                {isSubmitButtonVisible && (
-                    <FormAlertWithSubmitButton
-                        buttonText={submitButtonText}
-                        isAlertVisible={_.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
-                        isLoading={formState.isLoading}
-                        message={_.isEmpty(formState.errorFields) ? errorMessage : null}
-                        onSubmit={onSubmit}
-                        footerContent={footerContent}
-                        onFixTheErrorsLinkPressed={() => {
-                            const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
-                            const focusInput = inputRefs.current[focusKey].current;
-
-                            // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
-                            if (typeof focusInput.isFocused !== 'function') {
-                                Keyboard.dismiss();
-                            }
-
-                            // We subtract 10 to scroll slightly above the input
-                            if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                                // We measure relative to the content root, not the scroll view, as that gives
-                                // consistent results across mobile and web
-                                focusInput.measureLayout(formContentRef.current, (x, y) =>
-                                    formRef.current.scrollTo({
-                                        y: y - 10,
-                                        animated: false,
-                                    }),
-                                );
-                            }
-
-                            // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                            if (focusInput.focus && typeof focusInput.focus === 'function') {
-                                focusInput.focus();
-                            }
-                        }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...submitButtonStyles]}
-                        enabledWhenOffline={enabledWhenOffline}
-                        isSubmitActionDangerous={isSubmitActionDangerous}
-                        disablePressOnEnter
-                    />
-                )}
-            </FormSubmit>
-        ),
-        [
-            children,
-            enabledWhenOffline,
-            errorMessage,
-            errors,
-            footerContent,
-            formID,
-            formState.errorFields,
-            formState.isLoading,
-            inputRefs,
-            isSubmitActionDangerous,
-            isSubmitButtonVisible,
-            onSubmit,
-            style,
-            styles.flex1,
-            styles.mh0,
-            styles.mt5,
-            submitButtonStyles,
-            submitButtonText,
-        ],
-    );
-
     return (
         <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) =>
-                props.scrollContextEnabled ? (
-                    <ScrollViewWithContext
-                        style={[styles.w100, styles.flex1, ...props.scrollViewStyles]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollViewWithContext>
-                ) : (
-                    <ScrollView
-                        style={[styles.w100, styles.flex1, ...props.scrollViewStyles]}
-                        contentContainerStyle={styles.flexGrow1}
-                        keyboardShouldPersistTaps="handled"
-                        ref={formRef}
-                    >
-                        {scrollViewContent(safeAreaPaddingBottomStyle)}
-                    </ScrollView>
-                )
-            }
+            {({safeAreaPaddingBottomStyle}) => (
+                <FormSubmit
+                    key={formID}
+                    ref={formContentRef}
+                    style={StyleSheet.flatten([styles.flex1, style, safeAreaPaddingBottomStyle])}
+                    onSubmit={onSubmit}
+                >
+                    {props.scrollContextEnabled ? (
+                        <ScrollViewWithContext
+                            style={[styles.w100, styles.flex1, ...props.scrollViewStyles]}
+                            contentContainerStyle={styles.flex1}
+                            keyboardShouldPersistTaps="handled"
+                            ref={formRef}
+                        >
+                            {children}
+                        </ScrollViewWithContext>
+                    ) : (
+                        <ScrollView
+                            style={[styles.w100, styles.flex1, ...props.scrollViewStyles]}
+                            contentContainerStyle={styles.flex1}
+                            keyboardShouldPersistTaps="handled"
+                            ref={formRef}
+                        >
+                            {children}
+                        </ScrollView>
+                    )}
+                    {isSubmitButtonVisible && (
+                        <FormAlertWithSubmitButton
+                            buttonText={submitButtonText}
+                            isAlertVisible={((_.size(errors) > 0 || !_.isEmpty(formState.errorFields)) && !shouldHideFixErrorsAlert) || Boolean(errorMessage)}
+                            isLoading={formState.isLoading}
+                            message={_.isEmpty(formState.errorFields) ? errorMessage : null}
+                            onSubmit={onSubmit}
+                            footerContent={footerContent}
+                            onFixTheErrorsLinkPressed={() => {
+                                const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
+                                const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                                const focusInput = inputRefs.current[focusKey].current;
+
+                                // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
+                                if (typeof focusInput.isFocused !== 'function') {
+                                    Keyboard.dismiss();
+                                }
+
+                                // We subtract 10 to scroll slightly above the input
+                                if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                    // We measure relative to the content root, not the scroll view, as that gives
+                                    // consistent results across mobile and web
+                                    focusInput.measureLayout(formContentRef.current, (x, y) =>
+                                        formRef.current.scrollTo({
+                                            y: y - 10,
+                                            animated: false,
+                                        }),
+                                    );
+                                }
+
+                                // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                                if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                    focusInput.focus();
+                                }
+                            }}
+                            containerStyles={[styles.mh0, styles.mt5, ...submitButtonStyles]}
+                            enabledWhenOffline={enabledWhenOffline}
+                            isSubmitActionDangerous={isSubmitActionDangerous}
+                            disablePressOnEnter
+                            shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
+                        />
+                    )}
+                </FormSubmit>
+            )}
         </SafeAreaConsumer>
     );
 }

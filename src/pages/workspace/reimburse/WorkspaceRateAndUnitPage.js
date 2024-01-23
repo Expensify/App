@@ -109,7 +109,7 @@ function WorkspaceRateAndUnitPage(props) {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
                     submitButtonText={props.translate('common.save')}
-                    style={[props.themeStyles.mh5, props.themeStyles.flexGrow1]}
+                    style={props.themeStyles.mh5}
                     scrollContextEnabled
                     validate={validate}
                     onSubmit={submit}

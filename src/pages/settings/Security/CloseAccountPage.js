@@ -98,7 +98,7 @@ function CloseAccountPage(props) {
                 validate={validate}
                 onSubmit={showConfirmModal}
                 submitButtonText={props.translate('closeAccountPage.closeAccount')}
-                style={[styles.flexGrow1, styles.mh5]}
+                style={styles.mh5}
                 isSubmitActionDangerous
             >
                 <View style={[styles.flexGrow1]}>

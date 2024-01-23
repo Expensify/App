@@ -115,7 +115,7 @@ function DebitCardPage(props) {
                 onSubmit={PaymentMethods.addPaymentCard}
                 submitButtonText={translate('common.save')}
                 scrollContextEnabled
-                style={[styles.mh5, styles.flexGrow1]}
+                style={styles.mh5}
             >
                 <InputWrapper
                     InputComponent={TextInput}

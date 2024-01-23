@@ -27,7 +27,6 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getAddressFormHeight from './getAddressFormHeight';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -82,13 +81,13 @@ const defaultProps = {
 function IOURequestStepWaypoint({
     recentWaypoints,
     route: {
-        params: {iouType, pageIndex, reportID, transactionID},
+        params: {action, backTo, iouType, pageIndex, reportID, transactionID},
     },
     transaction,
     userLocation,
 }) {
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -136,7 +135,7 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${pageIndex}`] || '';
@@ -181,7 +180,11 @@ function IOURequestStepWaypoint({
             address: values.address,
             name: values.name || null,
         };
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
@@ -220,7 +223,7 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline, isSmallScreenWidth)]}
+                    style={styles.mh5}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
@@ -228,37 +231,33 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
-                    submitButtonStyles={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentStart]}
-                    scrollViewStyles={[styles.overflowHidden]}
                 >
-                    <View style={[styles.flex1, styles.overflowHidden]}>
-                        <InputWrapperWithRef
-                            InputComponent={AddressSearch}
-                            locationBias={locationBias}
-                            canUseCurrentLocation
-                            inputID={`waypoint${pageIndex}`}
-                            ref={(e) => (textInput.current = e)}
-                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
-                            containerStyles={[styles.mt4]}
-                            label={translate('distance.address')}
-                            defaultValue={waypointAddress}
-                            onPress={selectWaypoint}
-                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                            renamedInputKeys={{
-                                address: `waypoint${pageIndex}`,
-                                city: null,
-                                country: null,
-                                street: null,
-                                street2: null,
-                                zipCode: null,
-                                lat: null,
-                                lng: null,
-                                state: null,
-                            }}
-                            predefinedPlaces={recentWaypoints}
-                            resultTypes=""
-                        />
-                    </View>
+                    <InputWrapperWithRef
+                        InputComponent={AddressSearch}
+                        locationBias={locationBias}
+                        canUseCurrentLocation
+                        inputID={`waypoint${pageIndex}`}
+                        ref={(e) => (textInput.current = e)}
+                        hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
+                        containerStyles={[styles.mt4]}
+                        label={translate('distance.address')}
+                        defaultValue={waypointAddress}
+                        onPress={selectWaypoint}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        renamedInputKeys={{
+                            address: `waypoint${pageIndex}`,
+                            city: null,
+                            country: null,
+                            street: null,
+                            street2: null,
+                            zipCode: null,
+                            lat: null,
+                            lng: null,
+                            state: null,
+                        }}
+                        predefinedPlaces={recentWaypoints}
+                        resultTypes=""
+                    />
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>

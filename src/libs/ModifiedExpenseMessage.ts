@@ -1,9 +1,9 @@
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
@@ -118,7 +118,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency);
+        const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldAmount = oldAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency ?? '';
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -145,13 +146,11 @@ function getForReportAction(reportAction: ReportAction): string {
         );
     }
 
-    const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
-    if (hasModifiedCreated) {
-        // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
-        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.created ?? '',
+            reportActionOriginalMessage.created,
             formattedOldCreated,
             Localize.translateLocal('common.date'),
             false,
@@ -189,8 +188,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.tag ?? '',
-            reportActionOriginalMessage?.oldTag ?? '',
+            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.tag ?? ''),
+            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.oldTag ?? ''),
             policyTagListName,
             true,
             setFragments,

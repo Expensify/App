@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
-import {ActivityIndicator, PanResponder, PixelRatio, Text, View} from 'react-native';
+import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -12,6 +12,8 @@ import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,17 +40,22 @@ const propTypes = {
     /* Onyx Props */
     /** The report that the transaction belongs to */
     report: reportPropTypes,
+
+    /** The transaction (or draft transaction) being changed */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    transaction: {},
 };
 
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
+    transaction: {isFromGlobalCreate},
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -108,6 +115,32 @@ function IOURequestStepScan({
         Navigation.goBack(backTo || ROUTES.HOME);
     };
 
+    const navigateToConfirmationStep = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        // If the transaction was created from the global create, the person needs to select participants, so take them there.
+        if (isFromGlobalCreate) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            return;
+        }
+
+        // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
+        // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+
+    const updateScanAndNavigate = useCallback(
+        (file, source) => {
+            IOU.replaceReceipt(transactionID, file, source);
+            Navigation.dismissModal();
+        },
+        [transactionID],
+    );
+
     /**
      * Sets the Receipt objects and navigates the user to the next page
      * @param {Object} file
@@ -117,31 +150,16 @@ function IOURequestStepScan({
             return;
         }
 
-        const fileSource = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, file.name);
+        // Store the receipt on the transaction object in Onyx
+        const source = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
 
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (action === CONST.IOU.ACTION.EDIT) {
+            updateScanAndNavigate(file, source);
             return;
         }
 
-        // When an existing transaction is being edited (eg. not the create transaction flow)
-        if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            IOU.replaceReceipt(transactionID, file, fileSource);
-            Navigation.dismissModal();
-            return;
-        }
-
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-        // to the confirm step.
-        if (report.reportID) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        navigateToConfirmationStep();
     };
 
     const capturePhoto = useCallback(() => {
@@ -150,33 +168,17 @@ function IOURequestStepScan({
         }
         const imageBase64 = cameraRef.current.getScreenshot();
         const filename = `receipt_${Date.now()}.png`;
-        const imageFile = FileUtils.base64ToFile(imageBase64, filename);
-        const fileSource = URL.createObjectURL(imageFile);
-        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, imageFile.name);
+        const file = FileUtils.base64ToFile(imageBase64, filename);
+        const source = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
 
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (action === CONST.IOU.ACTION.EDIT) {
+            updateScanAndNavigate(file, source);
             return;
         }
 
-        // When an existing transaction is being edited (eg. not the create transaction flow)
-        if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            IOU.replaceReceipt(transactionID, imageFile, fileSource);
-            Navigation.dismissModal();
-            return;
-        }
-
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-        // to the confirm step.
-        if (report.reportID) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [cameraRef, report, iouType, transactionID, reportID, backTo]);
+        navigateToConfirmationStep();
+    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
     const panResponder = useRef(
         PanResponder.create({

@@ -75,7 +75,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
+                    style={styles.ph5}
                     formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
                     validate={validate}
                     onSubmit={PersonalDetails.updateDateOfBirth}

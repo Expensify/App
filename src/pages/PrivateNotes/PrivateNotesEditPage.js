@@ -127,7 +127,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
             <FormProvider
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
-                style={[styles.flexGrow1, styles.ph5]}
+                style={styles.ph5}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >

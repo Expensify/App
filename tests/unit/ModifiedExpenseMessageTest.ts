@@ -25,6 +25,27 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the amount is changed while the original value was partial', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 0,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the amount to $18.00.`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount is changed and the description is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -169,6 +190,25 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the merchant is changed while the previous merchant was partial', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: 'KFC',
+                    oldMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the merchant to "KFC".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the merchant and the description are removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -269,6 +309,43 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "minishore", the merchant to "Big Belly", and the category to "Benefits".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the created date is changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    created: '2023-12-27',
+                    oldCreated: '2023-12-26',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26).';
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the created date was not changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    created: '2023-12-27',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = 'changed the request';
 
                 const result = ModifiedExpenseMessage.getForReportAction(reportAction);
 

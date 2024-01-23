@@ -83,7 +83,7 @@ function IOURequestStepMerchant({
             testID={IOURequestStepMerchant.displayName}
         >
             <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
+                style={styles.ph5}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={updateMerchant}
                 validate={validate}

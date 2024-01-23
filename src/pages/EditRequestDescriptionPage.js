@@ -52,7 +52,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
         >
             <HeaderWithBackButton title={translate('common.description')} />
             <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
+                style={styles.ph5}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}

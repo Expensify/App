@@ -82,7 +82,7 @@ function IOURequestStepDescription({
             testID={IOURequestStepDescription.displayName}
         >
             <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
+                style={styles.ph5}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={updateComment}
                 submitButtonText={translate('common.save')}

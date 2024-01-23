@@ -49,7 +49,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat
         >
             <HeaderWithBackButton title={translate('common.merchant')} />
             <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
+                style={styles.ph5}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
                 onSubmit={onSubmit}
                 validate={validate}

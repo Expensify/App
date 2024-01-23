@@ -117,7 +117,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
 
     return (
         <FormProvider
-            style={[styles.flexGrow1, styles.mh5]}
+            style={styles.mh5}
             formID={formID}
             validate={validator}
             onSubmit={onSubmit}

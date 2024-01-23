@@ -88,7 +88,7 @@ function ReportWelcomeMessagePage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
+                    style={styles.ph5}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
                     submitButtonText={props.translate('common.save')}

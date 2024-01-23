@@ -30,7 +30,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
         >
             <HeaderWithBackButton title={translate('common.date')} />
             <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
+                style={styles.ph5}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}

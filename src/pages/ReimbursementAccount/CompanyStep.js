@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -20,6 +19,7 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -167,7 +167,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onSubmit={submit}
                 scrollContextEnabled
                 submitButtonText={translate('common.saveAndContinue')}
-                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3]}
             >
                 <Text>{translate('companyStep.subtitle')}</Text>
                 <InputWrapper
