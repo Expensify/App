@@ -12,7 +12,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const initUrl = useContext(InitialUrlContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || initUrl === undefined) {
+        if (!NativeModules.HybridAppModule || !initUrl) {
             return;
         }
 

@@ -38,7 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    url: null,
+    url: undefined,
 };
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
@@ -56,11 +56,11 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-function App(props) {
+function App({url}) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
-        <InitialUrlContext.Provider value={props.url}>
+        <InitialUrlContext.Provider value={url}>
             <GestureHandlerRootView style={fill}>
                 <ComposeProviders
                     components={[
