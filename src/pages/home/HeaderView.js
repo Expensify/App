@@ -92,7 +92,7 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
-    const [isCancelTaskConfirmModalVisible, setIsCancelTaskConfirmModalVisible] = React.useState(false);
+    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -140,7 +140,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: () => setIsCancelTaskConfirmModalVisible(true),
+                onSelected: () => setIsDeleteTaskConfirmModalVisible(true),
             });
         }
     }
@@ -320,12 +320,12 @@ function HeaderView(props) {
                                 </View>
                             </View>
                             <ConfirmModal
-                                isVisible={isCancelTaskConfirmModalVisible}
+                                isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
-                                    setIsCancelTaskConfirmModalVisible(false);
+                                    setIsDeleteTaskConfirmModalVisible(false);
                                     Session.checkIfActionIsAllowed(Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
                                 }}
-                                onCancel={() => setIsCancelTaskConfirmModalVisible(false)}
+                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
                                 prompt={translate('task.deleteConfirmation')}
                                 confirmText={translate('common.delete')}
