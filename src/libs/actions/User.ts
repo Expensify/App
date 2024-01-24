@@ -475,7 +475,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     try {
         const reportActionsOnly = pushJSON.filter((update) => update.key.includes('reportActions_'));
         const flatten = flattenDeep(reportActionsOnly.map((update) => Object.keys(update.value).map((key) => update.value[key])));
-        const types = flatten.map((data) => data.originalMessage);
+        const types = flatten.map((data) => data.originalMessage).filter(Boolean);
 
         // Someone completes a task
         if (flatten.find((data) => data.actionName === 'TASKCOMPLETED')) {
