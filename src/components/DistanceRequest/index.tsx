@@ -165,7 +165,14 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
      */
     const navigateToWaypointEditPage = (index: number) => {
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID ?? '', index.toString(), Navigation.getActiveRouteWithoutParams()),
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(
+                CONST.IOU.ACTION.EDIT,
+                CONST.IOU.TYPE.REQUEST,
+                transactionID,
+                report?.reportID ?? '',
+                index.toString(),
+                Navigation.getActiveRouteWithoutParams(),
+            ),
         );
     };
 
