@@ -42,15 +42,17 @@ function MentionUserRenderer(props) {
     const tnode = cloneDeep(props.tnode);
 
     const getMentionDisplayText = (displayText, userAccountID, userLogin = '') => {
-        //  if the userAccountID does not exist, this is email-based mention so the displayText must be an email.
+        // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
         // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
         if (userAccountID && userLogin !== displayText) {
             return displayText;
         }
+        
         // If the emails are not in the same private domain, we also return the displayText
         if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, props.currentUserPersonalDetails.login)) {
             return displayText;
         }
+
         // Otherwise, the emails must be of the same private domain, so we should remove the domain part
         return displayText.split('@')[0];
     };
