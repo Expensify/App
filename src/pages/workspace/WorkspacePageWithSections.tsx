@@ -79,7 +79,7 @@ function WorkspacePageWithSections({
     guidesCallTaskID = '',
     headerText,
     policy,
-    reimbursementAccount = {},
+    reimbursementAccount = {isLoading: false},
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
