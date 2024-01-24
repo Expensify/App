@@ -270,8 +270,9 @@ function OptionRow({
                                                 disabled={isDisabled}
                                                 role={CONST.ROLE.BUTTON}
                                                 accessibilityLabel={CONST.ROLE.BUTTON}
+                                                style={[styles.ml2, styles.optionSelectCircle]}
                                             >
-                                                <SelectCircle isChecked={isSelected} />
+                                                <SelectCircle isChecked={isSelected} selectCircleStyles={styles.ml0} />
                                             </PressableWithFeedback>
                                         )}
                                     </>
