@@ -1612,13 +1612,11 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): R
  *
  * @returns policyID of the workspace we have created
  */
-function createWorkspaceFromIOUPayment(iouReportParam: Report | EmptyObject): string | undefined {
+function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string | undefined {
     // This flow only works for IOU reports
-    if (!ReportUtils.isIOUReport(iouReportParam)) {
+    if (isEmptyObject(iouReport) || !ReportUtils.isIOUReport(iouReport)) {
         return;
     }
-
-    const iouReport = iouReportParam as Report;
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
