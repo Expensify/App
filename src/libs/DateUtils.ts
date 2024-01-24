@@ -736,7 +736,7 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
  */
 function enrichMoneyRequestTimestamp(created: string): string {
     const currentTime = getDBTime();
-    return isSameDay(new Date(created), new Date(currentTime)) ? currentTime : created;
+    return formatWithUTCTimeZone(created) === formatWithUTCTimeZone(currentTime) ? currentTime : created;
 }
 
 const DateUtils = {
