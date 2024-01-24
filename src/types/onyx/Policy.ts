@@ -120,7 +120,7 @@ type Policy = {
     primaryLoginsInvited?: Record<string, string>;
 
     /** The approval mode set up on this policy */
-    approvalMode?: string;
+    approvalMode?: ValueOf<typeof CONST.POLICY. APPROVAL_MODE>;
 };
 
 export default Policy;
