@@ -15,7 +15,7 @@ type Note = {
 
 type Report = {
     /** The specific type of chat */
-    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | '';
 
     /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
