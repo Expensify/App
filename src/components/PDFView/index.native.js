@@ -118,14 +118,16 @@ class PDFView extends Component {
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
+     * @param {Number} numberOfPages
+     * @param {Number} path - Path to cache location
      */
-    finishPDFLoad() {
+    finishPDFLoad(numberOfPages, path) {
         this.setState({
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
             successToLoadPDF: true,
         });
-        this.props.onLoadComplete();
+        this.props.onLoadComplete(path);
     }
 
     renderPDFView() {

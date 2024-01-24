@@ -110,6 +110,7 @@ function CarouselItem({item, index, activeIndex, isSingleItem, onPress}) {
                     carouselActiveItemIndex={activeIndex}
                     onPress={onPress}
                     transactionID={item.transactionID}
+                    reportActionID={item.reportActionID}
                 />
             </View>
 
