@@ -84,7 +84,7 @@ function WorkspacePageWithSections({
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
     user,
-    shouldShowLoading = true,
+    shouldShowLoading = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
