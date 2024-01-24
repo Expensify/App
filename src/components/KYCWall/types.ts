@@ -67,7 +67,7 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: TransferMethod, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
+    children: (continueAction: (event?: GestureResponderEvent | KeyboardEvent | undefined, method?: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect, Source};

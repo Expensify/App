@@ -393,7 +393,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
                                             <KYCWall
                                                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                                                onSuccessfulKYC={(source?: Source) => navigateToWalletOrTransferBalancePage(source)}
+                                                onSuccessfulKYC={(_iouPaymentType?: TransferMethod, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod: string) => {
                                                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                                     if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
