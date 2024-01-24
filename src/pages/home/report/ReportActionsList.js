@@ -177,7 +177,9 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
-    const isLastPendingActionIsAdd = lodashGet(sortedVisibleReportActions, [0, 'pendingAction']) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const lastPendingAction = lodashGet(sortedReportActions, [0, 'pendingAction'])
+    const isLastPendingActionIsAdd = lastPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const isLastPendingActionIsDelete = lastPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // This is utilized for automatically scrolling to the bottom when sending a new message, in cases where comment linking is used and the user is already at the end of the list.
     const isNewestActionAvailableAndPendingAdd = linkedReportActionID && isLastPendingActionIsAdd;
@@ -516,10 +518,13 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions, isOffline]);
 
+    // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
+    // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
+    const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
     return (
         <>
             <FloatingMessageCounter
-                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || (!isLoadingInitialReportActions && !hasNewestReportAction)}
+                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>

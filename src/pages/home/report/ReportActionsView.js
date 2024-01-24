@@ -337,7 +337,12 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const loadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         () => {
-            if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions || props.network.isOffline) {
+            if (
+                props.isLoadingInitialReportActions ||
+                props.isLoadingOlderReportActions ||
+                props.network.isOffline ||
+                newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            ) {
                 return;
             }
             // Determines if loading older reports is necessary when the content is smaller than the list
@@ -362,6 +367,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             firstReportActionID,
             props.network.isOffline,
             reportActions.length,
+            newestReportAction,
         ],
     );
 
