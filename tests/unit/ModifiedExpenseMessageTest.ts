@@ -27,6 +27,27 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the amount is changed while the original value was partial', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 0,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the amount to $18.00.`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount is changed and the description is removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -166,6 +187,25 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the merchant (previously "Big Belly").`;
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the merchant is changed while the previous merchant was partial', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: 'KFC',
+                    oldMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the merchant to "KFC".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
 
                 expect(result).toEqual(expectedResult);
             });

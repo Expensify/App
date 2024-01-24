@@ -443,6 +443,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
+        textIvoryLight: {
+            color: theme.iconColorfulBackground,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
@@ -673,8 +677,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         loadingVBAAnimation: {
-            width: 140,
-            height: 140,
+            width: '100%',
+        },
+
+        loadingVBAAnimationWeb: {
+            width: '100%',
         },
 
         pickerSmall: (backgroundColor = theme.highlightBG) =>
@@ -2281,9 +2288,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportActionContextMenuMiniButton: {
-            ...spacing.p1,
-            ...spacing.mv1,
-            ...spacing.mh1,
+            height: 28,
+            width: 28,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
             ...{borderRadius: variables.buttonBorderRadius},
         },
 
@@ -2867,6 +2875,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',
@@ -3318,8 +3330,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         miniQuickEmojiReactionText: {
-            fontSize: 15,
-            lineHeight: 20,
+            fontSize: 18,
+            lineHeight: 22,
             verticalAlign: 'middle',
         },
 
@@ -4157,6 +4169,19 @@ const styles = (theme: ThemeColors) =>
         },
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+
+        updateAnimation: {
+            width: variables.updateAnimationW,
+            height: variables.updateAnimationH,
+        },
+
+        updateRequiredViewHeader: {
+            height: variables.updateViewHeaderHeight,
+        },
+
+        updateRequiredViewTextContainer: {
+            width: variables.updateTextViewContainerWidth,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
