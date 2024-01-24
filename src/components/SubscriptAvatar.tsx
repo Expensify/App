@@ -38,6 +38,9 @@ type SubAvatar = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
+
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
+    fill?: string;
 };
 
 type SubscriptAvatarProps = {
@@ -108,7 +111,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size 
                             ]}
                             source={secondaryAvatar.source}
                             size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                            fill={theme.iconSuccessFill}
+                            fill={secondaryAvatar.fill}
                             name={secondaryAvatar.name}
                             type={secondaryAvatar.type}
                             fallbackIcon={secondaryAvatar.fallbackIcon}
