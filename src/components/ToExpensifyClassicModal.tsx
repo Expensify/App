@@ -78,7 +78,9 @@ function ToExpensifyClassicModal() {
                         >
                             Expensify Classic has everything you`&apos;`ll need
                         </Text>
-                        <Text style={[styles.mb4]}>While we`&apos;`re busy working on New Expensify, it currently doesn`&apos;`t support some of the features you`&apos;`re looking for.</Text>
+                        <Text style={[styles.mb4]}>
+                            While we`&apos;`re busy working on New Expensify, it currently doesn`&apos;`t support some of the features you`&apos;`re looking for.
+                        </Text>
                         <Text>Don`&apos;`t worry, Expensify Classic has everything you need.</Text>
                     </View>
                 </ScrollView>
