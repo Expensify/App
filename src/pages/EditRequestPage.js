@@ -110,12 +110,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         });
     }, [parentReportAction, fieldToEdit]);
 
-    // Update the transaction object and close the modal
-    function editMoneyRequest(transactionChanges) {
-        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
-        Navigation.dismissModal(report.reportID);
-    }
-
     const saveAmountAndCurrency = useCallback(
         ({amount, currency: newCurrency}) => {
             const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -176,18 +170,32 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         [transactionTag, transaction.transactionID, report.reportID],
     );
 
+    const saveCategory = useCallback(
+        ({category: newCategory}) => {
+            // In case the same category has been selected, reset the category.
+            const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
+            Navigation.dismissModal();
+        },
+        [transactionCategory, transaction.transactionID, report.reportID],
+    );
+
+    const saveComment = useCallback(
+        ({comment: newComment}) => {
+            // Only update comment if it has changed
+            if (newComment.trim() !== transactionDescription) {
+                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
+            }
+            Navigation.dismissModal();
+        },
+        [transactionDescription, transaction.transactionID, report.reportID],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
-                onSubmit={(transactionChanges) => {
-                    // In case the comment hasn't been changed, do not make the API request.
-                    if (transactionChanges.comment.trim() === transactionDescription) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({comment: transactionChanges.comment.trim()});
-                }}
+                onSubmit={saveComment}
             />
         );
     }
@@ -231,14 +239,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             <EditRequestCategoryPage
                 defaultCategory={transactionCategory}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedCategory = transactionChanges.category;
-                    // In case the same category has been selected, do reset of the category.
-                    if (transactionCategory === updatedCategory) {
-                        updatedCategory = '';
-                    }
-                    editMoneyRequest({category: updatedCategory});
-                }}
+                onSubmit={saveCategory}
             />
         );
     }
