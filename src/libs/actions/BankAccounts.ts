@@ -50,7 +50,7 @@ function setPlaidEvent(eventName: string) {
 /**
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupView(exitReportID: string) {
+function openPersonalBankAccountSetupView(exitReportID?: string) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
@@ -404,7 +404,39 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
 }
 
 function openWorkspaceView() {
-    API.read('OpenWorkspaceView', {}, {});
+    API.read(
+        'OpenWorkspaceView',
+        {},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {
+                        isLoading: true,
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                    },
+                },
+            ],
+        },
+    );
 }
 
 function handlePlaidError(bankAccountID: number, error: string, errorDescription: string, plaidRequestID: string) {

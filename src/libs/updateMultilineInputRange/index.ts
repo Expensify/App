@@ -1,5 +1,5 @@
 import * as Browser from '@libs/Browser';
-import UpdateMultilineInputRange from './types';
+import type UpdateMultilineInputRange from './types';
 
 /**
  * Place the cursor at the end of the value (if there is a value in the input).

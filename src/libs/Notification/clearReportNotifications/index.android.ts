@@ -1,4 +1,4 @@
-import ClearReportNotifications from './types';
+import type ClearReportNotifications from './types';
 
 /**
  * This is a temporary fix for issues with our Notification Cache not being cleared in Android.

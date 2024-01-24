@@ -1,10 +1,13 @@
-import {Animated, TextStyle, View, ViewStyle} from 'react-native';
-import fontFamily from '@styles/utils/fontFamily';
+import type {TextStyle, View, ViewStyle} from 'react-native';
+import {Animated} from 'react-native';
+import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
+import FontUtils from '@styles/utils/FontUtils';
+// eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
-import roundToNearestMultipleOfFour from '@styles/utils/roundToNearestMultipleOfFour';
+// eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
-import StyleUtilGenerator from './types';
+import type StyleUtilGenerator from './types';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
@@ -271,7 +274,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             },
             textStyle: {
                 color: theme.textReversed,
-                fontFamily: fontFamily.EXP_NEUE,
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                 fontSize: variables.fontSizeSmall,
                 overflow: 'hidden',
                 lineHeight: variables.lineHeightSmall,

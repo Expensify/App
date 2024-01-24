@@ -56,11 +56,11 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails, translate) =>
-    _.chain(ReportUtils.getParticipantsIDs(report))
+    _.chain(ReportUtils.getVisibleMemberIDs(report))
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
-            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail.displayName);
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
             return {
                 alternateText: userLogin,
@@ -100,7 +100,8 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) ||
+                            ReportUtils.isGroupChat(props.report) ||
+                                ReportUtils.isChatRoom(props.report) ||
                                 ReportUtils.isPolicyExpenseChat(props.report) ||
                                 ReportUtils.isChatThread(props.report) ||
                                 ReportUtils.isTaskReport(props.report) ||

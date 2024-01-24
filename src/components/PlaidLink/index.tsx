@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {PlaidLinkOnSuccessMetadata, usePlaidLink} from 'react-plaid-link';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
+import {usePlaidLink} from 'react-plaid-link';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
-import PlaidLinkProps from './types';
+import type PlaidLinkProps from './types';
 
 function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = () => {}, onEvent, receivedRedirectURI}: PlaidLinkProps) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);

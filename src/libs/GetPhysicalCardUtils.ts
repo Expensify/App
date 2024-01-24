@@ -1,5 +1,5 @@
 import ROUTES from '@src/ROUTES';
-import {Login} from '@src/types/onyx';
+import type {Login} from '@src/types/onyx';
 import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
@@ -116,7 +116,7 @@ function getUpdatedDraftValues(draftValues: DraftValues, privatePersonalDetails:
  * @param draftValues
  * @returns
  */
-function getUpdatedPrivatePersonalDetails(draftValues: DraftValues) {
+function getUpdatedPrivatePersonalDetails(draftValues: DraftValues): PrivatePersonalDetails {
     const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues;
     return {
         legalFirstName,
@@ -127,3 +127,4 @@ function getUpdatedPrivatePersonalDetails(draftValues: DraftValues) {
 }
 
 export {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute, setCurrentRoute};
+export type {PrivatePersonalDetails};

@@ -146,6 +146,7 @@ function AttachmentView({
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInCarousel={isUsedInCarousel}
                 />
             </View>
         );

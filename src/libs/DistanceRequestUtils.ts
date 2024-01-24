@@ -1,13 +1,14 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import Policy, {Unit} from '@src/types/onyx/Policy';
+import type {Unit} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
 type DefaultMileageRate = {
-    rate: number;
-    currency: string;
+    rate?: number;
+    currency?: string;
     unit: Unit;
 };
 

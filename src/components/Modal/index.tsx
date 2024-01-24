@@ -1,11 +1,10 @@
 import React, {useState} from 'react';
-import withWindowDimensions from '@components/withWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, ...rest}: BaseModalProps) {
     const theme = useTheme();
@@ -55,4 +54,4 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 }
 
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default Modal;

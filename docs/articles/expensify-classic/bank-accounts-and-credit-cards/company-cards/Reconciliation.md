@@ -51,7 +51,7 @@ If there are still unapproved expenses when you want to close your books for the
 - Match Approved Total to Company Card Liability account in your accounting system.
 - Unapproved Total becomes the Accrual amount (provided the first two amounts are correct).
 
-# FAQ  
+{% include faq-begin.md %}  
 
 ## Who can view and access the Reconciliation tab? 
 
@@ -67,3 +67,5 @@ If a cardholder reports expenses as missing, we first recommend using the Reconc
 
 If after updating, the expense still hasn’t appeared, you should reach out to Concierge with the missing expense specifics (merchant, date, amount and last four digits of the card number). Please note, only posted transactions will import. 
 
+
+{% include faq-end.md %}

@@ -36,7 +36,7 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -335,7 +335,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
 
             if (item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : undefined]}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(isSmallScreenWidth, windowWidth) : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                     </View>
                 );
@@ -368,18 +368,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 />
             );
         },
-        [
-            preferredSkinTone,
-            highlightedIndex,
-            isUsingKeyboardMovement,
-            highlightFirstEmoji,
-            singleExecution,
-            styles.emojiHeaderContainer,
-            styles.mh4,
-            styles.textLabelSupporting,
-            translate,
-            onEmojiSelected,
-        ],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, singleExecution, translate, onEmojiSelected, isSmallScreenWidth, windowWidth, styles],
     );
 
     return (

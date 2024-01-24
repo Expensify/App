@@ -1,8 +1,8 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import ReportScreen from '@pages/home/ReportScreen';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import ReportScreenIDSetter from './ReportScreenIDSetter';
 
 type ReportScreenWrapperProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
