@@ -167,7 +167,6 @@ function ReportPreview(props) {
 
     const isApproved = ReportUtils.isReportApproved(props.iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(props.iouReport);
-    console.log('%%%%%\n', 'canAllowSettlement: ', canAllowSettlement);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(props.iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
