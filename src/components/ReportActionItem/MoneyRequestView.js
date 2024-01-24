@@ -248,7 +248,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 },
             };
 
-            const {isError, translationPath} = fieldChecks[field] ? fieldChecks[field] : {};
+            const {isError, translationPath} = fieldChecks[field] || {};
 
             // Display form errors when first creating the money request
             if (hasErrors && isError && translationPath) {
