@@ -1,22 +1,19 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {userListItemPropTypes} from './selectionListPropTypes';
+import type {UserListItemProps} from './types';
 
-function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}: UserListItemProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     return (
         <>
-            {Boolean(item.icons) && (
+            {!!item.icons && (
                 <SubscriptAvatar
-                    mainAvatar={lodashGet(item, 'icons[0]')}
-                    secondaryAvatar={lodashGet(item, 'icons[1]')}
+                    mainAvatar={item.icons[0]}
+                    secondaryAvatar={item.icons[1]}
                     showTooltip={showTooltip}
                 />
             )}
@@ -26,19 +23,19 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                     text={item.text}
                 >
                     <Text
-                        style={StyleUtils.combineStyles(textStyles, style)}
+                        style={[textStyles, style]}
                         numberOfLines={1}
                     >
                         {item.text}
                     </Text>
                 </Tooltip>
-                {Boolean(item.alternateText) && (
+                {!!item.alternateText && (
                     <Tooltip
                         shouldRender={showTooltip}
                         text={item.alternateText}
                     >
                         <Text
-                            style={StyleUtils.combineStyles(alternateTextStyles, style)}
+                            style={[alternateTextStyles, style]}
                             numberOfLines={1}
                         >
                             {item.alternateText}
@@ -46,12 +43,11 @@ function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style
                     </Tooltip>
                 )}
             </View>
-            {Boolean(item.rightElement) && item.rightElement}
+            {!!item.rightElement && item.rightElement}
         </>
     );
 }
 
 UserListItem.displayName = 'UserListItem';
-UserListItem.propTypes = userListItemPropTypes;
 
 export default UserListItem;
