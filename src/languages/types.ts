@@ -225,13 +225,13 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
-type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
+type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
-type ViolationsOverCategoryLimitParams = {formattedLimit: string};
+type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
 
-type ViolationsOverLimitParams = {formattedLimit: string};
+type ViolationsOverLimitParams = {formattedLimit?: string};
 
-type ViolationsPerDayLimitParams = {limit?: string};
+type ViolationsPerDayLimitParams = {formattedLimit?: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
