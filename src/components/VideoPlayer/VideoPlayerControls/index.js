@@ -43,7 +43,6 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
-    const [durationFormatted, setDurationFormatted] = useState('0:00');
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const iconSpacing = small ? styles.mr3 : styles.mr4;
@@ -74,9 +73,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
         [videoPlayerRef],
     );
 
-    useEffect(() => {
-        setDurationFormatted(convertMillisecondsToTime(duration));
-    }, [duration]);
+const durationFormatted = useMemo(() => convertMillisecondsToTime(duration), [duration]);
 
     return (
         <>

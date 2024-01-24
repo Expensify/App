@@ -36,12 +36,12 @@ function VolumeContextProvider({children}) {
 function useVolumeContext() {
     const context = useContext(VolumeContext);
     if (context === undefined) {
-        throw new Error('useVolumeContext must be used within a PlaybackContextProvider');
+        throw new Error('useVolumeContext must be used within a VolumeContextProvider');
     }
     return context;
 }
 
-VolumeContextProvider.displayName = 'EnvironmentProvider';
+VolumeContextProvider.displayName = 'VolumeContextProvider';
 VolumeContextProvider.propTypes = {
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,

@@ -210,6 +210,6 @@ function BaseVideoPlayer({
 
 BaseVideoPlayer.propTypes = propTypes;
 BaseVideoPlayer.defaultProps = defaultProps;
-BaseVideoPlayer.displayName = 'VideoPlayer';
+BaseVideoPlayer.displayName = 'BaseVideoPlayer';
 
 export default BaseVideoPlayer;

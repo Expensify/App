@@ -95,7 +95,7 @@ function usePlaybackContext() {
     return context;
 }
 
-PlaybackContextProvider.displayName = 'EnvironmentProvider';
+PlaybackContextProvider.displayName = 'PlaybackContextProvider';
 PlaybackContextProvider.propTypes = {
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,

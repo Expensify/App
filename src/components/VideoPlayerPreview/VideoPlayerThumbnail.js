@@ -46,8 +46,8 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                     <Icon
                         src={Expensicons.Play}
                         fill="white"
-                        width={28}
-                        height={28}
+                        width={variables.iconSizeXLarge}
+                        height={variables.iconSizeXLarge}
                         additionalStyles={[styles.ml1]}
                     />
                 </View>

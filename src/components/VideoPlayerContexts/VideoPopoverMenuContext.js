@@ -13,7 +13,7 @@ const VideoPopoverMenuContext = React.createContext(null);
 function VideoPopoverMenuContextProvider({children}) {
     const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
-    const [playbackSpeeds] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS);
+    const playbackSpeeds = CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS;
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
     const updatePlaybackSpeed = useCallback(
@@ -65,7 +65,7 @@ function VideoPopoverMenuContextProvider({children}) {
 function useVideoPopoverMenuContext() {
     const context = useContext(VideoPopoverMenuContext);
     if (context === undefined) {
-        throw new Error('useVideoPopoverMenuContext must be used within a PlaybackContextProvider');
+        throw new Error('useVideoPopoverMenuContext must be used within a VideoPopoverMenuContext');
     }
     return context;
 }
