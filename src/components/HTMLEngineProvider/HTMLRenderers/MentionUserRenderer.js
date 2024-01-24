@@ -41,7 +41,7 @@ function MentionUserRenderer(props) {
     if (!_.isEmpty(htmlAttribAccountID)) {
         const user = lodashGet(personalDetails, htmlAttribAccountID);
         accountID = parseInt(htmlAttribAccountID, 10);
-        displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || lodashGet(user, 'displayName', '') || translate('common.hidden');
+        displayNameOrLogin = lodashGet(user, 'displayName', '') || LocalePhoneNumber.formatPhoneNumber(lodashGet(user, 'login', '')) || translate('common.hidden');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if (!_.isEmpty(props.tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login

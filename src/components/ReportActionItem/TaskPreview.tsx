@@ -8,7 +8,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -20,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskUtils from '@libs/TaskUtils';
@@ -84,7 +82,6 @@ function TaskPreview({
 }: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
 
     // The reportAction might not contain details regarding the taskReport
@@ -95,13 +92,8 @@ function TaskPreview({
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? '';
-    const assigneeLogin = personalDetails[taskAssigneeAccountID]?.login ?? '';
-    const assigneeDisplayName = personalDetails[taskAssigneeAccountID]?.displayName ?? '';
-    const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview =
-        taskAssignee && taskAssigneeAccountID !== 0
-            ? `<comment><mention-user accountid="${taskAssigneeAccountID}">@${taskAssignee}</mention-user> ${taskTitle}</comment>`
-            : `<comment>${taskTitle}</comment>`;
+        taskAssigneeAccountID !== 0 ? `<comment><mention-user accountid="${taskAssigneeAccountID}"></mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
 
     if (isDeletedParentAction) {
