@@ -17,8 +17,6 @@ function insertText(text: string, selection: Selection, textToInsert: string): s
 /**
  * Insert a white space at given index of text
  * @param text - text that needs whitespace to be appended to
- * @param index  - index at which whitespace should be inserted
- * @returns
  */
 
 function insertWhiteSpaceAtIndex(text: string, index: number) {
@@ -36,10 +34,6 @@ function canSkipTriggerHotkeys(isSmallScreenWidth: boolean, isKeyboardShown: boo
 
 /**
  * Finds the length of common suffix between two texts
- * @param str1 - first string to compare
- * @param str2 - next string to compare
- * @param cursorPosition - position of cursor
- * @returns number - Length of the common suffix
  */
 function findCommonSuffixLength(str1: string, str2: string, cursorPosition: number) {
     let commonSuffixLength = 0;
