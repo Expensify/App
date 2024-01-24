@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {scrollTo} from 'react-native-reanimated';
 import _ from 'underscore';
@@ -101,10 +101,12 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
         [arePointerEventsDisabled, filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement],
     );
 
+    const disabledIndexes = useMemo(() => (isListFiltered ? [] : [...headerIndices, ...spacersIndexes]), [headerIndices, isListFiltered, spacersIndexes]);
+
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         maxIndex: filteredEmojis.length - 1,
         // Spacers indexes need to be disabled so that the arrow keys don't focus them. All headers are hidden when list is filtered
-        disabledIndexes: isListFiltered ? [] : [...headerIndices, ...spacersIndexes],
+        disabledIndexes,
         itemsPerRow: CONST.EMOJI_NUM_PER_ROW,
         initialFocusedIndex: -1,
         disableCyclicTraversal: true,
