@@ -1958,9 +1958,9 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
             borderRadius: variables.buttonBorderRadius,
             height: 40,
+            marginVertical: 3,
             paddingHorizontal: 10,
             justifyContent: 'center',
-            marginVertical: 3,
         },
 
         editChatItemEmojiWrapper: {

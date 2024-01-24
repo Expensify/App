@@ -152,7 +152,6 @@ function ReportFooter(props) {
 ReportFooter.displayName = 'ReportFooter';
 ReportFooter.propTypes = propTypes;
 ReportFooter.defaultProps = defaultProps;
-
 export default compose(
     withWindowDimensions,
     withOnyx({
