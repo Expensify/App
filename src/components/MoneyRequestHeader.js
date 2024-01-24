@@ -271,7 +271,7 @@ export default compose(
         },
         shownHoldUseExplaination: {
             key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
-            initWithStoredValues: false,
+            initWithStoredValues: true,
         },
     }),
 )(MoneyRequestHeader);
