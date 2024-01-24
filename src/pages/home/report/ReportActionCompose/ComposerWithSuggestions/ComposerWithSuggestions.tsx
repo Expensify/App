@@ -511,9 +511,8 @@ function ComposerWithSuggestions(
             }
 
             focus();
-            replaceSelectionWithText(e.key, false);
         },
-        [checkComposerVisibility, focus, replaceSelectionWithText],
+        [checkComposerVisibility, focus],
     );
 
     const blur = useCallback(() => {
