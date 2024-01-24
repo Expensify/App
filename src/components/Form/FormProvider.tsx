@@ -234,11 +234,9 @@ function FormProvider(
                 ...inputProps,
                 ref:
                     typeof inputRef === 'function'
-                        ? (node) => {
+                        ? (node: BaseInputProps) => {
                               inputRef(node);
-                              if (node && typeof newRef !== 'function') {
-                                  newRef.current = node;
-                              }
+                              newRef.current = node;
                           }
                         : newRef,
                 inputID,
