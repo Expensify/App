@@ -342,8 +342,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                         shouldShowBackButton={isSmallScreenWidth}
                     />
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <ScrollView>
+                    <ScrollView>
+                        <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <OfflineWithFeedback
                                 style={styles.flex1}
                                 contentContainerStyle={styles.flex1}
@@ -497,8 +497,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     />
                                 </Section>
                             </OfflineWithFeedback>
-                        </ScrollView>
-                    </View>
+                        </View>
+                    </ScrollView>
                     <Popover
                         isVisible={shouldShowDefaultDeleteMenu}
                         onClose={hideDefaultDeleteMenu}
