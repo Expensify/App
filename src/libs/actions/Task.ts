@@ -11,6 +11,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound from '@libs/Sound';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -326,6 +327,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
         completedTaskReportActionID: completedTaskReportAction.reportActionID,
     };
 
+    playSound('success');
     API.write('CompleteTask', parameters, {optimisticData, successData, failureData});
 }
 
