@@ -1,15 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {PanGestureHandler} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import gestureHandlerPropTypes from './gestureHandlerPropTypes';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -36,8 +34,9 @@ const propTypes = {
     /** The scale factor of the image */
     scale: PropTypes.shape({value: PropTypes.number}).isRequired,
 
-    /** React-native-reanimated lib handler which executes when the user is panning image */
-    panGestureEventHandler: gestureHandlerPropTypes,
+    /** Configuration object for pan gesture for handling image panning */
+    // eslint-disable-next-line react/forbid-prop-types
+    panGesture: PropTypes.object,
 
     /** Image crop vector mask */
     maskImage: PropTypes.func,
@@ -46,12 +45,11 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     containerSize: 0,
-    panGestureEventHandler: () => {},
+    panGesture: Gesture.Pan(),
     maskImage: Expensicons.ImageCropCircleMask,
 };
 
 function ImageCropView(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
@@ -77,7 +75,7 @@ function ImageCropView(props) {
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
-        <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
+        <GestureDetector gesture={props.panGesture}>
             <Animated.View
                 ref={ControlSelection.blockElement}
                 style={[containerStyle, styles.imageCropContainer]}
@@ -90,13 +88,14 @@ function ImageCropView(props) {
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
                         src={props.maskImage}
-                        fill={theme.icon}
+                        // TODO uncomment the line once the tint color issue for android(https://github.com/expo/expo/issues/21530#issuecomment-1836283564) is fixed
+                        // fill={theme.iconReversed}
                         width={props.containerSize}
                         height={props.containerSize}
                     />
                 </View>
             </Animated.View>
-        </PanGestureHandler>
+        </GestureDetector>
     );
 }
 

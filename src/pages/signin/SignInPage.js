@@ -140,6 +140,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef();
+    const loginFormRef = useRef();
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
@@ -242,10 +243,18 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         Log.warn('SignInPage in unexpected state!');
     }
 
+    const navigateFocus = () => {
+        signInPageLayoutRef.current.scrollPageToTop();
+        loginFormRef.current.clearDataAndFocus();
+    };
+
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
-        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}>
+        <View
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
+            testID={SignInPageInner.displayName}
+        >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
@@ -253,10 +262,12 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
                 shouldShowSmallScreen={shouldShowSmallScreen}
+                navigateFocus={navigateFocus}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
              so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
+                    ref={loginFormRef}
                     isInModal={isInModal}
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}

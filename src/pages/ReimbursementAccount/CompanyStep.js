@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -20,6 +19,7 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -88,8 +88,16 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         ];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
+        if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
+            errors.companyName = 'bankAccount.error.companyName';
+        }
+
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
+        }
+
+        if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
+            errors.addressCity = 'bankAccount.error.addressCity';
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {

@@ -27,6 +27,8 @@ import Camera from '@assets/images/camera.svg';
 import Car from '@assets/images/car.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
+import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
@@ -105,6 +107,7 @@ import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
+import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
@@ -241,6 +244,7 @@ export {
     ReceiptSearch,
     Rotate,
     RotateLeft,
+    Scan,
     Send,
     Shield,
     Sync,
@@ -264,4 +268,6 @@ export {
     Podcast,
     Linkedin,
     Instagram,
+    ChatBubbleAdd,
+    ChatBubbleUnread,
 };
