@@ -82,14 +82,18 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
                 testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
-                    title={label ?? translate('common.state')}
+                    // Label can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title={label || translate('common.state')}
                     shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
                     /* @ts-expect-error TODO: Remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript. */
                     headerMessage={headerMessage}
-                    textInputLabel={label ?? translate('common.state')}
+                    // Label can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    textInputLabel={label || translate('common.state')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onStateSelected}
