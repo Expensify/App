@@ -204,10 +204,7 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const readNewestReportActionOnFocus = () => {
-        if(!ReportUtils.isUnread(report)){
-            return
-        }
-        if (Visibility.hasFocus() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+        if (ReportUtils.isUnread(report) && Visibility.hasFocus() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
             Report.readNewestAction(report.reportID);
         } else {
             readActionSkipped.current = true;
