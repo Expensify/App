@@ -5,7 +5,7 @@ import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
 
-type ApiRequestWithSideEffects = ValueOf<typeof CONST.API_REQUEST_TYPE, 'MAKE_REQUEST_WITH_SIDE_EFFECTS' | 'READ'>;
+type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
@@ -296,9 +296,9 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     RECONNECT_APP: 'ReconnectApp',
 } as const;
 
-type SideEffectRequestCommand = ReadCommand | ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
+type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 
-type SideEffectRequestCommandParameters = ReadCommandParameters & {
+type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
@@ -307,6 +307,8 @@ type SideEffectRequestCommandParameters = ReadCommandParameters & {
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
 };
 
+type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
+
 export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS};
 
-export type {ApiRequestWithSideEffects, WriteCommand, WriteCommandParameters, ReadCommand, ReadCommandParameters, SideEffectRequestCommand, SideEffectRequestCommandParameters};
+export type {ApiRequest, ApiRequestCommandParameters, WriteCommand, ReadCommand, SideEffectRequestCommand};
