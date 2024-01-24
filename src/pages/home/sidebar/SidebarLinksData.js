@@ -62,6 +62,12 @@ const propTypes = {
 
     // eslint-disable-next-line react/forbid-prop-types
     policyMembers: PropTypes.object,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
@@ -72,6 +78,9 @@ const defaultProps = {
     betas: [],
     policies: {},
     policyMembers: {},
+    session: {
+        accountID: '',
+    },
 };
 
 function SidebarLinksData({
