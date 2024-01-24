@@ -1,10 +1,8 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {truncate} from 'lodash';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,11 +10,9 @@ import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
-import refPropTypes from '@components/refPropTypes';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -31,114 +27,12 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {transactionViolationsPropType} from '@libs/Violations/propTypes';
-import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
-import ONYXKEYS from '@src/ONYXKEYS';
+import PropTypes from './moneyRequestPreviewPropTypes';
 import ReportActionItemImages from './ReportActionItemImages';
-
-const propTypes = {
-    /** The active IOUReport, used for Onyx subscription */
-    // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.string.isRequired,
-
-    /** The associated chatReport */
-    chatReportID: PropTypes.string.isRequired,
-
-    /** Callback for the preview pressed */
-    onPreviewPressed: PropTypes.func,
-
-    /** All the data of the action, used for showing context menu */
-    action: PropTypes.shape(reportActionPropTypes),
-
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: refPropTypes,
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive: PropTypes.func,
-
-    /** Extra styles to pass to View wrapper */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /* Onyx Props */
-
-    /** chatReport associated with iouReport */
-    chatReport: reportPropTypes,
-
-    /** IOU report data object */
-    iouReport: iouReportPropTypes,
-
-    /** True if this is this IOU is a split instead of a 1:1 request */
-    isBillSplit: PropTypes.bool.isRequired,
-
-    /** True if the IOU Preview card is hovered */
-    isHovered: PropTypes.bool,
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(
-        PropTypes.shape({
-            /** This is either the user's full name, or their login if full name is an empty string */
-            displayName: PropTypes.string,
-        }),
-    ),
-
-    /** The transaction attached to the action.message.iouTransactionID */
-    transaction: transactionPropTypes,
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
-    /** Information about the user accepting the terms for payments */
-    walletTerms: walletTermsPropTypes,
-
-    /** Whether or not an IOU report contains money requests in a different currency
-     * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
-     */
-    shouldShowPendingConversionMessage: PropTypes.bool,
-
-    /** Whether a message is a whisper */
-    isWhisper: PropTypes.bool,
-
-    /** All transactionViolations */
-    transactionViolations: transactionViolationsPropType,
-};
-
-const defaultProps = {
-    iouReport: {},
-    onPreviewPressed: null,
-    action: undefined,
-    contextMenuAnchor: undefined,
-    checkIfContextMenuActive: () => {},
-    containerStyles: [],
-    walletTerms: {},
-    chatReport: {},
-    isHovered: false,
-    personalDetails: {},
-    session: {
-        email: null,
-    },
-    transaction: {},
-    shouldShowPendingConversionMessage: false,
-    isWhisper: false,
-    transactionViolations: {},
-};
-
-// We should not render the component if there is no iouReport and it's not a split.
-// Moved outside of the component scope to allow memoization of values later.
-function MoneyRequestPreviewWrapper(props) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return _.isEmpty(props.iouReport) && !props.isBillSplit ? null : <MoneyRequestPreview {...props} />;
-}
 
 function MoneyRequestPreview(props) {
     const theme = useTheme();
@@ -398,33 +292,6 @@ function MoneyRequestPreview(props) {
     );
 }
 
-MoneyRequestPreview.propTypes = propTypes;
-MoneyRequestPreview.defaultProps = defaultProps;
+MoneyRequestPreview.propTypes = PropTypes.propTypes;
+MoneyRequestPreview.defaultProps = PropTypes.defaultProps;
 MoneyRequestPreview.displayName = 'MoneyRequestPreview';
-MoneyRequestPreviewWrapper.propTypes = propTypes;
-MoneyRequestPreviewWrapper.defaultProps = defaultProps;
-MoneyRequestPreviewWrapper.displayName = 'MoneyRequestPreviewWrapper';
-
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
-    },
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
-})(MoneyRequestPreviewWrapper);
