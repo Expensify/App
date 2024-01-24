@@ -17,7 +17,6 @@ import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import clearCache from '@libs/actions/Session/clearCache';
 import * as App from '@userActions/App';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
@@ -109,7 +108,6 @@ function SignInPageLayout(props) {
     return (
         <View style={containerStyles}>
             {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1]}/>}
-            <Button title='O' onPress={()=>{clearCache}}/>
             {!props.shouldShowSmallScreen ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
