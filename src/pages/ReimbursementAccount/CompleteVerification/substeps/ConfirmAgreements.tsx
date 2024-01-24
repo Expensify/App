@@ -60,7 +60,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
     return (
         <ScreenWrapper
             testID={ConfirmAgreements.displayName}
-            style={[styles.pt10]}
+            style={[styles.pt3]}
         >
             <Text style={[styles.textHeadline, styles.ph5, styles.mb3]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
             {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
