@@ -47,7 +47,7 @@ type BasePopoverReactionListState = {
 
 type ShowReactionList = (event: ReactionListEvent | undefined, reactionListAnchor: ReactionListAnchor) => void;
 
-type InnerReactionListRefType = {
+type InnerReactionListRef = {
     showReactionList: ShowReactionList;
     hideReactionList: () => void;
     isActiveReportAction: (actionID: number | string) => boolean;
@@ -61,5 +61,5 @@ export type {
     BasePopoverReactionListOnyxProps,
     ShowReactionList,
     ReactionListAnchor,
-    InnerReactionListRefType,
+    InnerReactionListRef,
 };
