@@ -120,6 +120,7 @@ function ReportPreview({
     const isCurrentUserManager = managerID === session?.accountID;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const policyType = policy?.type;
+    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
 
     const iouSettled = ReportUtils.isSettled(iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
@@ -217,8 +218,8 @@ function ReportPreview({
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, iouReport],
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
