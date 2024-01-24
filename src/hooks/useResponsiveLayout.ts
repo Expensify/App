@@ -10,8 +10,8 @@ type ResponsiveLayoutResult = {
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const state = navigationRef.getRootState();
-    const lastRoute = state.routes.at(-1);
+    const state = navigationRef?.getRootState();
+    const lastRoute = state?.routes?.at(-1);
     const lastRouteName = lastRoute?.name;
     const isInModal = lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
