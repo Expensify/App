@@ -200,7 +200,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
 
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
- * @param {Object} personalDetails
+ * @param {Object | null} personalDetails
  * @returns {Boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
