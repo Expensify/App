@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import DateUtils from '../../src/libs/DateUtils';
 import * as NextStepUtils from '../../src/libs/NextStepUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -232,7 +233,7 @@ describe('libs/NextStepUtils', () => {
                             text: 'These expenses are scheduled to ',
                         },
                         {
-                            text: `automatically submit on the ${format(lastDayOfMonth(new Date()), 'do')} of each month!`,
+                            text: `automatically submit on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month!`,
                             type: 'strong',
                         },
                         {
@@ -244,6 +245,32 @@ describe('libs/NextStepUtils', () => {
                         isHarvestingEnabled: true,
                         autoReportingFrequency: 'monthly',
                         autoReportingOffset: 'lastDayOfMonth',
+                    }).then(() => {
+                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+
+                        expect(result).toMatchObject(optimisticNextStep);
+                    });
+                });
+
+                test('monthly on the last business day', () => {
+                    const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(new Date());
+                    optimisticNextStep.message = [
+                        {
+                            text: 'These expenses are scheduled to ',
+                        },
+                        {
+                            text: `automatically submit on the ${format(new Date().setDate(lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month!`,
+                            type: 'strong',
+                        },
+                        {
+                            text: ' No further action required!',
+                        },
+                    ];
+
+                    return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                        isHarvestingEnabled: true,
+                        autoReportingFrequency: 'monthly',
+                        autoReportingOffset: 'lastBusinessDayOfMonth',
                     }).then(() => {
                         const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 

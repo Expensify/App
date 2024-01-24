@@ -1,4 +1,4 @@
-import {format, lastDayOfMonth} from 'date-fns';
+import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
+import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportUtils from './ReportUtils';
@@ -113,12 +114,10 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                     let autoSubmissionDate: string;
 
                     if (policy.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        const currentDateWithLastDayOfMonth = lastDayOfMonth(currentDate);
-
-                        autoSubmissionDate = format(currentDateWithLastDayOfMonth, CONST.DATE.ORDINAL_DAY_OF_MONTH);
+                        autoSubmissionDate = format(lastDayOfMonth(currentDate), CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     } else if (policy.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                        // TODO: Implement calculation
-                        autoSubmissionDate = '';
+                        const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(currentDate);
+                        autoSubmissionDate = format(setDate(currentDate, lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     } else if (policy.autoReportingOffset !== undefined) {
                         autoSubmissionDate = format(currentDate.setDate(policy.autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     } else {
