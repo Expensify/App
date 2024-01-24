@@ -497,6 +497,11 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
             return playSound('attention');
         }
 
+        // mention @here
+        if (types.find((message) => message.html?.includes('<mention-here>'))) {
+            return playSound('attention');
+        }
+
         // assign a task
         if (types.find((message) => message.taskReportID)) {
             return playSound('attention');
