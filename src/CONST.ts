@@ -3144,6 +3144,7 @@ const CONST = {
 
     VIDEO_PLAYER: {
         POPOVER_Y_OFFSET: -30,
+        DEFAULT_PLAYBACK_SPEED_INDEX: 2,
         PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
@@ -3152,6 +3153,7 @@ const CONST = {
             NATIVE: 32,
             NORMAL: 8,
         },
+        DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
     },
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,

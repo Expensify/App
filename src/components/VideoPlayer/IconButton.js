@@ -24,7 +24,7 @@ const propTypes = {
 
     small: PropTypes.bool,
 
-    forceRenderingTooltipBelow: PropTypes.bool,
+    shouldForceRenderingTooltipBelow: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -34,15 +34,15 @@ const defaultProps = {
     hoverStyle: {},
     small: false,
     tooltipText: '',
-    forceRenderingTooltipBelow: false,
+    shouldForceRenderingTooltipBelow: false,
 };
 
-function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, forceRenderingTooltipBelow}) {
+function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, shouldForceRenderingTooltipBelow}) {
     const styles = useThemeStyles();
     return (
         <Tooltip
             text={tooltipText}
-            shouldForceRenderingBelow={forceRenderingTooltipBelow}
+            shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
         >
             <Hoverable>
                 {(isHovered) => (

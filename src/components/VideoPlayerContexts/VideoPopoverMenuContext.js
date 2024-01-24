@@ -13,8 +13,7 @@ const VideoPopoverMenuContext = React.createContext(null);
 function VideoPopoverMenuContextProvider({children}) {
     const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
-    const playbackSpeeds = CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS;
-    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[CONST.VIDEO_PLAYER.DEFAULT_PLAYBACK_SPEED_INDEX]);
 
     const updatePlaybackSpeed = useCallback(
         (speed) => {
@@ -44,7 +43,7 @@ function VideoPopoverMenuContextProvider({children}) {
                 icon: Expensicons.Meter,
                 text: translate('videoPlayer.playbackSpeed'),
                 subMenuItems: [
-                    ..._.map(playbackSpeeds, (speed) => ({
+                    ..._.map(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS, (speed) => ({
                         icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
                         text: speed.toString(),
                         onSelected: () => {
@@ -55,7 +54,7 @@ function VideoPopoverMenuContextProvider({children}) {
                 ],
             },
         ],
-        [currentPlaybackSpeed, downloadAttachment, playbackSpeeds, translate, updatePlaybackSpeed],
+        [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed],
     );
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);

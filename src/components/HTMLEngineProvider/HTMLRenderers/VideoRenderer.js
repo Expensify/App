@@ -29,7 +29,7 @@ function VideoRenderer(props) {
             fileName={fileName}
             thumbnailUrl={thumbnailUrl}
             videoDimensions={{width, height}}
-            showModal={() => {
+            onShowModalPress={() => {
                 const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, sourceURL);
                 Navigation.navigate(route);
             }}

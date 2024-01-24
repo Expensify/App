@@ -1,6 +1,5 @@
 /* eslint-disable no-underscore-dangle */
 import {ResizeMode, Video} from 'expo-av';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,45 +9,8 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import stylePropTypes from '@styles/stylePropTypes';
+import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import VideoPlayerControls from './VideoPlayerControls';
-
-const propTypes = {
-    url: PropTypes.string.isRequired,
-
-    onVideoLoaded: PropTypes.func,
-
-    resizeMode: PropTypes.string,
-
-    isLooping: PropTypes.bool,
-
-    style: stylePropTypes,
-
-    videoPlayerStyle: stylePropTypes,
-
-    videoStyle: stylePropTypes,
-
-    videoControlsStyle: stylePropTypes,
-
-    shouldUseSharedVideoElement: PropTypes.bool,
-
-    shouldUseSmallVideoControls: PropTypes.bool,
-
-    isVideoHovered: PropTypes.bool,
-};
-
-const defaultProps = {
-    onVideoLoaded: () => {},
-    resizeMode: ResizeMode.CONTAIN,
-    isLooping: false,
-    style: undefined,
-    videoPlayerStyle: undefined,
-    videoStyle: undefined,
-    videoControlsStyle: undefined,
-    shouldUseSharedVideoElement: false,
-    shouldUseSmallVideoControls: false,
-    isVideoHovered: false,
-};
 
 function BaseVideoPlayer({
     url,
@@ -208,8 +170,8 @@ function BaseVideoPlayer({
     );
 }
 
-BaseVideoPlayer.propTypes = propTypes;
-BaseVideoPlayer.defaultProps = defaultProps;
+BaseVideoPlayer.propTypes = videoPlayerPropTypes;
+BaseVideoPlayer.defaultProps = videoPlayerDefaultProps;
 BaseVideoPlayer.displayName = 'BaseVideoPlayer';
 
 export default BaseVideoPlayer;

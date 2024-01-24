@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageWithSizeCalculation from '@components/Image';
+import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -18,20 +18,18 @@ const propTypes = {
 };
 
 const defaultProps = {
-    thumbnailUrl: null,
+    thumbnailUrl: undefined,
 };
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
     const styles = useThemeStyles();
-    const updateImageSize = () => {};
 
     return (
         <View style={styles.flex1}>
             {thumbnailUrl && (
                 <View style={styles.flex1}>
-                    <ImageWithSizeCalculation
+                    <Image
                         source={{uri: thumbnailUrl}}
-                        onMeasure={updateImageSize}
                         style={styles.flex1}
                         isAuthTokenRequired
                     />
@@ -59,6 +57,6 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
 
 VideoPlayerThumbnail.propTypes = propTypes;
 VideoPlayerThumbnail.defaultProps = defaultProps;
-VideoPlayerThumbnail.displayName = 'AttachmentView';
+VideoPlayerThumbnail.displayName = 'VideoPlayerThumbnail';
 
 export default VideoPlayerThumbnail;

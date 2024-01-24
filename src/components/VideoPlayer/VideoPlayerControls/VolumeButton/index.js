@@ -91,7 +91,7 @@ function VolumeButton({style, small}) {
                         src={volumeIcon.icon}
                         fill={styles.white}
                         small={small}
-                        forceRenderingTooltipBelow
+                        shouldForceRenderingTooltipBelow
                     />
                 </Animated.View>
             )}

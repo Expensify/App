@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 const propTypes = {
@@ -23,15 +24,15 @@ const propTypes = {
 
     fileName: PropTypes.string.isRequired,
 
-    showModal: PropTypes.func.isRequired,
+    onShowModalPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-    videoDimensions: {width: 1900, height: 1400},
-    thumbnailUrl: null,
+    videoDimensions: CONST.VIDEO_PLAYER.DEFAULT_VIDEO_DIMENSIONS,
+    thumbnailUrl: undefined,
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, showModal}) {
+function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, onShowModalPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -47,7 +48,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     const handleOnPress = () => {
         updateCurrentlyPlayingURL(videoUrl);
         if (isSmallScreenWidth) {
-            showModal();
+            onShowModalPress();
         }
     };
 
@@ -70,7 +71,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                 <>
                     <VideoPlayer
                         url={videoUrl}
-                        onOpenInModalButtonPress={showModal}
+                        onOpenInModalButtonPress={onShowModalPress}
                         onVideoLoaded={onVideoLoaded}
                         shouldUseSmallVideoControls
                     />
@@ -79,7 +80,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         src={Expensicons.Expand}
                         style={styles.videoExpandButton}
                         tooltipText={translate('videoPlayer.expand')}
-                        onPress={showModal}
+                        onPress={onShowModalPress}
                         small
                     />
                 </>

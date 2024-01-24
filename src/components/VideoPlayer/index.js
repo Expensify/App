@@ -1,5 +1,6 @@
 import React, {forwardRef} from 'react';
 import BaseVideoPlayer from './BaseVideoPlayer';
+import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 
 function VideoPlayer(props, ref) {
     return (
@@ -12,5 +13,7 @@ function VideoPlayer(props, ref) {
 }
 
 VideoPlayer.displayName = 'VideoPlayer';
+VideoPlayer.propTypes = videoPlayerPropTypes;
+VideoPlayer.defaultProps = videoPlayerDefaultProps;
 
 export default forwardRef(VideoPlayer);
