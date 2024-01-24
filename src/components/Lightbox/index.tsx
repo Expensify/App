@@ -61,7 +61,7 @@ function Lightbox({
     const StyleUtils = useStyleUtils();
 
     const [canvasSize, setCanvasSize] = useState<CanvasSize>();
-    const isCanvasLoaded = canvasSize !== undefined;
+    const isCanvasLoading = canvasSize === undefined;
     const updateCanvasSize = useCallback(
         ({
             nativeEvent: {
@@ -111,7 +111,7 @@ function Lightbox({
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const fallbackSize = useMemo(() => {
-        if (!hasSiblingCarouselItems || !contentSize || !isCanvasLoaded) {
+        if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
             return DEFAULT_IMAGE_DIMENSION;
         }
 
@@ -121,7 +121,7 @@ function Lightbox({
             width: PixelRatio.roundToNearestPixel(contentSize.width * minScale),
             height: PixelRatio.roundToNearestPixel(contentSize.height * minScale),
         };
-    }, [hasSiblingCarouselItems, contentSize, isCanvasLoaded, canvasSize]);
+    }, [hasSiblingCarouselItems, contentSize, isCanvasLoading, canvasSize]);
 
     // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
     // so that we don't see two overlapping images at the same time.
@@ -129,8 +129,9 @@ function Lightbox({
     // because it's only going to be rendered after the fallback image is hidden.
     const shouldShowLightbox = isLightboxImageLoaded && (!hasSiblingCarouselItems || !isFallbackVisible);
 
-    const isContentLoaded = isLightboxImageLoaded || isFallbackImageLoaded;
-    const isLoading = isActive && (!isCanvasLoaded || !isContentLoaded || isFallbackVisible);
+    const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
+    const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
+    const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
 
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
@@ -154,31 +155,30 @@ function Lightbox({
 
     // Enables and disables the fallback image when the carousel item is active or not
     useEffect(() => {
+        // When there are no other carousel items, we don't need to show the fallback image
         if (!hasSiblingCarouselItems) {
             return;
         }
 
-        if (isActive) {
-            if (isLightboxImageLoaded && isFallbackVisible) {
-                setFallbackVisible(false);
-                setFallbackImageLoaded(false);
-            }
-        } else {
-            if (isLightboxVisible && isLightboxImageLoaded) {
-                return;
-            }
+        // When the carousel item is active and the lightbox has finished loading, we want to hide the fallback image
+        if (isActive && isFallbackVisible && isLightboxVisible && isLightboxImageLoaded) {
+            setFallbackVisible(false);
+            setFallbackImageLoaded(false);
+            return;
+        }
 
-            // Show fallback when the image goes out of focus or when the image is loading
+        // If the carousel item has become inactive and the lightbox is not continued to be rendered, we want to show the fallback image
+        if (!isActive && !isLightboxVisible) {
             setFallbackVisible(true);
         }
-    }, [isContentLoaded, hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
+    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
-            {isCanvasLoaded && (
+            {!isCanvasLoading && (
                 <>
                     {isLightboxVisible && (
                         <View style={[StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getOpacityStyle(Number(shouldShowLightbox))]}>
