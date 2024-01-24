@@ -196,15 +196,26 @@ function ReportScreen({
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     useEffect(() => {
-        if (!report || !report.reportID || shouldHideReport) {
+        if (!report || !report.reportID || shouldHideReport || report.reportID !== reportID) {
             return;
         }
         wasReportAccessibleRef.current = true;
-    }, [shouldHideReport, report]);
+    }, [shouldHideReport, report, reportID]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
     }, []);
+     
+    const prevReportID = usePrevious(reportID);
+
+    useEffect(() => {
+        if (prevReportID === reportID) {
+            return;
+        }
+
+        wasReportAccessibleRef.current = false;
+        firstRenderRef.current = true;
+    }, [reportID, prevReportID]);
 
     let headerView = (
         <HeaderView
