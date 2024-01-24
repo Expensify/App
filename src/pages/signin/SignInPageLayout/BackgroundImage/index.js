@@ -14,13 +14,18 @@ const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
 
+    /** Called when the image load either succeeds or fails. */
+    onLoadEnd: PropTypes.func,
+
     ...defaultPropTypes,
 };
+
 function BackgroundImage(props) {
     const styles = useThemeStyles();
 
     useEffect(() => {
         props.onLoadEnd();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return props.isSmallScreen ? (

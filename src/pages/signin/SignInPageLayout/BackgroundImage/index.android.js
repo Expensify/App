@@ -9,6 +9,13 @@ const defaultProps = {
     onLoadEnd: () => {},
 };
 
+const propTypes = {
+    /** Called when the image load either succeeds or fails. */
+    onLoadEnd: PropTypes.func,
+
+    ...defaultPropTypes,
+};
+
 function BackgroundImage(props) {
     const styles = useThemeStyles();
     return (
@@ -22,7 +29,7 @@ function BackgroundImage(props) {
 }
 
 BackgroundImage.displayName = 'BackgroundImage';
-BackgroundImage.propTypes = defaultPropTypes;
+BackgroundImage.propTypes = propTypes;
 BackgroundImage.defaultProps = defaultProps;
 
 export default BackgroundImage;

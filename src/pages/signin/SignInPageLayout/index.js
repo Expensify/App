@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {Button, ScrollView, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';

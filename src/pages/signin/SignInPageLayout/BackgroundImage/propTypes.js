@@ -6,9 +6,6 @@ const propTypes = {
 
     /** The width of the image. */
     width: PropTypes.number.isRequired,
-
-    /** Called when the image load either succeeds or fails. */
-    onLoadEnd: PropTypes.func,
 };
 
 export default propTypes;

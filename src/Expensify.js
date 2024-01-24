@@ -96,6 +96,7 @@ const defaultProps = {
     },
     updateAvailable: false,
     isSidebarLoaded: false,
+    isBootSplashAutoHide: true,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
     updateRequired: false,

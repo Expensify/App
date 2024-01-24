@@ -15,6 +15,10 @@ const defaultProps = {
 const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
+
+    /** Called when the image load either succeeds or fails. */
+    onLoadEnd: PropTypes.func,
+
     ...defaultPropTypes,
 };
 
