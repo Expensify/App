@@ -12,4 +12,4 @@ type ReactionListProps = {
     emojiCount: number;
 };
 
-export type {ReactionListProps};
+export default ReactionListProps;
