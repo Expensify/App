@@ -291,51 +291,39 @@ function InitialSettingsPage(props) {
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
-                    <Tooltip text={translate('common.profile')}>
-                        <PressableWithoutFeedback
-                            style={styles.mb3}
-                            disabled={isExecuting}
-                            onPress={singleExecution(openProfileSettings)}
-                            accessibilityLabel={translate('common.profile')}
-                            role={CONST.ROLE.BUTTON}
-                        >
-                            <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                <AvatarWithImagePicker
-                                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                                    source={UserUtils.getAvatar(avatarURL, accountID)}
-                                    onImageSelected={PersonalDetails.updateAvatar}
-                                    onImageRemoved={PersonalDetails.deleteAvatar}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                    avatarStyle={styles.avatarXLarge}
-                                    pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                                    errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
-                                    errorRowStyles={[styles.mt6]}
-                                    onErrorClose={PersonalDetails.clearAvatarErrors}
-                                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                                    originalFileName={currentUserDetails.originalFileName}
-                                    headerTitle={props.translate('profilePage.profileAvatar')}
-                                    style={[styles.mh5]}
-                                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
-                                />
-                            </OfflineWithFeedback>
-                        </PressableWithoutFeedback>
-                    </Tooltip>
                     <PressableWithoutFeedback
-                        style={[styles.mt1, styles.w100, styles.mw100]}
+                        style={styles.mb3}
                         disabled={isExecuting}
                         onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        role={CONST.ROLE.LINK}
+                        role={CONST.ROLE.BUTTON}
                     >
-                        <Tooltip text={translate('common.profile')}>
-                            <Text
-                                style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                                numberOfLines={1}
-                            >
-                                {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
-                            </Text>
-                        </Tooltip>
+                        <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                            <AvatarWithImagePicker
+                                isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                                source={UserUtils.getAvatar(avatarURL, accountID)}
+                                onImageSelected={PersonalDetails.updateAvatar}
+                                onImageRemoved={PersonalDetails.deleteAvatar}
+                                size={CONST.AVATAR_SIZE.XLARGE}
+                                avatarStyle={styles.avatarXLarge}
+                                pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                                errorRowStyles={[styles.mt6]}
+                                onErrorClose={PersonalDetails.clearAvatarErrors}
+                                previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                originalFileName={currentUserDetails.originalFileName}
+                                headerTitle={props.translate('profilePage.profileAvatar')}
+                                style={[styles.mh5]}
+                                fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
+                            />
+                        </OfflineWithFeedback>
                     </PressableWithoutFeedback>
+                    <Text
+                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                        numberOfLines={1}
+                    >
+                        {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                    </Text>
                     {Boolean(props.currentUserPersonalDetails.displayName) && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
