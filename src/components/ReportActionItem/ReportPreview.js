@@ -166,6 +166,8 @@ function ReportPreview(props) {
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(props.iouReport);
 
     const isApproved = ReportUtils.isReportApproved(props.iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(props.iouReport);
+    console.log('%%%%%\n', 'canAllowSettlement: ', canAllowSettlement);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(props.iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -333,6 +335,7 @@ function ReportPreview(props) {
                                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                     }}
+                                    isDisabled={!canAllowSettlement}
                                 />
                             )}
                             {shouldShowSubmitButton && (
