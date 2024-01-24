@@ -435,6 +435,7 @@ function BaseTextInput(
              */}
             {(!!autoGrow || autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
+                // For mobile Chrome, this will ensure that the text selection handle (blue bubble down) is shown.
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628
                 <Text
@@ -446,7 +447,7 @@ function BaseTextInput(
                     ]}
                     onLayout={(e) => {
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari()) {
+                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
