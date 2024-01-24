@@ -18,12 +18,12 @@ type ThumbnailAndImageURI = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
-        return {isThumbnail: true};
-    }
-
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
     const path = transaction?.receipt?.source ?? receiptPath ?? '';
+    if (Object.hasOwn(transaction?.pendingFields ?? {}, 'waypoints')) {
+        return {isThumbnail: true, image: path, isLocalFile: true};
+    }
+
     // filename of uploaded image or last part of remote URI
     const filename = transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);

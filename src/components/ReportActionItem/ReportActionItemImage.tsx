@@ -66,7 +66,6 @@ function ReportActionItemImage({thumbnail, isThumbnail, image, enablePreviewModa
                     // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                     <AttachmentModal
                         source={imageSource}
-                        isThumbnail={isThumbnail}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
