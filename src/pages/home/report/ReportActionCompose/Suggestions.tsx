@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
@@ -19,7 +19,7 @@ type SuggestionProps = {
     selection: Selection;
     setSelection: (newSelection: Selection) => void;
     updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
-    measureParentContainer: () => void;
+    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
     isComposerFullSize: boolean;
     isComposerFocused?: boolean;
     resetKeyboardInput?: () => void;

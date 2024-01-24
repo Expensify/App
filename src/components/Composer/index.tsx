@@ -4,9 +4,8 @@ import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData} from 'react-native';
+import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import type {AnimatedProps} from 'react-native-reanimated';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
@@ -75,7 +74,7 @@ function Composer(
         shouldContainScroll = false,
         ...props
     }: ComposerProps,
-    ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
+    ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();

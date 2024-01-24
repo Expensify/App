@@ -10,7 +10,7 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
-function SilentCommentUpdater({comment = '', commentRef, report, value, updateComment}: SilentCommentUpdaterProps) {
+function SilentCommentUpdater({comment, commentRef, report, value, updateComment}: SilentCommentUpdaterProps) {
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(report?.reportID);
     const {preferredLocale} = useLocalize();
