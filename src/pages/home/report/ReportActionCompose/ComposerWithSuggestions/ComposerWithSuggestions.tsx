@@ -2,7 +2,15 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {
+    LayoutChangeEvent,
+    MeasureInWindowOnSuccessCallback,
+    NativeSyntheticEvent,
+    TextInput,
+    TextInputFocusEventData,
+    TextInputKeyPressEventData,
+    TextInputSelectionChangeEventData,
+} from 'react-native';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -42,7 +50,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 type SyncSelection = {
     position: number;
@@ -126,7 +133,7 @@ function ComposerWithSuggestions(
     {
         // Onyx
         modal,
-        preferredSkinTone,
+        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
         parentReportActions,
         numberOfLines,
 
@@ -152,7 +159,7 @@ function ComposerWithSuggestions(
         setIsCommentEmpty,
         handleSendMessage,
         shouldShowComposeInput,
-        measureParentContainer,
+        measureParentContainer = () => {},
         listHeight,
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
@@ -164,7 +171,7 @@ function ComposerWithSuggestions(
         // For testing
         children,
     }: ComposerWithSuggestionsProps,
-    ref: ForwardedRef<ComposerRef>,
+    ref: ForwardedRef<ComposerRef | null>,
 ) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -374,32 +381,33 @@ function ComposerWithSuggestions(
     );
 
     const triggerHotkeyActions = useCallback(
-        (e: KeyboardEvent & NativeSyntheticEvent<TextInputFocusEventData>) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+        (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+            const webEvent = event as unknown as KeyboardEvent;
+            if (!webEvent || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
             }
 
-            if (suggestionsRef.current?.triggerHotkeyActions(e)) {
+            if (suggestionsRef.current?.triggerHotkeyActions(webEvent)) {
                 return;
             }
 
             // Submit the form when Enter is pressed
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
-                e.preventDefault();
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
+                webEvent.preventDefault();
                 handleSendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
             const valueLength = valueRef.current.length;
             if (
-                e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
+                webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
                 textInputRef.current &&
                 'selectionStart' in textInputRef.current &&
                 textInputRef.current?.selectionStart === 0 &&
                 valueLength === 0 &&
                 !ReportUtils.chatIncludesChronos(report)
             ) {
-                e.preventDefault();
+                webEvent.preventDefault();
                 const lastReportAction = [...(reportActions ?? []), parentReportAction].find(
                     (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
                 );
@@ -568,7 +576,6 @@ function ComposerWithSuggestions(
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
     useImperativeHandle(
         ref,
         () => ({
@@ -660,8 +667,6 @@ function ComposerWithSuggestions(
     );
 }
 
-ComposerWithSuggestions.propTypes = propTypes;
-ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
@@ -689,3 +694,5 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
         initWithStoredValues: false,
     },
 })(ComposerWithSuggestionsWithRef);
+
+export type {ComposerWithSuggestionsProps};

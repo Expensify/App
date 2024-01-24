@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import type {SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -123,7 +123,7 @@ function ReportActionCompose({
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const animatedRef = useAnimatedRef();
-    const actionButtonRef = useRef(null);
+    const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     /**
      * Updates the Highlight state of the composer
@@ -300,12 +300,13 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback((event: FocusEvent) => {
+    const onBlur = useCallback((event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        const webEvent = event as unknown as FocusEvent;
         setIsFocused(false);
         if (suggestionsRef.current) {
             suggestionsRef.current.resetSuggestions();
         }
-        if (event.relatedTarget && event.relatedTarget === actionButtonRef.current) {
+        if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
             isKeyboardVisibleWhenShowingModalRef.current = true;
         }
     }, []);

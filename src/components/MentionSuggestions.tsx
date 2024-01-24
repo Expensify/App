@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +44,7 @@ type MentionSuggestionsProps = {
     isMentionPickerLarge: boolean;
 
     /** Measures the parent container's position and dimensions. */
-    measureParentContainer: () => void;
+    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 };
 
 /**

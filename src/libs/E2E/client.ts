@@ -11,6 +11,9 @@ type TestResult = {
 
 type TestConfig = {
     name: string;
+    reportScreen?: {
+        autoFocus?: boolean;
+    };
 };
 
 type NativeCommandPayload = {

@@ -1,6 +1,8 @@
-import _ from 'lodash';
-import React, {useEffect} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
+import React, {forwardRef, useEffect} from 'react';
 import E2EClient from '@libs/E2E/client';
+import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 
 let rerenderCount = 0;
@@ -14,20 +16,20 @@ function IncrementRenderCount() {
     return null;
 }
 
-const ComposerWithSuggestionsE2e = React.forwardRef((props, ref) => {
+function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef | null>) {
     // Eventually Auto focus on e2e tests
     useEffect(() => {
-        if (_.get(E2EClient.getCurrentActiveTestConfig(), 'reportScreen.autoFocus', false) === false) {
+        if ((E2EClient.getCurrentActiveTestConfig()?.reportScreen?.autoFocus ?? false) === false) {
             return;
         }
 
         // We need to wait for the component to be mounted before focusing
         setTimeout(() => {
-            if (!ref || !ref.current) {
+            if (!(ref as RefObject<ComposerRef>)?.current) {
                 return;
             }
 
-            ref.current.focus(true);
+            (ref as RefObject<ComposerRef>).current?.focus(true);
         }, 1);
     }, [ref]);
 
@@ -44,9 +46,9 @@ const ComposerWithSuggestionsE2e = React.forwardRef((props, ref) => {
             <IncrementRenderCount />
         </ComposerWithSuggestions>
     );
-});
+}
 
 ComposerWithSuggestionsE2e.displayName = 'ComposerWithSuggestionsE2e';
 
-export default ComposerWithSuggestionsE2e;
+export default forwardRef(ComposerWithSuggestionsE2e);
 export {getRerenderCount, resetRerenderCount};
