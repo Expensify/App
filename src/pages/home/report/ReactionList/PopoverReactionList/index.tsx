@@ -38,12 +38,4 @@ function PopoverReactionList(props: PopoverReactionListProps) {
 
 PopoverReactionList.displayName = 'PopoverReactionList';
 
-export default React.memo(
-    forwardRef<ReactionListRef>((props, ref) => (
-        <PopoverReactionList
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            ref={ref}
-        />
-    )),
-);
+export default React.memo(forwardRef(PopoverReactionList));
