@@ -171,44 +171,50 @@ function BaseModal(
     });
 
     return (
-        <ReactNativeModal
-            onBackdropPress={handleBackdropPress}
-            // Note: Escape key on web/desktop will trigger onBackButtonPress callback
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={onClose}
-            onModalShow={handleShowModal}
-            propagateSwipe={propagateSwipe}
-            onModalHide={hideModal}
-            onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
-            onDismiss={handleDismissModal}
-            onSwipeComplete={() => onClose?.()}
-            swipeDirection={swipeDirection}
-            isVisible={isVisible}
-            backdropColor={theme.overlay}
-            backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
-            backdropTransitionOutTiming={0}
-            hasBackdrop={fullscreen}
-            coverScreen={fullscreen}
-            style={modalStyle}
-            deviceHeight={windowHeight}
-            deviceWidth={windowWidth}
-            animationIn={animationIn ?? modalStyleAnimationIn}
-            animationOut={animationOut ?? modalStyleAnimationOut}
-            useNativeDriver={useNativeDriverProp && useNativeDriver}
-            hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-            animationInTiming={animationInTiming}
-            animationOutTiming={animationOutTiming}
-            statusBarTranslucent={statusBarTranslucent}
-            onLayout={onLayout}
-            avoidKeyboard={avoidKeyboard}
-        >
-            <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={ref}
+        // this is a workaround for modal not being visible on the new arch in some cases
+        // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+        // a conflict between RN core and Reanimated shadow tree operations
+        // position absolute is needed to prevent the view from interfering with flex layout
+        <View collapsable={false} style={[styles.pAbsolute]}>
+            <ReactNativeModal
+                onBackdropPress={handleBackdropPress}
+                // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                onBackButtonPress={onClose}
+                onModalShow={handleShowModal}
+                propagateSwipe={propagateSwipe}
+                onModalHide={hideModal}
+                onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
+                onDismiss={handleDismissModal}
+                onSwipeComplete={() => onClose?.()}
+                swipeDirection={swipeDirection}
+                isVisible={isVisible}
+                backdropColor={theme.overlay}
+                backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
+                backdropTransitionOutTiming={0}
+                hasBackdrop={fullscreen}
+                coverScreen={fullscreen}
+                style={modalStyle}
+                deviceHeight={windowHeight}
+                deviceWidth={windowWidth}
+                animationIn={animationIn ?? modalStyleAnimationIn}
+                animationOut={animationOut ?? modalStyleAnimationOut}
+                useNativeDriver={useNativeDriverProp && useNativeDriver}
+                hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+                animationInTiming={animationInTiming}
+                animationOutTiming={animationOutTiming}
+                statusBarTranslucent={statusBarTranslucent}
+                onLayout={onLayout}
+                avoidKeyboard={avoidKeyboard}
             >
-                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-            </View>
-        </ReactNativeModal>
+                <View
+                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                    ref={ref}
+                >
+                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                </View>
+            </ReactNativeModal>
+        </View>
     );
 }
 
