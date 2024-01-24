@@ -1,17 +1,17 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -258,12 +258,12 @@ function getOptionData({
     parentReportAction,
     hasViolations,
 }: {
-    report: Report;
-    reportActions: Record<string, ReportAction>;
-    personalDetails: Record<number, PersonalDetails>;
-    preferredLocale: ValueOf<typeof CONST.LOCALES>;
-    policy: Policy;
-    parentReportAction: ReportAction;
+    report: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
+    policy: OnyxEntry<Policy> | undefined;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -276,7 +276,7 @@ function getOptionData({
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: null,
+        allReportErrors: undefined,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -318,7 +318,8 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
+    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
