@@ -350,7 +350,7 @@ function ReportActionCompose({
         runOnJS(resetFullComposerSize)();
         setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
-    }, [isSendDisabled, isReportReadyForDisplay, resetFullComposerSize, animatedRef, submitForm]);
+    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>

@@ -56,6 +56,9 @@ const propTypes = {
     /** Function to set whether the full composer is available or not */
     setIsFullComposerAvailable: PropTypes.func.isRequired,
 
+    /** Function to set whether the comment is empty or not */
+    setIsCommentEmpty: PropTypes.func.isRequired,
+
     /** A method to call when the form is submitted */
     handleSendMessage: PropTypes.func.isRequired,
 
@@ -81,6 +84,9 @@ const propTypes = {
             onSelectionChange: PropTypes.func.isRequired,
         }),
     }).isRequired,
+
+    /** Ref for the animated view (text input) */
+    animatedRef: PropTypes.func.isRequired,
 
     /** Ref for the composer */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
