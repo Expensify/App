@@ -23,6 +23,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as TransactionUserActions from '@userActions/Transaction';
 import * as TransactionEdit from '@userActions/TransactionEdit';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -164,7 +165,7 @@ function DistanceRequest({transactionID = '', report, transaction, route, isEdit
      */
     const navigateToWaypointEditPage = (index: number) => {
         Navigation.navigate(
-            isEditingRequest ? ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.getRoute(Number(report?.reportID ?? -1), transactionID, index) : ROUTES.MONEY_REQUEST_WAYPOINT.getRoute('request', index),
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID ?? '', index.toString(), Navigation.getActiveRouteWithoutParams()),
         );
     };
 
