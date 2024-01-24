@@ -127,4 +127,18 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, navigateToStartStepIfScanFileCannotBeRead};
+function insertTagIntoReportTagsSting(reportTags: string, tag: string, tagIndex: number): string {
+    const splittedReportTags = reportTags.split(CONST.COLON);
+    splittedReportTags[tagIndex] = tag;
+    return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
+}
+
+export {
+    calculateAmount,
+    updateIOUOwnerAndTotal,
+    isIOUReportPendingCurrencyConversion,
+    isValidMoneyRequestType,
+    navigateToStartMoneyRequestStep,
+    navigateToStartStepIfScanFileCannotBeRead,
+    insertTagIntoReportTagsSting,
+};

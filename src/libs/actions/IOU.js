@@ -236,22 +236,19 @@ function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
  * @param {Number} tagIndex
  */
 function setMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tag, tagIndex) {
-    const splittedReportTags = reportTags.split(CONST.COLON);
-    splittedReportTags[tagIndex] = tag;
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        tag: splittedReportTags.join(CONST.COLON),
+        tag: IOUUtils.insertTagIntoReportTagsSting(reportTags, tag, tagIndex),
     });
 }
 
 /*
  * @param {String} transactionID
  * @param {String} reportTags
- * @param {String} tag
+ * @param {Number} tagIndex
  */
-function resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tag) {
+function resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tagIndex) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        tag: reportTags.replace(tag, '').replace(/:*$/, ''),
+        tag: IOUUtils.insertTagIntoReportTagsSting(reportTags, '', tagIndex),
     });
 }
 
