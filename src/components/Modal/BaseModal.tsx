@@ -31,6 +31,7 @@ function BaseModal(
         animationIn,
         animationOut,
         useNativeDriver: useNativeDriverProp,
+        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
@@ -200,6 +201,7 @@ function BaseModal(
                 animationIn={animationIn ?? modalStyleAnimationIn}
                 animationOut={animationOut ?? modalStyleAnimationOut}
                 useNativeDriver={useNativeDriverProp && useNativeDriver}
+                useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
                 hideModalContentWhileAnimating={hideModalContentWhileAnimating}
                 animationInTiming={animationInTiming}
                 animationOutTiming={animationOutTiming}
