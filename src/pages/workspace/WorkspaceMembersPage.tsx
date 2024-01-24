@@ -1,8 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,20 +13,20 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MessagesRow from '@components/MessagesRow';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -33,8 +36,12 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList, PolicyMembers, Session} from '@src/types/onyx';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
@@ -58,10 +65,32 @@ const propTypes = {
 
     isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    network: networkPropTypes.isRequired,
+};
+
+type WorkspaceMembersPageOnyxProps = {
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    session: OnyxEntry<Session>;
+    isLoadingReportData: OnyxEntry<boolean>;
+};
+
+type WorkspaceMembersPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
+    WithCurrentUserPersonalDetailsProps &
+    WorkspaceMembersPageOnyxProps &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+
+type MemberOption = {
+    keyForList: string;
+    accountID: number;
+    isSelected: boolean;
+    isDisabled: boolean;
+    text: string;
+    alternateText: string;
+    rightElement: React.ReactNode | null;
+    icons: Icon[];
+    errors?: Errors;
+    pendingAction?: PendingAction;
+    invitedSecondaryLogin?: string;
 };
 
 const defaultProps = {
@@ -74,18 +103,20 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function WorkspaceMembersPage(props) {
+function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
-    const prevIsOffline = usePrevious(props.network.isOffline);
-    const accountIDs = useMemo(() => _.map(_.keys(props.policyMembers), (accountID) => Number(accountID)), [props.policyMembers]);
+    const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
+    const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
-    const textInputRef = useRef(null);
-    const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
-    const prevPersonalDetails = usePrevious(props.personalDetails);
+    const textInputRef = useRef<TextInput>(null);
+    const isOfflineAndNoMemberDataAvailable = _.isEmpty(policyMembers) && isOffline;
+    const prevPersonalDetails = usePrevious(personalDetails);
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
 
     const isFocusedScreen = useIsFocused();
 
@@ -93,51 +124,49 @@ function WorkspaceMembersPage(props) {
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 
-    useEffect(() => () => (SearchInputManager.searchInput = ''), []);
+    useEffect(() => {
+        SearchInputManager.searchInput = '';
+    }, []);
 
     /**
      * Get filtered personalDetails list with current policyMembers
-     * @param {Object} policyMembers
-     * @param {Object} personalDetails
-     * @returns {Object}
+     * @param policyMembers
+     * @param personalDetails
+     * @returns
      */
-    const filterPersonalDetails = (policyMembers, personalDetails) =>
-        _.reduce(
-            _.keys(policyMembers),
-            (result, key) => {
-                if (personalDetails[key]) {
-                    return {
-                        ...result,
-                        [key]: personalDetails[key],
-                    };
-                }
-                return result;
-            },
-            {},
-        );
+    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>) =>
+        Object.keys(members ?? {}).reduce((result, key) => {
+            if (details?.[key]) {
+                return {
+                    ...result,
+                    [key]: details[key],
+                };
+            }
+            return result;
+        }, {});
 
     /**
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
-    }, [props.route.params.policyID, props.policyMembers, props.personalDetails]);
+        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails)));
+    }, [route.params.policyID, policyMembers, personalDetails]);
 
     /**
      * Check if the current selection includes members that cannot be removed
      */
     const validateSelection = useCallback(() => {
         const newErrors = {};
-        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins(props.policy.owner ? [props.policy.owner] : []));
+        const ownerAccountID = PersonalDetailsUtils.getAccountIDsByLogins(policy?.owner ? [policy.owner] : [])[0];
         _.each(selectedEmployees, (member) => {
-            if (member !== ownerAccountID && member !== props.session.accountID) {
+            if (member !== ownerAccountID && member !== session.accountID) {
                 return;
             }
-            newErrors[member] = props.translate('workspace.people.error.cannotRemove');
+            newErrors[member] = translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedEmployees, props.policy.owner, props.session.accountID]);
+    }, [selectedEmployees, policy?.owner, session?.accountID]);
 
     useEffect(() => {
         getWorkspaceMembers();
@@ -146,7 +175,7 @@ function WorkspaceMembersPage(props) {
 
     useEffect(() => {
         validateSelection();
-    }, [props.preferredLocale, validateSelection]);
+    }, [preferredLocale, validateSelection]);
 
     useEffect(() => {
         if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
@@ -154,32 +183,32 @@ function WorkspaceMembersPage(props) {
         }
         setSelectedEmployees((prevSelected) => {
             // Filter all personal details in order to use the elements needed for the current workspace
-            const currentPersonalDetails = filterPersonalDetails(props.policyMembers, props.personalDetails);
+            const currentPersonalDetails = filterPersonalDetails(policyMembers, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
             const prevSelectedElements = _.map(prevSelected, (id) => {
                 const prevItem = lodashGet(prevPersonalDetails, id);
                 const res = _.find(_.values(currentPersonalDetails), (item) => lodashGet(prevItem, 'login') === lodashGet(item, 'login'));
                 return lodashGet(res, 'accountID', id);
             });
-            return _.intersection(prevSelectedElements, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails)));
+            return _.intersection(prevSelectedElements, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails)));
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.policyMembers]);
+    }, [policyMembers]);
 
     useEffect(() => {
-        const isReconnecting = prevIsOffline && !props.network.isOffline;
+        const isReconnecting = prevIsOffline && !isOffline;
         if (!isReconnecting) {
             return;
         }
         getWorkspaceMembers();
-    }, [props.network.isOffline, prevIsOffline, getWorkspaceMembers]);
+    }, [isOffline, prevIsOffline, getWorkspaceMembers]);
 
     /**
      * Open the modal to invite a user
      */
     const inviteUser = () => {
         setSearchValue('');
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
     };
 
     /**
@@ -191,9 +220,9 @@ function WorkspaceMembersPage(props) {
         }
 
         // Remove the admin from the list
-        const accountIDsToRemove = _.without(selectedEmployees, props.session.accountID);
+        const accountIDsToRemove = _.without(selectedEmployees, session.accountID);
 
-        Policy.removeMembers(accountIDsToRemove, props.route.params.policyID);
+        Policy.removeMembers(accountIDsToRemove, route.params.policyID);
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -210,7 +239,7 @@ function WorkspaceMembersPage(props) {
 
     /**
      * Add or remove all users passed from the selectedEmployees list
-     * @param {Object} memberList
+     * @param memberList
      */
     const toggleAllUsers = (memberList) => {
         const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
@@ -283,37 +312,39 @@ function WorkspaceMembersPage(props) {
     const dismissError = useCallback(
         (item) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                Policy.clearDeleteMemberError(props.route.params.policyID, item.accountID);
+                Policy.clearDeleteMemberError(route.params.policyID, item.accountID);
             } else {
-                Policy.clearAddMemberError(props.route.params.policyID, item.accountID);
+                Policy.clearAddMemberError(route.params.policyID, item.accountID);
             }
         },
-        [props.route.params.policyID],
+        [route.params.policyID],
     );
 
     /**
      * Check if the policy member is deleted from the workspace
      *
-     * @param {Object} policyMember
-     * @returns {Boolean}
+     * @param policyMember
+     * @returns
      */
-    const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && _.isEmpty(policyMember.errors);
-    const policyOwner = lodashGet(props.policy, 'owner');
-    const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
-    const policyID = lodashGet(props.route, 'params.policyID');
-    const policyName = lodashGet(props.policy, 'name');
-    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
+    const isDeletedPolicyMember = (policyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && _.isEmpty(policyMember.errors);
+    const policyOwner = lodashGet(policy, 'owner');
+    const currentUserLogin = lodashGet(currentUserPersonalDetails, 'login');
+    const policyID = lodashGet(route, 'params.policyID');
+    const policyName = lodashGet(policy, 'name');
+    const invitedPrimaryToSecondaryLogins = _.invert(policy?.primaryLoginsInvited);
 
     const getMemberOptions = () => {
-        let result = [];
+        let result: MemberOption[] = [];
 
-        _.each(props.policyMembers, (policyMember, accountIDKey) => {
+        console.log('*** POLICY MEMBERS ***', policyMembers);
+
+        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
             if (isDeletedPolicyMember(policyMember)) {
                 return;
             }
 
-            const details = props.personalDetails[accountID];
+            const details = personalDetails?.[accountID];
 
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
@@ -347,34 +378,34 @@ function WorkspaceMembersPage(props) {
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            if (PolicyUtils.isExpensifyTeam(details.login || details.displayName)) {
+            if (PolicyUtils.isExpensifyTeam(details?.login ?? details?.displayName ?? '')) {
                 if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
                     return;
                 }
             }
 
-            const isAdmin = props.session.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
 
             result.push({
                 keyForList: accountIDKey,
                 accountID,
-                isSelected: _.contains(selectedEmployees, accountID),
+                isSelected: selectedEmployees.includes(accountID),
                 isDisabled:
-                    accountID === props.session.accountID ||
-                    details.login === props.policy.owner ||
+                    accountID === session?.accountID ||
+                    details.login === policy?.owner ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    !_.isEmpty(policyMember.errors),
-                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: props.formatPhoneNumber(details.login),
+                    Object.keys(policyMember.errors ?? {}).length > 0,
+                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: isAdmin ? (
                     <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={styles.peopleBadgeText}>{props.translate('common.admin')}</Text>
+                        <Text style={styles.peopleBadgeText}>{translate('common.admin')}</Text>
                     </View>
                 ) : null,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: props.formatPhoneNumber(details.login),
+                        name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
@@ -383,11 +414,11 @@ function WorkspaceMembersPage(props) {
                 pendingAction: policyMember.pendingAction,
 
                 // Note which secondary login was used to invite this primary login
-                invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
+                invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
 
-        result = _.sortBy(result, (value) => value.text.toLowerCase());
+        result = result.sort((a, b) => a.text.localeCompare(b.text.toLowerCase()));
 
         return result;
     };
@@ -395,9 +426,9 @@ function WorkspaceMembersPage(props) {
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
-            return props.translate('workspace.common.mustBeOnlineToViewMembers');
+            return translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
+        return searchValue.trim() && !data.length ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => {
@@ -407,13 +438,12 @@ function WorkspaceMembersPage(props) {
         return (
             <MessagesRow
                 type="success"
-                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                messages={{0: translate('workspace.people.addedWithPrimary')}}
                 containerStyles={[styles.pb5, styles.ph5]}
                 onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
             />
         );
     };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -421,12 +451,12 @@ function WorkspaceMembersPage(props) {
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
-                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldShow={(_.isEmpty(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton
-                    title={props.translate('workspace.common.members')}
+                    title={translate('workspace.common.members')}
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
@@ -437,28 +467,28 @@ function WorkspaceMembersPage(props) {
                 />
                 <ConfirmModal
                     danger
-                    title={props.translate('workspace.people.removeMembersTitle')}
+                    title={translate('workspace.people.removeMembersTitle')}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={props.translate('workspace.people.removeMembersPrompt')}
-                    confirmText={props.translate('common.remove')}
-                    cancelText={props.translate('common.cancel')}
-                    onModalHide={() =>
+                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
+                    onModalHide={() => {
                         InteractionManager.runAfterInteractions(() => {
                             if (!textInputRef.current) {
                                 return;
                             }
                             textInputRef.current.focus();
-                        })
-                    }
+                        });
+                    }}
                 />
                 <View style={[styles.w100, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
                         <Button
                             medium
                             success
-                            text={props.translate('common.invite')}
+                            text={translate('common.invite')}
                             onPress={inviteUser}
                         />
                         <Button
@@ -466,16 +496,18 @@ function WorkspaceMembersPage(props) {
                             danger
                             style={[styles.ml2]}
                             isDisabled={selectedEmployees.length === 0}
-                            text={props.translate('common.remove')}
+                            text={translate('common.remove')}
                             onPress={askForConfirmationToRemove}
                         />
                     </View>
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
+                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
-                            textInputLabel={props.translate('optionsSelector.findMember')}
+                            textInputLabel={translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
+                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
                             onChangeText={(value) => {
                                 SearchInputManager.searchInput = value;
                                 setSearchValue(value);
@@ -483,10 +515,12 @@ function WorkspaceMembersPage(props) {
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={getHeaderContent()}
+                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
-                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
+                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
+                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) ?? !policyMembers)}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             inputRef={textInputRef}
@@ -503,11 +537,9 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
     withPolicyAndFullscreenLoading,
-    withNetwork(),
-    withOnyx({
+    withCurrentUserPersonalDetails,
+    withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
@@ -518,5 +550,4 @@ export default compose(
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
-    withCurrentUserPersonalDetails,
 )(WorkspaceMembersPage);
