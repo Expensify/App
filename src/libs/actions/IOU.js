@@ -3418,6 +3418,13 @@ function cancelPayment(expenseReport, chatReport) {
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -expenseReport.total, expenseReport.currency,);
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
+    const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
+    let stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+    let statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED
+    if (!isFree) {
+        stateNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED: CONST.REPORT.STATE_NUM.APPROVED;
+        statusNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3436,8 +3443,8 @@ function cancelPayment(expenseReport, chatReport) {
                 ...expenseReport,
                 lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
-                stateNum: isFree ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: isFree ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum,
+                statusNum,
             },
         },
         ...(chatReport.reportID
