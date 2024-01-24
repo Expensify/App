@@ -2,7 +2,6 @@ import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -103,7 +102,6 @@ import type {
 export default {
     common: {
         cancel: 'Cancelar',
-        dismiss: 'Descartar',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -290,6 +288,7 @@ export default {
         showing: 'Mostrando',
         of: 'de',
         default: 'Predeterminado',
+        update: 'Actualizar',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -449,9 +448,10 @@ export default {
             `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
-        subscribeToThread: 'Suscribirse al hilo',
-        unsubscribeFromThread: 'Darse de baja del hilo',
+        joinThread: 'Unirse al hilo',
+        leaveThread: 'Dejar hilo',
         flagAsOffensive: 'Marcar como ofensivo',
+        menu: 'Menú',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',
@@ -569,8 +569,6 @@ export default {
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
-        cancelPayment: 'Cancelar el pago',
-        cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
         canceled: 'Canceló',
@@ -608,7 +606,6 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
-        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `El pago de ${amount} ha sido cancelado por el administrador.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -769,6 +766,11 @@ export default {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Actualización requerida',
+        pleaseInstall: 'Por favor, actualice la última versión de Nuevo Expensify',
+        toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -2564,6 +2566,14 @@ export default {
             body: `Sé el primero en chatear, enviar o pedir dinero, dividir una factura o compartir tu enlace de invitación con un amigo, y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
+    },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Seguimiento de los gastos de empresa para fines fiscales',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Reclamar gastos a mi empleador',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
+        welcomeMessage: 'Bienvenido a Expensify',
+        welcomeSubtitle: '¿Qué te gustaría hacer?',
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',

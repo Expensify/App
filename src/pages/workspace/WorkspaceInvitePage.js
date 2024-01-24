@@ -253,7 +253,12 @@ function WorkspaceInvitePage(props) {
         if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue))) {
+        if (
+            usersToInvite.length === 0 &&
+            excludedUsers.includes(
+                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+            )
+        ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);

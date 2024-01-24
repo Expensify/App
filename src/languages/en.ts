@@ -1,9 +1,9 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -107,13 +107,12 @@ type StateValue = {
 
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
-type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
+type AllCountries = Record<Country, string>;
 
 /* eslint-disable max-len */
 export default {
     common: {
         cancel: 'Cancel',
-        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -300,6 +299,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -457,9 +457,10 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
-        subscribeToThread: 'Subscribe to thread',
-        unsubscribeFromThread: 'Unsubscribe from thread',
+        joinThread: 'Join thread',
+        leaveThread: 'Leave thread',
         flagAsOffensive: 'Flag as offensive',
+        menu: 'Menu',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -576,8 +577,6 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
-        cancelPayment: 'Cancel payment',
-        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
@@ -615,7 +614,6 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `The ${amount} payment has been cancelled by the admin.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -774,6 +772,11 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
     },
     initialSettingsPage: {
         about: 'About',
@@ -2076,6 +2079,14 @@ export default {
             body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
         },
         copyReferralLink: 'Copy invite link',
+    },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+        welcomeMessage: 'Welcome to Expensify',
+        welcomeSubtitle: 'What would you like to do?',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
