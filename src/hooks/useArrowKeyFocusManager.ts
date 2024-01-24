@@ -83,6 +83,7 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
     const arrowDownCallback = useCallback(() => {
@@ -126,6 +127,7 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 
     const arrowLeftCallback = useCallback(() => {
@@ -152,6 +154,7 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
 
     const arrowRightCallback = useCallback(() => {
@@ -178,6 +181,7 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
 
     // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
