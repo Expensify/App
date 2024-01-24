@@ -103,10 +103,10 @@ const ViolationsUtils = {
             rejectedBy = '',
             rejectReason = '',
             formattedLimit,
-            surcharge,
-            invoiceMarkup,
+            surcharge = 0,
+            invoiceMarkup = 0,
             maxAge = 0,
-            tagName,
+            tagName = 'etiqueta',
             taxName,
         } = violation.data ?? {};
 

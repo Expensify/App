@@ -223,7 +223,7 @@ type ViolationsInvoiceMarkupParams = {invoiceMarkup?: number};
 
 type ViolationsMaxAgeParams = {maxAge: number};
 
-type ViolationsMissingTagParams = {tagName?: string} | null;
+type ViolationsMissingTagParams = {tagName?: string};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
@@ -233,7 +233,7 @@ type ViolationsOverLimitParams = {formattedLimit?: string};
 
 type ViolationsPerDayLimitParams = {formattedLimit?: string};
 
-type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string} | null;
+type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
