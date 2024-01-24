@@ -1957,9 +1957,9 @@ function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecen
                 title: undefined,
                 data: shouldGetOptionDetails
                     ? _.map(selectedOptions, (participant) => {
-                        const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                        return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                    })
+                          const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      })
                     : selectedOptions,
                 shouldShow: !_.isEmpty(selectedOptions),
                 indexOffset,
@@ -1983,9 +1983,9 @@ function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecen
             title: undefined,
             data: shouldGetOptionDetails
                 ? _.map(selectedParticipantsWithoutDetails, (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                })
+                      const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                  })
                 : selectedParticipantsWithoutDetails,
             shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
             indexOffset,
