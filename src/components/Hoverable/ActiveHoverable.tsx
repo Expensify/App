@@ -98,9 +98,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
 
     const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {
-            if (isVisibiltyHidden.current) {
-                isVisibiltyHidden.current = false;
-            }
+            isVisibiltyHidden.current = false;
             updateIsHovered(true);
             childOnMouseEnter?.(e);
         },
