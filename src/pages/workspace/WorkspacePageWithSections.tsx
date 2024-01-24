@@ -22,6 +22,7 @@ import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 
 type WorkspacePageWithSectionsOnyxProps = {
     /** From Onyx */
@@ -79,7 +80,7 @@ function WorkspacePageWithSections({
     guidesCallTaskID = '',
     headerText,
     policy,
-    reimbursementAccount = {isLoading: false},
+    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
