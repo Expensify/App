@@ -16,7 +16,7 @@ type ReportTypingIndicatorOnyxProps = {
 };
 
 type ReportTypingIndicatorProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
+    // eslint-disable-next-line react/no-unused-prop-types -- This is used by withOnyx
     reportID: string;
 } & ReportTypingIndicatorOnyxProps;
 
