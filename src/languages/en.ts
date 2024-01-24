@@ -301,6 +301,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -773,6 +774,11 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
     },
     initialSettingsPage: {
         about: 'About',
@@ -2172,6 +2178,14 @@ export default {
             body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
         },
         copyReferralLink: 'Copy invite link',
+    },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+        welcomeMessage: 'Welcome to Expensify',
+        welcomeSubtitle: 'What would you like to do?',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
