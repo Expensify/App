@@ -4,12 +4,12 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-type MoneyRequestField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
+type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
 /**
  * Map from Violation Names to the field where that violation can occur.
  */
-const violationFields: Record<ViolationName, MoneyRequestField> = {
+const violationFields: Record<ViolationName, ViolationField> = {
     allTagLevelsRequired: 'tag',
     autoReportedRejectedExpense: 'merchant',
     billableExpense: 'billable',
@@ -45,12 +45,12 @@ const violationFields: Record<ViolationName, MoneyRequestField> = {
     taxRequired: 'tax',
 };
 
-type ViolationsMap = Map<MoneyRequestField, TransactionViolation[]>;
+type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
 function useViolations(violations: TransactionViolation[]) {
     const violationsByField = useMemo((): ViolationsMap => {
-        const filteredViolations = violations.filter((v) => v.type === 'violation');
-        const violationGroups = new Map<MoneyRequestField, TransactionViolation[]>();
+        const filteredViolations = violations.filter((violation) => violation.type === 'violation');
+        const violationGroups = new Map<ViolationField, TransactionViolation[]>();
         for (const violation of filteredViolations) {
             const field = violationFields[violation.name];
             const existingViolations = violationGroups.get(field) ?? [];
@@ -59,7 +59,7 @@ function useViolations(violations: TransactionViolation[]) {
         return violationGroups ?? new Map();
     }, [violations]);
 
-    const getViolationsForField = useCallback((field: MoneyRequestField) => violationsByField.get(field) ?? [], [violationsByField]);
+    const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
         getViolationsForField,
@@ -67,4 +67,4 @@ function useViolations(violations: TransactionViolation[]) {
 }
 
 export default useViolations;
-export type {MoneyRequestField};
+export type {ViolationField};

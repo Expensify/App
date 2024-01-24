@@ -255,7 +255,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 return translate(translationPath);
             }
 
-            // Show violations if there are any
+            // Return violations if there are any
             if (canUseViolations && hasViolations(field)) {
                 const violations = getViolationsForField(field);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
