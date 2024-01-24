@@ -1,8 +1,8 @@
 // We should not render the component if there is no iouReport and it's not a split.
 // Moved outside of the component scope to allow memoization of values later.
+import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MoneyRequestPreview from './MoneyRequestPreview';
 import MoneyRequestPreviewPropTypes from './moneyRequestPreviewPropTypes';
@@ -11,7 +11,7 @@ import MoneyRequestPreviewPropTypes from './moneyRequestPreviewPropTypes';
 // Moved outside of the component scope to allow for easier use of hooks in the main component.
 function MoneyRequestPreviewWrapper(props) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return _.isEmpty(props.iouReport) && !props.isBillSplit ? null : <MoneyRequestPreview {...props} />;
+    return lodashIsEmpty(props.iouReport) && !props.isBillSplit ? null : <MoneyRequestPreview {...props} />;
 }
 
 MoneyRequestPreviewWrapper.propTypes = MoneyRequestPreviewPropTypes.propTypes;
