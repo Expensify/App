@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
@@ -42,6 +43,7 @@ function BaseModal(
         shouldClearFocusWithType = false,
         avoidKeyboard = false,
         children,
+        shouldUseCustomBackdrop = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -194,7 +196,7 @@ function BaseModal(
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}
-            backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
+            backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
             coverScreen={fullscreen}
@@ -210,6 +212,7 @@ function BaseModal(
             statusBarTranslucent={statusBarTranslucent}
             onLayout={onLayout}
             avoidKeyboard={avoidKeyboard}
+            customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
         >
             <ModalContent onDismiss={handleDismissModal}>
                 <View

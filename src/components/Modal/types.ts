@@ -60,6 +60,9 @@ type BaseModalProps = Partial<ModalProps> & {
      * */
     hideModalContentWhileAnimating?: boolean;
 
+    /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+    shouldUseCustomBackdrop?: boolean;
+
     /** Whether the modal should clear the focus record for the current business type. */
     shouldClearFocusWithType?: boolean;
 
