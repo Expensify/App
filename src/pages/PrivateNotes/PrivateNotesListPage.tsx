@@ -17,8 +17,6 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report, Session} from '@src/types/onyx';
 
 type PrivateNotesListPageOnyxProps = {
-    /* Onyx Props */
-
     /** All of the personal details for everyone */
     personalDetailsList: OnyxCollection<PersonalDetails>;
 

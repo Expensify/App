@@ -31,8 +31,6 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageOnyxProps = {
-    /* Onyx Props */
-
     /** All of the personal details for everyone */
     personalDetailsList: OnyxCollection<PersonalDetails>;
 };
