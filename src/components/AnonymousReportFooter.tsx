@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
+import Text from './Text';
 
 type AnonymousReportFooterProps = {
     /** The report currently being looked at */
