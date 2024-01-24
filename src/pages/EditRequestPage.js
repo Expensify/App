@@ -11,6 +11,7 @@ import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -81,7 +82,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
-        // tag: reportTags,
+        tag: reportTags,
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
@@ -89,10 +90,10 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const rawTagIndex = lodashGet(route, ['params', 'tagIndex'], undefined);
     const tagIndex = +rawTagIndex;
 
-    const transactionTag = TransactionUtils.getTag(transaction, +tagIndex);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
     const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
-    const policyTagListName = PolicyUtils.getTagListName(policyTags, +tagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -101,7 +102,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(policyTagValueList));
+    const shouldShowTags = isPolicyExpenseChat && (reportTags || OptionsListUtils.hasEnabledOptions(policyTagValueList));
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -166,14 +167,14 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const saveTag = useCallback(
         ({tag: newTag}) => {
             let updatedTag = newTag;
-            if (newTag === transactionTag) {
+            if (newTag === tag) {
                 // In case the same tag has been selected, reset the tag.
                 updatedTag = '';
             }
-            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag);
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, IOUUtils.insertTagIntoReportTagsSting(reportTags, updatedTag, tagIndex));
             Navigation.dismissModal();
         },
-        [transactionTag, transaction.transactionID, report.reportID],
+        [tag, reportTags, tagIndex, transaction.transactionID, report.reportID],
     );
 
     const saveCategory = useCallback(
@@ -253,7 +254,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
             <EditRequestTagPage
-                defaultTag={transactionTag}
+                defaultTag={tag}
                 tagName={policyTagListName}
                 tagIndex={tagIndex}
                 policyID={lodashGet(report, 'policyID', '')}
