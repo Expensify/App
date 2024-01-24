@@ -1,13 +1,12 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
-import Button from '@components/Button';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
@@ -68,7 +67,7 @@ function ManageTeamsExpensesModal() {
         >
             <View style={[styles.flex1]}>
                 <HeaderWithBackButton
-                    shouldShowBackButton={true}
+                    shouldShowBackButton
                     onBackButtonPress={closeModal}
                     iconFill={theme.iconColorfulBackground}
                 />
