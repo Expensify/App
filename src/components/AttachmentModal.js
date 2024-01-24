@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashExtend from 'lodash/extend';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -118,7 +118,7 @@ const defaultProps = {
     canEditReceipt: false,
 };
 
-const AttachmentModal = forwardRef((props, ref) => {
+function AttachmentModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -415,14 +415,6 @@ const AttachmentModal = forwardRef((props, ref) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file, source]);
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            displayFileInModal: validateAndDisplayFileToUpload,
-        }),
-        [validateAndDisplayFileToUpload],
-    );
-
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     let headerTitle = props.headerTitle;
@@ -546,12 +538,11 @@ const AttachmentModal = forwardRef((props, ref) => {
                 })}
         </>
     );
-});
+};
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 AttachmentModal.displayName = 'AttachmentModal';
-
 export default compose(
     withWindowDimensions,
     withLocalize,

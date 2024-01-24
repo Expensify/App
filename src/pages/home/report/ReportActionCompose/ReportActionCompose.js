@@ -158,7 +158,6 @@ function ReportActionCompose({
 
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
-    const attachementModalRef = useRef(null);
 
     const reportParticipantIDs = useMemo(
         () => _.without(lodashGet(report, 'participantAccountIDs', []), currentUserPersonalDetails.accountID),
@@ -341,10 +340,6 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, isReportReadyForDisplay]);
 
-    const onDisplayFileInModal = (file) => {
-        attachementModalRef.current.displayFileInModal(file);
-    };
-
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -368,7 +363,6 @@ function ReportActionCompose({
                         ]}
                     >
                         <AttachmentModal
-                            ref={attachementModalRef}
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
@@ -398,6 +392,37 @@ function ReportActionCompose({
                                         onItemSelected={onItemSelected}
                                         actionButtonRef={actionButtonRef}
                                     />
+                                    <ComposerWithSuggestions
+                                        ref={composerRef}
+                                        suggestionsRef={suggestionsRef}
+                                        isNextModalWillOpenRef={isNextModalWillOpenRef}
+                                        isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                        reportID={reportID}
+                                        parentReportID={report.parentReportID}
+                                        parentReportActionID={report.parentReportActionID}
+                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
+                                        isMenuVisible={isMenuVisible}
+                                        inputPlaceholder={inputPlaceholder}
+                                        isComposerFullSize={isComposerFullSize}
+                                        displayFileInModal={displayFileInModal}
+                                        textInputShouldClear={textInputShouldClear}
+                                        setTextInputShouldClear={setTextInputShouldClear}
+                                        isBlockedFromConcierge={isBlockedFromConcierge}
+                                        disabled={disabled}
+                                        isFullComposerAvailable={isFullComposerAvailable}
+                                        setIsFullComposerAvailable={setIsFullComposerAvailable}
+                                        handleSendMessage={handleSendMessage}
+                                        shouldShowComposeInput={shouldShowComposeInput}
+                                        onFocus={onFocus}
+                                        onBlur={onBlur}
+                                        measureParentContainer={measureContainer}
+                                        listHeight={listHeight}
+                                        isSendDisabled={isSendDisabled}
+                                        onValueChange={validateCommentMaxLength}
+                                    />
                                     <ReportDropUI
                                         onDrop={(e) => {
                                             if (isAttachmentPreviewActive) {
@@ -410,37 +435,6 @@ function ReportActionCompose({
                                 </>
                             )}
                         </AttachmentModal>
-                        <ComposerWithSuggestions
-                            ref={composerRef}
-                            suggestionsRef={suggestionsRef}
-                            isNextModalWillOpenRef={isNextModalWillOpenRef}
-                            isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
-                            reportID={reportID}
-                            parentReportID={report.parentReportID}
-                            parentReportActionID={report.parentReportActionID}
-                            includesChronos={ReportUtils.chatIncludesChronos(report)}
-                            isEmptyChat={isEmptyChat}
-                            lastReportAction={lastReportAction}
-                            isMenuVisible={isMenuVisible}
-                            inputPlaceholder={inputPlaceholder}
-                            isComposerFullSize={isComposerFullSize}
-                            displayFileInModal={onDisplayFileInModal}
-                            textInputShouldClear={textInputShouldClear}
-                            setTextInputShouldClear={setTextInputShouldClear}
-                            isBlockedFromConcierge={isBlockedFromConcierge}
-                            disabled={disabled}
-                            isFullComposerAvailable={isFullComposerAvailable}
-                            setIsFullComposerAvailable={setIsFullComposerAvailable}
-                            handleSendMessage={handleSendMessage}
-                            shouldShowComposeInput={shouldShowComposeInput}
-                            onFocus={onFocus}
-                            onBlur={onBlur}
-                            measureParentContainer={measureContainer}
-                            listHeight={listHeight}
-                            isSendDisabled={isSendDisabled}
-                            onValueChange={validateCommentMaxLength}
-                        />
                     </View>
                     <View
                         style={[
