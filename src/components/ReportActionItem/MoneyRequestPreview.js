@@ -34,7 +34,7 @@ import * as Localize from '@src/libs/Localize';
 import PropTypes from './moneyRequestPreviewPropTypes';
 import ReportActionItemImages from './ReportActionItemImages';
 
-function MoneyRequestPreview(props) {
+export default function MoneyRequestPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
