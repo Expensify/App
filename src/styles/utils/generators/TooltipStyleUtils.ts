@@ -116,7 +116,7 @@ type TooltipParams = {
     tooltipWrapperHeight?: number;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
-    forceRenderingBelow?: boolean;
+    shouldForceRenderingBelow?: boolean;
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
@@ -156,7 +156,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         tooltipWrapperHeight,
         manualShiftHorizontal = 0,
         manualShiftVertical = 0,
-        forceRenderingBelow = false,
+        shouldForceRenderingBelow = false,
     }) => {
         const tooltipVerticalPadding = spacing.pv1;
 
@@ -185,7 +185,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // Or the wrapped component is overlapping at top-center with another element
             // we'll display it beneath its wrapped component rather than above it as usual.
             shouldShowBelow =
-                forceRenderingBelow || yOffset - tooltipHeight < GUTTER_WIDTH || !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
+                shouldForceRenderingBelow || yOffset - tooltipHeight < GUTTER_WIDTH || !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
 
             // When the tooltip size is ready, we can start animating the scale.
             scale = currentSize;

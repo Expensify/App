@@ -42,7 +42,7 @@ function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, 
     return (
         <Tooltip
             text={tooltipText}
-            forceRenderingBelow={forceRenderingTooltipBelow}
+            shouldForceRenderingBelow={forceRenderingTooltipBelow}
         >
             <Hoverable>
                 {(isHovered) => (

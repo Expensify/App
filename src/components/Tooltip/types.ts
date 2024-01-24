@@ -28,7 +28,7 @@ type TooltipProps = ChildrenProps & {
     /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll?: boolean;
 
-    forceRenderingBelow?: boolean;
+    shouldForceRenderingBelow?: boolean;
 };
 
 type TooltipExtendedProps = TooltipProps & {
