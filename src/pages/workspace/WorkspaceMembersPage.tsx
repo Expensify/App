@@ -1,13 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -17,67 +13,33 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMembers, Session} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyMember, PolicyMembers} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import SearchInputManager from './SearchInputManager';
-import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-const propTypes = {
-    /** All personal details asssociated with user */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/members */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
-
-    isLoadingReportData: PropTypes.bool,
-    ...policyPropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
-};
-
 type WorkspaceMembersPageOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    session: OnyxEntry<Session>;
-    isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WorkspaceMembersPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    WithCurrentUserPersonalDetailsProps &
-    WorkspaceMembersPageOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps & WithCurrentUserPersonalDetailsProps & WorkspaceMembersPageOnyxProps;
 
 type MemberOption = {
     keyForList: string;
@@ -93,19 +55,22 @@ type MemberOption = {
     invitedSecondaryLogin?: string;
 };
 
-const defaultProps = {
-    personalDetails: {},
-    session: {
-        accountID: 0,
-    },
-    isLoadingReportData: true,
-    ...policyDefaultProps,
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+/**
+ * Inverts an object, equivalent of _.invert
+ */
+function invertObject(object: Record<string, string>): Record<string, string> {
+    const obj: Record<string, string> = {};
+    for (const key in object) {
+        if (Object.prototype.hasOwnProperty.call(object, key)) {
+            obj[object[key]] = key;
+        }
+    }
+    return obj;
+}
 
-function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
-    const [selectedEmployees, setSelectedEmployees] = useState([]);
+    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
@@ -114,7 +79,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const isOfflineAndNoMemberDataAvailable = _.isEmpty(policyMembers) && isOffline;
+    const isOfflineAndNoMemberDataAvailable = Object.keys(policyMembers ?? {}).length === 0 && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
 
@@ -130,11 +95,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Get filtered personalDetails list with current policyMembers
-     * @param policyMembers
-     * @param personalDetails
-     * @returns
      */
-    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>) =>
+    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): Record<string, PersonalDetails> =>
         Object.keys(members ?? {}).reduce((result, key) => {
             if (details?.[key]) {
                 return {
@@ -156,10 +118,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Check if the current selection includes members that cannot be removed
      */
     const validateSelection = useCallback(() => {
-        const newErrors = {};
+        const newErrors: Record<number, string> = {};
         const ownerAccountID = PersonalDetailsUtils.getAccountIDsByLogins(policy?.owner ? [policy.owner] : [])[0];
-        _.each(selectedEmployees, (member) => {
-            if (member !== ownerAccountID && member !== session.accountID) {
+        selectedEmployees.forEach((member) => {
+            if (member !== ownerAccountID && member !== session?.accountID) {
                 return;
             }
             newErrors[member] = translate('workspace.people.error.cannotRemove');
@@ -178,19 +140,19 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     }, [preferredLocale, validateSelection]);
 
     useEffect(() => {
-        if (removeMembersConfirmModalVisible && !_.isEqual(accountIDs, prevAccountIDs)) {
+        if (removeMembersConfirmModalVisible && JSON.stringify(accountIDs.sort()) !== JSON.stringify(prevAccountIDs.sort())) {
             setRemoveMembersConfirmModalVisible(false);
         }
         setSelectedEmployees((prevSelected) => {
             // Filter all personal details in order to use the elements needed for the current workspace
             const currentPersonalDetails = filterPersonalDetails(policyMembers, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
-            const prevSelectedElements = _.map(prevSelected, (id) => {
-                const prevItem = lodashGet(prevPersonalDetails, id);
-                const res = _.find(_.values(currentPersonalDetails), (item) => lodashGet(prevItem, 'login') === lodashGet(item, 'login'));
-                return lodashGet(res, 'accountID', id);
+            const prevSelectedElements = prevSelected.map((id) => {
+                const prevItem = prevPersonalDetails?.id;
+                const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
+                return res?.accountID ?? id;
             });
-            return _.intersection(prevSelectedElements, _.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails)));
+            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails))].reduce((a, b) => a.filter((c) => b.includes(c)));
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyMembers]);
@@ -215,12 +177,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Remove selected users from the workspace
      */
     const removeUsers = () => {
-        if (!_.isEmpty(errors)) {
+        if (Object.keys(errors).length > 0) {
             return;
         }
 
         // Remove the admin from the list
-        const accountIDsToRemove = _.without(selectedEmployees, session.accountID);
+        const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
 
         Policy.removeMembers(accountIDsToRemove, route.params.policyID);
         setSelectedEmployees([]);
@@ -231,7 +193,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Show the modal to confirm removal of the selected members
      */
     const askForConfirmationToRemove = () => {
-        if (!_.isEmpty(errors)) {
+        if (Object.keys(errors).length > 0) {
             return;
         }
         setRemoveMembersConfirmModalVisible(true);
@@ -239,16 +201,15 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Add or remove all users passed from the selectedEmployees list
-     * @param memberList
      */
-    const toggleAllUsers = (memberList) => {
-        const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
-        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedEmployees, member.accountID));
+    const toggleAllUsers = (memberList: MemberOption[]) => {
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
+        const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
 
         if (everyoneSelected) {
             setSelectedEmployees([]);
         } else {
-            const everyAccountId = _.map(enabledAccounts, (member) => member.accountID);
+            const everyAccountId = enabledAccounts.map((member) => member.accountID);
             setSelectedEmployees(everyAccountId);
         }
 
@@ -257,11 +218,9 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Add user from the selectedEmployees list
-     *
-     * @param {String} login
      */
     const addUser = useCallback(
-        (accountID) => {
+        (accountID: number) => {
             setSelectedEmployees((prevSelected) => [...prevSelected, accountID]);
             validateSelection();
         },
@@ -270,12 +229,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Remove user from the selectedEmployees list
-     *
-     * @param {String} login
      */
     const removeUser = useCallback(
-        (accountID) => {
-            setSelectedEmployees((prevSelected) => _.without(prevSelected, accountID));
+        (accountID: number) => {
+            setSelectedEmployees((prevSelected) => prevSelected.filter((id) => id !== accountID));
             validateSelection();
         },
         [validateSelection],
@@ -283,19 +240,15 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Toggle user from the selectedEmployees list
-     *
-     * @param {String} accountID
-     * @param {String} pendingAction
-     *
      */
     const toggleUser = useCallback(
-        (accountID, pendingAction) => {
+        (accountID: number, pendingAction?: PendingAction) => {
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (_.contains(selectedEmployees, accountID)) {
+            if (selectedEmployees.includes(accountID)) {
                 removeUser(accountID);
             } else {
                 addUser(accountID);
@@ -306,11 +259,9 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Dismisses the errors on one item
-     *
-     * @param {Object} item
      */
     const dismissError = useCallback(
-        (item) => {
+        (item: MemberOption) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 Policy.clearDeleteMemberError(route.params.policyID, item.accountID);
             } else {
@@ -322,21 +273,18 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     /**
      * Check if the policy member is deleted from the workspace
-     *
-     * @param policyMember
-     * @returns
      */
-    const isDeletedPolicyMember = (policyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && _.isEmpty(policyMember.errors);
-    const policyOwner = lodashGet(policy, 'owner');
-    const currentUserLogin = lodashGet(currentUserPersonalDetails, 'login');
-    const policyID = lodashGet(route, 'params.policyID');
-    const policyName = lodashGet(policy, 'name');
-    const invitedPrimaryToSecondaryLogins = _.invert(policy?.primaryLoginsInvited);
+    const isDeletedPolicyMember = (policyMember: PolicyMember) =>
+        !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && Object.keys(policyMember.errors ?? {}).length === 0;
+    const policyOwner = policy?.owner;
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const policyID = route.params.policyID;
+    const policyName = policy?.name;
+
+    const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
 
     const getMemberOptions = () => {
         let result: MemberOption[] = [];
-
-        console.log('*** POLICY MEMBERS ***', policyMembers);
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
             const accountID = Number(accountIDKey);
@@ -432,13 +380,14 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     };
 
     const getHeaderContent = () => {
-        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
+        if (Object.keys(invitedPrimaryToSecondaryLogins).length === 0) {
             return null;
         }
         return (
             <MessagesRow
                 type="success"
-                messages={{0: translate('workspace.people.addedWithPrimary')}}
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                messages={{'0': translate('workspace.people.addedWithPrimary')}}
                 containerStyles={[styles.pb5, styles.ph5]}
                 onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
             />
@@ -451,8 +400,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(_.isEmpty(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldShow={(!policy && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={!policy ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton
@@ -532,22 +481,14 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     );
 }
 
-WorkspaceMembersPage.propTypes = propTypes;
-WorkspaceMembersPage.defaultProps = defaultProps;
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
-export default compose(
-    withPolicyAndFullscreenLoading,
-    withCurrentUserPersonalDetails,
-    withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-    }),
-)(WorkspaceMembersPage);
+export default withCurrentUserPersonalDetails(
+    withPolicyAndFullscreenLoading(
+        withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+        })(WorkspaceMembersPage),
+    ),
+);
