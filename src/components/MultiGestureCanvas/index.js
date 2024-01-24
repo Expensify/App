@@ -445,7 +445,17 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     // used to store event scale value when we limit scale
     const pinchGestureScale = useSharedValue(1);
     const pinchGestureRunning = useSharedValue(false);
+
+    const [pinchEnabled, setPinchEnabled] = useState(true);
+    useEffect(() => {
+        if (pinchEnabled) {
+            return;
+        }
+        setPinchEnabled(true);
+    }, [pinchEnabled]);
+
     const pinchGesture = Gesture.Pinch()
+        .enabled(pinchEnabled)
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
             if (!isScrolling.value) {
@@ -466,6 +476,11 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             origin.y.value = adjustFocal.y;
         })
         .onChange((evt) => {
+            if (evt.numberOfPointers !== 2) {
+                runOnJS(setPinchEnabled)(false);
+                return;
+            }
+
             const newZoomScale = pinchScaleOffset.value * evt.scale;
 
             if (zoomScale.value >= zoomRange.min * zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * zoomScaleBounceFactors.max) {

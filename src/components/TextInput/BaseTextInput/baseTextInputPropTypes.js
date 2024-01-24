@@ -26,6 +26,9 @@ const propTypes = {
     /** Customize the TextInput container */
     textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Customizes the touchable wrapper of the TextInput component */
+    touchableInputWrapperStyle: PropTypes.arrayOf(PropTypes.object),
+
     /** Customize the main container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 

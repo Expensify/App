@@ -8,6 +8,7 @@ import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
@@ -66,6 +67,7 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
                     event.preventDefault();
                 }}
                 accessibilityLabel={tooltipText}
+                role={CONST.ROLE.BUTTON}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete)),

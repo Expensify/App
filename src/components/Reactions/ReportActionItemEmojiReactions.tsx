@@ -67,7 +67,7 @@ type FormattedReaction = {
     reactionEmojiName: string;
 
     /** The type of action that's pending  */
-    pendingAction: PendingAction;
+    pendingAction?: PendingAction;
 };
 
 function ReportActionItemEmojiReactions({

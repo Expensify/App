@@ -65,7 +65,7 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 ### How This Works
 1. On the day of your first card settlement, we'll create the Expensify Card Liability account in your QuickBooks Online general ledger. If you've opted for Daily Settlement, we'll also create an Expensify Clearing Account.
 2. During your QuickBooks Online auto-sync on that same day, if there are unsettled transactions, we'll generate a journal entry totaling all posted transactions since the last settlement. This entry will credit the selected bank account and debit the new Expensify Clearing Account (for Daily Settlement) or the Expensify Liability Account (for Monthly Settlement).
-3. Once the transactions are posted and the expense report is approved in Expensify, the report will be exported to QuickBooks Online with each line as individual credit card expenses. For Daily Settlement, an additional journal entry will credit the Expensify Clearing Account and debit the Expensify Card Liability Account. For Monthly Settlement, the journal entry will credit the Liability account directly and debit the appropriate expense categories.
+3. Once the transactions are posted and the expense report is approved in Expensify, the report will be exported to QuickBooks Online with each line as individual card expenses. For Daily Settlement, an additional journal entry will credit the Expensify Clearing Account and debit the Expensify Card Liability Account. For Monthly Settlement, the journal entry will credit the Liability account directly and debit the appropriate expense categories.
 
 ### Example
 - We have card transactions for the day totaling $100, so we create the following journal entry upon sync:
@@ -168,7 +168,7 @@ If Auto-Reconciliation is disabled for your company's Expensify Cards, a Domain 
 2. Each time a monthly settlement occurs, Expensify calculates the total purchase amount since the last settlement and creates a Journal Entry. This entry credits the settlement bank account (GL Account) and debits the Expensify Liability Account in Intacct.
 3. As expenses are approved and exported to Intacct, Expensify credits the Liability Account and debits the appropriate expense categories.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What are the timeframes for auto-reconciliation in Expensify?
 We offer either daily or monthly auto-reconciliation: 
@@ -209,3 +209,5 @@ To address this, please follow these steps:
 2. Go to the General Ledger (GL) account where your daily Expensify Card settlement withdrawals are recorded, and locate entries for the dates identified in Step 1.
 3. Adjust each settlement entry so that it now posts to the Clearing Account.
 4. Create a Journal Entry or Receive Money Transaction to clear the balance in the Liability Account using the funds currently held in the Clearing Account, which was set up in Step 2. 
+
+{% include faq-end.md %}
