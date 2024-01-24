@@ -66,7 +66,6 @@ function BaseSelectionList({
     shouldShowTooltips = true,
     shouldUseDynamicMaxToRenderPerBatch = false,
     rightHandSideComponent,
-    shouldScrollToTopOnSelect = true,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -379,7 +378,7 @@ function BaseSelectionList({
         }
 
         // set the focus on the first item when the sections list is changed
-        if (sections.length > 0 && shouldScrollToTopOnSelect) {
+        if (sections.length > 0) {
             updateAndScrollToFocusedIndex(0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
