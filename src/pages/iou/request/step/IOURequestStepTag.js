@@ -66,7 +66,7 @@ function IOURequestStepTag({
      */
     const updateTag = (selectedTag) => {
         if (tag === selectedTag.searchText) {
-            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, selectedTag.searchText);
+            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tagIndex);
         } else {
             IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, selectedTag.searchText, tagIndex);
         }
