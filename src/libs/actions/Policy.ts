@@ -1588,20 +1588,28 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): RecentlyUsedTags {
-    if (!policyID || !tag) {
+function buildOptimisticPolicyRecentlyUsedTags(policyID: string, reportTags: string): RecentlyUsedTags {
+    if (!policyID || !reportTags) {
         return {};
     }
 
+    const splittedReportTags = reportTags.split(CONST.COLON);
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
-    const tagListKey = Object.keys(policyTags)[0];
+    const policyTagKeys = Object.keys(policyTags);
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
+    const newOptimisticPolicyRecentlyUsedTags: Record<string, string[]> = {};
 
-    return {
-        ...policyRecentlyUsedTags,
-        [tagListKey]: lodashUnion([tag], policyRecentlyUsedTags?.[tagListKey] ?? []),
-    };
+    splittedReportTags.forEach((tag, index) => {
+        if (!tag) {
+            return;
+        }
+
+        const tagListKey = policyTagKeys[index];
+        const prevRecentlyUsedTags = policyRecentlyUsedTags[tagListKey] ?? [];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = lodashUnion([tag], prevRecentlyUsedTags);
+    });
+
+    return newOptimisticPolicyRecentlyUsedTags;
 }
 
 /**
