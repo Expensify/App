@@ -78,9 +78,7 @@ function BaseReactionList(props: BaseReactionListProps) {
             style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
             hoverStyle={hoveredComponentBG}
             onSelectRow={() => {
-                if (props.onClose) {
-                    props.onClose();
-                }
+                props.onClose?.();
 
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
             }}
