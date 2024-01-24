@@ -90,9 +90,6 @@ function Lightbox({
         [contentSize, setContentSize],
     );
 
-    const isItemActive = index === activeIndex;
-    const [isActive, setActive] = useState(isItemActive);
-
     // Enables/disables the lightbox based on the number of concurrent lightboxes
     // On higher-end devices, we can show render lightboxes at the same time,
     // while on lower-end devices we want to only render the active carousel item as a lightbox
@@ -129,20 +126,10 @@ function Lightbox({
     // because it's only going to be rendered after the fallback image is hidden.
     const shouldShowLightbox = isLightboxImageLoaded && (!hasSiblingCarouselItems || !isFallbackVisible);
 
+    const isActive = index === activeIndex;
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
     const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
-
-    // We delay setting a page to active state by a (few) millisecond(s),
-    // to prevent the image transformer from flashing while still rendering
-    // Instead, we show the fallback image while the image transformer is loading the image
-    useEffect(() => {
-        if (isItemActive) {
-            setTimeout(() => setActive(true), 1);
-        } else {
-            setActive(false);
-        }
-    }, [isItemActive]);
 
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
