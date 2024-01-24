@@ -51,7 +51,7 @@ function TroubleshootingPage() {
             title={translate('initialSettingsPage.aboutPage.troubleshooting')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
-            illustration={LottieAnimations.PreferencesDJ}
+            illustration={LottieAnimations.Desk}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
                 <Text style={[styles.textHeadline, styles.mb1]}>{translate('initialSettingsPage.aboutPage.troubleshooting')}</Text>

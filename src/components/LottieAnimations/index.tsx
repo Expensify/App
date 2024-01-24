@@ -56,6 +56,11 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         w: 375,
         h: 240,
     },
+    Desk: {
+        file: require('@assets/animations/Desk.lottie'),
+        w: 200,
+        h: 145,
+    },
 };
 
 export default DotLottieAnimations;
