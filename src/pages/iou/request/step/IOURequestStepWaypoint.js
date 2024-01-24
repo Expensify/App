@@ -2,7 +2,6 @@ import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddressSearch from '@components/AddressSearch';
