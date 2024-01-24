@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
+import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +30,7 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<TextInput | null>(null);
-
+    const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -79,6 +80,12 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onBlur={(e) => {
+                if (!isFocused) {
+                    shouldResetFocus.current = true; // detect the input is blurred when the page is hidden
+                }
+                props?.onBlur?.(e);
+            }}
         />
     );
 }
