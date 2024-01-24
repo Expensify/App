@@ -147,7 +147,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             return;
         }
         if (option.reportID) {
-            Navigation.dismissModal(option.reportID);
+            Navigation.dismissModalWithReportID(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }

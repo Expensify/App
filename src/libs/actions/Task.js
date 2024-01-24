@@ -229,7 +229,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         {optimisticData, successData, failureData},
     );
 
-    Navigation.dismissModal(parentReportID);
+    Navigation.dismissModalWithReportID(parentReportID);
 }
 
 /**

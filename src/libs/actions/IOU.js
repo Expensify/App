@@ -913,7 +913,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
         },
         onyxData,
     );
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
+    Navigation.dismissModalWithReportID(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
@@ -1310,7 +1310,7 @@ function requestMoney(
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModal(activeReportID);
+    Navigation.dismissModalWithReportID(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
@@ -1752,7 +1752,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(splitData.chatReportID);
+    Navigation.dismissModalWithReportID(splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -1986,7 +1986,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(splitChatReport.reportID);
+    Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
 }
 
@@ -2205,7 +2205,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal(chatReportID);
+    Navigation.dismissModalWithReportID(chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -3161,7 +3161,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(params.chatReportID);
+    Navigation.dismissModalWithReportID(params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -3179,7 +3179,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(params.chatReportID);
+    Navigation.dismissModalWithReportID(params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -3383,7 +3383,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModal(chatReport.reportID);
+    Navigation.dismissModalWithReport(chatReport);
 }
 
 function detachReceipt(transactionID) {

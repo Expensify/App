@@ -66,7 +66,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
     };
 
     API.write('ReferTeachersUniteVolunteer', parameters, {optimisticData});
-    Navigation.dismissModal(publicRoomReportID);
+    Navigation.dismissModalWithReportID(publicRoomReportID);
 }
 
 /**
@@ -194,7 +194,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     };
 
     API.write('AddSchoolPrincipal', parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(expenseChatReportID);
+    Navigation.dismissModalWithReportID(expenseChatReportID);
 }
 
 export default {referTeachersUniteVolunteer, addSchoolPrincipal};

@@ -81,7 +81,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
             const onSuccessFallbackRoute = lodashGet(personalBankAccount, 'onSuccessFallbackRoute', '');
 
             if (exitReportID) {
-                Navigation.dismissModal(exitReportID);
+                Navigation.dismissModalWithReportID(exitReportID);
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {

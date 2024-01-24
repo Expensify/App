@@ -1,13 +1,17 @@
 import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import type {EmptyObject} from 'type-fest';
 import Log from '@libs/Log';
+import {getReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import originalDismissModal from './dismissModal';
+import originalDismissModalWithReport from './dismissModalWithReport';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -47,8 +51,14 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 // Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
-const dismissModal = (targetReportId = '', ref = navigationRef) => originalDismissModal(targetReportId, ref);
+const dismissModal = (ref = navigationRef) => originalDismissModal(ref);
 
+const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
+
+const dismissModalWithReportID = (reportID: string, ref = navigationRef) => {
+    const report = getReport(reportID);
+    originalDismissModalWithReport({reportID, ...report}, ref);
+};
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
     if ('routes' in stateOrRoute && stateOrRoute.routes) {
@@ -323,6 +333,8 @@ export default {
     navigate,
     setParams,
     dismissModal,
+    dismissModalWithReport,
+    dismissModalWithReportID,
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,

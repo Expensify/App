@@ -166,7 +166,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // If this action is navigating to the ModalNavigator and the last route on the root navigator is not already opened ModalNavigator then push
         } else if (isModalNavigator(action.payload.name) && !isTargetNavigatorOnTop) {
             if (isModalNavigator(topRouteName)) {
-                dismissModal('', navigation);
+                dismissModal(navigation);
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
