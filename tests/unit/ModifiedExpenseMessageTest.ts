@@ -42,7 +42,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the amount to $18.00.`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
                 expect(result).toEqual(expectedResult);
             });
@@ -205,7 +205,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "KFC".`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
                 expect(result).toEqual(expectedResult);
             });
