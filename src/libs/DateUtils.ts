@@ -731,12 +731,20 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
+ * Returns the time in milliseconds of a date in the format expected by the database
+ */
+function getDBTimeFromDate(date: Date): string {
+    return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
  * Return the date with full format if the created date is the current date.
  * Otherwise return the created date.
  */
 function enrichMoneyRequestTimestamp(created: string): string {
-    const currentTime = getDBTime();
-    return formatWithUTCTimeZone(created) === formatWithUTCTimeZone(currentTime) ? currentTime : created;
+    const now = new Date();
+    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
+    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
 }
 
 const DateUtils = {
