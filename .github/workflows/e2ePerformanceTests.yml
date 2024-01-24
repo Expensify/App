@@ -57,6 +57,7 @@ jobs:
           EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
           EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
           EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+          PATH_ENV_FILE: tests/e2e/.env.e2e
 
   buildDelta:
     runs-on: ubuntu-latest-xl
@@ -124,6 +125,7 @@ jobs:
           EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
           EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
           EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+          PATH_ENV_FILE: tests/e2e/.env.e2edelta
 
   runTestsInAWS:
     runs-on: ubuntu-latest
