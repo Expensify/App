@@ -19,6 +19,9 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
+            if (!attribs.src) {
+                return;
+            }
             if (name === 'video') {
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
