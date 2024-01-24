@@ -124,6 +124,10 @@ function tryFocusModeUpdate() {
         const validReports = [];
         Object.keys(allReports ?? {}).forEach((key) => {
             const report = allReports?.[key];
+            if (!report) {
+                return;
+            }
+
             if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? 0, report)) {
                 return;
             }

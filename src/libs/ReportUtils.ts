@@ -4496,17 +4496,24 @@ function isValidReport(report?: OnyxEntry<Report>): boolean {
 /**
  * Check to see if we are a participant of this report.
  */
-function isReportParticipant(accountID: number, report?: OnyxEntry<Report>): boolean {
+function isReportParticipant(accountID: number, report: OnyxEntry<Report>): boolean {
     if (!accountID) {
         return false;
     }
 
-    // We are not the owner or the manager or a participant
-    if (report?.ownerAccountID !== accountID && report?.managerID !== accountID && !(report?.participantAccountIDs ?? []).includes(accountID)) {
-        return false;
+    // If we have a DM AND the accountID we are checking is the current user THEN we won't find them as a participant and must assume they are a participant
+    if (isDM(report) && accountID === currentUserAccountID) {
+        return true;
     }
 
-    return true;
+    const possibleAccountIDs = report?.participantAccountIDs ?? [];
+    if (report?.ownerAccountID) {
+        possibleAccountIDs.push(report?.ownerAccountID);
+    }
+    if (report?.managerID) {
+        possibleAccountIDs.push(report?.managerID);
+    }
+    return possibleAccountIDs.includes(accountID);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
