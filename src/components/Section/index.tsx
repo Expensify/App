@@ -113,7 +113,7 @@ function Section({
                         </View>
                     </View>
                 )}
-                <View style={isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)}>
+                <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1, titleStyles]}>
                         <View style={[styles.flexShrink1]}>
                             <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
