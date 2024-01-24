@@ -14,6 +14,7 @@ import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type IntroSelected from './IntroSelected';
 import type IOU from './IOU';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
@@ -87,6 +88,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    IntroSelected,
     IOU,
     Locale,
     Login,

@@ -15,11 +15,11 @@ const ScrollContext = createContext<ScrollContextValue>({
     scrollViewRef: null,
 });
 
-type ScrollViewWithContextProps = {
+type ScrollViewWithContextProps = Partial<ScrollViewProps> & {
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     children?: ReactNode;
     scrollEventThrottle?: number;
-} & Partial<ScrollViewProps>;
+};
 
 /*
  * <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
