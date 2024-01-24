@@ -120,11 +120,11 @@ function Lightbox({
         };
     }, [hasSiblingCarouselItems, contentSize, isCanvasLoading, canvasSize]);
 
-    // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
-    // so that we don't see two overlapping images at the same time.
+    // If the fallback image is currently visible, we want to hide the Lightbox by setting the opacity to 0,
+    // until the fallback gets hidden so that we don't see two overlapping images at the same time.
     // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
     // because it's only going to be rendered after the fallback image is hidden.
-    const shouldShowLightbox = isLightboxImageLoaded && (!hasSiblingCarouselItems || !isFallbackVisible);
+    const shouldShowLightbox = isLightboxImageLoaded && !isFallbackVisible;
 
     const isActive = index === activeIndex;
     const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
