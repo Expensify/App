@@ -354,7 +354,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         >
                             <MenuItemWithTopDescription
                                 description={name}
-                                title={TransactionUtils.getTag(transaction, index)}
+                                title={TransactionUtils.getTag(transaction, index) || translate('common.tag')}
                                 interactive={canEdit}
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}
@@ -430,7 +430,7 @@ export default compose(
     withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions[report.parentReportActionID];
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
