@@ -1,8 +1,8 @@
 /**
  * get the overflow of list view in GooglePlacesAutocomplete.
- * @returns {Object} styles for list view.
+ * @returns styles for the list view.
  */
-function getListViewOverflow() {
+function getListViewOverflow(): {overflow: string} {
     return {
         overflow: 'hidden',
     };
