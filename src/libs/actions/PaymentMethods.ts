@@ -1,6 +1,6 @@
 import {createRef} from 'react';
-import type {MutableRefObject, SyntheticEvent} from 'react';
-import type {NativeTouchEvent} from 'react-native';
+import type {MutableRefObject} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -16,7 +16,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
-    continueAction?: (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => void;
+    continueAction?: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => void;
 };
 
 /**
