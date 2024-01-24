@@ -40,6 +40,22 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
+    function WithNavigationFocus(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isFocused={false}
+            />
+        );
+    }
+
+    WithNavigationFocus.displayName = 'WithNavigationFocus';
+
+    return WithNavigationFocus;
+});
+
 const getMockedReports = (length = 100) =>
     createCollection(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -91,8 +107,6 @@ function SearchPageWrapper(args) {
     );
 }
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 test('[Search Page] should interact when text input changes', async () => {
     const {addListener} = TestHelper.createAddListenerMock();
 
@@ -117,7 +131,7 @@ test('[Search Page] should interact when text input changes', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });
 
 test('[Search Page] should render options list', async () => {
@@ -143,7 +157,7 @@ test('[Search Page] should render options list', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });
 
 test.skip('[Search Page] should search in options list', async () => {
@@ -174,7 +188,7 @@ test.skip('[Search Page] should search in options list', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });
 
 test.skip('[Search Page] should click on list item', async () => {
@@ -202,5 +216,5 @@ test.skip('[Search Page] should click on list item', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario, runs}));
+        .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}));
 });

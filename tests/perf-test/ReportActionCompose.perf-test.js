@@ -50,6 +50,22 @@ jest.mock('../../src/libs/actions/EmojiPickerAction', () => {
     };
 });
 
+jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
+    function WithNavigationFocus(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isFocused={false}
+            />
+        );
+    }
+
+    WithNavigationFocus.displayName = 'WithNavigationFocus';
+
+    return WithNavigationFocus;
+});
+
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
