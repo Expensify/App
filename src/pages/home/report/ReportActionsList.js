@@ -204,6 +204,9 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const readNewestReportActionOnFocus = () => {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
+            return;
+        }
         if (ReportUtils.isUnread(report) && Visibility.hasFocus() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
             Report.readNewestAction(report.reportID);
         } else {
@@ -212,9 +215,6 @@ function ReportActionsList({
     }
 
     useEffect(() => {
-        if (!userActiveSince.current || report.reportID !== prevReportID) {
-            return;
-        }
 
         readNewestReportActionOnFocus()
 
