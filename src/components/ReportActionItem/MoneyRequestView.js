@@ -354,7 +354,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         >
                             <MenuItemWithTopDescription
                                 description={name}
-                                title={TransactionUtils.getTag(transaction, index) || translate('common.tag')}
+                                title={TransactionUtils.getTag(transaction, index)}
                                 interactive={canEdit}
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}
