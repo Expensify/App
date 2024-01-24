@@ -9,7 +9,6 @@ import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWithOnyx) {
-    // hooks
     const {emojiReactions, emojiName, reportActionID, currentUserPersonalDetails} = props;
     const {preferredLocale} = useLocalize();
     const {isPopoverVisible, hideReactionList, popoverAnchorPosition, reactionListRef, getReactionInformation} = useBasePopoverReactionList({
