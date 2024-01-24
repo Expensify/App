@@ -411,7 +411,7 @@ function getLastActorDisplayName(lastActorDetails, hasMultipleParticipants) {
  * Get the last message text from the report directly or from other sources for special cases.
  * @param {Object} report
  * @param {Object | null} lastActorDetails
- * @param {Object} [policy]
+ * @param {Object | null} [policy]
  * @returns {String}
  */
 function getLastMessageTextForReport(report, lastActorDetails, policy) {
