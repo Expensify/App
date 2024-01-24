@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
-import {LogBox} from 'react-native';
+import {LogBox, Platform} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
@@ -72,15 +72,16 @@ function App() {
                     EnvironmentProvider,
                     CustomStatusBarAndBackgroundContextProvider,
                     ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
-                    KeyboardProvider,
                 ]}
             >
-                <CustomStatusBarAndBackground />
-                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <ColorSchemeWrapper>
-                        <Expensify />
-                    </ColorSchemeWrapper>
-                </ErrorBoundary>
+                <KeyboardProvider enabled={Platform.OS === "ios"}>
+                    <CustomStatusBarAndBackground />
+                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                        <ColorSchemeWrapper>
+                            <Expensify />
+                        </ColorSchemeWrapper>
+                    </ErrorBoundary>
+                </KeyboardProvider>
             </ComposeProviders>
         </GestureHandlerRootView>
     );
