@@ -2114,7 +2114,7 @@ export default {
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: 'Missing tag',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? ''} no longer valid`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? ''} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
