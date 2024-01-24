@@ -1441,16 +1441,11 @@ function getOptions(
         if (accountIDs.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
             reportMapForAccountIDs[accountIDs[0]] = report;
         }
-        const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
-
-        // Checks to see if the current user is the admin of the policy, if so the policy
-        // name preview will be shown.
-        const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
 
         allReportOptions.push(
             createOption(accountIDs, personalDetails, report, reportActions, {
                 showChatPreviewLine,
-                forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
+                forcePolicyNamePreview,
             }),
         );
     });
@@ -1962,9 +1957,9 @@ function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecen
                 title: undefined,
                 data: shouldGetOptionDetails
                     ? _.map(selectedOptions, (participant) => {
-                          const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                      })
+                        const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                        return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    })
                     : selectedOptions,
                 shouldShow: !_.isEmpty(selectedOptions),
                 indexOffset,
@@ -1988,9 +1983,9 @@ function formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecen
             title: undefined,
             data: shouldGetOptionDetails
                 ? _.map(selectedParticipantsWithoutDetails, (participant) => {
-                      const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                  })
+                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                })
                 : selectedParticipantsWithoutDetails,
             shouldShow: !_.isEmpty(selectedParticipantsWithoutDetails),
             indexOffset,
