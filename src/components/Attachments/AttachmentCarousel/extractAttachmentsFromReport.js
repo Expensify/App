@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
 import * as FileUtils from '@libs/fileDownload/FileUtils';

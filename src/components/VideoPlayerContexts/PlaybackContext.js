@@ -12,27 +12,31 @@ function PlaybackContextProvider({children}) {
     const {currentReportID} = useCurrentReportID();
 
     const pauseVideo = useCallback(() => {
-        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync) {
-            currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
+        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync)) {
+            return;
         }
+        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.stopAsync) {
-            currentVideoPlayerRef.current.stopAsync({shouldPlay: false});
+        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.stopAsync)) {
+            return;
         }
+        currentVideoPlayerRef.current.stopAsync({shouldPlay: false});
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync) {
-            currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
+        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.setStatusAsync)) {
+            return;
         }
+        currentVideoPlayerRef.current.setStatusAsync({shouldPlay: true});
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
-        if (currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.unloadAsync) {
-            currentVideoPlayerRef.current.unloadAsync();
+        if (!(currentVideoPlayerRef && currentVideoPlayerRef.current && currentVideoPlayerRef.current.unloadAsync)) {
+            return;
         }
+        currentVideoPlayerRef.current.unloadAsync();
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(

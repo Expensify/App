@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import {ResizeMode, Video} from 'expo-av';
+import {Video} from 'expo-av';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';

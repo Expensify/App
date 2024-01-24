@@ -1,13 +1,11 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
-import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
