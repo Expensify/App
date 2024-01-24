@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -173,7 +173,6 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const reportIDFromRoute = getReportID(route);
     const reportActionIDFromRoute = lodashGet(route, 'params.reportActionID', null);
-    const shouldTriggerLoadingRef = useRef(!!reportActionIDFromRoute);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
@@ -187,6 +186,11 @@ function ReportScreen({
         return _.filter(currentRangeOfReportActions, (reportAction) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID));
     }, [reportActionIDFromRoute, allReportActions]);
 
+    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
+    useLayoutEffect(() => {
+        setLinkingToMessage(!!reportActionIDFromRoute);
+    }, [route, reportActionIDFromRoute]);
+
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
@@ -196,12 +200,6 @@ function ReportScreen({
         Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
-
-    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
-    useLayoutEffect(() => {
-        shouldTriggerLoadingRef.current = !!reportActionIDFromRoute;
-        setLinkingToMessage(!!reportActionIDFromRoute);
-    }, [route, reportActionIDFromRoute]);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -497,13 +495,9 @@ function ReportScreen({
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
-        if (reportMetadata.isLoadingInitialReportActions && shouldTriggerLoadingRef.current) {
-            shouldTriggerLoadingRef.current = false;
-            return;
-        }
-        if (!reportMetadata.isLoadingInitialReportActions && !shouldTriggerLoadingRef.current) {
+        InteractionManager.runAfterInteractions(() => {
             setLinkingToMessage(false);
-        }
+        });
     }, [reportMetadata.isLoadingInitialReportActions]);
 
     const onLinkPress = () => {
@@ -515,7 +509,7 @@ function ReportScreen({
         if (!reportActionIDFromRoute) {
             return false;
         }
-        return ReportActionsUtils.isDeletedAction(allReportActions[reportActionIDFromRoute]);
+        return !_.isEmpty(allReportActions[reportActionIDFromRoute]) && ReportActionsUtils.isDeletedAction(allReportActions[reportActionIDFromRoute]);
     }, [reportActionIDFromRoute, allReportActions]);
 
     if (isLinkedReportActionDeleted || (!shouldShowSkeleton && reportActionIDFromRoute && _.isEmpty(reportActions) && !isLinkingToMessage)) {
