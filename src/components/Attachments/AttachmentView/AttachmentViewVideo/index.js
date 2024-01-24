@@ -32,5 +32,6 @@ function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement}) {
 
 AttachmentViewVideo.propTypes = propTypes;
 AttachmentViewVideo.defaultProps = defaultProps;
+AttachmentViewVideo.displayName = 'AttachmentViewVideo';
 
 export default React.memo(AttachmentViewVideo);

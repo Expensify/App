@@ -38,6 +38,6 @@ function VideoRenderer(props) {
 }
 
 VideoRenderer.propTypes = propTypes;
-VideoRenderer.displayName = 'ImageRenderer';
+VideoRenderer.displayName = 'VideoRenderer';
 
 export default VideoRenderer;
