@@ -68,9 +68,6 @@ function BaseReactionList(props: BaseReactionListProps) {
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly
      *
-     * @param params object
-     * @param params.item object
-     * @return React.Component
      */
     const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => (
         <OptionRow
