@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
@@ -39,6 +40,7 @@ function BaseModal(
         onLayout,
         avoidKeyboard = false,
         children,
+        shouldUseCustomBackdrop = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -208,6 +210,7 @@ function BaseModal(
                 statusBarTranslucent={statusBarTranslucent}
                 onLayout={onLayout}
                 avoidKeyboard={avoidKeyboard}
+                customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
             >
                 <View
                     style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
