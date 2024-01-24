@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import PurposeForUsingExpensifyModal from '@components/PurposeForUsingExpensifyModal';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
@@ -44,6 +45,7 @@ function SidebarScreen(props) {
                     onShowCreateMenu={createDragoverListener}
                     onHideCreateMenu={removeDragoverListener}
                 />
+                <PurposeForUsingExpensifyModal />
             </BaseSidebarScreen>
         </FreezeWrapper>
     );
