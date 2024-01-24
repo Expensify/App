@@ -3,7 +3,7 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 type ThumbnailAndImageURI = {
-    image?: string;
+    image: string;
     thumbnail?: string;
     transaction?: Transaction;
     isLocalFile?: boolean;
