@@ -34,6 +34,9 @@ const propTypes = {
     /** Additional style props */
     style: stylePropTypes,
 
+    /** Additional style props for disabled picker */
+    disabledStyle: stylePropTypes,
+
     /** Executed once an image has been selected */
     onImageSelected: PropTypes.func,
 
@@ -87,7 +90,7 @@ const propTypes = {
     avatarStyle: stylePropTypes.isRequired,
 
     /** Indicates if picker feature should be disabled */
-    disabled: PropTypes.bool,
+    disabled: PropTypes.bool, 
 };
 
 const defaultProps = {
@@ -95,6 +98,7 @@ const defaultProps = {
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
+    disabledStyle: [],
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
@@ -115,6 +119,7 @@ function AvatarWithImagePicker({
     isFocused,
     DefaultAvatar,
     style,
+    disabledStyle,
     pendingAction,
     errors,
     errorRowStyles,
@@ -314,6 +319,7 @@ function AvatarWithImagePicker({
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || disabled}
+                            disabledStyle={disabledStyle}
                             ref={anchorRef}
                         >
                             <View>
