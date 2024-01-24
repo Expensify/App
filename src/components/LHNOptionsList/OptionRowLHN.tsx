@@ -61,15 +61,13 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
-    const alternateTextStyle =
-        isInFocusMode
-            ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
-            : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, style];
+    const alternateTextStyle = isInFocusMode
+        ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
+        : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, style];
 
-    const contentContainerStyles =
-        isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
+    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
-        IsInFocusMode
+        isInFocusMode
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
