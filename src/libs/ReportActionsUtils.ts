@@ -443,7 +443,7 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -658,7 +658,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
 function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
-    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
     // Exclude the task system message and the created message
