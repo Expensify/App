@@ -196,15 +196,16 @@ function IOURequestStepScan({
         }
 
         if (trackRef.current && isFlashLightOn) {
-            trackRef.current.applyConstraints({
-                advanced: [{torch: true}],
-            });
-            setTimeout(() => {
-                getScreenshot();
-                trackRef.current.applyConstraints({
-                    advanced: [{torch: false}],
+            trackRef.current
+                .applyConstraints({
+                    advanced: [{torch: true}],
+                })
+                .then(() => {
+                    getScreenshot();
+                    trackRef.current.applyConstraints({
+                        advanced: [{torch: false}],
+                    });
                 });
-            }, CONST.TORCH_EFFECT);
             return;
         }
 
