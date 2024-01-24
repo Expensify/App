@@ -440,6 +440,14 @@ const CONST = {
     },
     CURRENCY: {
         USD: 'USD',
+        AUD: 'AUD',
+        CAD: 'CAD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+        EUR: 'EUR',
+    },
+    get DIRECT_REIMBURSEMENT_CURRENCIES() {
+        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.NZD, this.CURRENCY.EUR];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
@@ -967,6 +975,7 @@ const CONST = {
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
     },
+    MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM: 83,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
@@ -1297,6 +1306,11 @@ const CONST = {
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_YES: 'reimburseYes',
+            REIMBURSEMENT_NO: 'reimburseNo',
+            REIMBURSEMENT_MANUAL: 'reimburseManual',
+        },
         ID_FAKE: '_FAKE_',
     },
 
