@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -202,18 +203,23 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
+    const readNewestReportActionOnFocus = () => {
+        if(!ReportUtils.isUnread(report)){
+            return
+        }
+        if (Visibility.hasFocus() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            Report.readNewestAction(report.reportID);
+        } else {
+            readActionSkipped.current = true;
+        }
+    }
+
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
 
-        if (ReportUtils.isUnread(report)) {
-            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
-                Report.readNewestAction(report.reportID);
-            } else {
-                readActionSkipped.current = true;
-            }
-        }
+        readNewestReportActionOnFocus()
 
         if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
@@ -224,6 +230,9 @@ function ReportActionsList({
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
+
+    // mark actions as read when the user opens up the tab or app
+    useAppFocusEvent(readNewestReportActionOnFocus)
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
