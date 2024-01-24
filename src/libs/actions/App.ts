@@ -55,7 +55,6 @@ Onyx.connect({
     initWithStoredValues: true,
 });
 
-
 let preferredLocale: string | null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -152,7 +151,6 @@ function resetBootSplashAutoHide() {
 
     Onyx.set(ONYXKEYS.IS_BOOT_SPLASH_AUTO_HIDE, true);
 }
-
 
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {

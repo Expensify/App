@@ -18,8 +18,8 @@ const propTypes = {
 };
 function BackgroundImage(props) {
     const styles = useThemeStyles();
-    
-    useEffect(()=>{
+
+    useEffect(() => {
         props.onLoadEnd();
     }, []);
 

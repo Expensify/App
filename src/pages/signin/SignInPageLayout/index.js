@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {ScrollView, View, Button} from 'react-native';
+import {Button, ScrollView, View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ImageSVG from '@components/ImageSVG';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -13,13 +14,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import variables from '@styles/variables';
+import * as App from '@userActions/App';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import * as App from '@userActions/App';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -107,7 +106,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1]}/>}
+            {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1]} />}
             {!props.shouldShowSmallScreen ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
@@ -136,7 +135,7 @@ function SignInPageLayout(props) {
                                     isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
-                                    onLoadEnd={()=>{
+                                    onLoadEnd={() => {
                                         setIsLoading(false);
                                         App.resetBootSplashAutoHide();
                                     }}
@@ -179,11 +178,11 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
-                            onLoadEnd={()=>{
+                            onLoadEnd={() => {
                                 setIsLoading(false);
                                 App.resetBootSplashAutoHide();
                             }}
-                    />
+                        />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}
