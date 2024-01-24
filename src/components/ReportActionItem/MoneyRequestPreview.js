@@ -129,7 +129,11 @@ function MoneyRequestPreview(props) {
         } else if (props.iouReport.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
         }
-        return message + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage}` : '');
+
+        if (isSettled && !props.iouReport.isCancelledIOU) {
+            message += ` • ${getSettledMessage}`;
+        }
+        return message;
     }, [
         getSettledMessage,
         hasViolations,
