@@ -165,7 +165,7 @@ function ReportScreen({
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
-     * 
+     *
      * Also, this plays nicely in contrast with Onyx,
      * which creates a new object every time collection changes. Because of this we can't
      * put this into onyx selector as it will be the same.
@@ -201,7 +201,36 @@ function ReportScreen({
             isOwnPolicyExpenseChat: reportProp.isOwnPolicyExpenseChat,
             notificationPreference: reportProp.notificationPreference,
         }),
-        [reportProp.lastReadTime, reportProp.reportID, reportProp.policyID, reportProp.lastVisibleActionCreated, reportProp.statusNum, reportProp.stateNum, reportProp.writeCapability, reportProp.type, reportProp.errorFields, reportProp.isPolicyExpenseChat, reportProp.parentReportID, reportProp.parentReportActionID, reportProp.chatType, reportProp.pendingFields, reportProp.isDeletedParentAction, reportProp.reportName, reportProp.description, reportProp.managerID, reportProp.total, reportProp.nonReimbursableTotal, reportProp.reportFields, reportProp.ownerAccountID, reportProp.currency, reportProp.participantAccountIDs, reportProp.isWaitingOnBankAccount, reportProp.iouReportID, reportProp.isOwnPolicyExpenseChat, reportProp.notificationPreference],
+        [
+            reportProp.lastReadTime,
+            reportProp.reportID,
+            reportProp.policyID,
+            reportProp.lastVisibleActionCreated,
+            reportProp.statusNum,
+            reportProp.stateNum,
+            reportProp.writeCapability,
+            reportProp.type,
+            reportProp.errorFields,
+            reportProp.isPolicyExpenseChat,
+            reportProp.parentReportID,
+            reportProp.parentReportActionID,
+            reportProp.chatType,
+            reportProp.pendingFields,
+            reportProp.isDeletedParentAction,
+            reportProp.reportName,
+            reportProp.description,
+            reportProp.managerID,
+            reportProp.total,
+            reportProp.nonReimbursableTotal,
+            reportProp.reportFields,
+            reportProp.ownerAccountID,
+            reportProp.currency,
+            reportProp.participantAccountIDs,
+            reportProp.isWaitingOnBankAccount,
+            reportProp.iouReportID,
+            reportProp.isOwnPolicyExpenseChat,
+            reportProp.notificationPreference,
+        ],
     );
 
     const prevReport = usePrevious(report);

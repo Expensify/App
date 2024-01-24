@@ -538,7 +538,7 @@ function AttachmentModal(props) {
                 })}
         </>
     );
-};
+}
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
