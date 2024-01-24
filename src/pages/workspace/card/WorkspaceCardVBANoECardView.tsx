@@ -25,6 +25,7 @@ type WorkspaceCardVBANoECardViewProps = WorkspaceCardVBANoECardViewOnyxProps;
 function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]
 
     return (
         <>
@@ -34,7 +35,7 @@ function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
             >
                 <View style={[styles.mv3]}>
                     <UnorderedList
-                        items={[translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]}
+                        items={unorderedListItems}
                     />
                 </View>
                 <Button
@@ -50,7 +51,7 @@ function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
                     success
                 />
             </Section>
-            {Boolean(user?.isCheckingDomain) && <Text style={[styles.m5, styles.formError]}>{translate('workspace.card.checkingDomain')}</Text>}
+            {!!user?.isCheckingDomain && <Text style={[styles.m5, styles.formError]}>{translate('workspace.card.checkingDomain')}</Text>}
         </>
     );
 }

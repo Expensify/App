@@ -16,6 +16,7 @@ type WorkspaceCardNoVBAViewProps = {
 function WorkspaceCardNoVBAView({policyID}: WorkspaceCardNoVBAViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]
 
     return (
         <Section
@@ -26,7 +27,7 @@ function WorkspaceCardNoVBAView({policyID}: WorkspaceCardNoVBAViewProps) {
                 <Text>{translate('workspace.card.noVBACopy')}</Text>
             </View>
 
-            <UnorderedList items={[translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]} />
+            <UnorderedList items={unorderedListItems} />
             <ConnectBankAccountButton
                 policyID={policyID}
                 style={[styles.mt6]}

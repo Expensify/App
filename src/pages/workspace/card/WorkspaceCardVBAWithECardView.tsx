@@ -10,25 +10,17 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 
-type MenuLinks = {
-    ISSUE_AND_MANAGE_CARDS: string;
-    RECONCILE_CARDS: string;
-    SETTLEMENT_FREQUENCY: string;
-};
-
-type MenuItems = MenuItemWithLink[];
-
-const MENU_LINKS: MenuLinks = {
+const MENU_LINKS = {
     ISSUE_AND_MANAGE_CARDS: 'domain_companycards',
     RECONCILE_CARDS: encodeURI('domain_companycards?param={"section":"cardReconciliation"}'),
     SETTLEMENT_FREQUENCY: encodeURI('domain_companycards?param={"section":"configureSettings"}'),
-};
+} as const;
 
 function WorkspaceCardVBAWithECardView() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const menuItems: MenuItems = [
+    const menuItems: MenuItemWithLink[] = [
         {
             title: translate('workspace.common.issueAndManageCards'),
             onPress: () => Link.openOldDotLink(MENU_LINKS.ISSUE_AND_MANAGE_CARDS),
