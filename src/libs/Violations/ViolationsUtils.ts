@@ -53,7 +53,8 @@ const ViolationsUtils = {
         if (policyRequiresTags) {
             const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy');
             const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag');
-            const isTagInPolicy = Boolean(policyTags[transaction.tag]?.enabled);
+            // TODO: Implement
+            const isTagInPolicy = false; // Boolean(policyTags[transaction.tag]?.enabled);
 
             // Add 'tagOutOfPolicy' violation if tag is not in policy
             if (!hasTagOutOfPolicyViolation && transaction.tag && !isTagInPolicy) {
