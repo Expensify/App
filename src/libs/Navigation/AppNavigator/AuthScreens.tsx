@@ -59,6 +59,9 @@ const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScre
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
+const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
+const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
+const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -296,6 +299,33 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
                         presentation: 'transparentModal',
                     }}
                     getComponent={loadReportAttachments}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.PROFILE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadProfileAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadWorkspaceAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReportAvatar}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

@@ -323,7 +323,9 @@ type SignInNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.REFERRAL_DETAILS]: undefined;
+    [SCREENS.REFERRAL_DETAILS]: {
+        contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+    };
 };
 
 type ProcessMoneyRequestHoldNavigatorParamList = {
@@ -415,6 +417,15 @@ type AuthScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
         source: string;
+    };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
