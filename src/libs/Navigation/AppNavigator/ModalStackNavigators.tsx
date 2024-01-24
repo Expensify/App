@@ -62,7 +62,6 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
                         key={name}
                         name={name}
                         getComponent={(screens as Required<Screens>)[name as Screen]}
-                        initialParams={{layout: 'narrow'} as TStackParams[string]}
                     />
                 ))}
             </ModalStackNavigator.Navigator>
@@ -267,6 +266,7 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../pages/EditRequestPage').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
+    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require('../../../pages/EditReportFieldPage').default as React.ComponentType,
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({
