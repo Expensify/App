@@ -1,4 +1,3 @@
-import variables from '@styles/variables';
 import type DotLottieAnimation from './types';
 
 const DotLottieAnimations: Record<string, DotLottieAnimation> = {
@@ -51,11 +50,6 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         file: require('@assets/animations/Magician.lottie'),
         w: 853,
         h: 480,
-    },
-    Update: {
-        file: require('@assets/animations/Update.lottie'),
-        w: variables.updateAnimationW,
-        h: variables.updateAnimationH,
     },
     Coin: {
         file: require('@assets/animations/Coin.lottie'),
