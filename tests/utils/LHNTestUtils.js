@@ -262,6 +262,7 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
+        approvalMode: 'BASIC',
     };
 }
 
