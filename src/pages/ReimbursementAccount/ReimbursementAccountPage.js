@@ -315,6 +315,11 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
+                // If we have achData loaded but user has opted to connect online with plaid, reset the bank account and errors so we don't persist old data
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                    BankAccounts.requestResetFreePlanBankAccount();
+                    BankAccounts.hideBankAccountErrors();
+                }
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
