@@ -2505,7 +2505,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         optionSelectCircle: {
-            borderRadius: (variables.componentSizeSmall / 2) + 1, 
+            borderRadius: variables.componentSizeSmall / 2 + 1,
             padding: 1,
         },
 
