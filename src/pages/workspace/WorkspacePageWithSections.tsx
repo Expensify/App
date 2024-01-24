@@ -84,7 +84,7 @@ function WorkspacePageWithSections({
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
     user,
-    shouldShowLoading = false,
+    shouldShowLoading = true,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
@@ -114,6 +114,10 @@ function WorkspacePageWithSections({
 
         return !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
     }, [policy]);
+
+    console.debug("CRISTI - isLoading: " + isLoading);
+    console.debug("CRISTI - firstRender.current: " + firstRender.current);
+    console.debug("CRISTI - shouldShowLoading: " + shouldShowLoading);
 
     return (
         <ScreenWrapper
