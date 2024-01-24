@@ -14,6 +14,7 @@ import type {
     AddCommentOrAttachementParams,
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
+    CompleteEngagementModalParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
     FlagCommentParams,
@@ -31,6 +32,7 @@ import type {
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
+    SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
     UpdatePolicyRoomNameParams,
@@ -2392,7 +2394,6 @@ function getReportPrivateNote(reportID: string) {
  * - Creates an optimistic report comment from concierge
  */
 function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
-    const commandName = 'CompleteEngagementModal';
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
@@ -2425,16 +2426,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
 
-    type CompleteEngagementParameters = {
-        reportID: string;
-        reportActionID?: string;
-        commentReportActionID?: string | null;
-        reportComment?: string;
-        engagementChoice: string;
-        timezone?: string;
-    };
-
-    const parameters: CompleteEngagementParameters = {
+    const parameters: CompleteEngagementModalParams = {
         reportID: conciergeChatReportID ?? '',
         reportActionID: reportCommentAction.reportActionID,
         reportComment: reportCommentText,
@@ -2467,7 +2459,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
         },
     ];
 
-    API.write(commandName, parameters, {
+    API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
         optimisticData,
         successData,
     });
@@ -2475,8 +2467,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
 }
 
 function dismissEngagementModal() {
-    const commandName = 'SetNameValuePair';
-    const parameters = {
+    const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
         value: true,
     };
@@ -2489,7 +2480,7 @@ function dismissEngagementModal() {
         },
     ];
 
-    API.write(commandName, parameters, {
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
     });
 }

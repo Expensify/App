@@ -111,6 +111,8 @@ const WRITE_COMMANDS = {
     EDIT_TASK: 'EditTask',
     REOPEN_TASK: 'ReopenTask',
     COMPLETE_TASK: 'CompleteTask',
+    COMPLETE_ENGAGEMENT_MODAL: 'CompleteEngagementModal',
+    SET_NAME_VALUE_PAIR: 'SetNameValuePair',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -219,6 +221,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EDIT_TASK]: Parameters.EditTaskParams;
     [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
+    [WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL]: Parameters.CompleteEngagementModalParams;
+    [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
 };
 
 const READ_COMMANDS = {
