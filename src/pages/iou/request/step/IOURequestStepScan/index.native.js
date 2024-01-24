@@ -125,6 +125,16 @@ function IOURequestStepScan({
             });
     };
 
+    useEffect(() => {
+        if (cameraPermissionStatus === RESULTS.GRANTED) {
+            return;
+        }
+
+        askForPermissions();
+        // We only ask once on mount if not already granted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const navigateBack = () => {
         Navigation.goBack();
     };
