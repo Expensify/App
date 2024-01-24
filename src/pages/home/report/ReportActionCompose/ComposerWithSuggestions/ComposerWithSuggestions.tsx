@@ -2,7 +2,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -73,7 +73,7 @@ type ComposerWithSuggestionsProps = {
     report: OnyxEntry<OnyxTypes.Report>;
     reportActions: OnyxTypes.ReportAction[] | undefined;
     onFocus: () => void;
-    onBlur: (event: FocusEvent) => void;
+    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
     onValueChange: (value: string) => void;
     isComposerFullSize: boolean;
     isMenuVisible: boolean;
@@ -222,6 +222,7 @@ function ComposerWithSuggestions(
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
+            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
@@ -373,7 +374,7 @@ function ComposerWithSuggestions(
     );
 
     const triggerHotkeyActions = useCallback(
-        (e: KeyboardEvent) => {
+        (e: KeyboardEvent & NativeSyntheticEvent<TextInputFocusEventData>) => {
             if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
             }
@@ -537,6 +538,7 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
     useEffect(() => {
         if (modal?.isVisible && !prevIsModalVisible) {
+            // @ts-expect-error need to reassign this ref
             // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
@@ -682,7 +684,7 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
         key: ONYXKEYS.INPUT_FOCUSED,
     },
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
         canEvict: false,
         initWithStoredValues: false,
     },

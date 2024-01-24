@@ -74,7 +74,7 @@ type ComposerProps = {
     /** Whether the sull composer is open */
     isComposerFullSize?: boolean;
 
-    onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
+    onKeyPress?: (event: KeyboardEvent & NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
 
     onFocus?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 

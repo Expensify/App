@@ -21,9 +21,6 @@ type SilentCommentUpdaterProps = {
 
     /** The ref of the comment */
     commentRef: React.RefObject<string>;
-
-    /** The comment of the report */
-    commnet: string;
 } & SilentCommentUpdaterOnyxProps;
 
 export type {SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps};

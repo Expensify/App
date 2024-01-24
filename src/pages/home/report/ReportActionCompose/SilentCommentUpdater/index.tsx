@@ -10,14 +10,14 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
-function SilentCommentUpdater({comment, commentRef, report, value, updateComment}: SilentCommentUpdaterProps) {
+function SilentCommentUpdater({comment = '', commentRef, report, value, updateComment}: SilentCommentUpdaterProps) {
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(report?.reportID);
     const {preferredLocale} = useLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
-        updateComment(comment);
+        updateComment(comment ?? null);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
@@ -32,7 +32,7 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
             return;
         }
 
-        updateComment(comment);
+        updateComment(comment ?? null);
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report?.reportID, updateComment, value, commentRef]);
 
     return null;
@@ -43,6 +43,5 @@ SilentCommentUpdater.displayName = 'SilentCommentUpdater';
 export default withOnyx<SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps>({
     comment: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        initialValue: '',
     },
 })(SilentCommentUpdater);

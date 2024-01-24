@@ -300,7 +300,7 @@ function Composer(
     }, []);
 
     const handleKeyPress = useCallback(
-        (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (e: NativeSyntheticEvent<TextInputKeyPressEventData> & KeyboardEvent) => {
             // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
             if (!onKeyPress || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                 return;
