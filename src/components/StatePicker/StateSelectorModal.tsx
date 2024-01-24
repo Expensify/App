@@ -89,7 +89,6 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    /* @ts-expect-error TODO: Remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript. */
                     headerMessage={headerMessage}
                     // Label can be an empty string
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
