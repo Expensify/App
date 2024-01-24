@@ -311,7 +311,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={getErrorForField('amount')}
                     />
                 </OfflineWithFeedback>
@@ -376,7 +376,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
-                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={getErrorForField('category')}
                         />
                     </OfflineWithFeedback>
@@ -390,7 +390,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
-                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            brickRoadIndicator={getErrorForField('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={getErrorForField('tag')}
                         />
                     </OfflineWithFeedback>
@@ -414,7 +414,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 isOn={transactionBillable}
                                 onToggle={saveBillable}
                             />
-                            {getErrorForField('comment') && (
+                            {getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}
                                     isLast
