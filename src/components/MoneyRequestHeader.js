@@ -66,7 +66,7 @@ const defaultProps = {
     parentReport: {},
     parentReportAction: {},
     transaction: {},
-    shownHoldUseExplaination: true,
+    shownHoldUseExplaination: false,
     policy: {},
 };
 
@@ -146,21 +146,21 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         setShouldShowHoldMenu(isOnHold && !shownHoldUseExplaination);
     }, [isOnHold, shownHoldUseExplaination]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (shouldShowHoldMenu) {
-            if (isSmallScreenWidth) {
-                if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
-                    Navigation.goBack();
-                }
-            } else {
-                Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
+        if (!shouldShowHoldMenu) {
+            return;
+        }
+
+        if (isSmallScreenWidth) {
+            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
+                Navigation.goBack();
             }
+        } else {
+            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        setShouldShowHoldMenu(false);
         IOU.setShownHoldUseExplaination();
     };
 
