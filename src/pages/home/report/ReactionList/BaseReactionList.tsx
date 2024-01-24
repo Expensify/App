@@ -29,7 +29,7 @@ type BaseReactionListProps = ReactionListProps & {
     /**
      * Returns true if the reaction list is visible
      */
-    isVisible: boolean;
+    isVisible?: boolean;
 };
 
 const keyExtractor: FlatListProps<PersonalDetails>['keyExtractor'] = (item, index) => `${item.login}+${index}`;
