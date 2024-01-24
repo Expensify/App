@@ -41,7 +41,7 @@ function Image(props) {
             return {uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         return source;
-    }, [source, isAuthTokenRequired]);
+    }, [source, isAuthTokenRequired, session]);
 
     useEffect(() => {
         if (props.onLoad == null) {
@@ -54,7 +54,7 @@ function Image(props) {
                 setAspectRatio(height ? width / height : 'auto');
             }
         });
-    }, [props.onLoad, newSource]);
+    }, [props.onLoad, newSource, props]);
 
     return (
         <ImageComponent
