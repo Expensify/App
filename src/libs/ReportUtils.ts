@@ -4839,4 +4839,5 @@ export type {
     OptimisticAddCommentReportAction,
     OptimisticCreatedReportAction,
     OptimisticClosedReportAction,
+    TransactionDetails,
 };
