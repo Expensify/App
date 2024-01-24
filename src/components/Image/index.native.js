@@ -1,12 +1,12 @@
 import {Image as ImageComponent} from 'expo-image';
 import lodashGet from 'lodash/get';
 import React, {useEffect, useMemo, useState} from 'react';
+import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
-import {Image as RNImage} from 'react-native';
 
 const dimensionsCache = new Map();
 
