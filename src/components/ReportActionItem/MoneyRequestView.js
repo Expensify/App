@@ -350,7 +350,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={lodashGet(policyTag, 'name', translate('common.tag'))}
-                            title={transactionTag}
+                            title={PolicyUtils.getCleanedTagName(transactionTag)}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
@@ -427,7 +427,7 @@ export default compose(
     withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions[report.parentReportActionID];
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },

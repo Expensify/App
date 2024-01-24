@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon?: IconAsset;
+    icon: IconAsset;
 
     /** Text label */
     text: string;
@@ -108,6 +108,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Whether we should overlay the 3 dots menu */
+    shouldOverlayDots?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

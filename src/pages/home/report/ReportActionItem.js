@@ -346,7 +346,8 @@ function ReportActionItem(props) {
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
-                    chatReportID={props.report.reportID}
+                    // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
+                    chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
@@ -369,6 +370,7 @@ function ReportActionItem(props) {
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
+                    transactionViolations={props.transactionViolations}
                 />
             );
         } else if (

@@ -100,7 +100,8 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || ReportUtils.isArchivedRoom(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) ||
+                            ReportUtils.isGroupChat(props.report) ||
+                                ReportUtils.isChatRoom(props.report) ||
                                 ReportUtils.isPolicyExpenseChat(props.report) ||
                                 ReportUtils.isChatThread(props.report) ||
                                 ReportUtils.isTaskReport(props.report) ||
