@@ -4,9 +4,10 @@ import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS} from 'react-native-reanimated';
+import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
+import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,6 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
+import getDraftComment from '@libs/ComposerUtils/getDraftComment';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -33,6 +36,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
+import SendButton from './SendButton';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -106,7 +110,8 @@ function ReportActionCompose({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
@@ -143,6 +148,10 @@ function ReportActionCompose({
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
+    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
+        const draftComment = getDraftComment(reportID);
+        return !draftComment || !!draftComment.match(/^(\s)*$/);
+    });
 
     /**
      * Updates the visibility state of the menu
@@ -329,16 +338,19 @@ function ReportActionCompose({
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
-    const isSendDisabled = isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
+    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
 
+        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+        runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
+        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, isReportReadyForDisplay]);
+    }, [isSendDisabled, isReportReadyForDisplay, resetFullComposerSize, animatedRef, submitForm]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -394,6 +406,7 @@ function ReportActionCompose({
                                     />
                                     <ComposerWithSuggestions
                                         ref={composerRef}
+                                        animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
@@ -414,13 +427,13 @@ function ReportActionCompose({
                                         disabled={disabled}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         setIsFullComposerAvailable={setIsFullComposerAvailable}
+                                        setIsCommentEmpty={setIsCommentEmpty}
                                         handleSendMessage={handleSendMessage}
                                         shouldShowComposeInput={shouldShowComposeInput}
                                         onFocus={onFocus}
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
-                                        isSendDisabled={isSendDisabled}
                                         onValueChange={validateCommentMaxLength}
                                     />
                                     <ReportDropUI
@@ -436,6 +449,18 @@ function ReportActionCompose({
                             )}
                         </AttachmentModal>
                     </View>
+                    {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                        <EmojiPickerButton
+                            isDisabled={isBlockedFromConcierge || disabled}
+                            onModalHide={focus}
+                            onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
+                            emojiPickerID={report.reportID}
+                        />
+                    )}
+                    <SendButton
+                        isDisabled={isSendDisabled}
+                        handleSendMessage={handleSendMessage}
+                    />
                     <View
                         style={[
                             styles.flexRow,

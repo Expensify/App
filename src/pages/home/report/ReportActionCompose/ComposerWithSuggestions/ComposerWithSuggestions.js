@@ -3,10 +3,8 @@ import lodashGet from 'lodash/get';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import Composer from '@components/Composer';
-import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import withKeyboardState from '@components/withKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -20,7 +18,6 @@ import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
@@ -31,7 +28,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import SendButton from '@pages/home/report/ReportActionCompose/SendButton';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
@@ -97,7 +93,7 @@ function ComposerWithSuggestions({
     disabled,
     isFullComposerAvailable,
     setIsFullComposerAvailable,
-    isSendDisabled,
+    setIsCommentEmpty,
     handleSendMessage,
     shouldShowComposeInput,
     measureParentContainer,
@@ -106,6 +102,7 @@ function ComposerWithSuggestions({
     raiseIsScrollLikelyLayoutTriggered,
     // Refs
     suggestionsRef,
+    animatedRef,
     forwardedRef,
     isNextModalWillOpenRef,
     editFocused,
@@ -121,8 +118,6 @@ function ComposerWithSuggestions({
     const emojisPresentBefore = useRef([]);
 
     const draftComment = getDraftComment(reportID) || '';
-    const [isCommentEmpty, setIsCommentEmpty] = useState(() => !draftComment || !!draftComment.match(/^(\s)*$/));
-    const animatedRef = useAnimatedRef();
     const [value, setValue] = useState(() => {
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
@@ -131,7 +126,7 @@ function ComposerWithSuggestions({
     });
     const commentRef = useRef(value);
 
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
     const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
@@ -195,19 +190,6 @@ function ComposerWithSuggestions({
             }, 1000),
         [],
     );
-
-    const sendMessage = useCallback(() => {
-        'worklet';
-
-        if (isCommentEmpty) {
-            return;
-        }
-
-        runOnJS(handleSendMessage)();
-        // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-        runOnJS(setIsCommentEmpty)(true);
-        setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
-    }, [animatedRef, handleSendMessage, isCommentEmpty]);
 
     /**
      * Update the value of the comment in Onyx
@@ -357,7 +339,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                handleSendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -369,7 +351,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, sendMessage, lastReportAction, reportID],
+        [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
     const onChangeText = useCallback(
@@ -599,19 +581,6 @@ function ComposerWithSuggestions({
                     shouldContainScroll={Browser.isMobileSafari()}
                 />
             </View>
-
-            {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
-                <EmojiPickerButton
-                    isDisabled={isBlockedFromConcierge || disabled}
-                    onModalHide={focus}
-                    onEmojiSelected={(...args) => replaceSelectionWithText(...args)}
-                    emojiPickerID={reportID}
-                />
-            )}
-            <SendButton
-                isDisabled={isSendDisabled || isCommentEmpty}
-                handleSendMessage={sendMessage}
-            />
 
             <Suggestions
                 ref={suggestionsRef}
