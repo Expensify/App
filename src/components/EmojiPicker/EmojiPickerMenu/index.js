@@ -89,16 +89,13 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             if (!isUsingKeyboardMovement) {
                 setIsUsingKeyboardMovement(true);
             }
-            if (!arePointerEventsDisabled) {
-                setArePointerEventsDisabled(true);
-            }
 
             // If the input is not focused and the new index is out of range, focus the input
             if (newIndex < 0 && !searchInputRef.current.isFocused()) {
                 searchInputRef.current.focus();
             }
         },
-        [arePointerEventsDisabled, filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement],
+        [filteredEmojis.length, highlightFirstEmoji, isUsingKeyboardMovement],
     );
 
     const disabledIndexes = useMemo(() => (isListFiltered ? [] : [...headerIndices, ...spacersIndexes]), [headerIndices, isListFiltered, spacersIndexes]);
