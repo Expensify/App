@@ -38,7 +38,7 @@ const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInpu
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
 // Explicit type annotation is required
-const cardActiveStates: number[] = [2, 3, 4, 7]
+const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
