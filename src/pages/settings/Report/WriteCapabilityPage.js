@@ -52,8 +52,8 @@ function WriteCapabilityPage(props) {
                 />
                 <SelectionList
                     sections={[{data: writeCapabilityOptions}]}
-                    shouldDebounceRowSelect
                     onSelectRow={(option) => Report.updateWriteCapabilityAndNavigate(props.report, option.value)}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={_.find(writeCapabilityOptions, (locale) => locale.isSelected).keyForList}
                 />
             </FullPageNotFoundView>

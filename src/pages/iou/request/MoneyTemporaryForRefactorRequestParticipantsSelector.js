@@ -333,6 +333,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
+                shouldDebounceRowSelect
                 footerContent={footerContent}
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={isSearchingForReports}

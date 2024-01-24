@@ -168,13 +168,13 @@ function IOUCurrencySelection(props) {
                         textInputLabel={translate('common.search')}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}
-                        shouldDebounceRowSelect
                         onSelectRow={(option) => {
                             if (!didScreenTransitionEnd) {
                                 return;
                             }
                             confirmCurrencySelection(option);
                         }}
+                        shouldDebounceRowSelect
                         headerMessage={headerMessage}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         showScrollIndicator

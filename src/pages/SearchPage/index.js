@@ -155,6 +155,7 @@ function SearchPage({betas, reports}) {
                             onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
+                            shouldDebounceRowSelect
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}
                         />

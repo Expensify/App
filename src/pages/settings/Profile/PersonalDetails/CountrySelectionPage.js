@@ -94,6 +94,7 @@ function CountrySelectionPage({route, navigation}) {
                 textInputValue={searchValue}
                 sections={[{data: searchResults, indexOffset: 0}]}
                 onSelectRow={selectCountry}
+                shouldDebounceRowSelect
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch
