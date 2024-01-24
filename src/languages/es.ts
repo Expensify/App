@@ -791,6 +791,8 @@ export default {
         troubleshooting: {
             resetAndRefresh: 'Restablecer y actualizar',
             viewConsole: 'Ver consola',
+            description: 'Utilice las siguientes herramientas para ayudar a solucionar los problemas de Expensify. Si tiene algún problema',
+            submitBug: 'envíe un error',
         },
         security: 'Seguridad',
         signOut: 'Desconectar',

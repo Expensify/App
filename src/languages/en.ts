@@ -796,6 +796,8 @@ export default {
         troubleshooting: {
             resetAndRefresh: 'Reset and refresh',
             viewConsole: 'View console',
+            description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
+            submitBug: 'submit a bug',
         },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
