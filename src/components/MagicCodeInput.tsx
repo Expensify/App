@@ -54,6 +54,9 @@ type MagicCodeInputProps = {
 
     /** Last pressed digit on BigDigitPad */
     lastPressedDigit?: string;
+
+    /** TestID for test */
+    testID?: string;
 };
 
 type MagicCodeInputHandle = {
@@ -102,6 +105,7 @@ function MagicCodeInput(
         lastPressedDigit = '',
         autoComplete,
         hasError = false,
+        testID = '',
     }: MagicCodeInputProps,
     ref: ForwardedRef<MagicCodeInputHandle>,
 ) {
@@ -386,6 +390,7 @@ function MagicCodeInput(
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderNone]}
+                            testID={testID}
                         />
                     </View>
                 </GestureDetector>
