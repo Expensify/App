@@ -16,7 +16,8 @@ Your receipt is broken up into multiple sections that include:
 The top section will show the total amount you paid as the billing owner of Expensify workspaces and give you a breakdown of price per member. Every member of your workspace(s) gets to store data, review data, and access free features like Expensify Chat. Thus, we show the total price and then use all of the members across all of the workspaces you own to calculate the price per member. Further down in the receipt, and in this article, we break down the members who generated billable activity.
 
 ## How-to reduce your bill and get paid to use Expensify
-Chances are you can actually get paid to use Expensify with the Expensify Card. In this section of the receipt, we outline how much money you're leaving on the table by not using the Expensify Card. You can click `Get started` to connect with your account manager (if you have one) or Concierge, both of whom can help get you started with the card.                                                                                                                                                                     
+Chances are you can actually get paid to use Expensify with the Expensify Card. In this section of the receipt, we outline how much money you're leaving on the table by not using the Expensify Card. You can click `Get started` to connect with your account manager (if you have one) or Concierge, both of whom can help get you started with the card.  
+
 _Note: Currently, we offer Expensify Cards to companies with USD bank accounts._ 
 
 ## How-to understand your billing breakdown 
