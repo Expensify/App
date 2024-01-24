@@ -106,7 +106,7 @@ describe('ReportUtils', () => {
         await measureFunction(() => ReportUtils.getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, shouldFallbackToHidden));
     });
 
-    test('[ReportUtils] getReportPreviewMessage on 51k policies', async () => {
+    test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
         const reportAction = createRandomReportAction(1);
         const report = createRandomReport(1);
         const policy = createRandomPolicy(1);
