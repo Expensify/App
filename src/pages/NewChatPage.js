@@ -264,7 +264,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             sections={sections}
                             selectedOptions={selectedOptions}
                             onSelectRow={createChat}
-                            shouldDebounceRowSelect
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle

@@ -227,7 +227,6 @@ function TaskAssigneeSelectorModal(props) {
                         <OptionsSelector
                             sections={sections}
                             onSelectRow={selectReport}
-                            shouldDebounceRowSelect
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             showTitleTooltip

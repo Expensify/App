@@ -1,6 +1,5 @@
-import _ from 'lodash';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -35,9 +34,6 @@ type OptionRowProps = {
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (option: OptionData, refElement: View | HTMLDivElement | null) => void | Promise<void>;
-
-    /** Boolean to indicate if onSelectRow should be debounced */
-    shouldDebounceRowSelect?: boolean;
 
     /** Whether we should show the selected state */
     showSelectedState?: boolean;
@@ -91,7 +87,6 @@ type OptionRowProps = {
 function OptionRow({
     option,
     onSelectRow,
-    shouldDebounceRowSelect = false,
     style,
     hoverStyle,
     selectedStateButtonText,
@@ -118,22 +113,9 @@ function OptionRow({
     const pressableRef = useRef<View | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(_.debounce(onSelectRow ?? (() => {}), 1000, {leading: true}), [onSelectRow]);
-
     useEffect(() => {
         setIsDisabled(isOptionDisabled);
     }, [isOptionDisabled]);
-
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedOnSelectRow.cancel();
-        };
-    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
 
     const text = option.text ?? '';
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
@@ -192,7 +174,7 @@ function OptionRow({
                             if (e) {
                                 e.preventDefault();
                             }
-                            let result = shouldDebounceRowSelect ? debouncedOnSelectRow(option, pressableRef.current) : onSelectRow(option, pressableRef.current);
+                            let result = onSelectRow(option, pressableRef.current);
                             if (!(result instanceof Promise)) {
                                 result = Promise.resolve();
                             }
@@ -347,6 +329,5 @@ export default React.memo(
         prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
         prevProps.option.subtitle === nextProps.option.subtitle &&
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon &&
-        prevProps.shouldDebounceRowSelect === nextProps.shouldDebounceRowSelect,
+        prevProps.option.customIcon === nextProps.option.customIcon,
 );

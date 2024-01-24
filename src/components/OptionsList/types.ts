@@ -62,9 +62,6 @@ type OptionsListProps = {
     /** Callback to fire when a row is selected */
     onSelectRow?: (option: OptionData, refElement: View | HTMLDivElement | null) => void | Promise<void>;
 
-    /** Boolean to indicate if onSelectRow should be debounced */
-    shouldDebounceRowSelect?: boolean;
-
     /** Optional header message */
     headerMessage?: string;
 

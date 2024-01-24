@@ -138,7 +138,6 @@ function TaskShareDestinationSelectorModal(props) {
                         <OptionsSelector
                             sections={sections}
                             onSelectRow={selectReport}
-                            shouldDebounceRowSelect
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             hideSection

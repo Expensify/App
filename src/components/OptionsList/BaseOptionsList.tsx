@@ -44,7 +44,6 @@ function BaseOptionsList(
         onAddToSelection,
         highlightSelectedOptions = false,
         onSelectRow,
-        shouldDebounceRowSelect = false,
         boldStyle = false,
         isDisabled = false,
         isRowMultilineSupported = false,
@@ -187,7 +186,6 @@ function BaseOptionsList(
                 hoverStyle={optionHoveredStyle}
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
                 onSelectRow={onSelectRow}
-                shouldDebounceRowSelect={shouldDebounceRowSelect}
                 isSelected={isSelected}
                 showSelectedState={canSelectMultipleOptions}
                 shouldShowSelectedStateAsButton={shouldShowMultipleOptionSelectorAsButton}

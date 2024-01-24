@@ -74,7 +74,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             isRowMultilineSupported
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            shouldDebounceRowSelect
         />
     );
 }

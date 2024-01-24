@@ -182,7 +182,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports, nav
                         <OptionsSelector
                             sections={getSections()}
                             onSelectRow={selectReport}
-                            shouldDebounceRowSelect
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             hideSectionHeaders
