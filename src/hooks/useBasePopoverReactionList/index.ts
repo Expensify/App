@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
 import {Dimensions} from 'react-native';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -11,11 +11,10 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const reactionListRef = useRef<ReactionListAnchor>(null);
 
-    // Get the selected reaction
-    const selectedReaction = useMemo(() => (isPopoverVisible ? emojiReactions?.emojiName : null), [isPopoverVisible, emojiReactions]);
-
     // custom methods
     function getReactionInformation() {
+        const selectedReaction = emojiReactions?.[emojiName];
+
         if (!selectedReaction) {
             // If there is no reaction, we return default values
             return {
@@ -121,8 +120,9 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
         }
 
         // Hide the list when all reactions are removed
-        const emojiReactionsList = emojiReactions?.emojiName.users;
-        const isEmptyList = Array.isArray(emojiReactionsList) && !emojiReactionsList.some((emojiReaction) => emojiReaction);
+        const users = emojiReactions?.[emojiName].users;
+        const isEmptyList = users && Object.keys(users).length === 0;
+
         if (!isEmptyList) {
             return;
         }

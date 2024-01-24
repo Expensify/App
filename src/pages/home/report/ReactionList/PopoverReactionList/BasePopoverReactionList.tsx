@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {forwardRef, useImperativeHandle} from 'react';
+import type {ForwardedRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -6,12 +7,13 @@ import useBasePopoverReactionList from '@hooks/useBasePopoverReactionList';
 import type {BasePopoverReactionListOnyxProps, BasePopoverReactionListPropsWithLocalWithOnyx} from '@hooks/useBasePopoverReactionList/types';
 import useLocalize from '@hooks/useLocalize';
 import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
+import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWithOnyx) {
+function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWithOnyx, ref: ForwardedRef<Partial<ReactionListRef>>) {
     const {emojiReactions, emojiName, reportActionID, currentUserPersonalDetails} = props;
     const {preferredLocale} = useLocalize();
-    const {isPopoverVisible, hideReactionList, popoverAnchorPosition, reactionListRef, getReactionInformation} = useBasePopoverReactionList({
+    const {isPopoverVisible, hideReactionList, showReactionList, popoverAnchorPosition, reactionListRef, getReactionInformation} = useBasePopoverReactionList({
         emojiName,
         emojiReactions,
         accountID: currentUserPersonalDetails.accountID,
@@ -20,6 +22,8 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
     });
     // Get the reaction information
     const {emojiCodes, reactionCount, hasUserReacted, users} = getReactionInformation();
+
+    useImperativeHandle(ref, () => ({hideReactionList, showReactionList}));
 
     return (
         <PopoverWithMeasuredContent
@@ -56,5 +60,5 @@ export default withCurrentUserPersonalDetails(
         emojiReactions: {
             key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
         },
-    })(BasePopoverReactionList),
+    })(forwardRef(BasePopoverReactionList)),
 );

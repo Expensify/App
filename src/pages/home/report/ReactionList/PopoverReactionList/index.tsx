@@ -23,6 +23,10 @@ function PopoverReactionList(props: unknown, ref: ForwardedRef<ReactionListRef>)
 
     useImperativeHandle(ref, () => ({showReactionList, hideReactionList, isActiveReportAction}));
 
+    if (reactionListReportActionID === '' || reactionListEmojiName === '') {
+        return null;
+    }
+
     return (
         <BasePopoverReactionList
             ref={innerReactionListRef}
