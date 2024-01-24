@@ -4,11 +4,7 @@ import type {InnerReactionListRefType} from '@hooks/useBasePopoverReactionList/t
 import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
-type PopoverReactionListProps = {
-    ref: ForwardedRef<ReactionListRef>;
-};
-
-function PopoverReactionList(props: PopoverReactionListProps) {
+function PopoverReactionList(props: unknown, ref: ForwardedRef<ReactionListRef>) {
     const innerReactionListRef = useRef<InnerReactionListRefType>(null);
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
     const [reactionListEmojiName, setReactionListEmojiName] = useState('');
@@ -25,7 +21,7 @@ function PopoverReactionList(props: PopoverReactionListProps) {
 
     const isActiveReportAction = (actionID: number | string) => Boolean(actionID) && reactionListReportActionID === actionID;
 
-    useImperativeHandle(props.ref, () => ({showReactionList, hideReactionList, isActiveReportAction}));
+    useImperativeHandle(ref, () => ({showReactionList, hideReactionList, isActiveReportAction}));
 
     return (
         <BasePopoverReactionList
