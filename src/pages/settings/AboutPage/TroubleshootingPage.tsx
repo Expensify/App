@@ -54,7 +54,7 @@ function TroubleshootingPage() {
             illustration={LottieAnimations.PreferencesDJ}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>
-                <Text style={[styles.textHeadline, styles.mb1]}>{translate('footer.aboutExpensify')}</Text>
+                <Text style={[styles.textHeadline, styles.mb1]}>{translate('initialSettingsPage.aboutPage.troubleshooting')}</Text>
                 <Text style={styles.mb4}>
                     <Text>{translate('initialSettingsPage.troubleshooting.description')}</Text>{' '}
                     <TextLink
