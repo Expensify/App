@@ -57,6 +57,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = isPaidGroupPolicy
@@ -65,8 +66,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, isAutoReimbursable],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {

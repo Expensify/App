@@ -198,7 +198,12 @@ function RoomInvitePage(props) {
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
+        if (
+            !userToInvite &&
+            excludedUsers.includes(
+                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+            )
+        ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
