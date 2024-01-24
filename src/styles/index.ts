@@ -281,7 +281,7 @@ const styles = (theme: ThemeColors) =>
         emojiTooltipWrapper: {
             backgroundColor: theme.appBG,
             ...spacing.p2,
-            borderRadius: 8
+            borderRadius: 8,
         },
 
         mentionSuggestionsAvatarContainer: {

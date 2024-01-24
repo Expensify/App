@@ -1,6 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {memo} from 'react';
+import _ from 'underscore';
+import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
@@ -46,19 +48,34 @@ const defaultProps = {
     iouMessage: undefined,
 };
 
+function removeLineBreakAndEmojiTag(html) {
+    const htmlWithoutLineBreak = Str.replaceAll(html, '<br />', '\n');
+    const htmlWithoutEmojiOpenTag = Str.replaceAll(htmlWithoutLineBreak, '<emoji>', '');
+    return Str.replaceAll(htmlWithoutEmojiOpenTag, '</emoji>', '');
+}
+
+/**
+ * Split the string containing emoji into an array
+ * @param {string} text
+ * @returns {Array<string>}
+ */
+function getTextMatrix(text) {
+    return _.filter(text.split(CONST.REGEX.EMOJI_SPLIT), (value) => value !== '');
+}
+
 function TextCommentFragment(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {fragment, styleAsDeleted} = props;
     const {html, text} = fragment;
 
-    // If the only difference between fragment.text and fragment.html is <br /> tags
+    // If the only difference between fragment.text and fragment.html is <br /> and the emoji tags
     // we render it as text, not as html.
-    // This is done to render emojis with line breaks between them as text.
-    const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
+    // This is done to render emojis with line breaks between them as text
+    const differByLineBreaksAndEmojiOnly = removeLineBreakAndEmojiTag(html) === text;
 
     // Only render HTML if we have html in the fragment
-    if (!differByLineBreaksOnly) {
+    if (!differByLineBreaksAndEmojiOnly) {
         const editedTag = fragment.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlContent = styleAsDeleted ? `<del>${html}</del>` : html;
 
@@ -73,6 +90,7 @@ function TextCommentFragment(props) {
     }
 
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
+    const textMatrix = getTextMatrix(convertToLTR(props.iouMessage || text));
 
     return (
         <Text style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}>
@@ -80,17 +98,34 @@ function TextCommentFragment(props) {
                 text={text}
                 displayAsGroup={props.displayAsGroup}
             />
-            <Text
-                style={[
-                    containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                    styles.ltr,
-                    ...props.style,
-                    styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                    !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                ]}
-            >
-                {convertToLTR(props.iouMessage || text)}
-            </Text>
+            {_.map(textMatrix, (tx) => {
+                const isEmoji = CONST.REGEX.EMOJI.test(tx);
+                return isEmoji ? (
+                    <EmojiWithTooltip
+                        emojiCode={tx}
+                        style={[
+                            containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            styles.ltr,
+                            ...props.style,
+                            styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
+                    />
+                ) : (
+                    <Text
+                        key={tx}
+                        style={[
+                            containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            styles.ltr,
+                            ...props.style,
+                            styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
+                    >
+                        {tx}
+                    </Text>
+                );
+            })}
             {Boolean(fragment.isEdited) && (
                 <>
                     <Text

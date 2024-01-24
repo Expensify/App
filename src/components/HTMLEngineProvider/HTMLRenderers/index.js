@@ -23,6 +23,6 @@ export default {
     pre: PreRenderer,
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
-    'emoji': EmojiRenderer,
+    emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
 };
