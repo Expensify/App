@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -73,7 +73,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
         [videoPlayerRef],
     );
 
-const durationFormatted = useMemo(() => convertMillisecondsToTime(duration), [duration]);
+    const durationFormatted = useMemo(() => convertMillisecondsToTime(duration), [duration]);
 
     return (
         <>

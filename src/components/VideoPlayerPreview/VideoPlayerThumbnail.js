@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageWithSizeCalculation from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const propTypes = {
