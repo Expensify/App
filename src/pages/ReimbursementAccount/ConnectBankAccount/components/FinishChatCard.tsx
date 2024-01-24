@@ -25,6 +25,7 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const shouldShowResetModal = reimbursementAccount.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
 
@@ -54,7 +55,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
                     wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                 />
             </Section>
-            {!requiresTwoFactorAuth && <Enable2FACard />}
+            {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
             {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScrollView>
     );

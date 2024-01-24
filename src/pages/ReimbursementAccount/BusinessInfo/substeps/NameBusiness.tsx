@@ -26,7 +26,15 @@ type NameBusinessProps = NameBusinessOnyxProps & SubStepProps;
 const COMPANY_NAME_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_NAME;
 const STEP_FIELDS = [COMPANY_NAME_KEY];
 
-const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+const validate = (values: FormValues): OnyxCommon.Errors => {
+    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+    if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
+        errors.companyName = 'bankAccount.error.companyName';
+    }
+
+    return errors;
+};
 
 function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessProps) {
     const {translate} = useLocalize();

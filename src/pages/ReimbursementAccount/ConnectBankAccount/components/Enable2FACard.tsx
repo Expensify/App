@@ -6,14 +6,14 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Link from '@userActions/Link';
+import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-const secureYourAccountUrl = encodeURI(
-    `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
-);
+type Enable2FACardProps = {
+    policyID: string;
+};
 
-function Enable2FACard() {
+function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -26,13 +26,12 @@ function Enable2FACard() {
                 {
                     title: translate('validationStep.secureYourAccount'),
                     onPress: () => {
-                        Link.openOldDotLink(secureYourAccountUrl);
+                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID)));
                     },
                     icon: Expensicons.Shield,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
                     wrapperStyle: [styles.cardMenuItem],
-                    link: () => Link.buildOldDotURL(secureYourAccountUrl),
                 },
             ]}
         >

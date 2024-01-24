@@ -74,6 +74,7 @@ function CompanyOwnersListUBO({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const isLoading = reimbursementAccount?.isLoading ?? false;
     const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, {}, reimbursementAccount);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
@@ -137,6 +138,7 @@ function CompanyOwnersListUBO({
                 </View>
                 <Button
                     success
+                    isLoading={isLoading}
                     style={[styles.w100, styles.mt2, styles.pb5]}
                     onPress={handleUBOsConfirmation}
                     text={translate('common.confirm')}

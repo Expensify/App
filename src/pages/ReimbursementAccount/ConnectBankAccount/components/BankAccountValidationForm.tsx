@@ -63,6 +63,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const submit = useCallback(
         (values: FormValues) => {
             const amount1 = filterInput(values.amount1);
@@ -122,7 +123,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
             </View>
             {!requiresTwoFactorAuth && (
                 <View style={[styles.mln5, styles.mrn5, styles.mt3]}>
-                    <Enable2FACard />
+                    <Enable2FACard policyID={policyID} />
                 </View>
             )}
         </FormProvider>

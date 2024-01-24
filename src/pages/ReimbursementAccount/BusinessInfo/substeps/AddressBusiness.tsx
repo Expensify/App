@@ -40,6 +40,10 @@ const validate = (values: FormValues): OnyxCommon.Errors => {
         errors.addressStreet = 'bankAccount.error.addressStreet';
     }
 
+    if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
+        errors.addressCity = 'bankAccount.error.addressCity';
+    }
+
     if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
         errors.addressZipCode = 'bankAccount.error.zipCode';
     }
