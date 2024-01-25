@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -44,7 +45,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {transactionID, backTo},
+        params: {action, transactionID, backTo},
     },
     transaction: {tag},
 }) {
@@ -54,6 +55,7 @@ function IOURequestStepTag({
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
+    const isEditting = action === CONST.IOU.ACTION.EDIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -64,10 +66,17 @@ function IOURequestStepTag({
      * @param {String} selectedTag.searchText
      */
     const updateTag = (selectedTag) => {
-        if (selectedTag.searchText === tag) {
+        const isSelectedTag = selectedTag.searchText === tag;
+        const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
+        if (isEditting) {
+            IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag);
+            Navigation.dismissModal();
+            return;
+        }
+        if (isSelectedTag) {
             IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
         } else {
-            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, selectedTag.searchText);
+            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, updatedTag);
         }
         navigateBack();
     };
