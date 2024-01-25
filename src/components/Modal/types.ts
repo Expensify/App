@@ -62,7 +62,7 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Whether the modal is popover or not */
     isPopover?: boolean;
-    
+
     /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
     shouldUseCustomBackdrop?: boolean;
 };
