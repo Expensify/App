@@ -1589,12 +1589,10 @@ function navigateToConciergeChat(ignoreConciergeReportID = false, shouldDismissM
             // If we don't have a chat with Concierge then create it
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
+    } else if (shouldDismissModal) {
+        Navigation.dismissModal(conciergeChatReportID);
     } else {
-        if (shouldDismissModal) {
-            Navigation.dismissModal(conciergeChatReportID);
-        } else {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
-        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
 }
 
