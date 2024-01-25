@@ -25,7 +25,7 @@ type AccountData = {
     bank?: BankName;
 };
 
-type Fund = OnyxCommon.OfflineFeedback & {
+type Fund = OnyxCommon.OnyxValueWithOfflineFeedback<{
     accountData?: AccountData;
     accountType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD;
     description?: string;
@@ -34,7 +34,7 @@ type Fund = OnyxCommon.OfflineFeedback & {
     title?: string;
     isDefault?: boolean;
     errors?: OnyxCommon.Errors;
-};
+}>;
 
 type FundList = Record<string, Fund>;
 

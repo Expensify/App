@@ -1,6 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-type PolicyMember = OnyxCommon.OfflineFeedback & {
+type PolicyMember = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
     role?: string;
 
@@ -9,7 +9,7 @@ type PolicyMember = OnyxCommon.OfflineFeedback & {
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
      */
     errors?: OnyxCommon.Errors;
-};
+}>;
 
 type PolicyMembers = Record<string, PolicyMember>;
 

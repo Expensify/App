@@ -98,7 +98,7 @@ type Person = {
     text?: string;
 };
 
-type ReportActionBase = OnyxCommon.OfflineFeedback & {
+type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: string;
 
@@ -198,7 +198,7 @@ type ReportActionBase = OnyxCommon.OfflineFeedback & {
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
-};
+}>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
 

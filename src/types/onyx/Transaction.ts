@@ -49,52 +49,53 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
-type TransactionValue = {
-    amount: number;
-    billable: boolean;
-    category: string;
-    comment: Comment;
-    created: string;
-    currency: string;
-    errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields<'route'>;
-    // The name of the file used for a receipt (formerly receiptFilename)
-    filename?: string;
-    // Used during the creation flow before the transaction is saved to the server
-    iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
-    merchant: string;
-    modifiedAmount?: number;
-    modifiedCreated?: string;
-    modifiedCurrency?: string;
-    modifiedMerchant?: string;
-    modifiedWaypoints?: WaypointCollection;
-    // Used during the creation flow before the transaction is saved to the server and helps dictate where the user is navigated to when pressing the back button on the confirmation step
-    participantsAutoAssigned?: boolean;
-    receipt?: Receipt;
-    reportID: string;
-    routes?: Routes;
-    transactionID: string;
-    tag: string;
+type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        amount: number;
+        billable: boolean;
+        category: string;
+        comment: Comment;
+        created: string;
+        currency: string;
+        errors?: OnyxCommon.Errors;
+        errorFields?: OnyxCommon.ErrorFields<'route'>;
+        // The name of the file used for a receipt (formerly receiptFilename)
+        filename?: string;
+        // Used during the creation flow before the transaction is saved to the server
+        iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+        merchant: string;
+        modifiedAmount?: number;
+        modifiedCreated?: string;
+        modifiedCurrency?: string;
+        modifiedMerchant?: string;
+        modifiedWaypoints?: WaypointCollection;
+        // Used during the creation flow before the transaction is saved to the server and helps dictate where the user is navigated to when pressing the back button on the confirmation step
+        participantsAutoAssigned?: boolean;
+        receipt?: Receipt;
+        reportID: string;
+        routes?: Routes;
+        transactionID: string;
+        tag: string;
 
-    /** Card Transactions */
+        /** Card Transactions */
 
-    parentTransactionID?: string;
-    reimbursable?: boolean;
-    /** The CC for this transaction */
-    cardID?: number;
-    /** If the transaction is pending or posted */
-    status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
-    /** If an EReceipt should be generated for this transaction */
-    hasEReceipt?: boolean;
-    /** The MCC Group for this transaction */
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-    /** If the transaction was made in a foreign currency, we send the original amount and currency */
-    originalAmount?: number;
-    originalCurrency?: string;
-};
-
-type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<TransactionValue, keyof TransactionValue | keyof Comment>;
+        parentTransactionID?: string;
+        reimbursable?: boolean;
+        /** The CC for this transaction */
+        cardID?: number;
+        /** If the transaction is pending or posted */
+        status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
+        /** If an EReceipt should be generated for this transaction */
+        hasEReceipt?: boolean;
+        /** The MCC Group for this transaction */
+        mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+        modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+        /** If the transaction was made in a foreign currency, we send the original amount and currency */
+        originalAmount?: number;
+        originalCurrency?: string;
+    },
+    keyof Comment
+>;
 
 export default Transaction;
 export type {WaypointCollection, Comment, Receipt, Waypoint};

@@ -4,116 +4,119 @@ import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
 
-type Rate = OnyxCommon.OfflineFeedback & {
+type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name?: string;
     rate?: number;
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
-};
+}>;
 
 type Attributes = {
     unit: Unit;
 };
 
-type CustomUnit = OnyxCommon.OfflineFeedback & {
+type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name: string;
     customUnitID: string;
     attributes: Attributes;
     rates: Record<string, Rate>;
     errors?: OnyxCommon.Errors;
-};
+}>;
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
-type Policy = OnyxCommon.OfflineFeedback<'generalSettings' | 'avatar' | 'addWorkspaceRoom'> & {
-    /** The ID of the policy */
-    id: string;
+type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The ID of the policy */
+        id: string;
 
-    /** The name of the policy */
-    name: string;
+        /** The name of the policy */
+        name: string;
 
-    /** The current user's role in the policy */
-    role: ValueOf<typeof CONST.POLICY.ROLE>;
+        /** The current user's role in the policy */
+        role: ValueOf<typeof CONST.POLICY.ROLE>;
 
-    /** The policy type */
-    type: ValueOf<typeof CONST.POLICY.TYPE>;
+        /** The policy type */
+        type: ValueOf<typeof CONST.POLICY.TYPE>;
 
-    /** The email of the policy owner */
-    owner: string;
+        /** The email of the policy owner */
+        owner: string;
 
-    /** The accountID of the policy owner */
-    ownerAccountID?: number;
+        /** The accountID of the policy owner */
+        ownerAccountID?: number;
 
-    /** The output currency for the policy */
-    outputCurrency: string;
+        /** The output currency for the policy */
+        outputCurrency: string;
 
-    /** The URL for the policy avatar */
-    avatar?: string;
+        /** The URL for the policy avatar */
+        avatar?: string;
 
-    /** Error objects keyed by field name containing errors keyed by microtime */
-    errorFields?: OnyxCommon.ErrorFields;
+        /** Error objects keyed by field name containing errors keyed by microtime */
+        errorFields?: OnyxCommon.ErrorFields;
 
-    /** A list of errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+        /** A list of errors keyed by microtime */
+        errors?: OnyxCommon.Errors;
 
-    /** Whether this policy was loaded from a policy summary, or loaded completely with all of its values */
-    isFromFullPolicy?: boolean;
+        /** Whether this policy was loaded from a policy summary, or loaded completely with all of its values */
+        isFromFullPolicy?: boolean;
 
-    /** When this policy was last modified */
-    lastModified?: string;
+        /** When this policy was last modified */
+        lastModified?: string;
 
-    /** The custom units data for this policy */
-    customUnits?: Record<string, CustomUnit>;
+        /** The custom units data for this policy */
+        customUnits?: Record<string, CustomUnit>;
 
-    /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    areChatRoomsEnabled: boolean;
+        /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
+        areChatRoomsEnabled: boolean;
 
-    /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
-    isPolicyExpenseChatEnabled: boolean;
+        /** Whether policy expense chats can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
+        isPolicyExpenseChatEnabled: boolean;
 
-    /** Whether the auto reporting is enabled */
-    autoReporting?: boolean;
+        /** Whether the auto reporting is enabled */
+        autoReporting?: boolean;
 
-    /** The scheduled submit frequency set up on the this policy */
-    autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+        /** The scheduled submit frequency set up on the this policy */
+        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** Whether the scheduled submit is enabled */
-    isHarvestingEnabled?: boolean;
+        /** Whether the scheduled submit is enabled */
+        isHarvestingEnabled?: boolean;
 
-    /** Whether the scheduled submit is enabled */
-    isPreventSelfApprovalEnabled?: boolean;
+        /** Whether the scheduled submit is enabled */
+        isPreventSelfApprovalEnabled?: boolean;
 
-    /** When the monthly scheduled submit should happen */
-    autoReportingOffset?: AutoReportingOffset;
+        /** When the monthly scheduled submit should happen */
+        autoReportingOffset?: AutoReportingOffset;
 
-    /** The accountID of manager who the employee submits their expenses to on paid policies */
-    submitsTo?: number;
+        /** The accountID of manager who the employee submits their expenses to on paid policies */
+        submitsTo?: number;
 
-    /** The employee list of the policy */
-    employeeList?: [];
+        /** The employee list of the policy */
+        employeeList?: [];
 
-    /** The reimbursement choice for policy */
-    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+        /** The reimbursement choice for policy */
+        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
-    /** The maximum report total allowed to trigger auto reimbursement. */
-    autoReimbursementLimit?: number;
+        /** The maximum report total allowed to trigger auto reimbursement. */
+        autoReimbursementLimit?: number;
 
-    /** Whether to leave the calling account as an admin on the policy */
-    makeMeAdmin?: boolean;
+        /** Whether to leave the calling account as an admin on the policy */
+        makeMeAdmin?: boolean;
 
-    /** Original file name which is used for the policy avatar */
-    originalFileName?: string;
+        /** Original file name which is used for the policy avatar */
+        originalFileName?: string;
 
-    /** Alert message for the policy */
-    alertMessage?: string;
+        /** Alert message for the policy */
+        alertMessage?: string;
 
-    /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
-    primaryLoginsInvited?: Record<string, string>;
+        /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
+        primaryLoginsInvited?: Record<string, string>;
 
-    /** The approval mode set up on this policy */
-    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
-};
+        /** The approval mode set up on this policy */
+        approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+    },
+    'generalSettings' | 'addWorkspaceRoom'
+>;
 
 export default Policy;
 

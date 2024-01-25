@@ -13,7 +13,7 @@ type UserReaction = {
 
 type UsersReactions = Record<string, UserReaction>;
 
-type ReportActionReaction = OnyxCommon.OfflineFeedback & {
+type ReportActionReaction = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The time the emoji was added */
     createdAt: string;
 
@@ -22,7 +22,7 @@ type ReportActionReaction = OnyxCommon.OfflineFeedback & {
 
     /** All the users who have added this emoji */
     users: UsersReactions;
-};
+}>;
 
 type ReportActionReactions = Record<string, ReportActionReaction>;
 

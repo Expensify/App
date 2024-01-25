@@ -11,7 +11,7 @@ type AdditionalData = {
     country?: string;
 };
 
-type BankAccount = OnyxCommon.OfflineFeedback & {
+type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
 
@@ -40,7 +40,7 @@ type BankAccount = OnyxCommon.OfflineFeedback & {
 
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
-};
+}>;
 
 type BankAccountList = Record<string, BankAccount>;
 
