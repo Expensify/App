@@ -46,6 +46,9 @@ const propTypes = {
         params: PropTypes.shape({
             /** Report ID passed via route r/:reportID/details */
             reportID: PropTypes.string,
+
+            /** Back To passed via route r/:reportID/details?backTo= */
+            backTo: PropTypes.string,
         }),
     }).isRequired,
 
@@ -182,11 +185,8 @@ function ReportDetailsPage(props) {
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                 <HeaderWithBackButton
                     title={props.translate('common.details')}
-                    shouldNavigateToTopMostReport
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
-                    }}
+                    shouldNavigateToTopMostReport={!props.route.params.backTo}
+                    onBackButtonPress={() => {Navigation.goBack(props.route.params.backTo, !props.route.params.backTo)}}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
