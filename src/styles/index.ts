@@ -2954,18 +2954,18 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
-            borderRadius: 14,
+            borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
-            height: 28,
-            width: 28,
+            height: 40,
+            width: 40,
             justifyContent: 'center',
         },
 
         smallAvatarEditIcon: {
             position: 'absolute',
-            right: -4,
-            bottom: -4,
+            right: -8,
+            bottom: -8,
         },
 
         workspaceOwnerAvatarWrapper: {
