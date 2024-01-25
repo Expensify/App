@@ -152,7 +152,7 @@ type ReportActionBase = {
     childManagerAccountID?: number;
 
     /** The status of the child report */
-    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
