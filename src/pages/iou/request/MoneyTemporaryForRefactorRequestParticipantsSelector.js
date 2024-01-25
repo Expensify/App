@@ -80,7 +80,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
-    isSearchingForReports,
     didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
