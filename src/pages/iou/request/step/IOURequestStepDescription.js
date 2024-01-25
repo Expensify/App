@@ -36,7 +36,7 @@ const defaultProps = {
 
 function IOURequestStepDescription({
     route: {
-        params: {transactionID, backTo},
+        params: {action, transactionID, backTo},
     },
     transaction,
 }) {
@@ -44,7 +44,7 @@ function IOURequestStepDescription({
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-
+    const isDraft = action === CONST.IOU.ACTION.CREATE;
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -70,7 +70,7 @@ function IOURequestStepDescription({
      * @param {String} value.moneyRequestComment
      */
     const updateComment = (value) => {
-        IOU.setMoneyRequestDescription_temporaryForRefactor(transactionID, value.moneyRequestComment);
+        IOU.setMoneyRequestDescription_temporaryForRefactor(transactionID, value.moneyRequestComment, isDraft);
         navigateBack();
     };
 

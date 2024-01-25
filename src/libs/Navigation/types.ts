@@ -201,7 +201,8 @@ type MoneyRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
+    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
+        action: string;
         iouType: string;
         reportID: string;
         field: string;

@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+// import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportPropTypes from './reportPropTypes';
@@ -58,7 +58,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
     const {
         amount: transactionAmount,
         currency: transactionCurrency,
-        comment: transactionDescription,
+        // comment: transactionDescription,
         merchant: transactionMerchant,
         created: transactionCreated,
         category: transactionCategory,
@@ -76,18 +76,19 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         navigateBackToSplitDetails();
     };
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-        return (
-            <EditRequestDescriptionPage
-                defaultDescription={transactionDescription}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({
-                        comment: transactionChanges.comment.trim(),
-                    });
-                }}
-            />
-        );
-    }
+    // I removed EditRequestDescriptionPage because we won't use this component anymore. This page EditSplitBillPage also be removed in https://github.com/Expensify/App/issues/29107
+    // if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
+    //     return (
+    //         <EditRequestDescriptionPage
+    //             defaultDescription={transactionDescription}
+    //             onSubmit={(transactionChanges) => {
+    //                 setDraftSplitTransaction({
+    //                     comment: transactionChanges.comment.trim(),
+    //                 });
+    //             }}
+    //         />
+    //     );
+    // }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
