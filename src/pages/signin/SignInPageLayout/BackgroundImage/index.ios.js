@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
 import useWindowDimensions from "@hooks/useWindowDimensions";
+import {View} from "react-native";
 
 const defaultProps = {
     isSmallScreen: false,
@@ -25,10 +26,14 @@ function BackgroundImage(props) {
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
 
     return (
-        <Image
-            source={src}
-            style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width), {top: windowHeight - 700}]}
-        />
+        <View style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width), {height: windowHeight}]}>
+            <View style={styles.signInBackgroundTopView}/>
+            <Image
+                source={src}
+                style={styles.signInBackgroundImage}
+            />
+        </View>
+
     );
 }
 

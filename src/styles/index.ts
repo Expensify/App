@@ -1261,17 +1261,17 @@ const styles = (theme: ThemeColors) =>
 
         signInBackground: {
             position: 'absolute',
+            top: 0,
             left: 0,
-            minHeight: 700,
         },
 
-        signInBackgroundFillView: {
-            position: 'absolute',
-            left: 0,
-            bottom: 0,
-            height: '50%',
+        signInBackgroundTopView: {
+            flex: 1,
             width: '100%',
-            backgroundColor: theme.signInPage
+            backgroundColor: colors.productDark200
+        },
+        signInBackgroundImage: {
+            height: 700,
         },
 
         signInPageInner: {
@@ -1475,7 +1475,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -2881,6 +2881,10 @@ const styles = (theme: ThemeColors) =>
         noSelect: {
             boxShadow: 'none',
             outlineStyle: 'none',
+        },
+
+        boxShadowNone: {
+            boxShadow: 'none',
         },
 
         cardStyleNavigator: {

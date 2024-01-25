@@ -333,14 +333,7 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.VIEW]: {
-        reportID: string;
-        accountID: string;
-    };
-    [SCREENS.PRIVATE_NOTES.LIST]: {
-        reportID: string;
-        accountID: string;
-    };
+    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
@@ -417,6 +410,15 @@ type AuthScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
         source: string;
+    };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
