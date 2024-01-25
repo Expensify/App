@@ -458,10 +458,20 @@ function getLastMessageTextForReport(report, lastActorDetails, policy) {
             (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
 
-        lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-            policyName: ReportUtils.getPolicyName(report, false, policy),
-        });
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                });
+                break;
+            }
+            default: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
     }
 
     return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
