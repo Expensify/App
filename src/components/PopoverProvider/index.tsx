@@ -95,9 +95,9 @@ function PopoverContextProvider(props: PopoverContextProps) {
 
             closePopover();
         };
-        document.addEventListener('scroll', listener, true);
+        document.addEventListener('wheel', listener, true);
         return () => {
-            document.removeEventListener('scroll', listener, true);
+            document.removeEventListener('wheel', listener, true);
         };
     }, [closePopover]);
 

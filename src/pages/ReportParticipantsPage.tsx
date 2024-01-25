@@ -20,7 +20,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -30,21 +29,6 @@ type ReportParticipantsPageOnyxProps = {
 };
 
 type ReportParticipantsPageProps = ReportParticipantsPageOnyxProps & WithReportOrNotFoundProps;
-
-type ParticipantData = {
-    alternateText: string;
-    displayName: string;
-    accountID: number;
-    icons: Icon[];
-    keyForList: string;
-    login: string;
-    text: string;
-    tooltipText: string;
-    participantsList: Array<{
-        accountID: number;
-        displayName: string;
-    }>;
-};
 
 /**
  * Returns all the participants in the active report
@@ -57,7 +41,7 @@ const getAllParticipants = (
     report: OnyxEntry<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string,
-): ParticipantData[] =>
+): OptionData[] =>
     ReportUtils.getVisibleMemberIDs(report)
         .map((accountID, index) => {
             const userPersonalDetail = personalDetails?.[accountID];
@@ -81,6 +65,7 @@ const getAllParticipants = (
                 text: displayName,
                 tooltipText: userLogin,
                 participantsList: [{accountID, displayName}],
+                reportID: report?.reportID ?? '',
             };
         })
         .sort((a, b) => a.displayName.localeCompare(b.displayName.toLowerCase()));
@@ -91,7 +76,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
 
     const participants = getAllParticipants(report, personalDetails, translate).map((participant) => ({
         ...participant,
-        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+        isDisabled: participant?.accountID ? ReportUtils.isOptimisticPersonalDetail(participant.accountID) : false,
     }));
 
     return (
@@ -103,7 +88,8 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                 <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
                     <HeaderWithBackButton
                         title={translate(
-                            ReportUtils.isChatRoom(report) ??
+                            ReportUtils.isGroupChat(report) ??
+                                ReportUtils.isChatRoom(report) ??
                                 ReportUtils.isPolicyExpenseChat(report) ??
                                 ReportUtils.isChatThread(report) ??
                                 ReportUtils.isTaskReport(report) ??
@@ -115,7 +101,6 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         {participants?.length && (
                             <OptionsList
-                                // @ts-expect-error TODO: Remove this once OptionsList (https://github.com/Expensify/App/issues/25129) is migrated to TypeScript.
                                 sections={[
                                     {
                                         title: '',
