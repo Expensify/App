@@ -30,7 +30,8 @@ function BaseListItem<TItem extends User | RadioItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isRadioItem = item.rightElement === undefined;
+    const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
+    const ListItem = isUserItem ? UserListItem : RadioListItem;
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -47,8 +48,8 @@ function BaseListItem<TItem extends User | RadioItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={item.pendingAction}
-            errors={item.errors}
+            pendingAction={isUserItem ? item.pendingAction : undefined}
+            errors={isUserItem ? item.errors : undefined}
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
@@ -68,7 +69,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                         styles.justifyContentBetween,
                         styles.sidebarLinkInner,
                         styles.userSelectNone,
-                        isRadioItem ? styles.optionRow : styles.peopleRow,
+                        isUserItem ? styles.peopleRow : styles.optionRow,
                         isFocused && styles.sidebarLinkActive,
                     ]}
                 >
@@ -99,31 +100,21 @@ function BaseListItem<TItem extends User | RadioItem>({
                         </View>
                     )}
 
-                    {isRadioItem ? (
-                        <RadioListItem
-                            item={item}
-                            textStyles={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre, item.alternateText ? styles.mb1 : null]}
-                            alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            isDisabled={isDisabled}
-                            onSelectRow={() => onSelectRow(item)}
-                            showTooltip={showTooltip}
-                        />
-                    ) : (
-                        <UserListItem
-                            item={item}
-                            textStyles={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                            alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            isDisabled={isDisabled}
-                            onSelectRow={() => onSelectRow(item)}
-                            showTooltip={showTooltip}
-                        />
-                    )}
+                    <ListItem
+                        item={item}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkTextBold,
+                            styles.pre,
+                            item.alternateText ? styles.mb1 : null,
+                        ]}
+                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        isDisabled={isDisabled}
+                        onSelectRow={() => onSelectRow(item)}
+                        showTooltip={showTooltip}
+                    />
+
                     {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
@@ -139,7 +130,7 @@ function BaseListItem<TItem extends User | RadioItem>({
                     )}
                     {rightHandSideComponentRender()}
                 </View>
-                {!!item.invitedSecondaryLogin && (
+                {isUserItem && item.invitedSecondaryLogin && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
                         {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
                     </Text>
