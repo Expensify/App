@@ -91,6 +91,7 @@ function IOURequestStepWaypoint({
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
+    const isCreatingRequest = action === CONST.IOU.ACTION.CREATE;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
@@ -135,14 +136,14 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, pageIndex, waypoint, isCreatingRequest);
 
     const submit = (values) => {
         const waypointValue = values[`waypoint${pageIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transaction, pageIndex, true);
+            Transaction.removeWaypoint(transaction, pageIndex, isCreatingRequest);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -162,7 +163,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transaction, pageIndex, true);
+        Transaction.removeWaypoint(transaction, pageIndex, isCreatingRequest);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
@@ -180,7 +181,7 @@ function IOURequestStepWaypoint({
             address: values.address,
             name: values.name || null,
         };
-        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
+        Transaction.saveWaypoint(transactionID, pageIndex, waypoint, isCreatingRequest);
         if (backTo) {
             Navigation.goBack(backTo);
             return;

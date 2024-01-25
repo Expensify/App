@@ -200,11 +200,11 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, newWaypoints).then(() => {
+            Transaction.updateWaypoints(transactionID, newWaypoints, !isEditingRequest).then(() => {
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, isEditingRequest, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
