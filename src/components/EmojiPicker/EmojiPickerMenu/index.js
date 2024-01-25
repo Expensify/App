@@ -370,7 +370,19 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
                 />
             );
         },
-        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, singleExecution, translate, onEmojiSelected, isSmallScreenWidth, windowWidth, styles, activeEmoji],
+        [
+            preferredSkinTone,
+            highlightedIndex,
+            isUsingKeyboardMovement,
+            highlightFirstEmoji,
+            singleExecution,
+            translate,
+            onEmojiSelected,
+            isSmallScreenWidth,
+            windowWidth,
+            styles,
+            activeEmoji,
+        ],
     );
 
     return (
