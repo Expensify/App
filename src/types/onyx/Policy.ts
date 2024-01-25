@@ -121,6 +121,9 @@ type Policy = {
 
     /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
     primaryLoginsInvited?: Record<string, string>;
+
+    /** The approval mode set up on this policy */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 export default Policy;

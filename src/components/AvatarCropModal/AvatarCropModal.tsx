@@ -1,78 +1,70 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Modal from '@components/Modal';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 
-const propTypes = {
+type AvatarCropModalProps = {
     /** Link to image for cropping */
-    imageUri: PropTypes.string,
+    imageUri?: string;
 
     /** Name of the image */
-    imageName: PropTypes.string,
+    imageName?: string;
 
     /** Type of the image file */
-    imageType: PropTypes.string,
+    imageType?: string;
 
     /** Callback to be called when user closes the modal */
-    onClose: PropTypes.func,
+    onClose?: () => void;
 
     /** Callback to be called when user saves the image */
-    onSave: PropTypes.func,
+    onSave?: (newImage: File | CustomRNImageManipulatorResult) => void;
 
     /** Modal visibility */
-    isVisible: PropTypes.bool.isRequired,
+    isVisible: boolean;
 
     /** Image crop vector mask */
-    maskImage: sourcePropTypes,
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    imageUri: '',
-    imageName: '',
-    imageType: '',
-    onClose: () => {},
-    onSave: () => {},
-    maskImage: undefined,
+    maskImage?: IconAsset;
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-function AvatarCropModal(props) {
+function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-    const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
     const translateX = useSharedValue(0);
-    const scale = useSharedValue(CONST.AVATAR_CROP_MODAL.MIN_SCALE);
+    const scale = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.MIN_SCALE);
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
+
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -82,13 +74,13 @@ function AvatarCropModal(props) {
     const prevMaxOffsetX = useSharedValue(0);
     const prevMaxOffsetY = useSharedValue(0);
 
-    const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
-    const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const [imageContainerSize, setImageContainerSize] = useState<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+    const [sliderContainerSize, setSliderContainerSize] = useState<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [isImageContainerInitialized, setIsImageContainerInitialized] = useState(false);
     const [isImageInitialized, setIsImageInitialized] = useState(false);
 
     // An onLayout callback, that initializes the image container, for proper render of an image
-    const initializeImageContainer = useCallback((event) => {
+    const initializeImageContainer = useCallback((event: LayoutChangeEvent) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
 
@@ -98,7 +90,7 @@ function AvatarCropModal(props) {
     }, []);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
-    const initializeSliderContainer = useCallback((event) => {
+    const initializeSliderContainer = useCallback((event: LayoutChangeEvent) => {
         setSliderContainerSize(event.nativeEvent.layout.width);
     }, []);
 
@@ -122,7 +114,6 @@ function AvatarCropModal(props) {
 
     // In order to calculate proper image position/size/animation, we have to know its size.
     // And we have to update image size if image url changes.
-    const imageUri = props.imageUri;
     useEffect(() => {
         if (!imageUri) {
             return;
@@ -143,17 +134,11 @@ function AvatarCropModal(props) {
 
     /**
      * Validates that value is within the provided mix/max range.
-     *
-     * @param {Number} value
-     * @param {Array} minMax
-     * @returns {Number}
      */
-    const clamp = useWorkletCallback((value, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
+    const clamp = useWorkletCallback((value: number, [min, max]) => interpolate(value, [min, max], [min, max], 'clamp'), []);
 
     /**
      * Returns current image size taking into account scale and rotation.
-     *
-     * @returns {Object}
      */
     const getDisplayedImageSize = useWorkletCallback(() => {
         let height = imageContainerSize * scale.value;
@@ -172,12 +157,9 @@ function AvatarCropModal(props) {
 
     /**
      * Validates the offset to prevent overflow, and updates the image offset.
-     *
-     * @param {Number} newX
-     * @param {Number} newY
      */
     const updateImageOffset = useWorkletCallback(
-        (offsetX, offsetY) => {
+        (offsetX: number, offsetY: number) => {
             const {height, width} = getDisplayedImageSize();
             const maxOffsetX = (width - imageContainerSize) / 2;
             const maxOffsetY = (height - imageContainerSize) / 2;
@@ -189,12 +171,7 @@ function AvatarCropModal(props) {
         [imageContainerSize, scale, clamp],
     );
 
-    /**
-     * @param {Number} newSliderValue
-     * @param {Number} containerSize
-     * @returns {Number}
-     */
-    const newScaleValue = useWorkletCallback((newSliderValue, containerSize) => {
+    const newScaleValue = useWorkletCallback((newSliderValue: number, containerSize: number) => {
         const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
         return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
     });
@@ -244,7 +221,7 @@ function AvatarCropModal(props) {
 
             isPressableEnabled.value = false;
         },
-        onChange: (event) => {
+        onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
             'worklet';
 
             const newSliderValue = clamp(translateSlider.value + event.changeX, [0, sliderContainerSize]);
@@ -311,24 +288,35 @@ function AvatarCropModal(props) {
 
         // Svg images are converted to a png blob to preserve transparency, so we need to update the
         // image name and type accordingly.
-        const isSvg = props.imageType.includes('image/svg');
-        const imageName = isSvg ? 'fileName.png' : props.imageName;
-        const imageType = isSvg ? 'image/png' : props.imageType;
+        const isSvg = imageType.includes('image/svg');
+        const name = isSvg ? 'fileName.png' : imageName;
+        const type = isSvg ? 'image/png' : imageType;
 
-        cropOrRotateImage(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: imageName, type: imageType})
+        cropOrRotateImage(imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
-                props.onClose();
-                props.onSave(newImage);
+                onClose?.();
+                onSave?.(newImage);
             })
             .catch(() => {
                 isLoading.value = false;
             });
-    }, [originalImageHeight.value, originalImageWidth.value, scale.value, translateX.value, imageContainerSize, translateY.value, props, rotation.value, isLoading]);
+    }, [
+        imageUri,
+        imageName,
+        imageType,
+        onClose,
+        onSave,
+        originalImageHeight.value,
+        originalImageWidth.value,
+        scale.value,
+        translateX.value,
+        imageContainerSize,
+        translateY.value,
+        rotation.value,
+        isLoading,
+    ]);
 
-    /**
-     * @param {Number} locationX
-     */
-    const sliderOnPress = (locationX) => {
+    const sliderOnPress = (locationX: number) => {
         // We are using the worklet directive here and running on the UI thread to ensure the Reanimated
         // shared values are updated synchronously, as they update asynchronously on the JS thread.
 
@@ -349,8 +337,8 @@ function AvatarCropModal(props) {
 
     return (
         <Modal
-            onClose={props.onClose}
-            isVisible={props.isVisible}
+            onClose={() => onClose?.()}
+            isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={resetState}
         >
@@ -360,12 +348,12 @@ function AvatarCropModal(props) {
                 includeSafeAreaPaddingBottom={false}
                 testID={AvatarCropModal.displayName}
             >
-                {props.isSmallScreenWidth && <HeaderGap />}
+                {isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.translate('avatarCropModal.title')}
-                    onBackButtonPress={props.onClose}
+                    title={translate('avatarCropModal.title')}
+                    onBackButtonPress={onClose}
                 />
-                <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
+                <Text style={[styles.mh5]}>{translate('avatarCropModal.description')}</Text>
                 <GestureHandlerRootView
                     onLayout={initializeImageContainer}
                     style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}
@@ -380,7 +368,7 @@ function AvatarCropModal(props) {
                     ) : (
                         <>
                             <ImageCropView
-                                imageUri={props.imageUri}
+                                imageUri={imageUri}
                                 containerSize={imageContainerSize}
                                 panGesture={panGesture}
                                 originalImageHeight={originalImageHeight}
@@ -389,7 +377,7 @@ function AvatarCropModal(props) {
                                 translateY={translateY}
                                 translateX={translateX}
                                 rotation={rotation}
-                                maskImage={props.maskImage}
+                                maskImage={maskImage}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
@@ -410,7 +398,7 @@ function AvatarCropModal(props) {
                                     />
                                 </PressableWithoutFeedback>
                                 <Tooltip
-                                    text={props.translate('common.rotate')}
+                                    text={translate('common.rotate')}
                                     shiftVertical={-2}
                                 >
                                     <View>
@@ -432,7 +420,7 @@ function AvatarCropModal(props) {
                     style={[styles.m5]}
                     onPress={cropAndSaveImage}
                     pressOnEnter
-                    text={props.translate('common.save')}
+                    text={translate('common.save')}
                 />
             </ScreenWrapper>
         </Modal>
@@ -440,6 +428,5 @@ function AvatarCropModal(props) {
 }
 
 AvatarCropModal.displayName = 'AvatarCropModal';
-AvatarCropModal.propTypes = propTypes;
-AvatarCropModal.defaultProps = defaultProps;
-export default compose(withWindowDimensions, withLocalize)(AvatarCropModal);
+
+export default AvatarCropModal;
