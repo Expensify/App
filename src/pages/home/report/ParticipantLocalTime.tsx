@@ -5,24 +5,22 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
+import type {Locale} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-
-type Locales = DeepValueOf<typeof CONST.LOCALES>;
 
 type ParticipantLocalTimeProps = {
     /** Personal details of the participant */
     participant: PersonalDetails;
 
-    preferredLocale: Locales;
+    preferredLocale?: Locale;
 };
 
-function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: Locales) {
+function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: Locale | undefined) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
-    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, reportRecipientTimezone.selected);
-    const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale);
+    const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, undefined, reportRecipientTimezone.selected);
+    const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT);
     const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone.toDateString());
     const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone.toDateString());
     if (reportRecipientDay !== currentUserDay) {

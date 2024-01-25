@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 type ReportDropUIProps = {
     /** Callback to execute when a file is dropped. */
-    onDrop: () => void;
+    onDrop: (event: DragEvent) => void;
 };
 function ReportDropUI({onDrop}: ReportDropUIProps) {
     const styles = useThemeStyles();
