@@ -1,4 +1,3 @@
-import type CustomRefObject from '@src/types/utils/CustomRefObject';
 import type ControlSelectionModule from './types';
 
 /**
@@ -20,25 +19,25 @@ function unblock() {
 /**
  * Block selection on particular element
  */
-function blockElement<T>(ref?: CustomRefObject<T> | null) {
-    if (!ref) {
+function blockElement(element?: HTMLElement | null) {
+    if (!element) {
         return;
     }
 
     // eslint-disable-next-line no-param-reassign
-    ref.onselectstart = () => false;
+    element.onselectstart = () => false;
 }
 
 /**
  * Unblock selection on particular element
  */
-function unblockElement<T>(ref?: CustomRefObject<T> | null) {
-    if (!ref) {
+function unblockElement(element?: HTMLElement | null) {
+    if (!element) {
         return;
     }
 
     // eslint-disable-next-line no-param-reassign
-    ref.onselectstart = () => true;
+    element.onselectstart = () => true;
 }
 
 const ControlSelection: ControlSelectionModule = {
