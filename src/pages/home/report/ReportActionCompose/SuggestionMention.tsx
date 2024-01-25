@@ -145,8 +145,10 @@ function SuggestionMention(
             });
 
             const sortedPersonalDetails = filteredPersonalDetails.sort((a, b) => {
-                const nameA = a?.displayName ?? a?.login ?? '';
-                const nameB = b?.displayName ?? b?.login ?? '';
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+                const nameA = a?.displayName || a?.login || '';
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+                const nameB = b?.displayName || b?.login || '';
 
                 if (nameA < nameB) {
                     return -1;

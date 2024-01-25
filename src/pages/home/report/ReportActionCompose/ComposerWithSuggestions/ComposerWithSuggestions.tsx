@@ -209,7 +209,7 @@ function ComposerWithSuggestions(
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
-    const suggestions = suggestionsRef.current?.getSuggestions();
+    const suggestions = suggestionsRef.current?.getSuggestions() ?? (() => []);
 
     const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions?.length ?? 0);
 

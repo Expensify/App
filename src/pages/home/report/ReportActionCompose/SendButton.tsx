@@ -24,7 +24,8 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const {translate} = useLocalize();
 
     const Tap = Gesture.Tap()
-        .enabled(!isDisabledProp)
+        // @ts-expect-error Enabled require argument but when passing something button is not working
+        .enabled()
         .onEnd(() => {
             handleSendMessage();
         });

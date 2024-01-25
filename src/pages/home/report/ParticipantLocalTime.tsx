@@ -13,11 +13,12 @@ type ParticipantLocalTimeProps = {
     /** Personal details of the participant */
     participant: PersonalDetails;
 
+    /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale?: Locale;
 };
 
 function getParticipantLocalTime(participant: PersonalDetails, preferredLocale: Locale | undefined) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
     const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, undefined, reportRecipientTimezone.selected);
     const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT);
@@ -45,7 +46,7 @@ function ParticipantLocalTime({participant, preferredLocale}: ParticipantLocalTi
         };
     }, [participant, preferredLocale]);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientDisplayName = participant.firstName || participant.displayName;
 
     if (!reportRecipientDisplayName) {
