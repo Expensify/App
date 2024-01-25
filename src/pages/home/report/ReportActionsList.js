@@ -6,6 +6,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
@@ -151,6 +152,7 @@ function ReportActionsList({
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const reportScrollManager = useReportScrollManager();
+    const userInactiveSince = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -177,10 +179,7 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
-    const isLastPendingActionIsAdd = lodashGet(sortedVisibleReportActions, [0, 'pendingAction']) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
-    // This is utilized for automatically scrolling to the bottom when sending a new message, in cases where comment linking is used and the user is already at the end of the list.
-    const isNewestActionAvailableAndPendingAdd = linkedReportActionID && isLastPendingActionIsAdd;
+    const isLastPendingActionIsDelete = lodashGet(sortedReportActions, [0, 'pendingAction']) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -196,17 +195,16 @@ function ReportActionsList({
 
     useEffect(() => {
         if (
-            (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length && hasNewestReportAction) ||
-            isNewestActionAvailableAndPendingAdd
+            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            previousLastIndex.current !== lastActionIndex &&
+            reportActionSize.current > sortedVisibleReportActions.length &&
+            hasNewestReportAction
         ) {
-            // runAfterInteractions is used for isNewestActionAvailableAndPendingAdd
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
+            reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, isLastPendingActionIsAdd, linkedReportActionID, isNewestActionAvailableAndPendingAdd]);
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -421,7 +419,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    useEffect(() => {
+    const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -439,7 +437,48 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, shouldDisplayNewMarker, currentUnreadMarker, report.reportID]);
+
+    useEffect(() => {
+        calculateUnreadMarker();
+    }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
+
+    const onVisibilityChange = useCallback(() => {
+        if (!Visibility.isVisible()) {
+            userInactiveSince.current = DateUtils.getDBTime();
+            return;
+        }
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        if (
+            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
+            !(
+                sortedVisibleReportActions &&
+                _.some(
+                    sortedVisibleReportActions,
+                    (reportAction) =>
+                        newMessageTimeReference < reportAction.created &&
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
+                )
+            )
+        ) {
+            return;
+        }
+
+        Report.readNewestAction(report.reportID, false);
+        userActiveSince.current = DateUtils.getDBTime();
+        lastReadTimeRef.current = newMessageTimeReference;
+        setCurrentUnreadMarker(null);
+        cacheUnreadMarkers.delete(report.reportID);
+        calculateUnreadMarker();
+    }, [calculateUnreadMarker, report, sortedVisibleReportActions]);
+
+    useEffect(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(onVisibilityChange);
+
+        return unsubscribeVisibilityListener;
+    }, [onVisibilityChange]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
@@ -516,10 +555,13 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions, isOffline]);
 
+    // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
+    // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
+    const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
     return (
         <>
             <FloatingMessageCounter
-                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || (!isLoadingInitialReportActions && !hasNewestReportAction)}
+                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>

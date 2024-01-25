@@ -177,12 +177,12 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const reportActionID = lodashGet(route, 'params.reportActionID', null);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
+
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
-    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const {windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
-
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), [props.reportActions]);
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
     const [isInitialLinkedView, setIsInitialLinkedView] = useState(false);
@@ -337,7 +337,12 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const loadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         () => {
-            if (props.isLoadingInitialReportActions || props.isLoadingOlderReportActions || props.network.isOffline) {
+            if (
+                props.isLoadingInitialReportActions ||
+                props.isLoadingOlderReportActions ||
+                props.network.isOffline ||
+                newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            ) {
                 return;
             }
             // Determines if loading older reports is necessary when the content is smaller than the list
@@ -362,6 +367,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
             firstReportActionID,
             props.network.isOffline,
             reportActions.length,
+            newestReportAction,
         ],
     );
 
@@ -420,7 +426,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     ]);
 
     // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = firstReportActionID !== reportActionID;
+    const isTheFirstReportActionIsLinked = firstReportActionID === reportActionID;
 
     useEffect(() => {
         if (isTheFirstReportActionIsLinked) {
@@ -438,7 +444,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         return null;
     }
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || isInitialLinkedView);
+    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isInitialLinkedView);
 
     return (
         <>
