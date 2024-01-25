@@ -145,7 +145,7 @@ export default {
         lastName: 'Apellidos',
         phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
-        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
+        phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
         and: 'y',
         details: 'Detalles',

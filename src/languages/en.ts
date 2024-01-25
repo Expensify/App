@@ -156,7 +156,7 @@ export default {
         lastName: 'Last name',
         phone: 'Phone',
         phoneNumber: 'Phone number',
-        phoneNumberPlaceholder: '(xxx)xxx-xxxx',
+        phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
         and: 'and',
         details: 'Details',
