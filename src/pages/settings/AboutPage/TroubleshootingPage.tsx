@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
@@ -14,8 +15,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+type BaseMenuItem = {
+    translationKey: TranslationPaths;
+    icon: React.FC<SvgProps>;
+    action: () => void;
+};
 
 function TroubleshootingPage() {
     const {translate} = useLocalize();
@@ -25,7 +33,7 @@ function TroubleshootingPage() {
     const wipeOnyx = useOnyxWipe();
 
     const menuItems = useMemo(() => {
-        const baseMenuItems = [
+        const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshooting.resetAndRefresh',
                 icon: Expensicons.RotateLeft,
