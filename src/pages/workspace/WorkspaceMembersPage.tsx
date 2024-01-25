@@ -36,6 +36,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceMembersPageOnyxProps = {
+    /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
