@@ -4,6 +4,7 @@ import React, {useEffect} from 'react';
 import {Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Log from '@libs/Log';
 import * as SessionUtils from '@libs/SessionUtils';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +52,7 @@ function LogOutPreviousUserPage(props) {
             // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
             const shouldForceLogin = lodashGet(props, 'route.params.shouldForceLogin', '') === 'true';
             if (shouldForceLogin) {
+                Log.info('LogOutPreviousUserPage - forcing login with shortLivedAuthToken');
                 const email = lodashGet(props, 'route.params.email', '');
                 const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
