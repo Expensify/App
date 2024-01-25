@@ -35,10 +35,6 @@ type ReportActionItemParentActionProps = ReportActionItemParentActionOnyxProps &
     /** The id of the report */
     // eslint-disable-next-line react/no-unused-prop-types
     reportID: string;
-
-    /** The id of the parent report */
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportID: string;
 };
 
 function ReportActionItemParentAction({allReportActions = {}, allReports = {}, index = 0, shouldHideThreadDividerLine = false, reportID}: ReportActionItemParentActionProps) {
