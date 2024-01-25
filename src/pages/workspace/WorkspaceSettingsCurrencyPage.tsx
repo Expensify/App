@@ -88,7 +88,6 @@ function WorkspaceSettingsCurrencyPage({currencyList = {}, policy, isLoadingRepo
                 />
 
                 <SelectionList
-                    // @ts-expect-error TODO: Remove this once SelectionList component (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript.
                     sections={sections}
                     textInputLabel={translate('workspace.editor.currencyInputLabel')}
                     textInputValue={searchText}
