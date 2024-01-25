@@ -1617,7 +1617,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
-    if (personalDetails.isOptimisticPersonalDetail === true && formattedLogin) {
+    if (personalDetails.isOptimisticPersonalDetail === true) {
         return formattedLogin;
     }
 
@@ -2341,7 +2341,13 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
-    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
+    const participants = participantAccountIDs.map((id) => {
+        const name = getDisplayNameForParticipant(id);
+        if (name && name?.length > 0) {
+            return name;
+        }
+        return Localize.translateLocal('common.hidden');
+    });
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     if (!users) {
         return parentReportActionMessage;
