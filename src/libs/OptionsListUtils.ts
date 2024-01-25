@@ -106,7 +106,7 @@ type MemberForList = {
     alternateText: string | null;
     keyForList: string | null;
     isSelected: boolean;
-    isDisabled: boolean;
+    isDisabled: boolean | null;
     accountID?: number | null;
     login: string | null;
     rightElement: React.ReactNode | null;
