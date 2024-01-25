@@ -283,5 +283,6 @@ export type {
     OriginalMessageCreated,
     OriginalMessageAddComment,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
 };

@@ -1461,84 +1461,6 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
 }
 
 /**
- * Checks if a report is a group chat.
- *
- * A report is a group chat if it meets the following conditions:
- * - Not a chat thread.
- * - Not a task report.
- * - Not a money request / IOU report.
- * - Not an archived room.
- * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
- * - More than 1 participant (note that participantAccountIDs excludes the current user).
- *
- */
-function isGroupChat(report: OnyxEntry<Report>): boolean {
-    return Boolean(
-        report &&
-            !isChatThread(report) &&
-            !isTaskReport(report) &&
-            !isMoneyRequestReport(report) &&
-            !isArchivedRoom(report) &&
-            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            (report.participantAccountIDs?.length ?? 0) > 1,
-    );
-}
-
-function getGroupChatParticipantIDs(participants: number[]): number[] {
-    return [...new Set([...participants, ...(currentUserAccountID ? [currentUserAccountID] : [])])];
-}
-
-/**
- * Returns an array of the participants Ids of a report
- *
- * @deprecated Use getVisibleMemberIDs instead
- */
-function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const participants = report.participantAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...participants].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-
-    if (isGroupChat(report)) {
-        return getGroupChatParticipantIDs(participants);
-    }
-
-    return participants;
-}
-
-/**
- * Returns an array of the visible member accountIDs for a report
- */
-function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-
-    if (isGroupChat(report)) {
-        return getGroupChatParticipantIDs(visibleChatMemberAccountIDs);
-    }
-
-    return visibleChatMemberAccountIDs;
-}
-
-/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
@@ -1652,10 +1574,6 @@ function getIcons(
         const isPayer = currentUserAccountID === report?.managerID;
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
-    }
-
-    if (isGroupChat(report)) {
-        return getIconsForParticipants(getVisibleMemberIDs(report), personalDetails);
     }
 
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
@@ -2418,7 +2336,7 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
     if (!parentReportAction?.originalMessage) {
-        return '';
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
@@ -4450,6 +4368,46 @@ function getTaskAssigneeChatOnyxData(
 }
 
 /**
+ * Returns an array of the participants Ids of a report
+ *
+ * @deprecated Use getVisibleMemberIDs instead
+ */
+function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
+    if (!report) {
+        return [];
+    }
+
+    const participants = report.participantAccountIDs ?? [];
+
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...participants].filter(Boolean) as number[];
+        const onlyUnique = [...new Set([...onlyTruthyValues])];
+        return onlyUnique;
+    }
+    return participants;
+}
+
+/**
+ * Returns an array of the visible member accountIDs for a report*
+ */
+function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
+    if (!report) {
+        return [];
+    }
+
+    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
+
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
+        const onlyUnique = [...new Set([...onlyTruthyValues])];
+        return onlyUnique;
+    }
+    return visibleChatMemberAccountIDs;
+}
+
+/**
  * Return iou report action display message
  */
 function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>): string {
@@ -4503,6 +4461,30 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         formattedAmount,
         comment: transactionDetails?.comment ?? '',
     });
+}
+
+/**
+ * Checks if a report is a group chat.
+ *
+ * A report is a group chat if it meets the following conditions:
+ * - Not a chat thread.
+ * - Not a task report.
+ * - Not a money request / IOU report.
+ * - Not an archived room.
+ * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
+ * - More than 2 participants.
+ *
+ */
+function isGroupChat(report: OnyxEntry<Report>): boolean {
+    return Boolean(
+        report &&
+            !isChatThread(report) &&
+            !isTaskReport(report) &&
+            !isMoneyRequestReport(report) &&
+            !isArchivedRoom(report) &&
+            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
+            (report.participantAccountIDs?.length ?? 0) > 2,
+    );
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
