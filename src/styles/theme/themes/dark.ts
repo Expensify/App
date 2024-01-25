@@ -1,3 +1,4 @@
+import getPlatform from '@libs/getPlatform';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -6,7 +7,7 @@ import SCREENS from '@src/SCREENS';
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: colors.green400,
+    splashBG: getPlatform() in [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP] ? colors.productDark100 : colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
@@ -62,7 +63,6 @@ const darkTheme = {
     placeholderText: colors.productDark700,
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productDark200,
-    splashBGWeb: colors.productDark100,
     dropUIBG: 'rgba(6,27,9,0.92)',
     receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,

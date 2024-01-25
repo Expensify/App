@@ -1,10 +1,8 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
-import getPlatform from '@libs/getPlatform';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import CONST from '@src/CONST';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -37,9 +35,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     }, [isNested, setRootStatusBarEnabled]);
 
     // the prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
-    const initialBgColor = getPlatform() === CONST.PLATFORM.WEB ? theme.splashBGWeb : theme.splashBG;
-    const prevStatusBarBackgroundColor = useRef(initialBgColor);
-    const statusBarBackgroundColor = useRef(initialBgColor);
+    const prevStatusBarBackgroundColor = useRef(theme.splashBG);
+    const statusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(

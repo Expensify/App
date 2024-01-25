@@ -1,3 +1,4 @@
+import getPlatform from '@libs/getPlatform';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -6,7 +7,7 @@ import SCREENS from '@src/SCREENS';
 const lightTheme = {
     // Figma keys
     appBG: colors.productLight100,
-    splashBG: colors.green400,
+    splashBG: getPlatform() in [CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP] ? colors.productDark100 : colors.green400,
     highlightBG: colors.productLight200,
     border: colors.productLight400,
     borderLighter: colors.productLight400,
@@ -56,7 +57,6 @@ const lightTheme = {
     offline: colors.productLight700,
     modalBackground: colors.productLight100,
     cardBG: colors.productLight200,
-    splashBGWeb: colors.productDark100,
     cardBorder: colors.productLight200,
     spinner: colors.productLight800,
     unreadIndicator: colors.green400,
