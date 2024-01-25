@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -76,6 +77,8 @@ function WorkspaceInvitePage(props) {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [usersToInvite, setUsersToInvite] = useState([]);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const navigation = useNavigation();
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
@@ -92,6 +95,18 @@ function WorkspaceInvitePage(props) {
         Policy.clearErrors(props.route.params.policyID);
         openWorkspaceInvitePage();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
+    }, []);
+
+    useEffect(() => {
+        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return () => {
+            unsubscribeTransitionEnd();
+        };
+        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
@@ -145,9 +160,13 @@ function WorkspaceInvitePage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [props.personalDetails, props.policyMembers, props.betas, searchTerm, excludedUsers]);
 
-    const getSections = () => {
-        const sections = [];
+    const sections = useMemo(() => {
+        const sectionsArr = [];
         let indexOffset = 0;
+
+        if (!didScreenTransitionEnd) {
+            return [];
+        }
 
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
@@ -163,7 +182,7 @@ function WorkspaceInvitePage(props) {
             });
         }
 
-        sections.push({
+        sectionsArr.push({
             title: undefined,
             data: filterSelectedOptions,
             shouldShow: true,
@@ -176,7 +195,7 @@ function WorkspaceInvitePage(props) {
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
         const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, OptionsListUtils.formatMemberForList);
 
-        sections.push({
+        sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !_.isEmpty(personalDetailsFormatted),
@@ -188,7 +207,7 @@ function WorkspaceInvitePage(props) {
             const hasUnselectedUserToInvite = !_.contains(selectedLogins, userToInvite.login);
 
             if (hasUnselectedUserToInvite) {
-                sections.push({
+                sectionsArr.push({
                     title: undefined,
                     data: [OptionsListUtils.formatMemberForList(userToInvite)],
                     shouldShow: true,
@@ -197,8 +216,8 @@ function WorkspaceInvitePage(props) {
             }
         });
 
-        return sections;
-    };
+        return sectionsArr;
+    }, [personalDetails, searchTerm, selectedOptions, usersToInvite, translate, didScreenTransitionEnd]);
 
     const toggleOption = (option) => {
         Policy.clearErrors(props.route.params.policyID);
@@ -253,7 +272,12 @@ function WorkspaceInvitePage(props) {
         if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
+        if (
+            usersToInvite.length === 0 &&
+            excludedUsers.includes(
+                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+            )
+        ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
@@ -264,56 +288,50 @@ function WorkspaceInvitePage(props) {
             shouldEnableMaxHeight
             testID={WorkspaceInvitePage.displayName}
         >
-            {({didScreenTransitionEnd}) => {
-                const sections = didScreenTransitionEnd ? getSections() : [];
-
-                return (
-                    <FullPageNotFoundView
-                        shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
-                        subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.invite.invitePeople')}
-                            subtitle={policyName}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            onBackButtonPress={() => {
-                                Policy.clearErrors(props.route.params.policyID);
-                                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
-                            }}
-                        />
-                        <SelectionList
-                            canSelectMultiple
-                            sections={sections}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputValue={searchTerm}
-                            onChangeText={(value) => {
-                                SearchInputManager.searchInput = value;
-                                setSearchTerm(value);
-                            }}
-                            headerMessage={headerMessage}
-                            onSelectRow={toggleOption}
-                            onConfirm={inviteUser}
-                            showScrollIndicator
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        />
-                        <View style={[styles.flexShrink0]}>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!selectedOptions.length}
-                                isAlertVisible={shouldShowAlertPrompt}
-                                buttonText={translate('common.next')}
-                                onSubmit={inviteUser}
-                                message={props.policy.alertMessage}
-                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                enabledWhenOffline
-                                disablePressOnEnter
-                            />
-                        </View>
-                    </FullPageNotFoundView>
-                );
-            }}
+            <FullPageNotFoundView
+                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.invite.invitePeople')}
+                    subtitle={policyName}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                    onBackButtonPress={() => {
+                        Policy.clearErrors(props.route.params.policyID);
+                        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
+                    }}
+                />
+                <SelectionList
+                    canSelectMultiple
+                    sections={sections}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputValue={searchTerm}
+                    onChangeText={(value) => {
+                        SearchInputManager.searchInput = value;
+                        setSearchTerm(value);
+                    }}
+                    headerMessage={headerMessage}
+                    onSelectRow={toggleOption}
+                    onConfirm={inviteUser}
+                    showScrollIndicator
+                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                />
+                <View style={[styles.flexShrink0]}>
+                    <FormAlertWithSubmitButton
+                        isDisabled={!selectedOptions.length}
+                        isAlertVisible={shouldShowAlertPrompt}
+                        buttonText={translate('common.next')}
+                        onSubmit={inviteUser}
+                        message={props.policy.alertMessage}
+                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                        enabledWhenOffline
+                        disablePressOnEnter
+                    />
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

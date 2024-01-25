@@ -18,6 +18,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -25,6 +26,7 @@ import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
+import Performance from './Performance';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
@@ -552,7 +554,7 @@ function createOption(
         text: undefined,
         alternateText: null,
         pendingAction: undefined,
-        allReportErrors: null,
+        allReportErrors: undefined,
         brickRoadIndicator: null,
         icons: undefined,
         tooltipText: null,
@@ -1668,7 +1670,9 @@ function getOptions(
  * Build the options for the Search view
  */
 function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
-    return getOptions(reports, personalDetails, {
+    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    const options = getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
@@ -1683,6 +1687,10 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
         includeMoneyRequests: true,
         includeTasks: true,
     });
+    Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
+    return options;
 }
 
 /**
