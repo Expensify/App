@@ -589,13 +589,15 @@ function ComposerWithSuggestions({
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            <SilentCommentUpdater
-                reportID={reportID}
-                report={report}
-                value={value}
-                updateComment={updateComment}
-                commentRef={commentRef}
-            />
+            {reportID && reportID !== '0' && (
+                <SilentCommentUpdater
+                    reportID={reportID}
+                    report={report}
+                    value={value}
+                    updateComment={updateComment}
+                    commentRef={commentRef}
+                />
+            )}
 
             {/* Only used for testing so far */}
             {children}
