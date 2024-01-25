@@ -246,9 +246,6 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
-    /** Indicates whether an forced upgrade is required */
-    UPDATE_REQUIRED: 'updateRequired',
-
     // Paths of PDF file that has been cached during one session
     CACHED_PDF_PATHS: 'cachedPDFPaths',
 
@@ -448,7 +445,6 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
-    [ONYXKEYS.UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
 
     // Collections
