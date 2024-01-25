@@ -1167,12 +1167,15 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val, p
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {String} val
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val) {
+function updateMoneyRequestBillable(transactionID, transactionThreadReportID, val, policy, policyTags, policyCategories) {
     const transactionChanges = {
         billable: val,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestBillable', params, onyxData);
 }
 
@@ -1218,12 +1221,15 @@ function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag, po
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {String} category
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestCategory(transactionID, transactionThreadReportID, category) {
+function updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, policy, policyTags, policyCategories) {
     const transactionChanges = {
         category,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestCategory', params, onyxData);
 }
 
@@ -1233,12 +1239,15 @@ function updateMoneyRequestCategory(transactionID, transactionThreadReportID, ca
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {String} comment
+ * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function updateMoneyRequestDescription(transactionID, transactionThreadReportID, comment) {
+function updateMoneyRequestDescription(transactionID, transactionThreadReportID, comment, policy, policyTags, policyCategories) {
     const transactionChanges = {
         comment,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     API.write('UpdateMoneyRequestDescription', params, onyxData);
 }
 
