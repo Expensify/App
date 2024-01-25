@@ -373,6 +373,7 @@ function BaseValidateCodeForm(props) {
                         hasError={hasError}
                         autoFocus
                         key="validateCode"
+                        testID="validateCode"
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.alignItemsStart]}>

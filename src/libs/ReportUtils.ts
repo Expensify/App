@@ -397,6 +397,7 @@ type OptionData = {
     parentReportAction?: OnyxEntry<ReportAction>;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
     descriptiveText?: string;
+    notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
     name?: string | null;
 } & Report;
@@ -3707,7 +3708,7 @@ function shouldReportBeInOptionList({
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInGSDMode) {
-        return isUnread(report);
+        return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
@@ -4610,10 +4611,27 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
+function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
+    if (!policy) {
+        return false;
+    }
+    type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
+    const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
+    const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
+    const isAutoReimbursable =
+        isGroupPolicy(report) &&
+        policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+        autoReimbursementLimit >= reimbursableTotal &&
+        reimbursableTotal > 0 &&
+        CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);
+    return isAutoReimbursable;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
+    canBeAutoReimbursed,
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
