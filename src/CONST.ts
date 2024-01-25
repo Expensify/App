@@ -1387,7 +1387,7 @@ const CONST = {
             CLOSED: 6,
             STATE_SUSPENDED: 7,
         },
-        ACTIVE_STATES: cardActiveStates
+        ACTIVE_STATES: cardActiveStates,
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
