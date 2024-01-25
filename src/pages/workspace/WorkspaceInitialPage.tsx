@@ -83,7 +83,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
-    const policyID = useMemo(() => policy?.id ?? '', [policy]);
+    const policyID = policy?.id ?? '';
+    const policyName = policy?.name ?? '';
     const [policyReports, adminsRoom, announceRoom] = useMemo(() => {
         const reports: OnyxTypes.Report[] = [];
         let admins: OnyxTypes.Report | undefined;
@@ -115,11 +116,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
 
     /** Call the delete policy and hide the modal */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports.filter(shouldArchiveReport), policy?.name ?? '');
+        Policy.deleteWorkspace(policyID, policyReports.filter(shouldArchiveReport), policyName);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
-    }, [policyID, policy?.name, policyReports]);
+    }, [policyID, policyName, policyReports]);
 
     useEffect(() => {
         const policyDraftId = policyDraft?.id;
@@ -142,12 +143,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policyID, policy?.name ?? '', CONST.CURRENCY.USD);
+        Policy.updateGeneralSettings(policyID, policyName, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
-    }, [policyID, policy?.name]);
+    }, [policyID, policyName]);
 
-    const policyName = policy?.name ?? '';
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const menuItems: WorkspaceMenuItem[] = [
@@ -193,7 +193,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
             icon: Expensicons.Bank,
             action: () =>
                 policy?.outputCurrency === CONST.CURRENCY.USD
-                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policy.id, Navigation.getActiveRouteWithoutParams())))()
+                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policyID, Navigation.getActiveRouteWithoutParams())))()
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
@@ -287,12 +287,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
                                                 />
                                             </PressableWithoutFeedback>
                                         </Tooltip>
-                                        {!!policy?.name && (
+                                        {!!policyName && (
                                             <Tooltip text={translate('workspace.common.settings')}>
                                                 <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError || isExecuting}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
+                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policyID)))}
                                                     accessibilityLabel={translate('workspace.common.settings')}
                                                     role={CONST.ROLE.BUTTON}
                                                 >
@@ -300,7 +300,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reports: reports
                                                         numberOfLines={1}
                                                         style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
                                                     >
-                                                        {policy.name}
+                                                        {policyName}
                                                     </Text>
                                                 </PressableWithoutFeedback>
                                             </Tooltip>
