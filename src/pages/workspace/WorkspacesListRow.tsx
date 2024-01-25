@@ -1,5 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
@@ -40,6 +41,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Renders the component using big screen layout or small screen layout. When layoutWidth === WorkspaceListRowLayout.NONE,
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
     layoutWidth?: ValueOf<typeof CONST.LAYOUT_WIDTH>;
+
+    /** Additional styles applied to the row */
+    rowStyles?: StyleProp<ViewStyle>;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -64,6 +68,7 @@ function WorkspacesListRow({
     workspaceType,
     currentUserPersonalDetails,
     layoutWidth = CONST.LAYOUT_WIDTH.NONE,
+    rowStyles,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -95,7 +100,7 @@ function WorkspacesListRow({
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     return (
-        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
+        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5, rowStyles]}>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}

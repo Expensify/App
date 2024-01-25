@@ -285,7 +285,7 @@ function InitialSettingsPage(props) {
     const accountID = lodashGet(currentUserDetails, 'accountID', '');
 
     const headerContent = (
-        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter]}>
+        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
