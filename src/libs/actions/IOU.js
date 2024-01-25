@@ -26,6 +26,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as FileUtils from '../fileDownload/FileUtils';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -3683,6 +3684,32 @@ function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
+/**
+ * @param {String} receiptFilename
+ * @param {String} receiptPath
+ * @param {Function} onSuccess
+ * @param {String} requestType
+ * @param {String} iouType
+ * @param {String} transactionID
+ * @param {String} reportID
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    const onFailure = () => {
+        setMoneyRequestReceipt(transactionID, '', '', true);
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            return;
+        }
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
+    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3741,4 +3768,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    navigateToStartStepIfScanFileCannotBeRead,
 };
