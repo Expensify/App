@@ -1178,6 +1178,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1239,6 +1240,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1655,6 +1657,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: sessionEmail,
+        ownerAccountID: sessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now

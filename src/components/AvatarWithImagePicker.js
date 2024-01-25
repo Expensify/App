@@ -90,7 +90,7 @@ const propTypes = {
     avatarStyle: stylePropTypes.isRequired,
 
     /** Indicates if picker feature should be disabled */
-    disabled: PropTypes.bool, 
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {

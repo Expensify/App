@@ -3317,7 +3317,7 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: 16,
+            marginHorizontal: variables.sectionMargin,
         },
 
         cardSectionIllustration: {
@@ -4233,7 +4233,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth,
+            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
         },
 
         workspaceSectionMobile: {
