@@ -43,7 +43,7 @@ function dismissModal(targetReportID: string, navigationRef: NavigationContainer
                 const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
                 const targetReport = getReport(targetReportID);
                 // If targetReport is an empty object, it means that it's a new report, so it can't belong to any workspace
-                const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs);
+                const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
                 if (shouldOpenAllWorkspace) {
                     switchPolicyID(navigationRef, {route: ROUTES.HOME});
                 } else {

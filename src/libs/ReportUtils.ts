@@ -896,7 +896,7 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
  * Checks if the supplied report belongs to workspace based on the provided params. If the report's policyID is _FAKE_ or has no value, it means this report is a DM.
  * In this case report and workspace members must be compared to determine whether the report belongs to the workspace.
  */
-function doesReportBelongToWorkspace(report: Report, policyID: string, policyMemberAccountIDs: number[]) {
+function doesReportBelongToWorkspace(report: Report, policyMemberAccountIDs: number[], policyID?: string) {
     return (
         isConciergeChatReport(report) || (report.policyID === CONST.POLICY.ID_FAKE || !report.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : report.policyID === policyID)
     );
@@ -905,8 +905,8 @@ function doesReportBelongToWorkspace(report: Report, policyID: string, policyMem
 /**
  * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
-function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyID = '', policyMemberAccountIDs: number[] = []) {
-    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyID, policyMemberAccountIDs));
+function filterReportsByPolicyIdAndMemberAccountIDs(reports: Report[], policyMemberAccountIDs: number[] = [], policyID?: string) {
+    return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID));
 }
 
 /**
@@ -1005,7 +1005,7 @@ function findLastAccessedReport(
     let reportsValues = Object.values(reports ?? {}) as Report[];
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
-        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyID, policyMemberAccountIDs);
+        reportsValues = filterReportsByPolicyIdAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
     }
 
     let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);

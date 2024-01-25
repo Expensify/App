@@ -1895,9 +1895,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
             const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
-
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyID, policyMembersAccountIDs) : true;
-
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : true;
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
             }
