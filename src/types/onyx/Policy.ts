@@ -29,7 +29,7 @@ type CustomUnit = {
 type DisabledFields = {
     defaultBillable?: boolean;
     reimbursable?: boolean;
-}
+};
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
