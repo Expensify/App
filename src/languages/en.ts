@@ -584,7 +584,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        receiptScanning: 'Receipt scan in progress…',
+        receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
@@ -2006,7 +2006,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out of pocket',
+        outOfPocket: 'Out-of-pocket spend',
         companySpend: 'Company spend',
     },
     distance: {
