@@ -77,6 +77,14 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
                 onSubmit={() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM)}
                 submitButtonText={translate('common.next')}
+                validate={() => {
+                    if (response?.trim()) {
+                        return {};
+                    }
+                    return {
+                        [RESPONSE_INPUT_ID]: translate('common.error.fieldRequired'),
+                    };
+                }}
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
