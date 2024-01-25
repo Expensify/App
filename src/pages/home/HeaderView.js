@@ -155,7 +155,7 @@ function HeaderView(props) {
     );
 
     const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom;
-    const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const canJoin = props.report.reportID && canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
         threeDotMenuItems.push({
@@ -217,7 +217,7 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
-    const isLoading = !props.report || !title;
+    const isLoading = !props.report.reportID || !props.report || !title;
 
     return (
         <View
