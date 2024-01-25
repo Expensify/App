@@ -359,7 +359,9 @@ const ONYXKEYS = {
         POLICY_REPORT_FIELD_EDIT_FORM: 'policyReportFieldEditForm',
         POLICY_REPORT_FIELD_EDIT_FORM_DRAFT: 'policyReportFieldEditFormDraft',
         EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
+        EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
+        EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
     },
 } as const;
 
@@ -545,9 +547,11 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: OnyxTypes.Form & {
         [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
     };
+    [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: OnyxTypes.Form & {
         [CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: string;
     };
+    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: OnyxTypes.Form;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
