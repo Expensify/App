@@ -653,6 +653,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
+                    transactionID={transaction && transaction.transactionID}
                     fileExtension={fileExtension}
                 />
             ) : (
