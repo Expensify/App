@@ -1,16 +1,12 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 import {ScrollView, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -18,36 +14,23 @@ import * as Expensicons from './Icon/Expensicons';
 import Modal from './Modal';
 import Text from './Text';
 
-function ToExpensifyClassicModal() {
+type Props = {
+    isToExpensifyClassicModalOpen: boolean;
+    setIsToExpensifyClassicModalOpen: Dispatch<SetStateAction<boolean>>;
+};
+function ToExpensifyClassicModal({isToExpensifyClassicModalOpen, setIsToExpensifyClassicModalOpen}: Props) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, isExtraSmallScreenHeight, windowHeight} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-    const navigation = useNavigation();
-    const [isModalOpen, setIsModalOpen] = useState(true);
     const theme = useTheme();
 
-    useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name && currentRoute.name !== SCREENS.HOME) {
-            return;
-        }
-
-        Welcome.show(routes, () => setIsModalOpen(true));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const closeModal = useCallback(() => {
-        Report.dismissEngagementModal();
-        setIsModalOpen(false);
-    }, []);
+    const closeModal = useCallback(() => setIsToExpensifyClassicModalOpen(false), [setIsToExpensifyClassicModalOpen]);
 
     return (
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isModalOpen}
+            isVisible={isToExpensifyClassicModalOpen}
             onClose={closeModal}
             innerContainerStyle={styles.pt0}
             shouldUseCustomBackdrop
@@ -78,9 +61,7 @@ function ToExpensifyClassicModal() {
                         >
                             Expensify Classic has everything you`&apos;`ll need
                         </Text>
-                        <Text style={[styles.mb4]}>
-                            While we&apos;re busy working on New Expensify, it currently doesn&apos;t support some of the features you&apos;re looking for.
-                        </Text>
+                        <Text style={[styles.mb4]}>While we&apos;re busy working on New Expensify, it currently doesn&apos;t support some of the features you&apos;re looking for.</Text>
                         <Text>Don&apos;t worry, Expensify Classic has everything you need.</Text>
                     </View>
                 </ScrollView>

@@ -16,6 +16,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
+import ManageTeamsExpensesModal from './ManageTeamsExpensesModal';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
@@ -86,6 +87,7 @@ function PurposeForUsingExpensifyModal() {
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const navigation = useNavigation();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isManageTeamsExpensesModalOpen, setIsManageTeamsExpensesModalOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
@@ -106,6 +108,10 @@ function PurposeForUsingExpensifyModal() {
     }, []);
 
     const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
+        if (choice === CONST.INTRO_CHOICES.MANAGE_TEAM) {
+            return setIsManageTeamsExpensesModalOpen(true);
+        }
+
         Report.completeEngagementModal(message, choice);
         setIsModalOpen(false);
         Report.navigateToConciergeChat();
@@ -129,47 +135,53 @@ function PurposeForUsingExpensifyModal() {
     );
 
     return (
-        <Modal
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isModalOpen}
-            onClose={closeModal}
-            innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop
-        >
-            <View style={{maxHeight: windowHeight}}>
-                <ScrollView>
-                    <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
-                        <Lottie
-                            source={LottieAnimations.Hands}
-                            style={styles.w100}
-                            webStyle={styles.w100}
-                            autoPlay
-                            loop
+        <>
+            <Modal
+                type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                isVisible={true}
+                onClose={closeModal}
+                innerContainerStyle={styles.pt0}
+                shouldUseCustomBackdrop
+            >
+                <View style={{maxHeight: windowHeight}}>
+                    <ScrollView>
+                        <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
+                            <Lottie
+                                source={LottieAnimations.Hands}
+                                style={styles.w100}
+                                webStyle={styles.w100}
+                                autoPlay
+                                loop
+                            />
+                            <HeaderWithBackButton
+                                shouldShowCloseButton
+                                shouldShowBackButton={false}
+                                onCloseButtonPress={closeModal}
+                                shouldOverlay
+                                iconFill={theme.iconColorfulBackground}
+                            />
+                        </View>
+                        <View style={[styles.w100, styles.ph5, styles.pv5]}>
+                            <Text
+                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                                numberOfLines={2}
+                            >
+                                {translate('purposeForExpensify.welcomeMessage')}
+                            </Text>
+                            <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+                        </View>
+                        <MenuItemList
+                            menuItems={menuItems}
+                            shouldUseSingleExecution
                         />
-                        <HeaderWithBackButton
-                            shouldShowCloseButton
-                            shouldShowBackButton={false}
-                            onCloseButtonPress={closeModal}
-                            shouldOverlay
-                            iconFill={theme.iconColorfulBackground}
-                        />
-                    </View>
-                    <View style={[styles.w100, styles.ph5, styles.pv5]}>
-                        <Text
-                            style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                            numberOfLines={2}
-                        >
-                            {translate('purposeForExpensify.welcomeMessage')}
-                        </Text>
-                        <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
-                    </View>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        shouldUseSingleExecution
-                    />
-                </ScrollView>
-            </View>
-        </Modal>
+                    </ScrollView>
+                </View>
+            </Modal>
+            <ManageTeamsExpensesModal
+                isManageTeamsExpensesModalOpen={isManageTeamsExpensesModalOpen}
+                setIsManageTeamsExpensesModalOpen={setIsManageTeamsExpensesModalOpen}
+            />
+        </>
     );
 }
 

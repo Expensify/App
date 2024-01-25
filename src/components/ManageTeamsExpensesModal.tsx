@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 import {ScrollView, View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -13,6 +13,7 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
 import Text from './Text';
+import ToExpensifyClassicModal from './ToExpensifyClassicModal';
 
 const TEAMS_EXPENSE_CHOICE = {
     MULTI_LEVEL: 'Multi level approval',
@@ -29,18 +30,19 @@ const menuIcons = {
     [TEAMS_EXPENSE_CHOICE.ACCOUNTING]: Expensicons.Sync,
     [TEAMS_EXPENSE_CHOICE.RULE]: Expensicons.Gear,
 };
+type Props = {
+    isManageTeamsExpensesModalOpen: boolean;
+    setIsManageTeamsExpensesModalOpen: Dispatch<SetStateAction<boolean>>;
+};
 
-function ManageTeamsExpensesModal() {
+function ManageTeamsExpensesModal({isManageTeamsExpensesModalOpen, setIsManageTeamsExpensesModalOpen}: Props) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth, isExtraSmallScreenHeight} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    const [isToExpensifyClassicModalOpen, setIsToExpensifyClassicModalOpen] = useState(false);
     const theme = useTheme();
 
-    const closeModal = useCallback(() => {
-        Report.dismissEngagementModal();
-        setIsModalOpen(false);
-    }, []);
+    const closeModal = useCallback(() => setIsManageTeamsExpensesModalOpen(false), [setIsManageTeamsExpensesModalOpen]);
 
     const menuItems: MenuItemProps[] = useMemo(
         () =>
@@ -58,53 +60,59 @@ function ManageTeamsExpensesModal() {
     );
 
     return (
-        <Modal
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isModalOpen}
-            onClose={closeModal}
-            innerContainerStyle={styles.pt5}
-            shouldUseCustomBackdrop
-        >
-            <View style={[styles.flex1]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={closeModal}
-                    iconFill={theme.iconColorfulBackground}
-                />
+        <>
+            <Modal
+                type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                isVisible={isManageTeamsExpensesModalOpen}
+                onClose={closeModal}
+                innerContainerStyle={styles.pt5}
+                shouldUseCustomBackdrop
+            >
+                <View style={[styles.flex1]}>
+                    <HeaderWithBackButton
+                        shouldShowBackButton
+                        onBackButtonPress={closeModal}
+                        iconFill={theme.iconColorfulBackground}
+                    />
 
-                <ScrollView contentContainerStyle={styles.flex1}>
-                    <View style={[styles.w100, styles.ph5]}>
-                        <Text
-                            style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                            numberOfLines={2}
-                        >
-                            Do you require any of the following features
-                        </Text>
-                    </View>
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <MenuItemList
-                            menuItems={menuItems}
-                            shouldUseSingleExecution
+                    <ScrollView contentContainerStyle={styles.flex1}>
+                        <View style={[styles.w100, styles.ph5]}>
+                            <Text
+                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                                numberOfLines={2}
+                            >
+                                Do you require any of the following features
+                            </Text>
+                        </View>
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <MenuItemList
+                                menuItems={menuItems}
+                                shouldUseSingleExecution
+                            />
+                        </View>
+                    </ScrollView>
+                    <View style={[styles.flexRow, styles.w100, styles.ph5]}>
+                        <Button
+                            medium={isExtraSmallScreenHeight}
+                            style={[styles.flexGrow1, styles.mr1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            onPress={closeModal}
+                            text="No"
+                        />
+                        <Button
+                            pressOnEnter
+                            medium={isExtraSmallScreenHeight}
+                            style={[styles.flexGrow1, styles.ml1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            onPress={() => setIsToExpensifyClassicModalOpen(true)}
+                            text="Yes"
                         />
                     </View>
-                </ScrollView>
-                <View style={[styles.flexRow, styles.w100, styles.ph5]}>
-                    <Button
-                        medium={isExtraSmallScreenHeight}
-                        style={[styles.flexGrow1, styles.mr1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        onPress={() => {}}
-                        text="No"
-                    />
-                    <Button
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        style={[styles.flexGrow1, styles.ml1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        onPress={() => {}}
-                        text="Yes"
-                    />
                 </View>
-            </View>
-        </Modal>
+            </Modal>
+            <ToExpensifyClassicModal
+                isToExpensifyClassicModalOpen={isToExpensifyClassicModalOpen}
+                setIsToExpensifyClassicModalOpen={setIsToExpensifyClassicModalOpen}
+            />
+        </>
     );
 }
 
