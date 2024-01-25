@@ -3,7 +3,7 @@ import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDela
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import type { StatusBarStyle } from '@styles/index';
+import type {StatusBarStyle} from '@styles/index';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -17,7 +17,7 @@ type CustomStatusBarAndBackgroundProps = {
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
     const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
-    const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle | null>(null)
+    const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle | null>(null);
 
     const isDisabled = !isNested && !isRootStatusBarEnabled;
 
@@ -128,7 +128,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         }
 
         updateGlobalBackgroundColor(theme);
-    }, [isDisabled, theme])
+    }, [isDisabled, theme]);
 
     if (isDisabled) {
         return null;
