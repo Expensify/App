@@ -2094,24 +2094,24 @@ function getCurrentUserAccountID(): number {
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(currentReportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const currentReport = currentReportData?.[currentReportID];
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+    const report = currentReportData?.[reportID];
 
-    if (!currentReport) {
+    if (!report) {
         return;
     }
 
     // Pusher's leavingStatus should be sent earlier.
     // Place the broadcast before calling the LeaveRoom API to prevent a race condition
     // between Onyx report being null and Pusher's leavingStatus becoming true.
-    broadcastUserIsLeavingRoom(currentReportID);
+    broadcastUserIsLeavingRoom(reportID);
 
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: isWorkspaceMemberLeavingWorkspaceRoom
                 ? {
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -2128,10 +2128,10 @@ function leaveRoom(currentReportID: string, isWorkspaceMemberLeavingWorkspaceRoo
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: isWorkspaceMemberLeavingWorkspaceRoom
                 ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
-                : Object.keys(currentReport).reduce<Record<string, null>>((acc, key) => {
+                : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
                       acc[key] = null;
                       return acc;
                   }, {}),
@@ -2141,26 +2141,26 @@ function leaveRoom(currentReportID: string, isWorkspaceMemberLeavingWorkspaceRoo
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-            value: currentReport,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: report,
         },
     ];
 
-    if (currentReport.parentReportID && currentReport.parentReportActionID) {
+    if (report.parentReportID && report.parentReportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`,
-            value: {[currentReport.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`,
-            value: {[currentReport.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`,
-            value: {[currentReport.parentReportActionID]: {childReportNotificationPreference: currentReport.notificationPreference}},
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {[report.parentReportActionID]: {childReportNotificationPreference: report.notificationPreference}},
         });
     }
 
@@ -2169,7 +2169,7 @@ function leaveRoom(currentReportID: string, isWorkspaceMemberLeavingWorkspaceRoo
     };
 
     const parameters: LeaveRoomParameters = {
-        reportID: currentReportID,
+        reportID,
     };
 
     API.write('LeaveRoom', parameters, {optimisticData, successData, failureData});
@@ -2178,11 +2178,11 @@ function leaveRoom(currentReportID: string, isWorkspaceMemberLeavingWorkspaceRoo
 
     // We want to filter out the current report, hidden reports and empty chats
     const filteredReportsByLastRead = sortedReportsByLastRead.filter(
-        (report) =>
-            report?.reportID !== currentReportID &&
-            report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
+        (sortedReport) =>
+            sortedReport?.reportID !== reportID &&
+            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
             ReportUtils.shouldReportBeInOptionList({
-                report,
+                report: sortedReport,
                 currentReportId: '',
                 isInGSDMode: false,
                 betas: [],
