@@ -142,8 +142,13 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && focusedIndex !== -1) {
-                const item = filteredEmojis[focusedIndex];
+            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                let indexToSelect = focusedIndex;
+                if(highlightFirstEmoji) {
+                    indexToSelect = 0;
+                }
+
+                const item = filteredEmojis[indexToSelect];
                 if (!item) {
                     return;
                 }
