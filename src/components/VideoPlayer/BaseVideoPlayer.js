@@ -9,6 +9,7 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -44,6 +45,8 @@ function BaseVideoPlayer({
     const [sourceURL] = useState(url.includes('blob:') ? url : addEncryptedAuthTokenToURL(url));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+
     const showPopoverMenu = (e) => {
         setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
         setIsPopoverVisible(true);
@@ -146,7 +149,7 @@ function BaseVideoPlayer({
 
                         {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                        {!isLoading && (isPopoverVisible || isHovered) && (
+                        {!isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                             <VideoPlayerControls
                                 duration={duration}
                                 position={position}
