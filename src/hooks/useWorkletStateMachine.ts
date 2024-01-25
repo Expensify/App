@@ -5,6 +5,22 @@ import Log from '@libs/Log';
 // When you need to debug state machine change this to true
 const DEBUG_MODE = true;
 
+type Payload = Record<string, unknown>;
+type ActionWithPayload = {
+    type: string;
+    payload?: Payload;
+};
+type StateHolder = {
+    state: string;
+    payload: Payload | null;
+};
+type State = {
+    previous: StateHolder | null;
+    current: StateHolder;
+};
+// <S, A, S>
+type StateMachine = Record<string, Record<string, string>>;
+
 /**
  * A hook that creates a state machine that can be used with Reanimated Worklets.
  * You can transition state from worklet or from the JS thread.
@@ -56,10 +72,10 @@ const DEBUG_MODE = true;
  * @param initialState - the initial state of the state machine
  * @returns an object containing the current state, a transition function, and a reset function
  */
-function useWorkletStateMachine(stateMachine, initialState) {
+function useWorkletStateMachine(stateMachine: StateMachine, initialState: State) {
     const currentState = useSharedValue(initialState);
 
-    const log = useCallback((message: string, params = undefined) => {
+    const log = useCallback((message: string, params?: Payload | null) => {
         'worklet';
 
         if (!DEBUG_MODE) {
@@ -69,7 +85,7 @@ function useWorkletStateMachine(stateMachine, initialState) {
         runOnJS(Log.info)(`[StateMachine] ${message}`, false, params);
     }, []);
 
-    const transitionWorklet = useCallback((action) => {
+    const transitionWorklet = useCallback((action: ActionWithPayload) => {
         'worklet';
 
         if (!action) {
@@ -100,14 +116,8 @@ function useWorkletStateMachine(stateMachine, initialState) {
         if (typeof action.payload === 'undefined') {
             // we save previous payload
             nextPayload = state.current.payload;
-        } else if (nextState === state.current.state) {
-            // we merge previous payload with the new payload
-            nextPayload = {
-                ...state.current.payload,
-                ...action.payload,
-            };
         } else {
-            // experimentally - let's always combine states
+            // we merge previous payload with the new payload
             nextPayload = {
                 ...state.current.payload,
                 ...action.payload,
@@ -123,7 +133,7 @@ function useWorkletStateMachine(stateMachine, initialState) {
                 payload: nextPayload,
             },
         };
-    });
+    }, []);
 
     const resetWorklet = useCallback(() => {
         'worklet';
@@ -137,7 +147,7 @@ function useWorkletStateMachine(stateMachine, initialState) {
     }, [resetWorklet]);
 
     const transition = useCallback(
-        (action) => {
+        (action: ActionWithPayload) => {
             runOnUI(transitionWorklet)(action);
         },
         [transitionWorklet],
@@ -152,4 +162,5 @@ function useWorkletStateMachine(stateMachine, initialState) {
     };
 }
 
+export type {ActionWithPayload, State};
 export default useWorkletStateMachine;

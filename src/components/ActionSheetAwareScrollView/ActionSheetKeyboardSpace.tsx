@@ -1,6 +1,6 @@
-import React, {useContext, useState, useEffect, useCallback} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
+import type { ViewProps } from 'react-native';
 import Reanimated, {
-    KeyboardState,
     useAnimatedStyle,
     useDerivedValue,
     withSpring,
@@ -17,11 +17,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import { useKeyboardHandler } from 'react-native-keyboard-controller';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-
 import useStyleUtils from '@hooks/useStyleUtils';
-import type { ViewProps } from 'react-native';
+
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
 
+const KeyboardState = {
+    UNKNOWN: 0,
+    OPENING: 1,
+    OPEN: 2,
+    CLOSING: 3,
+    CLOSED: 4
+}
 const useAnimatedKeyboard = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
@@ -93,8 +99,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
     // similar to using `global` in worklet but it's just a local object
     const [syncLocalWorkletState] = useState({
-        shouldRunAnimation: false,
-        lastKeyboardHeight: 0,
+        lastState: KeyboardState.UNKNOWN,
     });
     const {windowHeight} = useWindowDimensions();
     const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
@@ -109,7 +114,6 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 return;
             }
 
-            console.log("`lastState` write");
             syncLocalWorkletState.lastState = lastState;
 
             if (lastState === KeyboardState.OPEN) {
@@ -138,11 +142,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
         const keyboardHeight = keyboard.height.value === 0 ? 0 : keyboard.height.value - safeArea.bottom;
 console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.value});
         // sometimes we need to know the last keyboard height
-        if (keyboard.state.value === KeyboardState.OPEN && keyboardHeight !== 0) {
-            console.log("update keyboard height", keyboardHeight);
-            syncLocalWorkletState.lastKeyboardHeight = keyboardHeight;
-        }
-        const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom; // syncLocalWorkletState.lastKeyboardHeight;
+        const lastKeyboardHeight = keyboard.heightWhenOpened.value - safeArea.bottom;
 
         const {popoverHeight, fy, height, composerHeight} = current.payload || {};
 
@@ -244,12 +244,12 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             }
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.height.value > 0) {
-                    console.log("TRANSITION #14 (2) -> ", 0, { lastKeyboardHeight, popoverHeight, composerHeight, sync: syncLocalWorkletState.lastKeyboardHeight }, new Date().getTime());
+                    console.log("TRANSITION #14 (2) -> ", 0, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
 
                     return 0;
                 }
 
-                console.log("TRANSITION #14 (1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight, sync: syncLocalWorkletState.lastKeyboardHeight }, new Date().getTime());
+                console.log("TRANSITION #14 (1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
 
                 return withSequence(
                     withTiming(lastKeyboardHeight, { duration: 0 }),
@@ -262,12 +262,12 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     console.log("TRANSITION #14 (1-2) -> ", 0);
                     return 0;
                 }
-                console.log("TRANSITION #14 (1-1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight, sync: syncLocalWorkletState.lastKeyboardHeight }, new Date().getTime());
+                console.log("TRANSITION #14 (1-1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
                 return withSpring(lastKeyboardHeight, config);
             };
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
-                    console.log("TRANSITION #14 -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight, sync: syncLocalWorkletState.lastKeyboardHeight }, new Date().getTime());
+                    console.log("TRANSITION #14 -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
                     return popoverHeight - composerHeight;
                     // return 451;
                     // return withTiming(lastKeyboardHeight, {duration: 250});
@@ -389,7 +389,6 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => console.log("translateY", translateY.value, new Date().getTime()) || ({
-        // transform: [{translateY: translateY.value}],
         paddingTop: translateY.value,
     }));
 

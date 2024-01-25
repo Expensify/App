@@ -1,21 +1,34 @@
+import noop from "lodash/noop"
 import type {PropsWithChildren} from 'react';
 import React, { createContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 
+import type { ActionWithPayload, State } from '@hooks/useWorkletStateMachine';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
+import type { SharedValue } from 'react-native-reanimated';
 
 type Context = {
-    currentActionSheetState: {},
-    transitionActionSheetState: {},
-    transitionActionSheetStateWorklet: () => void;
+    currentActionSheetState: SharedValue<State>,
+    transitionActionSheetState: (action: ActionWithPayload) => void,
+    transitionActionSheetStateWorklet: (action: ActionWithPayload) => void;
     resetStateMachine: () => void;
 };
-const NOOP = () => {};
 const defaultValue: Context = {
-    currentActionSheetState: {},
-    transitionActionSheetState: {},
-    transitionActionSheetStateWorklet: NOOP,
-    resetStateMachine: NOOP,
+    currentActionSheetState: {
+        value: {
+            previous: null,
+            current: {
+                state: 'idle',
+                payload: null,
+            },
+        },
+        addListener: noop,
+        removeListener: noop,
+        modify: noop,
+    },
+    transitionActionSheetState: noop,
+    transitionActionSheetStateWorklet: noop,
+    resetStateMachine: noop,
 };
 
 const ActionSheetAwareScrollViewContext = createContext<Context>(defaultValue);
