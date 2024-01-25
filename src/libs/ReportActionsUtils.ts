@@ -472,7 +472,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
@@ -822,9 +822,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
+function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction, reportActions: ReportActions): boolean {
     const lastReadTime = report.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
+    const sortedReportActions = getSortedReportActions(Object.values(reportActions));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
