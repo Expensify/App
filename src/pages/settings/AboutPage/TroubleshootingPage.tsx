@@ -34,7 +34,7 @@ function TroubleshootingPage() {
             {
                 translationKey: 'initialSettingsPage.troubleshooting.viewConsole',
                 icon: Expensicons.Gear,
-                action: () => console.log('ok'),
+                action: () => {},
             },
         ];
 
@@ -50,7 +50,7 @@ function TroubleshootingPage() {
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.aboutPage.troubleshooting')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOTING].backgroundColor}
             illustration={LottieAnimations.Desk}
         >
             <View style={[styles.settingsPageBody, styles.ph5]}>

@@ -130,6 +130,10 @@ const lightTheme = {
             backgroundColor: colors.yellow600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
+        [SCREENS.SETTINGS.TROUBLESHOOTING]: {
+            backgroundColor: colors.blue700,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
         [SCREENS.RIGHT_MODAL.REFERRAL]: {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,

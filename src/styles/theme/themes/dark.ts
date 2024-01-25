@@ -126,6 +126,10 @@ const darkTheme = {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
+        [SCREENS.SETTINGS.TROUBLESHOOTING]: {
+            backgroundColor: colors.blue700,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
         [SCREENS.SETTINGS.ABOUT]: {
             backgroundColor: colors.yellow600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
