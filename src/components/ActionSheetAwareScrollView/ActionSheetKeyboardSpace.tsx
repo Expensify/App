@@ -39,8 +39,8 @@ const useAnimatedKeyboard = () => {
             "worklet";
 
             // save the last keyboard height
-            if (e.height > 0) {
-                heightWhenOpened.value = e.height;
+            if (e.height === 0) {
+                heightWhenOpened.value = height.value;
             }
 
             // console.log("onStart", e, new Date().getTime());
