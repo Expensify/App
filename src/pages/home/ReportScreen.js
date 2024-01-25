@@ -393,6 +393,11 @@ function ReportScreen({
                 Navigation.goBack(ROUTES.HOME, false, true);
             }
             if (prevReport.parentReportID) {
+                // Prevent navigation to the Money Request Report if it is pending deletion.
+                const parentReport = ReportUtils.getReport(prevReport.parentReportID);
+                if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
                 return;
             }
@@ -613,7 +618,7 @@ export default compose(
                     if (!parentReportActionID) {
                         return {};
                     }
-                    return parentReportActions[parentReportActionID];
+                    return lodashGet(parentReportActions, parentReportActionID);
                 },
                 canEvict: false,
             },

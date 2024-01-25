@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
+import * as Modal from '@userActions/Modal';
 import ROUTES from '@src/ROUTES';
 import backgroundRefresh from './backgroundRefresh';
 import PushNotification from './index';
@@ -26,22 +27,25 @@ export default function subscribeToReportCommentPushNotifications() {
         Navigation.isNavigationReady()
             .then(Navigation.waitForProtectedRoutes)
             .then(() => {
-                try {
-                    // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-                    if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                        Navigation.goBack(ROUTES.HOME);
-                    }
+                // The attachment modal remains open when navigating to the report so we need to close it
+                Modal.close(() => {
+                    try {
+                        // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+                        if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                            Navigation.goBack(ROUTES.HOME);
+                        }
 
-                    Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
-                } catch (error) {
-                    let errorMessage = String(error);
-                    if (error instanceof Error) {
-                        errorMessage = error.message;
-                    }
+                        Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                    } catch (error) {
+                        let errorMessage = String(error);
+                        if (error instanceof Error) {
+                            errorMessage = error.message;
+                        }
 
-                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
-                }
+                        Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
+                    }
+                });
             });
     });
 }
