@@ -1469,7 +1469,7 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
  * - Not a money request / IOU report.
  * - Not an archived room.
  * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
- * - More than 2 participants.
+ * - More than 1 participantAccountIDs (note that participantAccountIDs excludes the current user).
  *
  */
 function isGroupChat(report: OnyxEntry<Report>): boolean {
@@ -1480,8 +1480,12 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
             !isMoneyRequestReport(report) &&
             !isArchivedRoom(report) &&
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            (report.participantAccountIDs?.length ?? 0) > 2,
+            (report.participantAccountIDs?.length ?? 0) > 1,
     );
+}
+
+function getGroupChatParticipantIDs(participants: number[]): number[] {
+    return [...new Set([...participants, ...(currentUserAccountID ? [currentUserAccountID] : [])])];
 }
 
 /**
@@ -1502,11 +1506,16 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         const onlyUnique = [...new Set([...onlyTruthyValues])];
         return onlyUnique;
     }
+
+    if (isGroupChat(report)) {
+        return getGroupChatParticipantIDs(participants);
+    }
+
     return participants;
 }
 
 /**
- * Returns an array of the visible member accountIDs for a report*
+ * Returns an array of the visible member accountIDs for a report
  */
 function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
     if (!report) {
@@ -1521,6 +1530,11 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
         const onlyUnique = [...new Set([...onlyTruthyValues])];
         return onlyUnique;
     }
+
+    if (isGroupChat(report)) {
+        return getGroupChatParticipantIDs(visibleChatMemberAccountIDs);
+    }
+
     return visibleChatMemberAccountIDs;
 }
 
