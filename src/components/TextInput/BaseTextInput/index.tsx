@@ -435,10 +435,9 @@ function BaseTextInput(
              */}
             {(!!autoGrow || autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // For mobile Chrome, this will ensure that the text selection handle (blue bubble down) is shown.
-                // https://github.com/Expensify/App/issues/8158
-                // https://github.com/Expensify/App/issues/26628
-                // https://github.com/Expensify/App/issues/34921
+                // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
+                // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
+                // Reference: https://github.com/Expensify/App/issues/34921```
                 <Text
                     style={[
                         inputStyle,
