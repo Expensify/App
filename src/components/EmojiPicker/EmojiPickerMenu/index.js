@@ -144,7 +144,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
             // Select the currently highlighted emoji if enter is pressed
             if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                 let indexToSelect = focusedIndex;
-                if(highlightFirstEmoji) {
+                if (highlightFirstEmoji) {
                     indexToSelect = 0;
                 }
 
