@@ -805,6 +805,7 @@ function getCategoryOptionTree(options, isOneLine = false) {
                 searchText: option.name,
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
+                isSelected: !!option.isSelected,
             });
 
             return;
@@ -825,6 +826,7 @@ function getCategoryOptionTree(options, isOneLine = false) {
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
+                isSelected: !!option.isSelected,
             });
         });
     });
