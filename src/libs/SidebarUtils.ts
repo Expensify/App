@@ -1,17 +1,17 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -120,33 +120,19 @@ function getOrderedReportIDs(
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportAction[]>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
+    const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`];
+    let reportActionCount = currentReportActions?.length ?? 0;
+    reportActionCount = Math.max(reportActionCount, 1);
+
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [
-            currentReportId,
-            allReports,
-            betas,
-            policies,
-            priorityMode,
-            allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length ?? 1,
-            currentPolicyID,
-            policyMemberAccountIDs,
-        ],
-        (key, value: unknown) => {
-            /**
-             *  Exclude some properties not to overwhelm a cached key value with huge data,
-             *  which we don't need to store in a cacheKey
-             */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
-                return undefined;
-            }
-
-            return value;
-        },
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+        // Exclude some properties not to overwhelm a cached key value with huge data, which we don't need to store in a cacheKey
+        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText', 'visibleChatMemberAccountIDs'].includes(key) ? undefined : value),
     );
 
     // Check if the result is already in the cache
@@ -161,8 +147,24 @@ function getOrderedReportIDs(
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
+
     // Filter out all the reports that shouldn't be displayed
-    let reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+    let reportsToDisplay = allReportsDictValues.filter((report) => {
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const doesReportHaveViolations =
+            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '',
+            isInGSDMode,
+            betas,
+            policies,
+            excludeEmptyChats: true,
+            doesReportHaveViolations,
+        });
+    });
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -247,14 +249,23 @@ type ActorDetails = {
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
-function getOptionData(
-    report: Report,
-    reportActions: Record<string, ReportAction>,
-    personalDetails: Record<number, PersonalDetails>,
-    preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: Policy,
-    parentReportAction: ReportAction,
-): ReportUtils.OptionData | undefined {
+function getOptionData({
+    report,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    policy,
+    parentReportAction,
+    hasViolations,
+}: {
+    report: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
+    policy: OnyxEntry<Policy> | undefined;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
+    hasViolations: boolean;
+}): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -265,7 +276,7 @@ function getOptionData(
     const result: ReportUtils.OptionData = {
         text: '',
         alternateText: null,
-        allReportErrors: null,
+        allReportErrors: undefined,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -292,8 +303,10 @@ function getOptionData(
         isAllowedToComment: true,
         isDeletedParentAction: false,
     };
+
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
+    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -305,8 +318,9 @@ function getOptionData(
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
-    result.brickRoadIndicator = Object.keys(result.allReportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
