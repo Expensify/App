@@ -438,6 +438,7 @@ function BaseTextInput(
                 // For mobile Chrome, this will ensure that the text selection handle (blue bubble down) is shown.
                 // https://github.com/Expensify/App/issues/8158
                 // https://github.com/Expensify/App/issues/26628
+                // https://github.com/Expensify/App/issues/34921
                 <Text
                     style={[
                         inputStyle,
