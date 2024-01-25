@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -32,11 +33,6 @@ type CloseAccountPageOnyxProps = {
 
 type CloseAccountPageProps = CloseAccountPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
 
-type CloseAccountFormValues = {
-    reasonForLeaving: string;
-    phoneOrEmail: string;
-};
-
 function CloseAccountPage({session}: CloseAccountPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -59,7 +55,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
         hideConfirmModal();
     };
 
-    const showConfirmModal = (values: CloseAccountFormValues) => {
+    const showConfirmModal = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         setConfirmModalVisibility(true);
         setReasonForLeaving(values.reasonForLeaving);
     };
@@ -71,7 +67,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
      */
     const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
-    const validate = (values: CloseAccountFormValues): Errors => {
+    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
         const requiredFields = ['phoneOrEmail'];
         const userEmailOrPhone = formatPhoneNumber(session?.email ?? '');
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
@@ -93,7 +89,6 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                 title={translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
-            {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                 validate={validate}
@@ -105,7 +100,6 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                 <View style={[styles.flexGrow1]}>
                     <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID="reasonForLeaving"
                         autoGrowHeight
@@ -118,7 +112,6 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                         {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
                     </Text>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
