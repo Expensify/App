@@ -358,7 +358,6 @@ function ComposerWithSuggestions({
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      * @param {String} text
-     * @param {Boolean} shouldAddTrailSpace
      */
     const replaceSelectionWithText = useCallback(
         (text) => {
