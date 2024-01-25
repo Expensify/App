@@ -50,6 +50,10 @@ type IntroSchoolPrincipalForm = Form<{
     partnerUserID: string;
 }>;
 
+type PrivateNotesForm = Form<{
+    privateNotes: string;
+}>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
+export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
