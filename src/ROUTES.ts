@@ -29,6 +29,10 @@ const ROUTES = {
         route: 'a/:accountID',
         getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
+    PROFILE_AVATAR: {
+        route: 'a/:accountID/avatar',
+        getRoute: (accountID: string) => `a/${accountID}/avatar` as const,
+    },
 
     TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
@@ -140,6 +144,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
+
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
@@ -154,6 +159,10 @@ const ROUTES = {
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
         getRoute: (reportID: string) => `r/${reportID}` as const,
+    },
+    REPORT_AVATAR: {
+        route: 'r/:reportID/avatar',
+        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field',
@@ -227,10 +236,6 @@ const ROUTES = {
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
-    },
-    PRIVATE_NOTES_VIEW: {
-        route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}` as const,
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
@@ -437,6 +442,10 @@ const ROUTES = {
     WORKSPACE_SETTINGS: {
         route: 'workspace/:policyID/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
+    },
+    WORKSPACE_AVATAR: {
+        route: 'workspace/:policyID/avatar',
+        getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',

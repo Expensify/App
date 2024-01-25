@@ -93,6 +93,12 @@ type Policy = OnyxCommon.OfflineFeedback<'generalSettings' | 'avatar' | 'addWork
     /** The employee list of the policy */
     employeeList?: [];
 
+    /** The reimbursement choice for policy */
+    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** The maximum report total allowed to trigger auto reimbursement. */
+    autoReimbursementLimit?: number;
+
     /** Whether to leave the calling account as an admin on the policy */
     makeMeAdmin?: boolean;
 
@@ -104,6 +110,9 @@ type Policy = OnyxCommon.OfflineFeedback<'generalSettings' | 'avatar' | 'addWork
 
     /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
     primaryLoginsInvited?: Record<string, string>;
+
+    /** The approval mode set up on this policy */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 export default Policy;
