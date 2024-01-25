@@ -2,7 +2,9 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
+import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -27,15 +29,15 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<TextInput | null>(null);
-
+    const textInput = useRef<AnimatedTextInputRef | null>(null);
+    const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const styles = useThemeStyles();
     const theme = useTheme();
 
     /**
      * Set the TextInput Ref
      */
-    const setTextInputRef = useCallback((el: TextInput) => {
+    const setTextInputRef = useCallback((el: AnimatedTextInputRef) => {
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
@@ -84,6 +86,12 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onBlur={(e) => {
+                if (!isFocused) {
+                    shouldResetFocus.current = true; // detect the input is blurred when the page is hidden
+                }
+                props?.onBlur?.(e);
+            }}
         />
     );
 }

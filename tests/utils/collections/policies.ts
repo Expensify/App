@@ -26,5 +26,6 @@ export default function createRandomPolicy(index: number): Policy {
         errors: {},
         customUnits: {},
         errorFields: {},
+        approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
 }

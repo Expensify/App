@@ -934,7 +934,7 @@ function expandURLPreview(reportID: string, reportActionID: string) {
 }
 
 /** Marks the new report actions as read */
-function readNewestAction(reportID: string) {
+function readNewestAction(reportID: string, shouldEmitEvent = true) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -958,6 +958,11 @@ function readNewestAction(reportID: string) {
     };
 
     API.write('ReadNewestAction', parameters, {optimisticData});
+
+    if (!shouldEmitEvent) {
+        return;
+    }
+
     DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
@@ -2702,7 +2707,8 @@ function updateLastVisitTime(reportID: string) {
 function clearNewRoomFormError() {
     Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
-        errorFields: {},
+        errorFields: null,
+        errors: null,
     });
 }
 
