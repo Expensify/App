@@ -1,10 +1,10 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ValueOf} from "type-fest";
 import ConfirmContent from './ConfirmContent';
 import Modal from './Modal';
 
@@ -90,7 +90,7 @@ function ConfirmModal({
     shouldStackButtons = true,
     isVisible,
     onConfirm,
-    restoreFocusType
+    restoreFocusType,
 }: ConfirmModalProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 

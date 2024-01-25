@@ -1,12 +1,12 @@
-import type { View} from 'react-native';
+import type {View} from 'react-native';
 import {TextInput} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {ValueOf} from "type-fest";
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;
 
-type InputElement = TextInput & HTMLElement | null;
+type InputElement = (TextInput & HTMLElement) | null;
 
 type BusinessType = ValueOf<typeof CONST.MODAL.BUSINESS_TYPE> | undefined;
 
@@ -15,14 +15,14 @@ type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefin
 type ModalContainer = View | HTMLElement | undefined | null;
 
 type FocusMapValue = {
-    input: InputElement,
-    businessType?: BusinessType,
-}
+    input: InputElement;
+    businessType?: BusinessType;
+};
 
 type PromiseMapValue = {
-    ready: Promise<void>,
-    resolve: () => void,
-}
+    ready: Promise<void>;
+    resolve: () => void;
+};
 
 let focusedInput: InputElement = null;
 let uniqueModalId = 1;
@@ -134,7 +134,12 @@ function focus(input: InputElement, shouldIgnoreFocused = false) {
 /**
  * Restore the focus state after the modal is dismissed.
  */
-function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT) {
+function restoreFocusState(
+    id: ModalId,
+    shouldIgnoreFocused = false,
+    businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT,
+    restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT,
+) {
     if (!id) {
         return;
     }
@@ -248,9 +253,7 @@ function tryRestoreFocusByExternal(businessType: BusinessType) {
     focus(input);
 }
 
-export type {
-    InputElement
-}
+export type {InputElement};
 
 export default {
     getId,
