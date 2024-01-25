@@ -33,6 +33,10 @@ const ROUTES = {
         route: 'a/:accountID',
         getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
+    PROFILE_AVATAR: {
+        route: 'a/:accountID/avatar',
+        getRoute: (accountID: string) => `a/${accountID}/avatar` as const,
+    },
 
     TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
@@ -144,6 +148,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
+
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
@@ -159,6 +164,10 @@ const ROUTES = {
         route: 'r/:reportID?/:reportActionID?',
         getRoute: (reportID: string) => `r/${reportID}` as const,
     },
+    REPORT_AVATAR: {
+        route: 'r/:reportID/avatar',
+        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
+    },
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field',
         getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}` as const,
@@ -166,6 +175,10 @@ const ROUTES = {
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+    },
+    EDIT_REPORT_FIELD_REQUEST: {
+        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
+        getRoute: (reportID: string, policyID: string, fieldID: string) => `r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const,
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
@@ -227,10 +240,6 @@ const ROUTES = {
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
-    },
-    PRIVATE_NOTES_VIEW: {
-        route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}` as const,
     },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
@@ -445,6 +454,14 @@ const ROUTES = {
     WORKSPACE_OVERVIEW_NAME: {
         route: 'workspace/:policyID/overview/name',
         getRoute: (policyID: string) => `workspace/${policyID}/overview/name` as const,
+    },
+    WORKSPACE_AVATAR: {
+        route: 'workspace/:policyID/avatar',
+        getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
+    },
+    WORKSPACE_SETTINGS_CURRENCY: {
+        route: 'workspace/:policyID/settings/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',

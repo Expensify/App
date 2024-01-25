@@ -1,6 +1,8 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,12 +16,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
-import type {PolicyReportField, Report} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
-type MoneyReportViewProps = {
+type MoneyReportViewComponentProps = {
     /** The report currently being looked at */
     report: Report;
 
@@ -30,7 +35,14 @@ type MoneyReportViewProps = {
     shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
+type MoneyReportViewOnyxProps = {
+    /** Policies that the user is part of */
+    policies: OnyxCollection<Policy>;
+};
+
+type MoneyReportViewProps = MoneyReportViewComponentProps & MoneyReportViewOnyxProps;
+
+function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, policies}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -57,7 +69,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
         () => policyReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight),
         [policyReportFields],
     );
-
+    const isAdmin = ReportUtils.isPolicyAdmin(report.policyID ?? '', policies);
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
@@ -65,6 +77,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                 {canUseReportFields &&
                     sortedPolicyReportFields.map((reportField) => {
                         const title = ReportUtils.getReportFieldTitle(report, reportField);
+                        const isDisabled = !isAdmin || isSettled || ReportUtils.isReportFieldOfTypeTitle(reportField);
                         return (
                             <OfflineWithFeedback
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
@@ -73,9 +86,9 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                                 <MenuItemWithTopDescription
                                     description={reportField.name}
                                     title={title}
-                                    onPress={() => {}}
+                                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon
-                                    disabled={false}
+                                    disabled={isDisabled}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
                                     numberOfLinesTitle={0}
@@ -165,4 +178,8 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
 
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default MoneyReportView;
+export default withOnyx<MoneyReportViewProps, MoneyReportViewOnyxProps>({
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+})(MoneyReportView);

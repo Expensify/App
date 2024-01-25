@@ -103,9 +103,10 @@ function ProfilePage(props) {
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
-    const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
+
+    const originalFileName = lodashGet(details, 'originalFileName', '');
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it

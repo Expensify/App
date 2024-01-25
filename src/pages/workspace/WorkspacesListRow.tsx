@@ -1,10 +1,11 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {MenuItemProps} from '@components/MenuItem';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -35,11 +36,14 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     fallbackWorkspaceIcon?: AvatarSource;
 
     /** Items for the three dots menu */
-    menuItems: MenuItemProps[];
+    menuItems: PopoverMenuItem[];
 
     /** Renders the component using big screen layout or small screen layout. When layoutWidth === WorkspaceListRowLayout.NONE,
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
     layoutWidth?: ValueOf<typeof CONST.LAYOUT_WIDTH>;
+
+    /** Additional styles applied to the row */
+    rowStyles?: StyleProp<ViewStyle>;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -64,6 +68,7 @@ function WorkspacesListRow({
     workspaceType,
     currentUserPersonalDetails,
     layoutWidth = CONST.LAYOUT_WIDTH.NONE,
+    rowStyles,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -95,7 +100,7 @@ function WorkspacesListRow({
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     return (
-        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
+        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5, rowStyles]}>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
@@ -114,7 +119,7 @@ function WorkspacesListRow({
                 {isNarrow && (
                     <ThreeDotsMenu
                         menuItems={menuItems}
-                        anchorPosition={{top: 0, right: 0}}
+                        anchorPosition={{horizontal: 0, vertical: 0}}
                     />
                 )}
             </View>

@@ -213,10 +213,10 @@ function WorkspaceSwitcherPage({policies}) {
     const workspacesSection = useMemo(
         () => (
             <>
-                <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
+                <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
                     <View>
                         <Text
-                            style={[styles.mt3, styles.label]}
+                            style={styles.label}
                             color={theme.textSupporting}
                         >
                             {translate('common.workspaces')}
@@ -234,6 +234,7 @@ function WorkspaceSwitcherPage({policies}) {
                                 width={12}
                                 height={12}
                                 additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                                fill={theme.icon}
                             />
                         )}
                     </PressableWithFeedback>
