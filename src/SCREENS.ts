@@ -183,7 +183,6 @@ const SCREENS = {
     },
 
     PRIVATE_NOTES: {
-        VIEW: 'PrivateNotes_View',
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
     },

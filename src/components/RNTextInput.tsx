@@ -6,6 +6,7 @@ import {TextInput} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
+import type {InputElement} from '@libs/ComposerFocusManager';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 
 type AnimatedTextInputRef = Component<AnimatedProps<TextInputProps>>;
@@ -15,7 +16,7 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>) {
     const theme = useTheme();
 
-    const inputRef = React.useRef<Component<AnimatedProps<TextInputProps>> | null>(null);
+    const inputRef = React.useRef<InputElement>(null);
 
     React.useEffect(() => () => ComposerFocusManager.releaseInput(inputRef.current), []);
 
@@ -26,7 +27,7 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Compo
             keyboardAppearance={theme.colorScheme}
             ref={(refHandle) => {
                 if (refHandle) {
-                    inputRef.current = refHandle;
+                    (inputRef.current as AnimatedTextInputRef) = refHandle;
                 }
                 if (typeof ref !== 'function') {
                     return;

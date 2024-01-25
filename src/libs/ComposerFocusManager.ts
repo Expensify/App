@@ -1,21 +1,39 @@
-import {filter, last} from 'lodash';
 import {TextInput} from 'react-native';
 import CONST from '@src/CONST';
+import type {ValueOf} from "type-fest";
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
-let focusedInput = null;
-let uniqueModalId = 1;
-const focusMap = new Map();
-const activeModals = [];
-const promiseMap = new Map();
+type ModalId = number;
+
+type InputElement = TextInput & HTMLElement | null;
+
+type BusinessType = ValueOf<typeof CONST.MODAL.BUSINESS_TYPE>;
+
+type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
+
+type ModalContainer = HTMLElement | undefined;
+
+type FocusMapValue = {
+    input: InputElement,
+    businessType?: BusinessType,
+}
+
+type PromiseMapValue = {
+    ready?: Promise<void>,
+    resolve?: () => void,
+}
+
+let focusedInput: InputElement = null;
+let uniqueModalId: ModalId = 1;
+const focusMap = new Map<ModalId, FocusMapValue>();
+const activeModals: ModalId[] = [];
+const promiseMap = new Map<ModalId, PromiseMapValue>();
 
 /**
  * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible.
- *
- * @return {React.ElementRef|HTMLElement}
  */
 function getActiveInput() {
-    return TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField();
+    return (TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField()) as InputElement;
 }
 
 /**
@@ -41,9 +59,8 @@ function clearFocusedInput() {
 /**
  * When a TextInput is unmounted, we also should release the reference here to avoid potential issues.
  *
- * @param {Component|null} input
  */
-function releaseInput(input) {
+function releaseInput(input: InputElement) {
     if (!input) {
         return;
     }
@@ -64,17 +81,12 @@ function getId() {
 
 /**
  * Save the focus state when opening the modal.
- *
- * @param {Number} id
- * @param {String} businessType
- * @param {Boolean} shouldClearFocusWithType
- * @param {any} container
  */
-function saveFocusState(id, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, shouldClearFocusWithType = false, container = undefined) {
+function saveFocusState(id: ModalId, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, shouldClearFocusWithType = false, container: ModalContainer = undefined) {
     const activeInput = getActiveInput();
 
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
-    const input = focusedInput || activeInput;
+    const input = focusedInput ?? activeInput;
     focusedInput = null;
     if (activeModals.indexOf(id) < 0) {
         activeModals.push(id);
@@ -102,11 +114,8 @@ function saveFocusState(id, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, sh
 /**
  * On web platform, if we intentionally click on another input box, there is no need to restore focus.
  * Additionally, if we are closing the RHP, we can ignore the focused input.
- *
- * @param {TextInput} input
- * @param {Boolean} shouldIgnoreFocused
  */
-function focus(input, shouldIgnoreFocused = false) {
+function focus(input: InputElement, shouldIgnoreFocused = false) {
     if (!input) {
         return;
     }
@@ -123,13 +132,8 @@ function focus(input, shouldIgnoreFocused = false) {
 
 /**
  * Restore the focus state after the modal is dismissed.
- *
- * @param {Number} id
- * @param {Boolean} shouldIgnoreFocused
- * @param {String} businessType
- * @param {String} restoreFocusType
  */
-function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, restoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT) {
+function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, restoreFocusType: RestoreFocusType = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT) {
     if (!id) {
         return;
     }
@@ -149,7 +153,7 @@ function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST
         return;
     }
 
-    const {input} = focusMap.get(id) || {};
+    const {input} = focusMap.get(id) ?? {};
     focusMap.delete(id);
     if (restoreFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
         return;
@@ -158,7 +162,7 @@ function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST
     // This modal is not the topmost one, do not restore it.
     if (activeModals.length > index) {
         if (input) {
-            const lastId = last(activeModals);
+            const lastId = activeModals.slice(-1)[0];
             focusMap.set(lastId, {...focusMap.get(lastId), input});
         }
         return;
@@ -169,11 +173,11 @@ function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST
     }
 
     // Try to find the topmost one and restore it
-    const stack = filter([...focusMap], ([, v]) => v.input && v.businessType === businessType);
+    const stack = [...focusMap].filter(([, v]) => v.input && v.businessType === businessType);
     if (stack.length < 1) {
         return;
     }
-    const [lastId, {input: lastInput}] = last(stack);
+    const [lastId, {input: lastInput}] = stack.slice(-1)[0];
 
     // The previous modal is still active
     if (activeModals.indexOf(lastId) >= 0) {
@@ -183,35 +187,35 @@ function restoreFocusState(id, shouldIgnoreFocused = false, businessType = CONST
     focusMap.delete(lastId);
 }
 
-function resetReadyToFocus(id) {
-    const obj = {};
-    obj.ready = new Promise((resolve) => {
-        obj.resolve = resolve;
+function resetReadyToFocus(id: ModalId) {
+    const promise: PromiseMapValue = {};
+    promise.ready = new Promise<void>((resolve) => {
+        promise.resolve = resolve;
     });
-    promiseMap.set(id, obj);
+    promiseMap.set(id, promise);
 }
 
-function getKey(id) {
+function getKey(id: ModalId) {
     if (id) {
         return id;
     }
     if (promiseMap.size < 1) {
         return 0;
     }
-    return last([...promiseMap.keys()]);
+    return [...promiseMap.keys()].slice(-1)[0];
 }
 
-function setReadyToFocus(id) {
+function setReadyToFocus(id: ModalId) {
     const key = getKey(id);
     const promise = promiseMap.get(key);
     if (!promise) {
         return;
     }
-    promise.resolve();
+    promise.resolve?.();
     promiseMap.delete(key);
 }
 
-function isReadyToFocus(id) {
+function isReadyToFocus(id: ModalId) {
     const key = getKey(id);
     const promise = promiseMap.get(key);
     if (!promise) {
@@ -220,25 +224,28 @@ function isReadyToFocus(id) {
     return promise.ready;
 }
 
-function tryRestoreFocusAfterClosedCompletely(id, businessType, restoreType) {
-    isReadyToFocus(id).then(() => restoreFocusState(id, false, businessType, restoreType));
+function tryRestoreFocusAfterClosedCompletely(id: ModalId, businessType: BusinessType, restoreType: RestoreFocusType) {
+    isReadyToFocus(id)?.then(() => restoreFocusState(id, false, businessType, restoreType));
 }
 
 /**
  * So far, this will only be called in file canceled event handler.
- * @param {String} businessType
  */
-function tryRestoreFocusByExternal(businessType) {
-    const stack = filter([...focusMap], ([, value]) => value.businessType === businessType && value.input);
+function tryRestoreFocusByExternal(businessType: BusinessType) {
+    const stack = [...focusMap].filter(([, value]) => value.businessType === businessType && value.input);
     if (stack.length < 1) {
         return;
     }
-    const [key, {input}] = last(stack);
+    const [key, {input}] = stack.slice(-1)[0];
     focusMap.delete(key);
     if (!input) {
         return;
     }
     focus(input);
+}
+
+export type {
+    InputElement
 }
 
 export default {
