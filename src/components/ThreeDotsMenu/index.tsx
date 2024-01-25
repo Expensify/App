@@ -3,7 +3,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {AnchorAlignment} from '@components/Popover/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -15,6 +14,7 @@ import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuProps = {
