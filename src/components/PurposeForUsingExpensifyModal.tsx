@@ -138,7 +138,7 @@ function PurposeForUsingExpensifyModal() {
         <>
             <Modal
                 type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                isVisible={true}
+                isVisible={isModalOpen}
                 onClose={closeModal}
                 innerContainerStyle={styles.pt0}
                 shouldUseCustomBackdrop
