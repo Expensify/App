@@ -58,7 +58,7 @@
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1"
   },
   "dependencies": {
-    "@dotlottie/react-player": "^1.6.3",
+    "@dotlottie/react-player": "^1.6.15",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
     "@formatjs/intl-listformat": "^7.2.2",
@@ -69,6 +69,7 @@
     "@invertase/react-native-apple-authentication": "^2.2.2",
     "@kie/act-js": "^2.0.1",
     "@kie/mock-github": "^1.0.0",
+    "@lottiefiles/react-lottie-player": "^3.5.3",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#5cdae3d4455b03a04c57f50be3863e2fe6c92c52",
     "@onfido/react-native-sdk": "8.3.0",
     "@react-native-async-storage/async-storage": "^1.19.5",
