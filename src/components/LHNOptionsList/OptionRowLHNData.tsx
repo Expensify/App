@@ -1,65 +1,14 @@
 import {deepEqual} from 'fast-equals';
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
-import _ from 'underscore';
-import participantPropTypes from '@components/participantPropTypes';
-import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {transactionViolationsPropType} from '@libs/Violations/propTypes';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
-
-const propTypes = {
-    /** Whether row should be focused */
-    isFocused: PropTypes.bool,
-
-    /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    /** The preferred language for the app */
-    preferredLocale: PropTypes.string,
-
-    /** The full data of the report */
-    // eslint-disable-next-line react/forbid-prop-types
-    fullReport: PropTypes.object,
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy: PropTypes.shape({
-        /** The ID of the policy */
-        id: PropTypes.string,
-        /** Name of the policy */
-        name: PropTypes.string,
-        /** Avatar of the policy */
-        avatar: PropTypes.string,
-    }),
-
-    /** The action from the parent report */
-    parentReportAction: PropTypes.shape(reportActionPropTypes),
-
-    /** The transaction from the parent report action */
-    transaction: transactionPropTypes,
-
-    /** Any violations associated with the transaction */
-    transactionViolations: transactionViolationsPropType,
-
-    ...basePropTypes,
-};
-
-const defaultProps = {
-    isFocused: false,
-    personalDetails: {},
-    fullReport: {},
-    policy: {},
-    parentReportAction: {},
-    transaction: {},
-    preferredLocale: CONST.LOCALES.DEFAULT,
-    ...baseDefaultProps,
-};
+import type {OptionData} from '@src/libs/ReportUtils';
+import OptionRowLHN from './OptionRowLHN';
+import type {OptionRowLHNDataProps} from './types';
 
 /*
  * This component gets the data from onyx for the actual
@@ -68,11 +17,11 @@ const defaultProps = {
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused,
+    isFocused = false,
     fullReport,
     reportActions,
-    personalDetails,
-    preferredLocale,
+    personalDetails = {},
+    preferredLocale = CONST.LOCALES.DEFAULT,
     comment,
     policy,
     receiptTransactions,
@@ -81,18 +30,18 @@ function OptionRowLHNData({
     transactionViolations,
     canUseViolations,
     ...propsToForward
-}) {
+}: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
 
-    const optionItemRef = useRef();
+    const optionItemRef = useRef<OptionData>();
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
-        const lastReportAction = _.first(sortedReportActions);
+        const lastReportAction = sortedReportActions[0];
         return TransactionUtils.getLinkedTransaction(lastReportAction);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport.reportID, receiptTransactions, reportActions]);
+    }, [fullReport?.reportID, receiptTransactions, reportActions]);
 
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction);
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -100,15 +49,17 @@ function OptionRowLHNData({
             report: fullReport,
             reportActions,
             personalDetails,
-            preferredLocale,
+            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations,
+            hasViolations: !!hasViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
+
         optionItemRef.current = item;
+
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
@@ -116,7 +67,7 @@ function OptionRowLHNData({
     }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, canUseViolations]);
 
     useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
+        if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
             return;
         }
         Report.setReportWithDraft(reportID, true);
@@ -133,8 +84,6 @@ function OptionRowLHNData({
     );
 }
 
-OptionRowLHNData.propTypes = propTypes;
-OptionRowLHNData.defaultProps = defaultProps;
 OptionRowLHNData.displayName = 'OptionRowLHNData';
 
 /**
