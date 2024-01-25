@@ -62,7 +62,7 @@ type BuildNextStepParameters = {
  */
 function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
-    const {submitsTo, isHarvestingEnabled, isPreventSelfApprovalEnabled, isAutoApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {submitsTo, isHarvestingEnabled, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
     const {ownerAccountID = -1, managerID = -1} = report;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
@@ -172,13 +172,6 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
                     },
                 ];
-            }
-
-            // Self review and auto approval enabled
-            if (isOwner && isAutoApprovalEnabled) {
-                optimisticNextStep.message?.push({
-                    text: ' This report may be selected at random for manual approval.',
-                });
             }
 
             break;

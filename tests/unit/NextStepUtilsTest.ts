@@ -23,7 +23,6 @@ describe('libs/NextStepUtils', () => {
             owner: currentUserEmail,
             submitsTo: currentUserAccountID,
             isHarvestingEnabled: false,
-            isAutoApprovalEnabled: false,
             // Required props
             name: 'Policy',
             role: 'admin',
@@ -89,40 +88,6 @@ describe('libs/NextStepUtils', () => {
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toMatchObject(optimisticNextStep);
-            });
-
-            test('self review and auto approval enabled', () => {
-                optimisticNextStep.title = 'Next Steps:';
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: 'you',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'submit',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' these expenses.',
-                    },
-                    {
-                        text: ' This report may be selected at random for manual approval.',
-                    },
-                ];
-
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    isAutoApprovalEnabled: true,
-                }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
-
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
             });
 
             describe('scheduled submit enabled', () => {
