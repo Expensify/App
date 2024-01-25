@@ -55,9 +55,6 @@ const propTypes = {
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
-
     /** Whether the parent screen transition has ended */
     didScreenTransitionEnd: PropTypes.bool,
 };
@@ -67,7 +64,6 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
-    isSearchingForReports: false,
     didScreenTransitionEnd: false,
 };
 
@@ -368,9 +364,5 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(MoneyTemporaryForRefactorRequestParticipantsSelector);
