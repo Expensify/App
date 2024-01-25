@@ -82,7 +82,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStepIndex={2}
+                    startStepIndex={1}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>

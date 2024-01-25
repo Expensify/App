@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,8 +28,8 @@ type PlaidOnyxProps = {
 
 type PlaidProps = PlaidOnyxProps & SubStepProps;
 
-type ValuesToValidate = {
-    acceptTerms: boolean;
+type ValuesType = {
+    selectedPlaidAccountID: string;
 };
 
 const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
@@ -37,11 +38,12 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
-    const validate = useCallback((values: ValuesToValidate): Errors => {
+    const validate = useCallback((values: ValuesType): Errors => {
         const errorFields: Errors = {};
-        if (!values.acceptTerms) {
-            errorFields.acceptTerms = 'common.error.acceptTerms';
+        if (!values.selectedPlaidAccountID) {
+            errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
         }
 
         return errorFields;
@@ -75,7 +77,6 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     return (
         // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
@@ -86,9 +87,10 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             scrollContextEnabled
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
-            isSubmitButtonVisible={!!selectedPlaidAccountID && (plaidData?.bankAccounts ?? []).length > 0}
         >
-            <AddPlaidBankAccount
+            <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
+                InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID: string) => {
                     ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
@@ -99,6 +101,11 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
                 isDisplayedInNewVBBA
+                inputID="selectedPlaidAccountID"
+                containerStyles={[styles.mb1]}
+                inputMode={CONST.INPUT_MODE.TEXT}
+                style={[styles.mt5]}
+                defaultValue={selectedPlaidAccountID}
             />
         </FormProvider>
     );

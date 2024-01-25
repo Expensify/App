@@ -1274,6 +1274,7 @@ export default {
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again',
         error: {
+            youNeedToSelectAnOption: 'You need to select an option to proceed.',
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
             taxID: 'Please enter a valid tax ID number',

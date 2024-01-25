@@ -1291,6 +1291,7 @@ export default {
         hasCurrencyError:
             '¡Ups! Parece que la moneda de tu espacio de trabajo está configurada en una moneda diferente a USD. Para continuar, por favor configúrala en USD e inténtalo nuevamente.',
         error: {
+            youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar.',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
