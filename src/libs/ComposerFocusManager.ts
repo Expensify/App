@@ -1,17 +1,18 @@
+import type { View} from 'react-native';
 import {TextInput} from 'react-native';
 import CONST from '@src/CONST';
 import type {ValueOf} from "type-fest";
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
-type ModalId = number;
+type ModalId = number | undefined;
 
 type InputElement = TextInput & HTMLElement | null;
 
-type BusinessType = ValueOf<typeof CONST.MODAL.BUSINESS_TYPE>;
+type BusinessType = ValueOf<typeof CONST.MODAL.BUSINESS_TYPE> | undefined;
 
-type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
+type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 
-type ModalContainer = HTMLElement | undefined;
+type ModalContainer = View | HTMLElement | undefined | null;
 
 type FocusMapValue = {
     input: InputElement,
@@ -19,12 +20,12 @@ type FocusMapValue = {
 }
 
 type PromiseMapValue = {
-    ready?: Promise<void>,
-    resolve?: () => void,
+    ready: Promise<void>,
+    resolve: () => void,
 }
 
 let focusedInput: InputElement = null;
-let uniqueModalId: ModalId = 1;
+let uniqueModalId = 1;
 const focusMap = new Map<ModalId, FocusMapValue>();
 const activeModals: ModalId[] = [];
 const promiseMap = new Map<ModalId, PromiseMapValue>();
@@ -82,7 +83,7 @@ function getId() {
 /**
  * Save the focus state when opening the modal.
  */
-function saveFocusState(id: ModalId, businessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, shouldClearFocusWithType = false, container: ModalContainer = undefined) {
+function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BUSINESS_TYPE.DEFAULT, shouldClearFocusWithType = false, container: ModalContainer = undefined) {
     const activeInput = getActiveInput();
 
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
@@ -101,7 +102,7 @@ function saveFocusState(id: ModalId, businessType = CONST.MODAL.BUSINESS_TYPE.DE
         });
     }
 
-    if (container && container.contains(input)) {
+    if (container instanceof HTMLElement && container?.contains(input)) {
         return;
     }
     focusMap.set(id, {input, businessType});
@@ -188,7 +189,10 @@ function restoreFocusState(id: ModalId, shouldIgnoreFocused = false, businessTyp
 }
 
 function resetReadyToFocus(id: ModalId) {
-    const promise: PromiseMapValue = {};
+    const promise: PromiseMapValue = {
+        ready: Promise.resolve(),
+        resolve: () => {},
+    };
     promise.ready = new Promise<void>((resolve) => {
         promise.resolve = resolve;
     });
@@ -215,7 +219,7 @@ function setReadyToFocus(id: ModalId) {
     promiseMap.delete(key);
 }
 
-function isReadyToFocus(id: ModalId) {
+function isReadyToFocus(id: ModalId = undefined) {
     const key = getKey(id);
     const promise = promiseMap.get(key);
     if (!promise) {
