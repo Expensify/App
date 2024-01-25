@@ -25,7 +25,7 @@ type WorkspaceCardVBANoECardViewProps = WorkspaceCardVBANoECardViewOnyxProps;
 function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]
+    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')];
 
     return (
         <>
@@ -34,9 +34,7 @@ function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
                 icon={Illustrations.CreditCardsNew}
             >
                 <View style={[styles.mv3]}>
-                    <UnorderedList
-                        items={unorderedListItems}
-                    />
+                    <UnorderedList items={unorderedListItems} />
                 </View>
                 <Button
                     text={translate('workspace.card.addWorkEmail')}

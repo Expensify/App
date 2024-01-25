@@ -16,7 +16,7 @@ type WorkspaceCardNoVBAViewProps = {
 function WorkspaceCardNoVBAView({policyID}: WorkspaceCardNoVBAViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')]
+    const unorderedListItems = [translate('workspace.card.benefit1'), translate('workspace.card.benefit2'), translate('workspace.card.benefit3'), translate('workspace.card.benefit4')];
 
     return (
         <Section
