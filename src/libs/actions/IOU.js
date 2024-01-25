@@ -312,6 +312,7 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
 }
 
 /**
+ * Return the object to update hasOutstandingChildRequest 
  * @param {Object} [policy]
  * @param {Boolean} needsToBeManuallySubmitted
  * @returns {Object}
@@ -329,6 +330,7 @@ function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
         };
     }
 
+    // We don't need to update hasOutstandingChildRequest in this case
     return {};
 }
 
@@ -372,7 +374,7 @@ function buildOnyxDataForMoneyRequest(
     needsToBeManuallySubmitted = true,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const hasOutstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
+    const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -383,7 +385,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                hasOutstandingChildRequest,
+                ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
