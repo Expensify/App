@@ -44,10 +44,14 @@ type ReportDetailsPageMenuItem = {
 };
 
 type ReportDetailsPageOnyxProps = {
+    /** Personal details of all the users */
     personalDetails: OnyxCollection<OnyxTypes.PersonalDetails>;
+
+    /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
 };
 type ReportDetailsPageProps = {
+    /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 } & ReportDetailsPageOnyxProps &
     WithReportOrNotFoundProps;
