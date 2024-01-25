@@ -107,6 +107,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
+// TODO: Rewrite this component to TS according to existing migration on the main branch
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}) {
     const theme = useTheme();
     const styles = useThemeStyles();

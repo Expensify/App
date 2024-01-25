@@ -1478,7 +1478,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -2943,6 +2943,10 @@ const styles = (theme: ThemeColors) =>
         noSelect: {
             boxShadow: 'none',
             outlineStyle: 'none',
+        },
+
+        boxShadowNone: {
+            boxShadow: 'none',
         },
 
         cardStyleNavigator: {

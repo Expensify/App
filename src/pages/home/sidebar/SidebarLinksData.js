@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
+import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -12,9 +13,11 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Policy from '@userActions/Policy';
@@ -30,6 +33,8 @@ const propTypes = {
     chatReports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
+
+    /** Object of report actions for this report */
     allReportActions: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({
@@ -68,6 +73,30 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
+    /** All of the transaction violations */
+    transactionViolations: PropTypes.shape({
+        violations: PropTypes.arrayOf(
+            PropTypes.shape({
+                /** The transaction ID */
+                transactionID: PropTypes.number,
+
+                /** The transaction violation type */
+                type: PropTypes.string,
+
+                /** The transaction violation message */
+                message: PropTypes.string,
+
+                /** The transaction violation data */
+                data: PropTypes.shape({
+                    /** The transaction violation data field */
+                    field: PropTypes.string,
+
+                    /** The transaction violation data value */
+                    value: PropTypes.string,
+                }),
+            }),
+        ),
+    }),
 };
 
 const defaultProps = {
@@ -81,6 +110,7 @@ const defaultProps = {
     session: {
         accountID: '',
     },
+    transactionViolations: {},
 };
 
 function SidebarLinksData({
@@ -97,10 +127,12 @@ function SidebarLinksData({
     network,
     policyMembers,
     session: {accountID},
+    transactionViolations,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
+    const prevPriorityMode = usePrevious(priorityMode);
 
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
 
@@ -110,19 +142,30 @@ function SidebarLinksData({
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID, policyMemberAccountIDs);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(
+            null,
+            chatReports,
+            betas,
+            policies,
+            priorityMode,
+            allReportActions,
+            transactionViolations,
+            activeWorkspaceID,
+            policyMemberAccountIDs,
+        );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
 
-        // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        // However, if the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
-        if (!isLoading || !reportIDsRef.current || network.isOffline) {
+        // 1. We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
+        // 2. If the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
+        // 3. Changing priority mode to Most Recent will call OpenApp. If there is an existing reports and the priority mode is updated, we want to immediately update the list instead of waiting the OpenApp request to complete
+        if (!isLoading || !reportIDsRef.current || network.isOffline || (reportIDsRef.current && prevPriorityMode !== priorityMode)) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline]);
+    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -131,28 +174,20 @@ function SidebarLinksData({
     // case we re-generate the list a 2nd time with the current report included.
     const optionListItemsWithCurrentReport = useMemo(() => {
         if (currentReportID && !_.contains(optionListItems, currentReportID)) {
-            return SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID, policyMemberAccountIDs);
+            return SidebarUtils.getOrderedReportIDs(
+                currentReportID,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+            );
         }
         return optionListItems;
-    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, activeWorkspaceID, policyMemberAccountIDs]);
-
-    // If there is an active workspace we need to hide all reports that are not associated with the selected workspace.
-    // const optionListFilteredByActiveWorkspace = useMemo(
-    //     () =>
-    //         _.filter(optionListItemsWithCurrentReport, (reportID) => {
-    //             if (!activeWorkspaceID) {
-    //                 return true;
-    //             }
-
-    //             const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
-    //             if (isConciergeChatReport(chatReport)) {
-    //                 return true;
-    //             }
-
-    //             return chatReport.policyID === activeWorkspaceID;
-    //         }),
-    //     [activeWorkspaceID, chatReports, optionListItemsWithCurrentReport],
-    // );
+    }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -195,6 +230,7 @@ const chatReportSelector = (report) =>
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
+        notificationPreference: report.notificationPreference,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
@@ -224,6 +260,7 @@ const chatReportSelector = (report) =>
         parentReportActionID: report.parentReportActionID,
         parentReportID: report.parentReportID,
         isDeletedParentAction: report.isDeletedParentAction,
+        isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
     };
 
 /**
@@ -232,14 +269,22 @@ const chatReportSelector = (report) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    _.map(reportActions, (reportAction) => ({
-        errors: lodashGet(reportAction, 'errors', []),
-        message: [
-            {
-                moderationDecision: {decision: lodashGet(reportAction, 'message[0].moderationDecision.decision')},
-            },
-        ],
-    }));
+    lodashMap(reportActions, (reportAction) => {
+        const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
+        const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
+
+        return {
+            reportActionID,
+            parentReportActionID,
+            actionName,
+            errors,
+            message: [
+                {
+                    moderationDecision: {decision},
+                },
+            ],
+        };
+    });
 
 /**
  * @param {Object} [policy]
@@ -286,6 +331,9 @@ export default compose(
         },
         policyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
             initialValue: {},
         },
     }),

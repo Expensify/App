@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {MenuItemProps} from '@components/MenuItem';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -36,7 +36,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     fallbackWorkspaceIcon?: AvatarSource;
 
     /** Items for the three dots menu */
-    menuItems: MenuItemProps[];
+    menuItems: PopoverMenuItem[];
 
     /** Renders the component using big screen layout or small screen layout. When layoutWidth === WorkspaceListRowLayout.NONE,
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
@@ -119,7 +119,7 @@ function WorkspacesListRow({
                 {isNarrow && (
                     <ThreeDotsMenu
                         menuItems={menuItems}
-                        anchorPosition={{top: 0, right: 0}}
+                        anchorPosition={{horizontal: 0, vertical: 0}}
                     />
                 )}
             </View>

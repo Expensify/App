@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -14,9 +15,11 @@ import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
+import Performance from './Performance';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -945,19 +948,23 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return _.map(tags, (tag) => ({
-        text: tag.name,
-        keyForList: tag.name,
-        searchText: tag.name,
-        tooltipText: tag.name,
-        isDisabled: !tag.enabled,
-    }));
+    return _.map(tags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        return {
+            text: cleanedName,
+            keyForList: tag.name,
+            searchText: tag.name,
+            tooltipText: cleanedName,
+            isDisabled: !tag.enabled,
+        };
+    });
 }
 
 /**
  * Build the section list for tags
  *
- * @param {Object[]} rawTags
+ * @param {Object[]} tags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -967,14 +974,8 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const tags = _.map(rawTags, (tag) => {
-        // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
-
-        return {...tag, name: tagName};
-    });
     const sortedTags = sortTags(tags);
     const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
@@ -999,7 +1000,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchTags = _.filter(enabledTags, (tag) => tag.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTags = _.filter(enabledTags, (tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section
@@ -1292,6 +1293,7 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        transactionViolations = {},
         includePolicyTaxRates,
         policyTaxRates,
     },
@@ -1357,7 +1359,22 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
+    const filteredReports = _.filter(reports, (report) => {
+        const {parentReportID, parentReportActionID} = report || {};
+        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+        const parentReportAction = canGetParentReport ? lodashGet(allReportActions, [parentReportID, parentReportActionID], {}) : {};
+        const doesReportHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: Navigation.getTopmostReportId(),
+            betas,
+            policies,
+            doesReportHaveViolations,
+            isInGSDMode: false,
+            excludeEmptyChats: false,
+        });
+    });
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -1636,7 +1653,9 @@ function getOptions(
  * @returns {Object}
  */
 function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
-    return getOptions(reports, personalDetails, {
+    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    const options = getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
@@ -1651,6 +1670,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includeMoneyRequests: true,
         includeTasks: true,
     });
+    Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
+    return options;
 }
 
 /**
