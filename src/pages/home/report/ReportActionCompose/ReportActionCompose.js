@@ -352,6 +352,13 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
+    const emojiShiftVertical = useMemo(() => {
+        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
+        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
+    }, [styles]);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -448,19 +455,20 @@ function ReportActionCompose({
                                 </>
                             )}
                         </AttachmentModal>
-                    </View>
-                    {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
-                        <EmojiPickerButton
-                            isDisabled={isBlockedFromConcierge || disabled}
-                            onModalHide={focus}
-                            onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
-                            emojiPickerID={report.reportID}
+                        {DeviceCapabilities.canUseTouchScreen() && isMediumScreenWidth ? null : (
+                            <EmojiPickerButton
+                                isDisabled={isBlockedFromConcierge || disabled}
+                                onModalHide={focus}
+                                onEmojiSelected={(...args) => composerRef.current.replaceSelectionWithText(...args)}
+                                emojiPickerID={report.reportID}
+                                shiftVertical={emojiShiftVertical}
+                            />
+                        )}
+                        <SendButton
+                            isDisabled={isSendDisabled}
+                            handleSendMessage={handleSendMessage}
                         />
-                    )}
-                    <SendButton
-                        isDisabled={isSendDisabled}
-                        handleSendMessage={handleSendMessage}
-                    />
+                    </View>
                     <View
                         style={[
                             styles.flexRow,

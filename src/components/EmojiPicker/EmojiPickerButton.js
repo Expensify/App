@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -22,6 +23,9 @@ const propTypes = {
     /** Unique id for emoji picker */
     emojiPickerID: PropTypes.string,
 
+    /** Emoji popup anchor offset shift vertical */
+    shiftVertical: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
@@ -29,6 +33,7 @@ const defaultProps = {
     isDisabled: false,
     id: '',
     emojiPickerID: '',
+    shiftVertical: 0,
 };
 
 function EmojiPickerButton(props) {
@@ -49,7 +54,18 @@ function EmojiPickerButton(props) {
                         return;
                     }
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor, undefined, () => {}, props.emojiPickerID);
+                        EmojiPickerAction.showEmojiPicker(
+                            props.onModalHide,
+                            props.onEmojiSelected,
+                            emojiPopoverAnchor,
+                            {
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                shiftVertical: props.shiftVertical,
+                            },
+                            () => {},
+                            props.emojiPickerID,
+                        );
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }

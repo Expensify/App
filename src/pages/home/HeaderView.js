@@ -73,6 +73,9 @@ const propTypes = {
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
     }),
+
+    /** The reportID of the request */
+    reportID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -135,14 +138,14 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.deleteTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }
 
     const join = Session.checkIfActionIsAllowed(() =>
         Report.updateNotificationPreference(
-            props.report.reportID,
+            props.reportID,
             props.report.notificationPreference,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             false,
@@ -165,7 +168,7 @@ function HeaderView(props) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
         });
     }
 
