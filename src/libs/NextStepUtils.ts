@@ -57,17 +57,18 @@ type BuildNextStepParameters = {
  *
  * @param report
  * @param predictedNextStatus - a next expected status of the report
- * @param parameters.isPaidWithWallet - Whether a report has been paid with wallet or outside of Expensify
+ * @param parameters.isPaidWithWallet - Whether a report has been paid with the wallet or outside of Expensify
  * @returns nextStep
  */
 function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
-    const {isPreventSelfApprovalEnabled = false, ownerAccountID = -1, managerID} = report;
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
-    const isManager = currentUserAccountID === managerID;
+    const {submitsTo, isHarvestingEnabled, isPreventSelfApprovalEnabled, isAutoApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {ownerAccountID = -1, managerID = -1} = report;
     const isOwner = currentUserAccountID === ownerAccountID;
+    const isManager = currentUserAccountID === managerID;
+    const isSelfApproval = currentUserAccountID === submitsTo;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
-    const isSelfApproval = currentUserAccountID === policy.submitsTo;
-    const submitterDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(policy.submitsTo, true) ?? '';
+    const submitterDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo, true) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -100,7 +101,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             };
 
             // Scheduled submit enabled
-            if (policy.isHarvestingEnabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+            if (isHarvestingEnabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
                     {
                         text: 'These expenses are scheduled to ',
@@ -108,43 +109,46 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                 ];
                 let harvestingSuffix = '';
 
-                if (policy.autoReportingFrequency) {
+                if (autoReportingFrequency) {
                     const currentDate = new Date();
+                    let autoSubmissionDate: Date | null = null;
+                    let formattedDate = '';
 
-                    let autoSubmissionDate: string;
-
-                    if (policy.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        autoSubmissionDate = format(lastDayOfMonth(currentDate), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    } else if (policy.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                    if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                        autoSubmissionDate = lastDayOfMonth(currentDate);
+                    } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                         const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(currentDate);
-                        autoSubmissionDate = format(setDate(currentDate, lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    } else if (policy.autoReportingOffset !== undefined) {
-                        autoSubmissionDate = format(currentDate.setDate(policy.autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    } else {
-                        autoSubmissionDate = '';
+                        autoSubmissionDate = setDate(currentDate, lastBusinessDayOfMonth);
+                    } else if (autoReportingOffset !== undefined) {
+                        autoSubmissionDate = setDate(currentDate, autoReportingOffset);
+                    }
+
+                    if (autoSubmissionDate) {
+                        formattedDate = format(autoSubmissionDate, CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     }
 
                     const harvestingSuffixes = {
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : '',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate ? `on the ${formattedDate} of each month` : '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of your trip',
                     };
 
-                    if (harvestingSuffixes[policy.autoReportingFrequency]) {
-                        harvestingSuffix = ` ${harvestingSuffixes[policy.autoReportingFrequency]}`;
+                    if (harvestingSuffixes[autoReportingFrequency]) {
+                        harvestingSuffix = ` ${harvestingSuffixes[autoReportingFrequency]}`;
                     }
                 }
 
-                optimisticNextStep.message.push({
-                    text: `automatically submit${harvestingSuffix}!`,
-                    type: 'strong',
-                });
-
-                optimisticNextStep.message.push({
-                    text: ' No further action required!',
-                });
+                optimisticNextStep.message.push(
+                    {
+                        text: `automatically submit${harvestingSuffix}!`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' No further action required!',
+                    },
+                );
             }
 
             // Prevented self submitting
@@ -171,7 +175,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             }
 
             // Self review and auto approval enabled
-            if (isOwner && policy.isAutoApprovalEnabled) {
+            if (isOwner && isAutoApprovalEnabled) {
                 optimisticNextStep.message?.push({
                     text: ' This report may be selected at random for manual approval.',
                 });
@@ -299,7 +303,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             };
 
             // Paid outside of Expensify
-            if (typeof isPaidWithWallet === 'boolean' && !isPaidWithWallet) {
+            if (isPaidWithWallet === false) {
                 optimisticNextStep.message?.push({text: ' outside of Expensify'});
             }
 

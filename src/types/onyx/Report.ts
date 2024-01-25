@@ -161,9 +161,6 @@ type Report = {
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, string>;
-
-    /** Whether the user can do self approve or submit of an expense report */
-    isPreventSelfApprovalEnabled?: boolean;
 };
 
 export default Report;
