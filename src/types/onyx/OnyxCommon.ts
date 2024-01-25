@@ -39,4 +39,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OfflineFeedback, OnyxValueWithOfflineFeedback};
+export type {Icon, PendingAction, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback};
