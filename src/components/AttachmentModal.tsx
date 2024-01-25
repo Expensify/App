@@ -17,6 +17,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import type {AvatarSource} from '@libs/UserUtils';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -28,11 +29,14 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentView from './Attachments/AttachmentView';
+import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 
@@ -90,6 +94,9 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** Whether the modal should be open by default */
     defaultOpen?: boolean;
 
+    /** Trigger when we explicity click close button in ProfileAttachment modal */
+    onModalClose?: () => void;
+
     /** Optional original filename when uploading */
     originalFileName?: string;
 
@@ -110,6 +117,12 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
 
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide?: () => void;
+
+    /** The data is loading or not */
+    isLoading?: boolean;
+
+    /** Should display not found page or not */
+    shouldShowNotFoundPage?: boolean;
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
@@ -149,6 +162,9 @@ function AttachmentModal({
     children,
     fallbackSource,
     canEditReceipt = false,
+    onModalClose = () => {},
+    isLoading = false,
+    shouldShowNotFoundPage = false,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -367,7 +383,13 @@ function AttachmentModal({
      */
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
-    }, []);
+
+        if (typeof onModalClose === 'function') {
+            onModalClose();
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onModalClose]);
 
     /**
      *  open the modal
@@ -472,10 +494,23 @@ function AttachmentModal({
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
-                        shouldOverlay
+                        shouldOverlayDots
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {report && !isReceiptAttachment ? (
+                        {isLoading && <FullScreenLoadingIndicator />}
+                        {shouldShowNotFoundPage && !isLoading && (
+                            <BlockingView
+                                icon={Illustrations.ToddBehindCloud}
+                                iconWidth={variables.modalTopIconWidth}
+                                iconHeight={variables.modalTopIconHeight}
+                                title={translate('notFound.notHere')}
+                                subtitle={translate('notFound.pageNotFound')}
+                                linkKey="notFound.goBackHome"
+                                shouldShowLink
+                                onLinkPress={() => Navigation.dismissModal()}
+                            />
+                        )}
+                        {!isEmptyObject(report) && !isReceiptAttachment ? (
                             <AttachmentCarousel
                                 report={report}
                                 onNavigate={onNavigate}
@@ -485,8 +520,10 @@ function AttachmentModal({
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
                         ) : (
-                            Boolean(sourceForAttachmentView) &&
-                            shouldLoadAttachment && (
+                            !!sourceForAttachmentView &&
+                            shouldLoadAttachment &&
+                            !isLoading &&
+                            !shouldShowNotFoundPage && (
                                 <AttachmentView
                                     // @ts-expect-error TODO: Remove this once Attachments (https://github.com/Expensify/App/issues/24969) is migrated to TypeScript.
                                     containerStyles={[styles.mh5]}
