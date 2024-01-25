@@ -1,5 +1,4 @@
 import React from 'react';
-import PurposeForUsingExpensifyModal from '@components/PurposeForUsingExpensifyModal';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
@@ -13,9 +12,7 @@ function SidebarScreen(props) {
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-            >
-                <PurposeForUsingExpensifyModal />
-            </BaseSidebarScreen>
+            />
         </FreezeWrapper>
     );
 }

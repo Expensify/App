@@ -79,7 +79,6 @@ const menuIcons = {
     [CONST.INTRO_CHOICES.CHAT_SPLIT]: Expensicons.Briefcase,
 };
 
-// TODO - Adjust this component to work with ideal-nav
 function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -93,7 +92,7 @@ function PurposeForUsingExpensifyModal() {
         const navigationState = navigation.getState();
         const routes = navigationState.routes;
         const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name) {
+        if (currentRoute && NAVIGATORS.BOTTOM_TAB_NAVIGATOR !== currentRoute.name) {
             return;
         }
 
