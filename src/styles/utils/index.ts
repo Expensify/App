@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -388,7 +388,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string | undefined): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: ColorValue | undefined): ViewStyle {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -398,7 +398,7 @@ function getBackgroundAndBorderStyle(backgroundColor: string | undefined): ViewS
 /**
  * Returns a style with the specified backgroundColor
  */
-function getBackgroundColorStyle(backgroundColor: string): ViewStyle {
+function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     return {
         backgroundColor,
     };
@@ -1429,6 +1429,21 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
 
         return containerStyles;
+    },
+
+    /**
+     * Returns a style that sets the maximum height of the composer based on the number of lines and whether the composer is full size or not.
+     */
+    getComposerMaxHeightStyle: (maxLines: number | undefined, isComposerFullSize: boolean): TextStyle => {
+        if (isComposerFullSize || maxLines == null) {
+            return {};
+        }
+
+        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+
+        return {
+            maxHeight: maxLines * composerLineHeight,
+        };
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],

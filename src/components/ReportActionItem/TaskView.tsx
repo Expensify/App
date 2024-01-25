@@ -187,7 +187,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
             </OfflineWithFeedback>
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
-                style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+                style={shouldShowHorizontalRule && styles.reportHorizontalRule}
             />
         </View>
     );
