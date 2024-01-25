@@ -29,6 +29,9 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
+            [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
+            [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
+            [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -278,7 +281,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                         screens: {
-                            [SCREENS.PRIVATE_NOTES.VIEW]: ROUTES.PRIVATE_NOTES_VIEW.route,
                             [SCREENS.PRIVATE_NOTES.LIST]: ROUTES.PRIVATE_NOTES_LIST.route,
                             [SCREENS.PRIVATE_NOTES.EDIT]: ROUTES.PRIVATE_NOTES_EDIT.route,
                         },
