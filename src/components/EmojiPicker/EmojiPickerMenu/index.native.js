@@ -105,7 +105,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
                 />
             );
         },
-        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate],
+        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate, activeEmoji],
     );
 
     return (
