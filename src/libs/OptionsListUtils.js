@@ -24,6 +24,32 @@ import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
+/** PersonalDetails JSDoc
+ * @typedef {Object} PersonalDetails
+ * @property {number} accountID - ID of the current user from their personal details
+ * @property {string} [firstName] - First name of the current user from their personal details
+ * @property {string} [lastName] - Last name of the current user from their personal details
+ * @property {string} [displayName] - Display name of the current user from their personal details
+ * @property {boolean} [validated] - Is current user validated
+ * @property {string} [phoneNumber] - Phone number of the current user from their personal details
+ * @property {AvatarSource} avatar - Avatar URL of the current user from their personal details
+ * @property {string} [avatarThumbnail] - Avatar thumbnail URL of the current user from their personal details
+ * @property {boolean} [avatarUploading] - Flag to set when Avatar uploading
+ * @property {string} [login] - Login of the current user from their personal details
+ * @property {string} [pronouns] - Pronouns of the current user from their personal details
+ * @property {string} [localCurrencyCode] - Local currency for the user
+ * @property {Timezone} [timezone] - Timezone of the current user from their personal details
+ * @property {boolean} [isLoading] - Whether we are loading the data via the API
+ * @property {Object} [errorFields] - Field-specific server side errors keyed by microtime
+ * @property {Object} [pendingFields] - Field-specific pending states for offline UI status
+ * @property {string} [fallbackIcon] - A fallback avatar icon to display when there is an error on loading avatar from remote URL
+ * @property {Status} [status] - Status of the current user from their personal details
+ */
+
+/** PersonalDetailsList JSDoc
+ * @typedef {Object.<string, (PersonalDetails|null)>} PersonalDetailsList
+ */
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -138,12 +164,11 @@ function addSMSDomainIfPhoneNumber(login) {
 }
 
 /**
- * Returns avatar data for a list of user accountIDs
- *
- * @param {Array<Number>} accountIDs
- * @param {Object} personalDetails
+ * Returns avatar data for a list of user accountIDs*
+ * @param {Array.<Number>} accountIDs
+ * @param {PersonalDetailsList} personalDetails
  * @param {Object} defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
- * @returns {Object}
+ * @returns {Array.<{id: number, source: any, type: string, name: string}>} Array of avatar info objects
  */
 function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
     const reversedDefaultValues = {};
