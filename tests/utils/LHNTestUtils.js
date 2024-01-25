@@ -257,9 +257,12 @@ function getFakePolicy(id = 1, name = 'Workspace-Test-001') {
         autoReporting: true,
         autoReportingFrequency: 'immediate',
         isHarvestingEnabled: true,
+        autoReportingOffset: 1,
+        isPreventSelfApprovalEnabled: true,
         submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
+        approvalMode: 'BASIC',
     };
 }
 
