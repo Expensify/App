@@ -79,7 +79,6 @@ const menuIcons = {
     [CONST.INTRO_CHOICES.CHAT_SPLIT]: Expensicons.Briefcase,
 };
 
-// TODO - Adjust this component to work with ideal-nav
 function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
