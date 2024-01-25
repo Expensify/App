@@ -57,11 +57,22 @@ const getImagePickerOptions = (type) => {
 };
 
 /**
- * See https://github.com/rnmods/react-native-document-picker#options for DocumentPicker configuration options
+ * Return documentPickerOptions based on the type
+ * @param {String} type
+ * @returns {Object}
  */
-const documentPickerOptions = {
-    type: [RNDocumentPicker.types.allFiles],
-    copyTo: 'cachesDirectory',
+
+const getDocumentPickerOptions = (type) => {
+    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return {
+            type: [RNDocumentPicker.types.allFiles],
+            copyTo: 'cachesDirectory',
+        };
+    }
+    return {
+        type: [RNDocumentPicker.types.images],
+        copyTo: 'cachesDirectory',
+    };
 };
 
 /**
@@ -158,7 +169,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
      */
     const showDocumentPicker = useCallback(
         () =>
-            RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -166,7 +177,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 showGeneralAlert(error.message);
                 throw error;
             }),
-        [showGeneralAlert],
+        [showGeneralAlert, type],
     );
 
     const menuItemData = useMemo(() => {
@@ -181,7 +192,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             },
-            type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE && {
+            {
                 icon: Expensicons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
@@ -189,7 +200,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
         ]);
 
         return data;
-    }, [showDocumentPicker, showImagePicker, type, shouldHideCameraOption]);
+    }, [showDocumentPicker, showImagePicker, shouldHideCameraOption]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
