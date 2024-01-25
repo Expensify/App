@@ -2336,7 +2336,7 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
     if (!parentReportAction?.originalMessage) {
-        return '';
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
