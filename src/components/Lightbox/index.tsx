@@ -26,7 +26,7 @@ type LightboxProps = {
     onScaleChanged?: OnScaleChangedCallback;
 
     /** Handles errors while displaying the image */
-    onError: () => void;
+    onError?: () => void;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
