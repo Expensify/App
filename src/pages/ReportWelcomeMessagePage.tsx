@@ -3,13 +3,13 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {TextInput as RNTextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -43,7 +43,7 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
 
     const parser = new ExpensiMark();
     const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(report?.welcomeMessage ?? ''));
-    const welcomeMessageInputRef = useRef<HTMLInputElement | RNTextInput | null>(null);
+    const welcomeMessageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleWelcomeMessageChange = useCallback((value: string) => {
@@ -81,7 +81,6 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
                     title={translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''))}
                 />
-                {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
@@ -92,7 +91,6 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
                     <Text style={[styles.mb5]}>{translate('welcomeMessagePage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
                         <InputWrapper
-                            // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                             InputComponent={TextInput}
                             inputID="welcomeMessage"
                             label={translate('welcomeMessagePage.welcomeMessage')}
@@ -100,7 +98,7 @@ function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProp
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={(element) => {
+                            ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;
                                 }
