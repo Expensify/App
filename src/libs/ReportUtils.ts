@@ -1939,11 +1939,25 @@ function isReportFieldOfTypeTitle(reportField: PolicyReportField): boolean {
 }
 
 /**
+ * Get the report fields attached to the policy given policyID
+ */
+function getReportFieldsByPolicyID(policyID: string) {
+    return Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === policyID)?.[1];
+}
+
+/**
+ * Given a set of report fields, return the field of type formula
+ */
+function getFormulaTypeReportField(reportFields: PolicyReportFields) {
+    return Object.values(reportFields ?? {})?.find((field) => field.type === 'formula');
+}
+
+/**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const reportFields = Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === report?.policyID)?.[1];
-    const titleReportField = Object.values(reportFields ?? {})?.find((field) => field.type === 'formula');
+    const reportFields = getReportFieldsByPolicyID(report?.policyID ?? '');
+    const titleReportField = getFormulaTypeReportField(reportFields ?? {});
     if (titleReportField && Permissions.canUseReportFields(allBetas ?? [])) {
         return getReportFieldTitle(report, titleReportField);
     }
@@ -4812,6 +4826,8 @@ export {
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
     isReportFieldOfTypeTitle,
+    getReportFieldsByPolicyID,
+    getFormulaTypeReportField,
 };
 
 export type {
