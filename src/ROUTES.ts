@@ -170,7 +170,7 @@ const ROUTES = {
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
-        getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+        getRoute: (threadReportID: string, backTo: string) => `r/${threadReportID}/edit/currency?backTo=${backTo}` as const,
     },
     EDIT_REPORT_FIELD_REQUEST: {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
@@ -222,8 +222,8 @@ const ROUTES = {
     },
     EDIT_SPLIT_BILL_CURRENCY: {
         route: 'r/:reportID/split/:reportActionID/edit/currency',
-        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) =>
-            `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+        getRoute: (reportID: string, reportActionID: string, backTo: string) =>
+            `r/${reportID}/split/${reportActionID}/edit/currency?backTo=${backTo}` as const,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -277,8 +277,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
-    },
+        getRoute: (iouType: string, reportID: string, backTo: string) => `${iouType}/new/currency/${reportID}?backTo=${backTo}` as const,
+    }, // Will be deleted
     MONEY_REQUEST_DESCRIPTION: {
         route: ':iouType/new/description/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}` as const,

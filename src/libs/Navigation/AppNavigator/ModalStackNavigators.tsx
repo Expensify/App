@@ -94,7 +94,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType, // Will be deleted
     [SCREENS.MONEY_REQUEST.DATE]: () => require('../../../pages/iou/MoneyRequestDatePage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.DESCRIPTION]: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
@@ -111,7 +111,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../pages/EditSplitBillPage').default as React.ComponentType,
-    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
+    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
@@ -265,7 +265,7 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../pages/EditRequestPage').default as React.ComponentType,
-    [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
+    [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require('../../../pages/EditReportFieldPage').default as React.ComponentType,
 });
 

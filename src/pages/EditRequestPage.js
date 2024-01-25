@@ -218,7 +218,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 onSubmit={saveAmountAndCurrency}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
+                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, activeRoute));
                 }}
             />
         );
