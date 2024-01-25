@@ -1654,7 +1654,7 @@ function getIcons(
     }
 
     if (isGroupChat(report)) {
-        return getIconsForParticipants(getVisibleMemberIDs(report), personalDetails);
+        return getIconsForParticipants(getParticipantsIDs(report), personalDetails);
     }
 
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
