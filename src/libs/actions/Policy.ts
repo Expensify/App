@@ -1615,7 +1615,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): R
  */
 function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string | undefined {
     // This flow only works for IOU reports
-    if (isEmptyObject(iouReport) || !ReportUtils.isIOUReport(iouReport)) {
+    if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
     }
 

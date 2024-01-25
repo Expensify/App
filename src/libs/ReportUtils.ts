@@ -604,13 +604,19 @@ function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Checks if a report is an IOU report.
+ * Checks if a report is an IOU report using report or reportID
  */
 function isIOUReport(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
+/**
+ * Checks if a report is an IOU report using report
+ */
+function isIOUReportUsingReport(report: OnyxEntry<Report> | EmptyObject): report is Report {
+    return report?.type === CONST.REPORT.TYPE.IOU;
+}
 /**
  * Checks if a report is a task report.
  */
@@ -4812,6 +4818,7 @@ export {
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
     isReportFieldOfTypeTitle,
+    isIOUReportUsingReport,
 };
 
 export type {

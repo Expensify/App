@@ -1,4 +1,4 @@
-import type {ForwardedRef, RefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -213,12 +213,12 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: ForwardedRef<HTMLElement>) => (
+            {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
                     buttonRef={buttonRef as RefObject<View>}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event: KYCFlowEvent, iouPaymentType: PaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     style={style}
