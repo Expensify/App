@@ -88,11 +88,10 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                 <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
                     <HeaderWithBackButton
                         title={translate(
-                            ReportUtils.isGroupChat(report) ??
-                                ReportUtils.isChatRoom(report) ??
-                                ReportUtils.isPolicyExpenseChat(report) ??
-                                ReportUtils.isChatThread(report) ??
-                                ReportUtils.isTaskReport(report) ??
+                            ReportUtils.isChatRoom(report) ||
+                                ReportUtils.isPolicyExpenseChat(report) ||
+                                ReportUtils.isChatThread(report) ||
+                                ReportUtils.isTaskReport(report) ||
                                 ReportUtils.isMoneyRequestReport(report)
                                 ? 'common.members'
                                 : 'common.details',
