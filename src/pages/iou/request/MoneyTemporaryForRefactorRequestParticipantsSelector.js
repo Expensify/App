@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,6 +80,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
+    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(true);
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
@@ -120,7 +121,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
             // This functionality is being built here: https://github.com/Expensify/App/issues/23291
             iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
-            true,
+            false,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -136,7 +137,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
-            return newSections;
+            return [newSections, {}];
         }
 
         newSections.push({
@@ -229,13 +230,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                _.get(newChatOptions, 'personalDetails.length', 0) + _.get(newChatOptions, 'recentReports.length', 0) !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
 
     // When search term updates we will fetch any reports
@@ -265,9 +266,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                    <MoneyRequestReferralProgramCTA referralContentType={referralContentType} />
-                </View>
+                {shouldShowReferralCTA && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA
+                            referralContentType={referralContentType}
+                            onCloseButtonPress={() => setShouldShowReferralCTA(false)}
+                        />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -288,7 +294,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(

@@ -126,7 +126,11 @@ const darkTheme = {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.RIGHT_MODAL.REFERRAL]: {
+        [SCREENS.SETTINGS.ABOUT]: {
+            backgroundColor: colors.yellow600,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

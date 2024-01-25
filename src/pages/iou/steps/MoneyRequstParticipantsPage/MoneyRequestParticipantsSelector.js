@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,6 +85,7 @@ function MoneyRequestParticipantsSelector({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
+    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(true);
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
@@ -284,9 +285,14 @@ function MoneyRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                    <MoneyRequestReferralProgramCTA referralContentType={referralContentType} />
-                </View>
+                {shouldShowReferralCTA && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA
+                            referralContentType={referralContentType}
+                            onCloseButtonPress={() => setShouldShowReferralCTA(false)}
+                        />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -307,7 +313,7 @@ function MoneyRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
