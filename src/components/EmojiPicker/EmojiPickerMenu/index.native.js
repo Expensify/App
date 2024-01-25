@@ -95,7 +95,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}) {
             }
 
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
-            const shouldEmojiBeHighlighted = activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
+            const shouldEmojiBeHighlighted = Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
                 <EmojiPickerMenuItem
