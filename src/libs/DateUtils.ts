@@ -360,15 +360,14 @@ function getMicroseconds(): number {
     return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
 
-/**
- * Returns the format yyyy-MM-dd HH:mm:ss of a date in the format expected by the database
- */
 function getDBTimeFromDate(date: Date): string {
     return date.toISOString().replace('T', ' ').replace('Z', '');
 }
 
 /**
- * Returns the current time in milliseconds in the format expected by the database
+ * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database 
+ *
+ * @param [timestamp] the given timestamp (if omitted, defaults to the current time)
  */
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
