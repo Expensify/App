@@ -275,8 +275,8 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
         return false;
     }
 
-    const protectedScreensName = Object.values(PROTECTED_SCREENS);
-    return !protectedScreensName.some((screen) => !state.routeNames?.includes(screen));
+    // If one protected screen is in the routeNames then other screens are there as well.
+    return state?.routeNames.includes(PROTECTED_SCREENS.CONCIERGE);
 }
 
 /**

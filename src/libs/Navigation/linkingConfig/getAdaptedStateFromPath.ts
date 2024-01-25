@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
+import {isAnonymousUser} from '@libs/actions/Session';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -226,14 +227,15 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
 const getAdaptedStateFromPath: typeof getStateFromPath = (path, options) => {
     const url = getPathWithoutPolicyID(path);
-    const policyID = extractPolicyIDFromPath(path);
+    const isAnonymous = isAnonymousUser();
+    // Anonymous users don't have access to workspaces
+    const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
     const state = getStateFromPath(url, options);
 
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
-
     const adaptedState = getAdaptedState(state as PartialState<NavigationState<RootStackParamList>>, policyID);
     return adaptedState;
 };
