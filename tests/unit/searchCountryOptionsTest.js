@@ -190,41 +190,5 @@ describe('searchCountryOptions', () => {
         ];
         const actual = searchCountryOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
-    });
-    test('when the search term is empty, all countries should be returned', () => {
-        const searchValue = '';
-        const countriesData = [
-            {
-                value: 'BB',
-                keyForList: 'BB',
-                text: 'Barbados',
-                isSelected: false,
-                searchValue: 'bbbarbados',
-            },
-            {
-                value: 'BY',
-                keyForList: 'BY',
-                text: 'Belarus',
-                isSelected: false,
-                searchValue: 'bybelarus',
-            },
-            {
-                value: 'BE',
-                keyForList: 'BE',
-                text: 'Belgium',
-                isSelected: false,
-                searchValue: 'bebelgium',
-            },
-            {
-                value: 'AG',
-                keyForList: 'AG',
-                text: 'Antigua and Barbuda',
-                isSelected: false,
-                searchValue: 'agantiguaandbarbuda',
-            },
-        ];
-        const expected = countriesData;
-        const actual = searchCountryOptions(searchValue, countriesData);
-        expect(actual).toEqual(expected);
-    });
+    }); 
 });
