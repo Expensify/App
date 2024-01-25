@@ -31,7 +31,7 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
                 return;
             }
 
-            if (name === 'img') {
+            if (name === 'img' && attribs.src) {
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);

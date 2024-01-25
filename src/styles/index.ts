@@ -4196,15 +4196,15 @@ const styles = (theme: ThemeColors) =>
 
         progressBarOutline: {
             width: '100%',
-            height: 5,
-            borderRadius: 10,
+            height: 4,
+            borderRadius: 8,
             backgroundColor: theme.transparentWhite,
         },
 
         progressBarFill: {
             height: '100%',
             backgroundColor: colors.white,
-            borderRadius: 10,
+            borderRadius: 8,
         },
 
         videoPlayerControlsRow: {
@@ -4235,8 +4235,8 @@ const styles = (theme: ThemeColors) =>
             width: 4,
             height: 60,
             backgroundColor: theme.transparentWhite,
-            borderRadius: 10,
-            marginTop: 10,
+            borderRadius: 8,
+            marginTop: 8,
             alignItems: 'center',
             justifyContent: 'flex-end',
         },
@@ -4253,7 +4253,7 @@ const styles = (theme: ThemeColors) =>
             width: 4,
             height: 20,
             backgroundColor: colors.white,
-            borderRadius: 10,
+            borderRadius: 8,
         },
 
         videoIconButton: {
@@ -4286,8 +4286,8 @@ const styles = (theme: ThemeColors) =>
 
         videoExpandButton: {
             position: 'absolute',
-            top: 10,
-            right: 10,
+            top: 12,
+            right: 12,
             backgroundColor: theme.videoPlayerBG,
             borderRadius: 8,
             padding: 8,

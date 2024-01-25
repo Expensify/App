@@ -13,7 +13,7 @@ const VideoPopoverMenuContext = React.createContext(null);
 function VideoPopoverMenuContextProvider({children}) {
     const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
-    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[CONST.VIDEO_PLAYER.DEFAULT_PLAYBACK_SPEED_INDEX]);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
 
     const updatePlaybackSpeed = useCallback(
         (speed) => {

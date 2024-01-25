@@ -3157,7 +3157,6 @@ const CONST = {
 
     VIDEO_PLAYER: {
         POPOVER_Y_OFFSET: -30,
-        DEFAULT_PLAYBACK_SPEED_INDEX: 2,
         PLAYBACK_SPEEDS: [0.25, 0.5, 1, 1.5, 2],
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
