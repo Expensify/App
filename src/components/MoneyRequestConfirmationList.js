@@ -583,6 +583,7 @@ function MoneyRequestConfirmationList(props) {
         image: receiptImage,
         thumbnail: receiptThumbnail,
         isThumbnail,
+        fileExtension,
     } = props.receiptPath && props.receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, props.receiptPath, props.receiptFilename) : {};
 
     return (
@@ -618,6 +619,7 @@ function MoneyRequestConfirmationList(props) {
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
+                    fileExtension={fileExtension}
                 />
             ) : (
                 // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")

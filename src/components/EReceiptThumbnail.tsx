@@ -15,6 +15,7 @@ import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
+import Text from './Text';
 
 type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -25,6 +26,8 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
     borderRadius?: number;
+    fileExtension?: string;
+    isThumbnail?: boolean;
 };
 
 const backgroundImages = {
@@ -36,7 +39,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnail = false}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -102,7 +105,8 @@ function EReceiptThumbnail({transaction, borderRadius}: EReceiptThumbnailProps) 
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
                     />
-                    {MCCIcon ? (
+                    {isThumbnail && fileExtension && <Text style={styles.labelStrong}>{fileExtension.toUpperCase()}</Text>}
+                    {MCCIcon && !isThumbnail ? (
                         <Icon
                             src={MCCIcon}
                             height={receiptMCCSize}

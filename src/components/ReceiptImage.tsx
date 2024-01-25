@@ -15,9 +15,10 @@ type ReceiptImageProps = {
     source?: string;
     isAuthTokenRequired?: boolean;
     style?: Style;
+    fileExtension?: string;
 };
 
-function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImage = false, isEReceipt = false, source, isAuthTokenRequired, style}: ReceiptImageProps) {
+function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImage = false, isEReceipt = false, source, isAuthTokenRequired, style, fileExtension}: ReceiptImageProps) {
     const styles = useThemeStyles();
 
     if (isEReceipt || isThumbnail) {
@@ -26,6 +27,8 @@ function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImag
                 <EReceiptThumbnail
                     transactionID={transactionID ?? ''}
                     borderRadius={style?.borderRadius}
+                    fileExtension={fileExtension}
+                    isThumbnail
                 />
             </View>
         );

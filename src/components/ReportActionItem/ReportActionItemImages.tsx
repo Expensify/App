@@ -6,21 +6,13 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import variables from '@styles/variables';
-import type {Transaction} from '@src/types/onyx';
 import ReportActionItemImage from './ReportActionItemImage';
-
-type Image = {
-    thumbnail?: string;
-    isThumbnail?: boolean;
-    image: string;
-    transaction: Transaction;
-    isLocalFile: boolean;
-};
 
 type ReportActionItemImagesProps = {
     /** array of image and thumbnail URIs */
-    images: Image[];
+    images: ThumbnailAndImageURI[];
 
     // We're not providing default values for size and total and disabling the ESLint rule
     // because we want them to default to the length of images, but we can't set default props
@@ -72,7 +64,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile}, index) => {
+            {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -85,6 +77,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                     >
                         <ReportActionItemImage
                             thumbnail={thumbnail}
+                            fileExtension={fileExtension}
                             image={image}
                             isLocalFile={isLocalFile}
                             transaction={transaction}

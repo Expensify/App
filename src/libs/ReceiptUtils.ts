@@ -1,6 +1,8 @@
 import Str from 'expensify-common/lib/str';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+import {splitExtensionFromFileName} from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
     image: string;
@@ -8,6 +10,7 @@ type ThumbnailAndImageURI = {
     transaction?: Transaction;
     isLocalFile?: boolean;
     isThumbnail?: boolean;
+    fileExtension?: string;
 };
 
 /**
@@ -43,9 +46,10 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
     }
 
     const isLocalFile = typeof path === 'number' || path.startsWith('blob:') || path.startsWith('file:') || path.startsWith('/');
-
-    return {isThumbnail: true, image: path, isLocalFile};
+    const {fileExtension} = splitExtensionFromFileName(filename);
+    return {isThumbnail: true, fileExtension: Object.values(CONST.IOU.FILE_TYPES).find((type) => type === fileExtension), image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export
 export {getThumbnailAndImageURIs};
+export type {ThumbnailAndImageURI};

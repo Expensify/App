@@ -17,6 +17,9 @@ type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
     thumbnail?: string;
 
+    /** The file type of the receipt */
+    fileExtension?: string;
+
     /** whether or not we are going to display a thumbnail */
     isThumbnail?: boolean;
 
@@ -42,7 +45,16 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, isThumbnail, image, enablePreviewModal = false, transaction, canEditReceipt = false, isLocalFile = false}: ReportActionItemImageProps) {
+function ReportActionItemImage({
+    thumbnail,
+    isThumbnail,
+    image,
+    enablePreviewModal = false,
+    transaction,
+    canEditReceipt = false,
+    isLocalFile = false,
+    fileExtension,
+}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image ?? '');
@@ -54,9 +66,9 @@ function ReportActionItemImage({thumbnail, isThumbnail, image, enablePreviewModa
     if (isEReceipt) {
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID};
     } else if ((thumbnail ?? isThumbnail) && !isLocalFile && !Str.isPDF(imageSource)) {
-        propsObj = thumbnailSource ? {shouldUseThumnailImage: true, source: thumbnailSource} : {isThumbnail: true, transactionID: transaction?.transactionID};
+        propsObj = thumbnailSource ? {shouldUseThumnailImage: true, source: thumbnailSource} : {isThumbnail: true, fileExtension, transactionID: transaction?.transactionID};
     } else {
-        propsObj = {isThumbnail, transactionID: transaction?.transactionID, source: thumbnail ?? image};
+        propsObj = {isThumbnail, fileExtension, transactionID: transaction?.transactionID, source: thumbnail ?? image};
     }
 
     if (enablePreviewModal) {
