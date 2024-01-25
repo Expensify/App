@@ -38,9 +38,6 @@ type BusinessInfoOnyxProps = {
 type BusinessInfoProps = BusinessInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
-
-    /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: () => void;
 };
 
 const BUSINESS_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
@@ -57,7 +54,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     ConfirmationBusiness,
 ];
 
-function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: BusinessInfoProps) {
+function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -108,8 +105,6 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
                 title={translate('businessInfoStep.businessInfo')}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={handleBackButtonPress}
-                onCloseButtonPress={onCloseButtonPress}
-                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

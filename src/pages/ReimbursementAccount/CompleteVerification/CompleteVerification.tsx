@@ -28,15 +28,12 @@ type CompleteVerificationOnyxProps = {
 type CompleteVerificationProps = CompleteVerificationOnyxProps & {
     /** Handles back button press */
     onBackButtonPress: () => void;
-
-    /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: () => void;
 };
 
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
 const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
-function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: CompleteVerificationProps) {
+function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -75,8 +72,6 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
             <HeaderWithBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('completeVerificationStep.completeVerification')}
-                shouldShowCloseButton
-                onCloseButtonPress={onCloseButtonPress}
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

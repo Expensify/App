@@ -31,14 +31,11 @@ type VerifyIdentityOnyxProps = {
 type VerifyIdentityProps = VerifyIdentityOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
-
-    /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: () => void;
 };
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonPress, onfidoApplicantID, onfidoToken}: VerifyIdentityProps) {
+function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplicantID, onfidoToken}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -67,8 +64,6 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonP
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
                 onBackButtonPress={onBackButtonPress}
-                onCloseButtonPress={onCloseButtonPress}
-                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

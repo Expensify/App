@@ -34,9 +34,6 @@ type BeneficialOwnerInfoOnyxProps = {
 type BeneficialOwnersStepProps = BeneficialOwnerInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
-
-    /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: () => void;
 };
 
 type BeneficialOwnerSubStepProps = SubStepProps & {beneficialOwnerBeingModifiedID: string; setBeneficialOwnerBeingModifiedID?: (id: string) => void};
@@ -45,7 +42,7 @@ const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 
-function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: BeneficialOwnersStepProps) {
+function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
@@ -225,8 +222,6 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
             <HeaderWithBackButton
                 title={translate('beneficialOwnerInfoStep.companyOwner')}
                 onBackButtonPress={handleBackButtonPress}
-                onCloseButtonPress={onCloseButtonPress}
-                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

@@ -32,15 +32,12 @@ type PersonalInfoOnyxProps = {
 type PersonalInfoProps = PersonalInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
-
-    /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: () => void;
 };
 
 const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
-function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
+function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -77,8 +74,6 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
             <HeaderWithBackButton
                 title={translate('personalInfoStep.personalInfo')}
                 onBackButtonPress={handleBackButtonPress}
-                onCloseButtonPress={onCloseButtonPress}
-                shouldShowCloseButton
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

@@ -356,8 +356,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
      */
     const getDefaultStateForField = (fieldName, defaultValue = '') => lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
 
-    const goBackToWorkspace = () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
@@ -493,7 +491,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 reimbursementAccount={reimbursementAccount}
                 reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
-                onCloseButtonPress={goBackToWorkspace}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={plaidLinkToken}
                 getDefaultStateForField={getDefaultStateForField}
@@ -504,12 +501,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
-        return (
-            <CompanyStep
-                onBackButtonPress={goBack}
-                onCloseButtonPress={goBackToWorkspace}
-            />
-        );
+        return <CompanyStep onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -519,27 +511,16 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 ref={requestorStepRef}
                 shouldShowOnfido={Boolean(shouldShowOnfido)}
                 onBackButtonPress={goBack}
-                onCloseButtonPress={goBackToWorkspace}
             />
         );
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.BENEFICIAL_OWNERS) {
-        return (
-            <BeneficialOwnersStep
-                onBackButtonPress={goBack}
-                onCloseButtonPress={goBackToWorkspace}
-            />
-        );
+        return <BeneficialOwnersStep onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
-        return (
-            <ACHContractStep
-                onBackButtonPress={goBack}
-                onCloseButtonPress={goBackToWorkspace}
-            />
-        );
+        return <ACHContractStep onBackButtonPress={goBack} />;
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
