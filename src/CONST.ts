@@ -727,6 +727,8 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        OPEN_SEARCH: 'open_search',
+        LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -791,7 +793,6 @@ const CONST = {
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
-        UPDATE_REQUIRED: 426,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -822,9 +823,6 @@ const CONST = {
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
         DUPLICATE_RECORD: 'A record already exists with this ID',
-
-        // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
-        UPDATE_REQUIRED: 'Upgrade Required',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -982,6 +980,7 @@ const CONST = {
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
     },
+    MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM: 83,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
@@ -1307,6 +1306,14 @@ const CONST = {
         AUTO_REPORTING_OFFSET: {
             LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
+        APPROVAL_MODE: {
+            OPTIONAL: 'OPTIONAL',
+            BASIC: 'BASIC',
+            ADVANCED: 'ADVANCED',
+            DYNAMICEXTERNAL: 'DYNAMIC_EXTERNAL',
+            SMARTREPORT: 'SMARTREPORT',
+            BILLCOM: 'BILLCOM',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
