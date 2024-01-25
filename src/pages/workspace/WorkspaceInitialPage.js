@@ -67,6 +67,15 @@ function dismissError(policyID) {
     Policy.removeWorkspace(policyID);
 }
 
+/**
+ * Whether the policy report should be archived when we delete the policy.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldArchiveReport(report) {
+    return ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report);
+}
+
 function WorkspaceInitialPage(props) {
     const styles = useThemeStyles();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
@@ -111,7 +120,7 @@ function WorkspaceInitialPage(props) {
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports, policy.name);
+        Policy.deleteWorkspace(policyID, _.filter(policyReports, shouldArchiveReport), policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
