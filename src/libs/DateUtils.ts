@@ -5,9 +5,12 @@ import {
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
+    getDate,
+    getDay,
     getDayOfYear,
     isAfter,
     isBefore,
@@ -358,11 +361,18 @@ function getMicroseconds(): number {
 }
 
 /**
+ * Returns the format yyyy-MM-dd HH:mm:ss of a date in the format expected by the database
+ */
+function getDBTimeFromDate(date: Date): string {
+    return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
  * Returns the current time in milliseconds in the format expected by the database
  */
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return datetime.toISOString().replace('T', ' ').replace('Z', '');
+    return getDBTimeFromDate(datetime);
 }
 
 /**
@@ -731,13 +741,6 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
- * Returns the time in milliseconds of a date in the format expected by the database
- */
-function getDBTimeFromDate(date: Date): string {
-    return date.toISOString().replace('T', ' ').replace('Z', '');
-}
-
-/**
  * Return the date with full format if the created date is the current date.
  * Otherwise return the created date.
  */
@@ -745,6 +748,24 @@ function enrichMoneyRequestTimestamp(created: string): string {
     const now = new Date();
     const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
     return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
+}
+/**
+ * Returns the last business day of given date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
+
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
+    }
+
+    return getDate(currentDate);
 }
 
 const DateUtils = {
@@ -792,6 +813,7 @@ const DateUtils = {
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
     enrichMoneyRequestTimestamp,
+    getLastBusinessDayOfMonth,
 };
 
 export default DateUtils;
