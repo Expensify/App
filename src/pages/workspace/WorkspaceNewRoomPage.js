@@ -159,7 +159,7 @@ function WorkspaceNewRoomPage(props) {
 
     useEffect(() => {
         if (policyID) {
-            if (_.some(workspaceOptions, (opt) => opt.value === policyID)) {
+            if (!_.some(workspaceOptions, (opt) => opt.value === policyID)) {
                 setPolicyID('');
             }
             return;
