@@ -152,7 +152,7 @@ const ROUTES = {
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
-        getRoute: (reason: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => `settings/exit-survey/response?reason=${encodeURIComponent(reason)}` as const,
+        getRoute: (reason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>) => `settings/exit-survey/response?reason=${encodeURIComponent(reason)}` as const,
     },
     SETTINGS_EXIT_SURVEY_CONFIRM: 'settings/exit-survey/confirm',
 

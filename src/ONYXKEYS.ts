@@ -542,6 +542,12 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form | undefined;
     [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form | undefined;
+    [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: OnyxTypes.Form & {
+        [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+    };
+    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: OnyxTypes.Form & {
+        [CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: string;
+    };
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

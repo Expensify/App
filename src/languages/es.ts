@@ -2624,14 +2624,14 @@ export default {
         },
         reasons: {
             // TODO: use consts for these keys
-            [CONST.EXIT_SURVEY_REASONS.FEATURE_NOT_AVAILABLE]: 'Necesito una función que sólo está disponible en Expensify Classic.',
-            [CONST.EXIT_SURVEY_REASONS.DONT_UNDERSTAND]: 'No entiendo cómo usar New Expensify.',
-            [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: 'Entiendo cómo usar New Expensify, pero prefiero Expensify Classic.',
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: 'Necesito una función que sólo está disponible en Expensify Classic.',
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'No entiendo cómo usar New Expensify.',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Entiendo cómo usar New Expensify, pero prefiero Expensify Classic.',
         },
         prompts: {
-            [CONST.EXIT_SURVEY_REASONS.FEATURE_NOT_AVAILABLE]: '¿Qué función necesitas que no esté disponible en New Expensify?',
-            [CONST.EXIT_SURVEY_REASONS.DONT_UNDERSTAND]: '¿Qué estás tratando de hacer?',
-            [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: '¿Por qué prefieres Expensify Classic?',
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: '¿Qué función necesitas que no esté disponible en New Expensify?',
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: '¿Qué estás tratando de hacer?',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: '¿Por qué prefieres Expensify Classic?',
         },
         responsePlaceholder: 'Su respuesta',
         thankYou: '¡Gracias por sus comentarios!',

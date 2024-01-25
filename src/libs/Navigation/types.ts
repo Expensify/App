@@ -126,7 +126,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-        reason: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>;
+        reason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
     };
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: undefined;
 };

@@ -3165,10 +3165,14 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
-    EXIT_SURVEY_REASONS: {
-        FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
-        DONT_UNDERSTAND: 'dontUnderstand',
-        PREFER_CLASSIC: 'preferClassic',
+    EXIT_SURVEY: {
+        REASONS: {
+            FEATURE_NOT_AVAILABLE: 'featureNotAvailable',
+            DONT_UNDERSTAND: 'dontUnderstand',
+            PREFER_CLASSIC: 'preferClassic',
+        },
+        REASON_INPUT_ID: 'reason',
+        RESPONSE_INPUT_ID: 'response',
     },
 } as const;
 

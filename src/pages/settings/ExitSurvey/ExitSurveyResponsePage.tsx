@@ -21,8 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-const RESPONSE_INPUT_ID = 'response';
-
 type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
 function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
@@ -82,7 +80,7 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                         return {};
                     }
                     return {
-                        [RESPONSE_INPUT_ID]: translate('common.error.fieldRequired'),
+                        [CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: translate('common.error.fieldRequired'),
                     };
                 }}
                 shouldValidateOnBlur
@@ -93,7 +91,7 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                     <InputWrapper
                         // @ts-expect-error – InputWrapper is not yet implemented in TS
                         InputComponent={TextInput}
-                        inputID={RESPONSE_INPUT_ID}
+                        inputID={CONST.EXIT_SURVEY.RESPONSE_INPUT_ID}
                         label={translate(`exitSurvey.responsePlaceholder`)}
                         accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
                         role={CONST.ROLE.PRESENTATION}

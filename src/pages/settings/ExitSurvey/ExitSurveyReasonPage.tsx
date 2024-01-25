@@ -14,16 +14,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-const REASON_INPUT_ID = 'reason';
-
 function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reason, setReason] = useState<ValueOf<typeof CONST.EXIT_SURVEY_REASONS>>();
+    const [reason, setReason] = useState<ValueOf<typeof CONST.EXIT_SURVEY.REASONS>>();
     const reasons: Choice[] = useMemo(
         () =>
-            Object.values(CONST.EXIT_SURVEY_REASONS).map((value) => ({
+            Object.values(CONST.EXIT_SURVEY.REASONS).map((value) => ({
                 value,
                 label: translate(`exitSurvey.reasons.${value}`),
                 style: styles.mt6,
@@ -46,7 +44,7 @@ function ExitSurveyReasonPage() {
                         return {};
                     }
                     return {
-                        [REASON_INPUT_ID]: translate('common.error.fieldRequired'),
+                        [CONST.EXIT_SURVEY.REASON_INPUT_ID]: translate('common.error.fieldRequired'),
                     };
                 }}
                 onSubmit={() => {
@@ -65,9 +63,9 @@ function ExitSurveyReasonPage() {
                     <InputWrapper
                         // @ts-expect-error – InputWrapper is not yet implemented in TS
                         InputComponent={RadioButtons}
-                        inputID={REASON_INPUT_ID}
+                        inputID={CONST.EXIT_SURVEY.REASON_INPUT_ID}
                         items={reasons}
-                        onPress={(value: ValueOf<typeof CONST.EXIT_SURVEY_REASONS>) => setReason(value)}
+                        onPress={(value: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>) => setReason(value)}
                     />
                 </>
             </FormProvider>
