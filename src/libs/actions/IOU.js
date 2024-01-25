@@ -1362,13 +1362,14 @@ function requestMoney(
  * @param {String} comment
  * @param {String} currency
  * @param {String} merchant
+ * @param {String} created
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, created, category, tag, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1383,7 +1384,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
-        '',
+        created,
         '',
         '',
         merchant || Localize.translateLocal('iou.request'),
@@ -1584,7 +1585,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             currency,
             oneOnOneIOUReport.reportID,
             comment,
-            '',
+            created,
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
             merchant || Localize.translateLocal('iou.request'),
@@ -1707,11 +1708,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} comment
  * @param {String} currency
  * @param {String} merchant
+ * @param {String} created
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, created, category, tag, existingSplitChatReportID = '') {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1720,6 +1722,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         comment,
         currency,
         merchant,
+        created,
         category,
         tag,
         existingSplitChatReportID,
@@ -1734,6 +1737,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             comment,
             category,
             merchant,
+            created,
             tag,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
@@ -1756,11 +1760,12 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} comment
  * @param {String} currency
  * @param {String} merchant
+ * @param {String} created
  * @param {String} category
  * @param {String} tag
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, created, category, tag) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, created, category, tag);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -1770,6 +1775,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             splits: JSON.stringify(splits),
             currency,
             merchant,
+            created,
             comment,
             category,
             tag,

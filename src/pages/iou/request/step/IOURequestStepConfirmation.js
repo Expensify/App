@@ -241,6 +241,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
@@ -258,6 +259,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.merchant,
+                    transaction.created,
                     transaction.category,
                     transaction.tag,
                 );
