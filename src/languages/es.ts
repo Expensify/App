@@ -2634,7 +2634,8 @@ export default {
             [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: '¿Por qué prefieres Expensify Classic?',
         },
         responsePlaceholder: 'Su respuesta',
-        thankYou: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
+        thankYou: '¡Gracias por sus comentarios!',
+        thankYouSubtitle: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
         goToExpensifyClassic: 'Cambiar a Expensify Classic',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',

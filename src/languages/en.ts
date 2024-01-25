@@ -2146,7 +2146,8 @@ export default {
             [CONST.EXIT_SURVEY_REASONS.PREFER_CLASSIC]: 'Why to you prefer Expensify Classic?',
         },
         responsePlaceholder: 'Your response',
-        thankYou: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
+        thankYou: 'Thanks for the feedback!',
+        thankYouSubtitle: 'Your responses will help us build a better product to get stuff done. Thank you so much!',
         goToExpensifyClassic: 'Switch to Expensify Classic',
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
