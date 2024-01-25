@@ -177,12 +177,12 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const reportActionID = lodashGet(route, 'params.reportActionID', null);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
+
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
-    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const {windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
-
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), [props.reportActions]);
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
     const [isInitialLinkedView, setIsInitialLinkedView] = useState(false);
