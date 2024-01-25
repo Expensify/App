@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {TapGestureHandler} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -61,6 +61,9 @@ const propTypes = {
 
     /** Last pressed digit on BigDigitPad */
     lastPressedDigit: PropTypes.string,
+
+    /** TestID for test */
+    testID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -77,6 +80,7 @@ const defaultProps = {
     maxLength: CONST.MAGIC_CODE_LENGTH,
     isDisableKeyboard: false,
     lastPressedDigit: '',
+    testID: '',
 };
 
 /**
@@ -204,21 +208,22 @@ function MagicCodeInput(props) {
     };
 
     /**
-     * Callback for the onPress event, updates the indexes
-     * of the currently focused input.
-     *
-     * @param {Number} index
+     * Tap gesture configuration, updates the indexes of the
+     * currently focused input.
      */
-    const onPress = (index) => {
-        shouldFocusLast.current = false;
-        // TapGestureHandler works differently on mobile web and native app
-        // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
-        if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
-            inputRefs.current.focus();
-        }
-        setInputAndIndex(index);
-        lastFocusedIndex.current = index;
-    };
+    const tapGesture = Gesture.Tap()
+        .runOnJS(true)
+        .onBegin((event) => {
+            const index = Math.floor(event.x / (inputWidth.current / props.maxLength));
+            shouldFocusLast.current = false;
+            // TapGestureHandler works differently on mobile web and native app
+            // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
+            if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
+                inputRefs.current.focus();
+            }
+            setInputAndIndex(index);
+            lastFocusedIndex.current = index;
+        });
 
     /**
      * Updates the magic inputs with the contents written in the
@@ -357,11 +362,7 @@ function MagicCodeInput(props) {
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
-                <TapGestureHandler
-                    onBegan={(e) => {
-                        onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)));
-                    }}
-                >
+                <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
                         style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
@@ -397,9 +398,10 @@ function MagicCodeInput(props) {
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderNone]}
+                            testID={props.testID}
                         />
                     </View>
-                </TapGestureHandler>
+                </GestureDetector>
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
                     <View
                         key={index}

@@ -187,7 +187,7 @@ function ReportScreen({
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
-    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
+    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS_NUM.CLOSED;
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
@@ -383,8 +383,8 @@ function ReportScreen({
             (prevOnyxReportID &&
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
-                prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
+                prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+                (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
             ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && _.isEmpty(report))
         ) {
             Navigation.dismissModal();
@@ -393,6 +393,11 @@ function ReportScreen({
                 Navigation.goBack(ROUTES.HOME, false, true);
             }
             if (prevReport.parentReportID) {
+                // Prevent navigation to the Money Request Report if it is pending deletion.
+                const parentReport = ReportUtils.getReport(prevReport.parentReportID);
+                if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
                 return;
             }
@@ -613,7 +618,7 @@ export default compose(
                     if (!parentReportActionID) {
                         return {};
                     }
-                    return parentReportActions[parentReportActionID];
+                    return lodashGet(parentReportActions, parentReportActionID);
                 },
                 canEvict: false,
             },
