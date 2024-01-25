@@ -107,6 +107,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
+// TODO: Rewrite this component to TS according to existing migration on the main branch
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -171,19 +172,22 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         disabled={item.disabled}
                         onPress={() => item.action()}
                     >
-                        <WorkspacesListRow
-                            title={item.title}
-                            menuItems={threeDotsMenuItems}
-                            workspaceIcon={item.icon}
-                            ownerAccountID={item.ownerAccountID}
-                            workspaceType={item.type}
-                            layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
-                        />
+                        {({hovered}) => (
+                            <WorkspacesListRow
+                                title={item.title}
+                                menuItems={threeDotsMenuItems}
+                                workspaceIcon={item.icon}
+                                ownerAccountID={item.ownerAccountID}
+                                workspaceType={item.type}
+                                rowStyles={hovered && styles.hoveredComponentBG}
+                                layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                            />
+                        )}
                     </PressableWithoutFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, translate],
+        [isSmallScreenWidth, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
     );
 
     const listHeaderComponent = useCallback(() => {

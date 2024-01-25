@@ -335,7 +335,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     );
 
     const continueFunction = () => {
-        setShouldShowContinueSetupButton(false);
+        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+        });
         fetchData(true);
     };
 

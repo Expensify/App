@@ -74,6 +74,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
             {(hasVBA) => (
                 <>
                     <AvatarWithImagePicker
+                        onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id))}
                         source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.LARGE}
                         avatarStyle={styles.avatarLarge}

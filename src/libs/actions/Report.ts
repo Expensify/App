@@ -26,6 +26,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
@@ -42,6 +43,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -308,8 +310,8 @@ function notifyNewAction(reportID: string, accountID?: number, reportActionID?: 
  */
 function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
-    let reportCommentAction: Partial<ReportAction> | undefined;
-    let attachmentAction: Partial<ReportAction> | undefined;
+    let reportCommentAction: OptimisticAddCommentReportAction | undefined;
+    let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName = 'AddComment';
 
     if (text) {
@@ -348,7 +350,7 @@ function addActions(reportID: string, text = '', file?: File) {
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     if (text && reportCommentAction?.reportActionID) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
@@ -391,7 +393,7 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportActions,
+            value: optimisticReportActions as ReportActions,
         },
     ];
 
@@ -427,11 +429,12 @@ function addActions(reportID: string, text = '', file?: File) {
         };
     }
 
-    const failureReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
     Object.entries(optimisticReportActions).forEach(([actionKey, action]) => {
         failureReportActions[actionKey] = {
-            ...action,
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            ...(action as OptimisticAddCommentReportAction),
             errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
         };
     });
@@ -445,7 +448,7 @@ function addActions(reportID: string, text = '', file?: File) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: failureReportActions,
+            value: failureReportActions as ReportActions,
         },
     ];
 
@@ -946,7 +949,7 @@ function expandURLPreview(reportID: string, reportActionID: string) {
 }
 
 /** Marks the new report actions as read */
-function readNewestAction(reportID: string) {
+function readNewestAction(reportID: string, shouldEmitEvent = true) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -970,6 +973,11 @@ function readNewestAction(reportID: string) {
     };
 
     API.write('ReadNewestAction', parameters, {optimisticData});
+
+    if (!shouldEmitEvent) {
+        return;
+    }
+
     DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
@@ -988,7 +996,7 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
     }, null);
 
     // If no action created date is provided, use the last action's from other user
-    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? DateUtils.getDBTime(0));
+    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? allReports?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -1698,7 +1706,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
 function deleteReport(reportID: string) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
@@ -1849,7 +1857,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
     if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
         return false;
@@ -1883,17 +1891,16 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () => {
-        const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-        const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
-
-        const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : true;
-
-        if (!reportBelongsToWorkspace) {
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    };
+    const onClick = () =>
+        Modal.close(() => {
+            const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+            const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];            
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : true;
+            if (!reportBelongsToWorkspace) {
+                Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
@@ -2110,7 +2117,7 @@ function getCurrentUserAccountID(): number {
 
 /** Leave a report by setting the state to submitted and closed */
 function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
 
     if (!report) {
         return;
@@ -2202,7 +2209,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
 /** Invites people to a room */
 function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
 
     if (!report) {
         return;
@@ -2261,7 +2268,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
 /** Removes people from a room */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = allReports?.[reportID];
+    const report = currentReportData?.[reportID];
 
     const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
     const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
@@ -2522,6 +2529,115 @@ function getReportPrivateNote(reportID: string) {
     API.read('GetReportPrivateNote', parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Completes the engagement modal that new NewDot users see when they first sign up/log in by doing the following:
+ *
+ * - Sets the introSelected NVP to the choice the user made
+ * - Creates an optimistic report comment from concierge
+ */
+function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
+    const commandName = 'CompleteEngagementModal';
+    const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
+    const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
+    const lastComment = reportCommentAction?.message?.[0];
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
+    const reportCommentText = reportComment.commentText;
+    const currentTime = DateUtils.getDBTime();
+
+    const optimisticReport: Partial<Report> = {
+        lastVisibleActionCreated: currentTime,
+        lastMessageTranslationKey: lastComment?.translationKey ?? '',
+        lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
+        lastActorAccountID: currentUserAccountID,
+        lastReadTime: currentTime,
+    };
+
+    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
+    conciergeChatReportID = conciergeChatReport?.reportID;
+
+    const report = ReportUtils.getReport(conciergeChatReportID);
+
+    if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+
+    // Optimistically add the new actions to the store before waiting to save them to the server
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
+    if (reportCommentAction?.reportActionID) {
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+    }
+
+    type CompleteEngagementParameters = {
+        reportID: string;
+        reportActionID?: string;
+        commentReportActionID?: string | null;
+        reportComment?: string;
+        engagementChoice: string;
+        timezone?: string;
+    };
+
+    const parameters: CompleteEngagementParameters = {
+        reportID: conciergeChatReportID ?? '',
+        reportActionID: reportCommentAction.reportActionID,
+        reportComment: reportCommentText,
+        engagementChoice: choice,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: optimisticReportActions as ReportActions,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: {[reportCommentAction.reportActionID ?? '']: {pendingAction: null}},
+        },
+    ];
+
+    API.write(commandName, parameters, {
+        optimisticData,
+        successData,
+    });
+    notifyNewAction(conciergeChatReportID ?? '', reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
+}
+
+function dismissEngagementModal() {
+    const commandName = 'SetNameValuePair';
+    const parameters = {
+        name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
+            value: true,
+        },
+    ];
+
+    API.write(commandName, parameters, {
+        optimisticData,
+    });
+}
+
 /** Loads necessary data for rendering the RoomMembersPage */
 function openRoomMembersPage(reportID: string) {
     type OpenRoomMembersPageParameters = {
@@ -2732,6 +2848,8 @@ export {
     hasErrorInPrivateNotes,
     getOlderActions,
     getNewerActions,
+    completeEngagementModal,
+    dismissEngagementModal,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,

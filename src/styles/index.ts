@@ -1478,7 +1478,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -2945,6 +2945,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',
@@ -2954,18 +2958,18 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
-            borderRadius: 14,
+            borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
-            height: 28,
-            width: 28,
+            height: 40,
+            width: 40,
             justifyContent: 'center',
         },
 
         smallAvatarEditIcon: {
             position: 'absolute',
-            right: -4,
-            bottom: -4,
+            right: -8,
+            bottom: -8,
         },
 
         workspaceOwnerAvatarWrapper: {
