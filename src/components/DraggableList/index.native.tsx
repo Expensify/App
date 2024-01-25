@@ -1,6 +1,6 @@
 import React from 'react';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import {FlatList} from 'react-native-gesture-handler';
+import type {FlatList} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {DraggableListProps} from './types';
 

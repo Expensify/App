@@ -1,6 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useEffect, useRef, useState} from 'react';
-import {InteractionManager, StyleProp, StyleSheet, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {InteractionManager, StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -267,8 +268,8 @@ function OptionRow({
                                             <PressableWithFeedback
                                                 onPress={() => onSelectedStatePressed(option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ROLE.CHECKBOX}
-                                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                                role={CONST.ROLE.BUTTON}
+                                                accessibilityLabel={CONST.ROLE.BUTTON}
                                             >
                                                 <SelectCircle isChecked={isSelected} />
                                             </PressableWithFeedback>

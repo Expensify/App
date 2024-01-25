@@ -1,10 +1,11 @@
 import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
-import {BankIconParams, getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
+import type {BankIconParams} from '@components/Icon/BankIconsUtils';
+import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {BankIcon} from '@src/types/onyx/Bank';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {BankIcon} from '@src/types/onyx/Bank';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /**
  * It's a wrapper type for a bank icon asset. Bank icons are imported using require(), on the web platform after importing in this way it's necessary to use the property "default"

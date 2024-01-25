@@ -1,20 +1,21 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
-import {MenuItemProps} from '@components/MenuItem';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
@@ -33,7 +34,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     fallbackWorkspaceIcon?: AvatarSource;
 
     /** Items for the three dots menu */
-    menuItems: MenuItemProps[];
+    menuItems: PopoverMenuItem[];
 
     /** Renders the component using big screen layout or small screen layout. When layoutWidth === WorkspaceListRowLayout.NONE,
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
@@ -110,7 +111,7 @@ function WorkspacesListRow({
                 {isNarrow && (
                     <ThreeDotsMenu
                         menuItems={menuItems}
-                        anchorPosition={{top: 0, right: 0}}
+                        anchorPosition={{horizontal: 0, vertical: 0}}
                     />
                 )}
             </View>
@@ -127,7 +128,7 @@ function WorkspacesListRow({
                                 numberOfLines={1}
                                 style={[styles.labelStrong]}
                             >
-                                {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails.displayName)}
+                                {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
                             </Text>
                             <Text
                                 numberOfLines={1}
@@ -164,7 +165,7 @@ function WorkspacesListRow({
             {isWide && (
                 <ThreeDotsMenu
                     menuItems={menuItems}
-                    anchorPosition={{top: 0, right: 0}}
+                    anchorPosition={{horizontal: 0, vertical: 0}}
                     iconStyles={[styles.mr2]}
                 />
             )}

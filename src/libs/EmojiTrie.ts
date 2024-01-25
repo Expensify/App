@@ -1,38 +1,11 @@
 import emojis, {localeEmojis} from '@assets/emojis';
+import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
 import Timing from './actions/Timing';
 import Trie from './Trie';
 
-type HeaderEmoji = {
-    code: string;
-    header: boolean;
-    icon: IconAsset;
-};
-
-type SimpleEmoji = {
-    code: string;
-    name: string;
-    types?: string[];
-};
-
-type Emoji = HeaderEmoji | SimpleEmoji;
-
-type LocalizedEmoji = {
-    name?: string;
-    keywords: string[];
-};
-
-type LocalizedEmojis = Record<string, LocalizedEmoji>;
-
-type Suggestion = {
-    code: string;
-    types?: string[];
-    name: string;
-};
-
 type EmojiMetaData = {
-    suggestions?: Suggestion[];
+    suggestions?: Emoji[];
     code?: string;
     types?: string[];
     name?: string;
@@ -56,7 +29,7 @@ type EmojiTrie = {
  * @param name The localized name of the emoji.
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
-function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: SimpleEmoji, name: string, shouldPrependKeyword = false) {
+function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
     keywords.forEach((keyword) => {
         const keywordNode = trie.search(keyword);
         if (!keywordNode) {
@@ -85,13 +58,13 @@ function getNameParts(name: string): string[] {
 
 function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
     const trie = new Trie();
-    const langEmojis: LocalizedEmojis = localeEmojis[lang];
-    const defaultLangEmojis: LocalizedEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
+    const langEmojis = localeEmojis[lang];
+    const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
     emojis
-        .filter((item: Emoji): item is SimpleEmoji => !(item as HeaderEmoji).header)
-        .forEach((item: SimpleEmoji) => {
+        .filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header)
+        .forEach((item: Emoji) => {
             const englishName = item.name;
             const localeName = langEmojis?.[item.code]?.name ?? englishName;
 
@@ -127,4 +100,4 @@ const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev,
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
-export type {SimpleEmoji, SupportedLanguage};
+export type {SupportedLanguage};

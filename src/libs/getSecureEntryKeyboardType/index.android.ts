@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import GetSecureEntryKeyboardType from './types';
+import type GetSecureEntryKeyboardType from './types';
 
 /**
  * Return visible-password keyboard type when secure text is visible on Android,

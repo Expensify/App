@@ -26,7 +26,7 @@ Each report will show the total amount for all expenses in the upper right. Unde
 - **Time Expenses:** Employees or jobs are billed based on an hourly rate that you can set within Expensify.
 - **Distance Expenses:** These expenses are related to travel for work.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What’s the difference between a receipt, an expense, and a report attachment?
 
@@ -40,3 +40,5 @@ In Expensify, a credit is displayed as an expense with a minus (ex. -$1.00) in f
 If a report includes a credit or a refund expense, it will offset the total amount on the report. 
 For example, the report has two reimbursable expenses, $400 and $500. The total Reimbursable is $900. 
 Conversely, a -$400 and $500 will be a total Reimbursable amount of $500
+
+{% include faq-end.md %}

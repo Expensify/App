@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -25,6 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -245,6 +245,15 @@ function LoginForm(props) {
         isInputFocused() {
             return input.current && input.current.isFocused();
         },
+        clearDataAndFocus(clearLogin = true) {
+            if (!input.current) {
+                return;
+            }
+            if (clearLogin) {
+                Session.clearSignInData();
+            }
+            input.current.focus();
+        },
     }));
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
@@ -267,6 +276,7 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
+                    testID="username"
                     onBlur={() => {
                         if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
                             return;

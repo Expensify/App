@@ -1,5 +1,6 @@
 import {useCallback, useRef} from 'react';
-import {StyleSheet, ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Logo from '@assets/images/new-expensify-dark.svg';
 import ImageSVG from '@components/ImageSVG';

@@ -1,5 +1,5 @@
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import LocalFileDownload from './types';
+import type LocalFileDownload from './types';
 
 /**
  * Creates a Blob with the given fileName and textContent, then dynamically
