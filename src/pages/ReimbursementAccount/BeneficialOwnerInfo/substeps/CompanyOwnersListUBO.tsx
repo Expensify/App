@@ -89,7 +89,7 @@ function CompanyOwnersListUBO({
                     key={ownerKey}
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
-                    wrapperStyle={[styles.ph0]}
+                    wrapperStyle={[styles.ph5]}
                     icon={Expensicons.FallbackAvatar}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
@@ -107,16 +107,16 @@ function CompanyOwnersListUBO({
             testID={CompanyOwnersListUBO.displayName}
             style={[styles.pt0]}
         >
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
-                <Text style={[styles.textHeadline]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
-                <Text style={styles.pv5}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph0]}>
+                <Text style={[styles.textHeadline, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+                <Text style={styles.p5}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
                 <View>
-                    <Text style={[styles.textLabelSupporting, styles.pv1]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                     {isUserUBO && (
                         <MenuItem
                             title={`${requestorData.firstName} ${requestorData.lastName}`}
                             description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
-                            wrapperStyle={[styles.ph0]}
+                            wrapperStyle={[styles.ph5]}
                             icon={Expensicons.FallbackAvatar}
                             iconWidth={40}
                             iconHeight={40}
@@ -139,7 +139,7 @@ function CompanyOwnersListUBO({
                 <Button
                     success
                     isLoading={isLoading}
-                    style={[styles.w100, styles.mt2, styles.pb5]}
+                    style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
                     onPress={handleUBOsConfirmation}
                     text={translate('common.confirm')}
                 />

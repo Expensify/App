@@ -87,17 +87,22 @@ function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, u
     return Boolean(value);
 }
 
+type GetFieldRequiredErrorsReturn<K extends string[]> = {[P in K[number]]: string};
+
 /**
  * Used to add requiredField error to the fields passed.
  */
-function getFieldRequiredErrors(values: OnyxCommon.Errors, requiredFields: string[]) {
-    const errors: OnyxCommon.Errors = {};
-    requiredFields.forEach((fieldKey) => {
+function getFieldRequiredErrors<T extends OnyxCommon.Errors, K extends string[]>(values: T, requiredFields: K): GetFieldRequiredErrorsReturn<K> {
+    const errors: GetFieldRequiredErrorsReturn<K> = {} as GetFieldRequiredErrorsReturn<K>;
+
+    requiredFields.forEach((fieldKey: K[number]) => {
         if (isRequiredFulfilled(values[fieldKey])) {
             return;
         }
+
         errors[fieldKey] = 'common.error.fieldRequired';
     });
+
     return errors;
 }
 

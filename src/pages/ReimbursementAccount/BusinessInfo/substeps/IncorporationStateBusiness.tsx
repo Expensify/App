@@ -46,10 +46,10 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.pb5, styles.mb0]}
+            style={[styles.mh0, styles.flexGrow1]}
+            submitButtonStyles={[styles.ph5, styles.pb5, styles.mb0]}
         >
-            <Text style={styles.textHeadline}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
+            <Text style={[styles.textHeadline, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={StatePicker}
@@ -58,7 +58,7 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
                 label={translate('businessInfoStep.incorporationState')}
                 defaultValue={defaultCompanyIncorporationState}
                 shouldSaveDraft={!isEditing}
-                wrapperStyle={[styles.ph0, styles.mt4]}
+                wrapperStyle={[styles.ph5, styles.mt4]}
             />
         </FormProvider>
     );
