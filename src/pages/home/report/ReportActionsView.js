@@ -426,7 +426,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     ]);
 
     // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = firstReportActionID !== reportActionID;
+    const isTheFirstReportActionIsLinked = firstReportActionID === reportActionID;
 
     useEffect(() => {
         if (isTheFirstReportActionIsLinked) {
@@ -444,7 +444,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
         return null;
     }
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || isInitialLinkedView);
+    const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isInitialLinkedView);
 
     return (
         <>

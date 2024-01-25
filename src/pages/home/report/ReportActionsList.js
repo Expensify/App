@@ -6,6 +6,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
@@ -177,12 +178,7 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
-    const lastPendingAction = lodashGet(sortedReportActions, [0, 'pendingAction'])
-    const isLastPendingActionIsAdd = lastPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-    const isLastPendingActionIsDelete = lastPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    // This is utilized for automatically scrolling to the bottom when sending a new message, in cases where comment linking is used and the user is already at the end of the list.
-    const isNewestActionAvailableAndPendingAdd = linkedReportActionID && isLastPendingActionIsAdd;
+    const isLastPendingActionIsDelete = lodashGet(sortedReportActions, [0, 'pendingAction']) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -198,17 +194,16 @@ function ReportActionsList({
 
     useEffect(() => {
         if (
-            (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length && hasNewestReportAction) ||
-            isNewestActionAvailableAndPendingAdd
+            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            previousLastIndex.current !== lastActionIndex &&
+            reportActionSize.current > sortedVisibleReportActions.length &&
+            hasNewestReportAction
         ) {
-            // runAfterInteractions is used for isNewestActionAvailableAndPendingAdd
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
+            reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, isLastPendingActionIsAdd, linkedReportActionID, isNewestActionAvailableAndPendingAdd]);
+    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
