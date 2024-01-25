@@ -61,7 +61,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([report.managerID], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role ?? '');
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
