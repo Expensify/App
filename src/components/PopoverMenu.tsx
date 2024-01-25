@@ -179,7 +179,7 @@ function PopoverMenu({
     const onModalHide = () => {
         setFocusedIndex(-1);
         if (selectedItemIndex.current !== null) {
-            menuItems[selectedItemIndex.current].onSelected();
+            currentMenuItems[selectedItemIndex.current].onSelected();
             selectedItemIndex.current = null;
         }
     };
