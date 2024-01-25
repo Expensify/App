@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
+import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +25,7 @@ type StatePickerProps = {
     label?: string;
 
     /** Any additional styles to apply */
-    wrapperStyle: stylePropTypes,
+    wrapperStyle?: MenuItemProps['wrapperStyle'];
 
     /**  Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
@@ -65,7 +66,7 @@ function StatePicker({value, onInputChange, label, onBlur, errorText = '', wrapp
                 ref={ref}
                 shouldShowRightIcon
                 title={title}
-                description={label || translate('common.state')}
+                description={label ?? translate('common.state')}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
