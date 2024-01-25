@@ -252,7 +252,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowTax = props.isPolicyExpenseChat && props.policy.isTaxTrackingEnabled;
 
     // A flag for showing the billable field
-    const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true) || true;
+    const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
