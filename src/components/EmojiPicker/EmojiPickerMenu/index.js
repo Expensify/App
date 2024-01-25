@@ -346,7 +346,8 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected, activeEmoji}) {
 
             const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
             const shouldEmojiBeHighlighted =
-                (index === highlightedIndex && highlightFirstEmoji) || (Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
+                (index === highlightedIndex && highlightFirstEmoji) ||
+                (Boolean(activeEmoji) && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
 
             return (
                 <EmojiPickerMenuItem
