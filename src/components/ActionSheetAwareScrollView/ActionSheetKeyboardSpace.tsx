@@ -77,6 +77,14 @@ const useAnimatedKeyboard = () => {
 
     return { state, height, heightWhenOpened, progress };
 };
+const setInitialValueAndRunAnimation = (value: number, animation: number) => {
+    "worklet";
+
+    return withSequence(
+        withTiming(value, { duration: 0 }),
+        animation,
+    )
+}
 
 const useSafeAreaPaddings = () => {
     const StyleUtils = useStyleUtils();
@@ -251,10 +259,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
 
                 console.log("TRANSITION #14 (1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight }, new Date().getTime());
 
-                return withSequence(
-                    withTiming(lastKeyboardHeight, { duration: 0 }),
-                    withSpring(popoverHeight - composerHeight, config)
-                );
+                return setInitialValueAndRunAnimation(lastKeyboardHeight, withSpring(popoverHeight - composerHeight, config));
             }
             case States.CALL_POPOVER_WITH_KEYBOARD_CLOSED: {
                 // keyboard is opened
