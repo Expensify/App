@@ -15,6 +15,9 @@ const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
 
+    /** Tranistion duration in milisecond */
+    transitionDuration: PropTypes.number,
+
     ...defaultPropTypes,
 };
 function BackgroundImage(props) {

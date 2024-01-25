@@ -1,17 +1,17 @@
 import {Image} from 'expo-image';
+import PropTypes from 'prop-types';
 import React from 'react';
 import AndroidBackgroundImage from '@assets/images/home-background--android.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {
-    isSmallScreen: false,
     transitionDuration: 1000,
 };
 
 const propTypes = {
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreen: PropTypes.bool,
+    /** Tranistion duration in milisecond */
+    transitionDuration: PropTypes.number,
 
     ...defaultPropTypes,
 };

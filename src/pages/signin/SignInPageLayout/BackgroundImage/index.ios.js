@@ -16,13 +16,15 @@ const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
 
+    /** Tranistion duration in milisecond */
+    transitionDuration: PropTypes.number,
+
     ...defaultPropTypes,
 };
 function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
-    console.log('[wildebug] props.transitionDuration', props.transitionDuration);
     return (
         <Image
             source={src}
