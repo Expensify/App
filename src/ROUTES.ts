@@ -237,10 +237,6 @@ const ROUTES = {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
     },
-    PRIVATE_NOTES_VIEW: {
-        route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}` as const,
-    },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
         getRoute: (reportID: string) => `r/${reportID}/notes` as const,
