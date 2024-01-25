@@ -23,5 +23,3 @@ type IOU = {
 };
 
 export default IOU;
-
-export type {Participant};
