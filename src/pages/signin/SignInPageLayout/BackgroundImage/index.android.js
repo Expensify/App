@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {
-    transitionDuration: 1000,
+    transitionDuration: 0,
 };
 
 const propTypes = {

@@ -8,7 +8,7 @@ import defaultPropTypes from './propTypes';
 
 const defaultProps = {
     isSmallScreen: false,
-    transitionDuration: 1000,
+    transitionDuration: 0,
 };
 
 const propTypes = {
