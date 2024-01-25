@@ -1,58 +1,52 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {PanGesture} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-const propTypes = {
+type ImageCropViewProps = {
     /** Link to image for cropping   */
-    imageUri: PropTypes.string,
+    imageUri?: string;
 
     /** Size of the image container that will be rendered */
-    containerSize: PropTypes.number,
+    containerSize?: number;
 
     /** The height of the selected image */
-    originalImageHeight: PropTypes.shape({value: PropTypes.number}).isRequired,
+    originalImageHeight: SharedValue<number>;
 
     /** The width of the selected image */
-    originalImageWidth: PropTypes.shape({value: PropTypes.number}).isRequired,
+    originalImageWidth: SharedValue<number>;
 
     /** The rotation value of the selected image */
-    rotation: PropTypes.shape({value: PropTypes.number}).isRequired,
+    rotation: SharedValue<number>;
 
     /** The relative image shift along X-axis */
-    translateX: PropTypes.shape({value: PropTypes.number}).isRequired,
+    translateX: SharedValue<number>;
 
     /** The relative image shift along Y-axis */
-    translateY: PropTypes.shape({value: PropTypes.number}).isRequired,
+    translateY: SharedValue<number>;
 
     /** The scale factor of the image */
-    scale: PropTypes.shape({value: PropTypes.number}).isRequired,
+    scale: SharedValue<number>;
 
     /** Configuration object for pan gesture for handling image panning */
-    // eslint-disable-next-line react/forbid-prop-types
-    panGesture: PropTypes.object,
+    panGesture?: PanGesture;
 
     /** Image crop vector mask */
-    maskImage: PropTypes.func,
+    maskImage?: IconAsset;
 };
 
-const defaultProps = {
-    imageUri: '',
-    containerSize: 0,
-    panGesture: Gesture.Pan(),
-    maskImage: Expensicons.ImageCropCircleMask,
-};
-
-function ImageCropView(props) {
+function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage = Expensicons.ImageCropCircleMask, ...props}: ImageCropViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
+    const containerStyle = StyleUtils.getWidthAndHeightStyle(containerSize, containerSize);
 
     const originalImageHeight = props.originalImageHeight;
     const originalImageWidth = props.originalImageWidth;
@@ -75,23 +69,23 @@ function ImageCropView(props) {
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
-        <GestureDetector gesture={props.panGesture}>
+        <GestureDetector gesture={panGesture}>
             <Animated.View
-                ref={ControlSelection.blockElement}
+                ref={(el) => ControlSelection.blockElement(el as HTMLElement | null)}
                 style={[containerStyle, styles.imageCropContainer]}
             >
                 <Animated.Image
                     style={[imageStyle, styles.h100, styles.w100]}
-                    source={{uri: props.imageUri}}
+                    source={{uri: imageUri}}
                     resizeMode="contain"
                 />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
-                        src={props.maskImage}
+                        src={maskImage}
                         // TODO uncomment the line once the tint color issue for android(https://github.com/expo/expo/issues/21530#issuecomment-1836283564) is fixed
                         // fill={theme.iconReversed}
-                        width={props.containerSize}
-                        height={props.containerSize}
+                        width={containerSize}
+                        height={containerSize}
                     />
                 </View>
             </Animated.View>
@@ -100,8 +94,6 @@ function ImageCropView(props) {
 }
 
 ImageCropView.displayName = 'ImageCropView';
-ImageCropView.propTypes = propTypes;
-ImageCropView.defaultProps = defaultProps;
 
 // React.memo is needed here to prevent styles recompilation
 // which sometimes may cause glitches during rerender of the modal
