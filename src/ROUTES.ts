@@ -275,10 +275,6 @@ const ROUTES = {
         route: ':iouType/new/date/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}` as const,
     },
-    MONEY_REQUEST_CURRENCY: {
-        route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, backTo: string) => `${iouType}/new/currency/${reportID}?backTo=${backTo}` as const,
-    }, // Will be deleted
     MONEY_REQUEST_DESCRIPTION: {
         route: ':iouType/new/description/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}` as const,

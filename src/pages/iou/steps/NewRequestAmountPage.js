@@ -117,15 +117,9 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
-        if (isDistanceRequestTab) {
-            return;
-        }
-
-        // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
+        // MONEY_REQUEST_CURRENCY is not available because was deleted in https://github.com/Expensify/App/issues/34607.
+        // Plus the current component will be removed in https://github.com/Expensify/App/issues/34614
+        // Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
     const navigateToNextPage = ({amount}) => {
