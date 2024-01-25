@@ -5,9 +5,12 @@ import {
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
+    getDate,
+    getDay,
     getDayOfYear,
     isAfter,
     isBefore,
@@ -27,16 +30,19 @@ import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} fr
 import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {timezoneBackwardMap} from '@src/TIMEZONES';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
+import Log from './Log';
 
 type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
 type TimePeriod = 'AM' | 'PM';
 type Locale = ValueOf<typeof CONST.LOCALES>;
+type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -68,6 +74,28 @@ Onyx.connect({
     },
 });
 
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
+});
+
+/**
+ * Get the day of the week that the week starts on
+ */
+function getWeekStartsOn(): WeekDay {
+    return CONST.WEEK_STARTS_ON;
+}
+
+/**
+ * Get the day of the week that the week ends on
+ */
+function getWeekEndsOn(): WeekDay {
+    const weekStartsOn = getWeekStartsOn();
+
+    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as WeekDay);
+}
+
 /**
  * Gets the locale string and setting default locale for date-fns
  */
@@ -91,7 +119,16 @@ function setLocale(localeString: Locale) {
 function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
-        return utcToZonedTime(new Date(), currentSelectedTimezone);
+        const res = utcToZonedTime(new Date(), currentSelectedTimezone);
+        if (Number.isNaN(res.getTime())) {
+            Log.warn('DateUtils.getLocalDateFromDatetime: utcToZonedTime returned an invalid date. Returning current date.', {
+                locale,
+                datetime,
+                currentSelectedTimezone,
+            });
+            return new Date();
+        }
+        return res;
     }
     const parsedDatetime = new Date(`${datetime}Z`);
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
@@ -153,9 +190,10 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
     let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
+    const weekStartsOn = getWeekStartsOn();
 
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
 
     if (isLowercase) {
         todayAt = todayAt.toLowerCase();
@@ -292,8 +330,9 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
-    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
-    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const weekStartsOn = getWeekStartsOn();
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
     // eslint-disable-next-line rulesdir/prefer-underscore-method
@@ -327,6 +366,16 @@ function getMicroseconds(): number {
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(): string {
+    if (networkTimeSkew > 0) {
+        return getDBTime(new Date().valueOf() + networkTimeSkew);
+    }
+    return getDBTime();
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -668,6 +717,41 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
     return '';
 }
 
+/**
+ *
+ * @param timezone
+ * function format unsupported timezone to supported timezone
+ * @returns Timezone
+ */
+function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
+    if (!timezoneInput?.selected) {
+        return timezoneInput;
+    }
+    return {
+        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        automatic: timezoneInput.automatic,
+    };
+}
+
+/**
+ * Returns the last business day of given date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
+
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
+    }
+
+    return getDate(currentDate);
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -682,6 +766,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
@@ -707,7 +792,11 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    getWeekStartsOn,
+    getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
+    formatToSupportedTimezone,
+    getLastBusinessDayOfMonth,
 };
 
 export default DateUtils;

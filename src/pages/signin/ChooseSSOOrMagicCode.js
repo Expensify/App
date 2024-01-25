@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,9 +55,18 @@ const defaultProps = {
 
 function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     const styles = useThemeStyles();
+    const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    // This view doesn't have a field for user input, so dismiss the device keyboard if shown
+    useEffect(() => {
+        if (!isKeyboardShown) {
+            return;
+        }
+        Keyboard.dismiss();
+    }, [isKeyboardShown]);
 
     return (
         <>

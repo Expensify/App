@@ -1,4 +1,4 @@
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {Session} from '@src/types/onyx';
 
 type WalletStatementOnyxProps = {

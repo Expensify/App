@@ -13,6 +13,8 @@ const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxConte
 const [withBetas, BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
+const [withFrequentlyUsedEmojis, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -31,6 +33,8 @@ function OnyxProvider(props: OnyxProviderProps) {
                 BetasProvider,
                 ReportCommentDraftsProvider,
                 PreferredThemeProvider,
+                FrequentlyUsedEmojisProvider,
+                PreferredEmojiSkinToneProvider,
             ]}
         >
             {props.children}
@@ -55,4 +59,8 @@ export {
     withReportCommentDrafts,
     withPreferredTheme,
     PreferredThemeContext,
+    withFrequentlyUsedEmojis,
+    useFrequentlyUsedEmojis,
+    withPreferredEmojiSkinTone,
+    PreferredEmojiSkinToneContext,
 };

@@ -1,4 +1,4 @@
-import {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {TDefaultRenderer, TDefaultRendererProps, TText} from 'react-native-render-html';
 
 type InlineCodeBlockProps<TComponent extends TText> = {

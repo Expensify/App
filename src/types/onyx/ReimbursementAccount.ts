@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
@@ -8,7 +8,7 @@ type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
 type ACHData = {
     /** Step of the setup flow that we are on. Determines which view is presented. */
-    currentStep: BankAccountStep;
+    currentStep?: BankAccountStep;
 
     /** Optional subStep we would like the user to start back on */
     subStep?: BankAccountSubStep;

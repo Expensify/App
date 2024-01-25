@@ -30,7 +30,7 @@ function BaseAttachmentViewPdf({
             onScaleChangedProp(scale);
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
-            if (isUsedInCarousel) {
+            if (isUsedInCarousel && attachmentCarouselPagerContext) {
                 const shouldPagerScroll = scale === 1;
 
                 attachmentCarouselPagerContext.onPinchGestureChange(!shouldPagerScroll);

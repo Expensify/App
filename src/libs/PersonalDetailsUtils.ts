@@ -1,12 +1,14 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
-import {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
-let personalDetails: Array<OnyxTypes.PersonalDetails | null> = [];
+let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -16,11 +18,10 @@ Onyx.connect({
     },
 });
 
-/**
- * @param [defaultValue] optional default display name value
- */
-function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): string {
-    return displayName ?? defaultValue ?? Localize.translateLocal('common.hidden');
+function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
+    const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
+    return displayName || defaultValue || fallbackValue;
 }
 
 /**
@@ -30,11 +31,11 @@ function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): strin
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): OnyxTypes.PersonalDetails[] {
-    const result: OnyxTypes.PersonalDetails[] = accountIDs
+function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): PersonalDetails[] {
+    const result: PersonalDetails[] = accountIDs
         .filter((accountID) => !!allPersonalDetails?.[accountID])
         .map((accountID) => {
-            const detail = (allPersonalDetails?.[accountID] ?? {}) as OnyxTypes.PersonalDetails;
+            const detail = (allPersonalDetails?.[accountID] ?? {}) as PersonalDetails;
 
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
@@ -76,7 +77,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  */
 function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentDetail: Partial<OnyxTypes.PersonalDetails> = personalDetails.find((detail) => Number(detail?.accountID) === Number(accountID)) ?? {};
+        const currentDetail: Partial<PersonalDetails> = personalDetails.find((detail) => Number(detail?.accountID) === Number(accountID)) ?? {};
         if (currentDetail.login) {
             foundLogins.push(currentDetail.login);
         }
@@ -91,16 +92,15 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
  * @param accountIDs Array of user accountIDs
  * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
-    const optimisticData: PersonalDetailsList = {};
-    const successData: PersonalDetailsList = {};
-    const failureData: PersonalDetailsList = {};
+function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+    const personalDetailsNew: PersonalDetailsList = {};
+    const personalDetailsCleanup: PersonalDetailsList = {};
 
     logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
         if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
-            optimisticData[accountID] = {
+            personalDetailsNew[accountID] = {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -111,32 +111,29 @@ function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]) {
              * Cleanup the optimistic user to ensure it does not permanently persist.
              * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
              */
-            successData[accountID] = null;
+            personalDetailsCleanup[accountID] = null;
         }
     });
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: personalDetailsNew,
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: personalDetailsCleanup,
+        },
+    ];
+
     return {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: optimisticData,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: successData,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: failureData,
-            },
-        ],
+        optimisticData,
+        finallyData,
     };
 }
 
@@ -176,7 +173,7 @@ function getStreetLines(street = '') {
  * @param privatePersonalDetails - details object
  * @returns - formatted address
  */
-function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDetails): string {
+function getFormattedAddress(privatePersonalDetails: PrivatePersonalDetails): string {
     const {address} = privatePersonalDetails;
     const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =

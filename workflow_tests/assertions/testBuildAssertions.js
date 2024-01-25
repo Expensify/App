@@ -93,8 +93,9 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             'ANDROID',
             'Configure AWS Credentials',
             [
-                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+                {key: 'aws-access-key-id', value: '***'},
+                {key: 'aws-secret-access-key', value: '***'},
+                {key: 'aws-region', value: 'us-east-1'},
             ],
             [],
         ),
@@ -185,7 +186,16 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
-        utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypt profile', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AdHoc profile', true, null, 'IOS', 'Decrypt AdHoc profile', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion(
+            'Decrypt AdHoc Notification Service profile',
+            true,
+            null,
+            'IOS',
+            'Decrypt AdHoc Notification Service profile',
+            [],
+            [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
+        ),
         utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypt certificate', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion(
             'Configure AWS Credentials',
@@ -194,8 +204,9 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             'IOS',
             'Configure AWS Credentials',
             [
-                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+                {key: 'aws-access-key-id', value: '***'},
+                {key: 'aws-secret-access-key', value: '***'},
+                {key: 'aws-region', value: 'us-east-1'},
             ],
             [],
         ),
@@ -266,8 +277,9 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             'DESKTOP',
             'Configure AWS Credentials',
             [
-                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+                {key: 'aws-access-key-id', value: '***'},
+                {key: 'aws-secret-access-key', value: '***'},
+                {key: 'aws-region', value: 'us-east-1'},
             ],
             [],
         ),
@@ -319,8 +331,9 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             'WEB',
             'Configure AWS Credentials',
             [
-                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+                {key: 'aws-access-key-id', value: '***'},
+                {key: 'aws-secret-access-key', value: '***'},
+                {key: 'aws-region', value: 'us-east-1'},
             ],
             [],
         ),
@@ -369,20 +382,6 @@ const assertPostGithubCommentJobExecuted = (
         steps.push(utils.createStepAssertion('Read JSONs with iOS paths', true, null, 'POSTGITHUBCOMMENT', 'Read JSONs with iOS paths', [], []));
     }
     steps.push(
-        utils.createStepAssertion(
-            'maintain-comment',
-            true,
-            null,
-            'POSTGITHUBCOMMENT',
-            'maintain-comment',
-            [
-                {key: 'token', value: '***'},
-                {key: 'body-include', value: 'Use the links below to test this adhoc build in Android, iOS, Desktop, and Web. Happy testing!'},
-                {key: 'number', value: pullRequestNumber},
-                {key: 'delete', value: true},
-            ],
-            [],
-        ),
         utils.createStepAssertion(
             'Publish links to apps for download',
             true,

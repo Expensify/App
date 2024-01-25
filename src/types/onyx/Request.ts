@@ -1,9 +1,10 @@
-import {OnyxUpdate} from 'react-native-onyx';
-import Response from './Response';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type Response from './Response';
 
 type OnyxData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
+    finallyData?: OnyxUpdate[];
     optimisticData?: OnyxUpdate[];
 };
 
@@ -17,6 +18,7 @@ type RequestData = {
     shouldUseSecure?: boolean;
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
+    finallyData?: OnyxUpdate[];
     idempotencyKey?: string;
 
     resolve?: (value: Response) => void;

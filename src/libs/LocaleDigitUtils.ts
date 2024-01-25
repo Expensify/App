@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
