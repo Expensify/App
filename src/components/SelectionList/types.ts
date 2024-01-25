@@ -145,7 +145,7 @@ type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenPr
     onSelectAll?: () => void;
 
     /** Callback to fire when an error is dismissed */
-    onDismissError?: () => void;
+    onDismissError?: (item: TItem) => void;
 
     /** Label for the text input */
     textInputLabel?: string;

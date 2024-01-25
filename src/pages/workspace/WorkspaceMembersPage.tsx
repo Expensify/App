@@ -452,12 +452,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     </View>
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
-                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
-                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
                             onChangeText={(value) => {
                                 SearchInputManager.searchInput = value;
                                 setSearchValue(value);
@@ -465,15 +463,14 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={getHeaderContent()}
-                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
-                            // @ts-expect-error TODO: remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is converted to TypeScript.
+                            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                             showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) ?? !policyMembers)}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            inputRef={textInputRef}
+                            ref={textInputRef}
                         />
                     </View>
                 </View>
