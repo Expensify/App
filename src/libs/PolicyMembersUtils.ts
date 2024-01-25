@@ -11,7 +11,11 @@ Onyx.connect({
     callback: (value) => (policyMembers = value),
 });
 
-function getPolicyMemberAccountIDs(policyID: string) {
+function getPolicyMemberAccountIDs(policyID?: string) {
+    if (!policyID) {
+        return [];
+    }
+
     const currentUserAccountID = getCurrentUserAccountID();
     return policyMembers
         ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {})

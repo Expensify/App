@@ -42,7 +42,7 @@ export default function subscribeToReportCommentPushNotifications() {
         const report = getReport(reportID.toString());
         const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
 
-        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyID, policyMembersAccountIDs);
+        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID);
 
         Log.info('[PushNotification] onSelected() - called', false, {reportID, reportActionID});
         Navigation.isNavigationReady()
