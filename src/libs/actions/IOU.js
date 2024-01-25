@@ -26,7 +26,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as FileUtils from '../fileDownload/FileUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
