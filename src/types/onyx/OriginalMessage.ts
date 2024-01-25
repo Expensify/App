@@ -235,7 +235,9 @@ type OriginalMessageReimbursementQueued = {
 
 type OriginalMessageReimbursementDequeued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        expenseReportID: string;
+    };
 };
 
 type OriginalMessageMoved = {
@@ -280,4 +282,5 @@ export type {
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageAddComment,
+    OriginalMessageReimbursementDequeued,
 };
