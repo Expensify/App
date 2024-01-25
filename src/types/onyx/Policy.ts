@@ -26,6 +26,11 @@ type CustomUnit = {
     errors?: OnyxCommon.Errors;
 };
 
+type DisabledFields = {
+    defaultBillable?: boolean;
+    reimbursable?: boolean;
+}
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type Policy = {
@@ -129,7 +134,7 @@ type Policy = {
     description?: string;
 
     /** List of field names that are disabled */
-    disabledFields?: Record<string, unknown>;
+    disabledFields?: DisabledFields;
 
     /** Whether new transactions need to be tagged */
     requiresTag?: boolean;
