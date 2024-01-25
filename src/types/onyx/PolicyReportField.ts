@@ -24,5 +24,4 @@ type PolicyReportField = {
 };
 
 type PolicyReportFields = Record<string, PolicyReportField>;
-export default PolicyReportField;
-export type {PolicyReportFields};
+export type {PolicyReportField, PolicyReportFields};

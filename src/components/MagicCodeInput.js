@@ -61,6 +61,9 @@ const propTypes = {
 
     /** Last pressed digit on BigDigitPad */
     lastPressedDigit: PropTypes.string,
+
+    /** TestID for test */
+    testID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -77,6 +80,7 @@ const defaultProps = {
     maxLength: CONST.MAGIC_CODE_LENGTH,
     isDisableKeyboard: false,
     lastPressedDigit: '',
+    testID: '',
 };
 
 /**
@@ -394,6 +398,7 @@ function MagicCodeInput(props) {
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderNone]}
+                            testID={props.testID}
                         />
                     </View>
                 </GestureDetector>
