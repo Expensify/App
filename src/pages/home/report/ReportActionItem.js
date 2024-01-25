@@ -514,7 +514,6 @@ function ReportActionItem(props) {
                             shouldDisableEmojiPicker={
                                 (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge)) || ReportUtils.isArchivedRoom(props.report)
                             }
-                            listHeight={props.listHeight}
                         />
                     )}
                 </ShowContextMenuContext.Provider>

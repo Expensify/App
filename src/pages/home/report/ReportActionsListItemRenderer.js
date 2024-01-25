@@ -49,7 +49,6 @@ function ReportActionsListItemRenderer({
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID,
-    listHeight
 }) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
@@ -63,7 +62,6 @@ function ReportActionsListItemRenderer({
             parentReportID={`${report.parentReportID}`}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             index={index}
-            listHeight={listHeight}
         />
     ) : (
         <ReportActionItem
@@ -82,7 +80,6 @@ function ReportActionsListItemRenderer({
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
-            listHeight={listHeight}
         />
     );
 }

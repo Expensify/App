@@ -1,12 +1,11 @@
-import { ComposerProps } from "@components/Composer/types";
+import type { ComposerProps } from "@components/Composer/types";
 import Composer from "@components/Composer";
-import React, { Dispatch, ForwardedRef, MutableRefObject, SetStateAction, useRef, useState } from 'react';
-import { AnimatedProps } from "react-native-reanimated";
-import { TextInputProps } from "react-native";
-import Suggestions from '../Suggestions';
-import lodashGet from 'lodash/get';
-import * as SuggestionUtils from '@libs/SuggestionUtils';
-import useWindowDimensions from "@hooks/useWindowDimensions";
+import type { Dispatch, ForwardedRef, MutableRefObject, SetStateAction} from 'react';
+import React, { useState } from 'react';
+import type { AnimatedProps } from "react-native-reanimated";
+import type {TextInputProps} from "react-native";
+import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
+import type { SuggestionsRef } from "@pages/home/report/ReportActionCompose/types";
 
 type ComposerWithSuggestionsEditProps = {
     setValue: Dispatch<SetStateAction<string>>,
@@ -16,8 +15,7 @@ type ComposerWithSuggestionsEditProps = {
     }>>,
     resetKeyboardInput: () => void,
     isComposerFocused: boolean,
-    listHeight: number,
-    suggestionsRef: MutableRefObject<HTMLElement | undefined>,
+    suggestionsRef: MutableRefObject<SuggestionsRef | undefined>,
     updateDraft: (newValue: string) => void,
     measureParentContainer: (callback: () => void) => void
 }
@@ -29,7 +27,6 @@ function ComposerWithSuggestionsEdit(
         maxLines = -1,
         onKeyPress = () => {},
         style,
-        numberOfLines: numberOfLinesProp = 0,
         onSelectionChange = () => {},
         selection = {
             start: 0,
@@ -43,26 +40,14 @@ function ComposerWithSuggestionsEdit(
         resetKeyboardInput = () => {},
         isComposerFocused,
         suggestionsRef,
-        listHeight,
         updateDraft,
         measureParentContainer,
         id = undefined
     }: ComposerWithSuggestionsEditProps & ComposerProps,
     ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
 ) {
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    const suggestions = lodashGet(suggestionsRef, 'current.getSuggestions', () => [])();
-
     const [composerHeight, setComposerHeight] = useState(0);
 
-    const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions.length);
-
-    console.log(hasEnoughSpaceForLargeSuggestion);
-
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
-
-    
     return (
         <>
             <Composer
@@ -89,13 +74,13 @@ function ComposerWithSuggestionsEdit(
 
             <Suggestions
                 ref={suggestionsRef}
+                // @ts-expect-error TODO: Remove this once Suggestions is migrated to TypeScript.
                 isComposerFullSize={false}
                 isComposerFocused={isComposerFocused}
                 updateComment={updateDraft}
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
-                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
-                // Input
+                isAutoSuggestionPickerLarge
                 value={value}
                 setValue={setValue}
                 selection={selection}
@@ -103,7 +88,6 @@ function ComposerWithSuggestionsEdit(
                 resetKeyboardInput={resetKeyboardInput}
             />
         </>
-        
     )
 }
 

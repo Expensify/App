@@ -136,7 +136,6 @@ function ReportActionsList({
     loadOlderChats,
     onLayout,
     isComposerFullSize,
-    listHeight
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -461,7 +460,6 @@ function ReportActionsList({
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
-                listHeight={listHeight}
             />
         ),
         [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],

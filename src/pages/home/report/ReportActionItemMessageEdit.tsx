@@ -6,7 +6,6 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager, Keyboard, NativeModules, View, findNodeHandle} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
-import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
@@ -39,8 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
-import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import getPlatform from '@libs/getPlatform';
+import type { SuggestionsRef } from './ReportActionCompose/types';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -67,8 +65,6 @@ type ReportActionItemMessageEditProps = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone?: number;
-
-    listHeight: number;
 };
 
 // native ids
@@ -76,9 +72,8 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
-const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, listHeight}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput & HTMLTextAreaElement>,
 ) {
     const theme = useTheme();
@@ -131,8 +126,8 @@ function ReportActionItemMessageEdit(
     const isFocusedRef = useRef<boolean>(false);
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
-    const suggestionsRef = useRef<any>();
-    const containerRef = useRef(null);
+    const suggestionsRef = useRef<SuggestionsRef>();
+    const containerRef = useRef<View>(null);
 
     useEffect(() => {
         if (ReportActionsUtils.isDeletedAction(action) || (action.message && draftMessage === action.message[0].html)) {
@@ -366,7 +361,9 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            suggestionsRef.current.triggerHotkeyActions(e);
+            if (suggestionsRef.current) {
+                suggestionsRef.current.triggerHotkeyActions(e);
+            }
 
             if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
@@ -391,7 +388,7 @@ function ReportActionItemMessageEdit(
     }, [textInputRef]);
 
     const measureContainer = useCallback(
-        (callback) => {
+        (callback: () => void) => {
             if (!containerRef.current) {
                 return;
             }
@@ -488,14 +485,15 @@ function ReportActionItemMessageEdit(
                             }}
                             selection={selection}
                             onSelectionChange={(e) => {
-                                suggestionsRef.current.onSelectionChange(e)
+                                if (suggestionsRef.current) {
+                                    suggestionsRef.current.onSelectionChange(e)
+                                }
                                 setSelection(e.nativeEvent.selection)
                             }}
                             setValue={setDraft}
                             setSelection={setSelection}
                             isComposerFocused={!!textInputRef.current && textInputRef.current.isFocused()}
                             resetKeyboardInput={resetKeyboardInput}
-                            listHeight={listHeight}
                             suggestionsRef={suggestionsRef}
                             updateDraft={updateDraft}
                             measureParentContainer={measureContainer}

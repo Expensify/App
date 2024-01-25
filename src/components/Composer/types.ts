@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
+import type {LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
 
 type TextSelection = {
     start: number;
@@ -79,6 +79,8 @@ type ComposerProps = {
     onFocus?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
     onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+
+    onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
