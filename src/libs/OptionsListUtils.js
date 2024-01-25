@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -14,6 +15,7 @@ import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
+import Performance from './Performance';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
@@ -1656,7 +1658,9 @@ function getOptions(
  * @returns {Object}
  */
 function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
-    return getOptions(reports, personalDetails, {
+    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    const options = getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includeRecentReports: true,
@@ -1671,6 +1675,10 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includeMoneyRequests: true,
         includeTasks: true,
     });
+    Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+    Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
+    return options;
 }
 
 /**
