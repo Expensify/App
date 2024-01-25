@@ -40,7 +40,6 @@ type TaskViewOnyxProps = {
 };
 
 type TaskViewProps = TaskViewOnyxProps &
-    WindowDimensionsProps &
     WithCurrentUserPersonalDetailsProps & {
         /** The report currently being looked at */
         report: Report;
