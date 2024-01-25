@@ -62,6 +62,7 @@ const States = {
     EMOJI_PICKER_POPOVER_WITH_KEYBOARD_OPEN: 'emojiPickerPopoverWithKeyboardOpen',
     EMOJI_PICKER_WITH_KEYBOARD_OPEN: 'emojiPickerWithKeyboardOpen',
     CALL_POPOVER_WITH_KEYBOARD_OPEN: 'callPopoverWithKeyboardOpen',
+    CALL_POPOVER_WITH_KEYBOARD_CLOSED: 'callPopoverWithKeyboardClosed',
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: 'attachmentsPopoverWithKeyboardOpen',
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED: 'attachmentsPopoverWithKeyboardClosed',
     MODAL_DELETED: 'modalDeleted',
@@ -132,7 +133,10 @@ const STATE_MACHINE = {
     [States.CALL_POPOVER_WITH_KEYBOARD_OPEN]: {
         [Actions.MEASURE_POPOVER]: States.CALL_POPOVER_WITH_KEYBOARD_OPEN,
         [Actions.MEASURE_CALL_POPOVER]: States.CALL_POPOVER_WITH_KEYBOARD_OPEN,
-        [Actions.CLOSE_CALL_POPOVER]: States.KEYBOARD_POPOVER_CLOSED,
+        [Actions.CLOSE_CALL_POPOVER]: States.CALL_POPOVER_WITH_KEYBOARD_CLOSED,
+    },
+    [States.CALL_POPOVER_WITH_KEYBOARD_CLOSED]: {
+        [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
     },
     [States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN]: {
         [Actions.MEASURE_POPOVER]: States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN,

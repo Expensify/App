@@ -256,6 +256,15 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     withSpring(popoverHeight - composerHeight, config)
                 );
             }
+            case States.CALL_POPOVER_WITH_KEYBOARD_CLOSED: {
+                // keyboard is opened
+                if (keyboard.height.value === keyboard.heightWhenOpened.value) {
+                    console.log("TRANSITION #14 (1-2) -> ", 0);
+                    return 0;
+                }
+                console.log("TRANSITION #14 (1-1) -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight, sync: syncLocalWorkletState.lastKeyboardHeight }, new Date().getTime());
+                return withSpring(lastKeyboardHeight, config);
+            };
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
                     console.log("TRANSITION #14 -> ", popoverHeight - composerHeight, { lastKeyboardHeight, popoverHeight, composerHeight, sync: syncLocalWorkletState.lastKeyboardHeight }, new Date().getTime());
