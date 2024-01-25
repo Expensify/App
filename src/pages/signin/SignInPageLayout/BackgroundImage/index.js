@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import * as Animatable from 'react-native-animatable';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
-import * as Animatable from 'react-native-animatable';
 
 const defaultProps = {
     isSmallScreen: false,
@@ -28,21 +28,25 @@ function BackgroundImage(props) {
         },
     };
 
-    return <Animatable.View
-        style={styles.signInBackground}
-        animation={fadeIn} duration={props.transitionDuration}>
-        {props.isSmallScreen ? (
-            <MobileBackgroundImage
-                width={props.width}
-                style={styles.signInBackground}
-
-            />
-        ) : (
-            <DesktopBackgroundImage
-                width={props.width}
-                style={styles.signInBackground}
-            />
-        )}</Animatable.View>;
+    return (
+        <Animatable.View
+            style={styles.signInBackground}
+            animation={fadeIn}
+            duration={props.transitionDuration}
+        >
+            {props.isSmallScreen ? (
+                <MobileBackgroundImage
+                    width={props.width}
+                    style={styles.signInBackground}
+                />
+            ) : (
+                <DesktopBackgroundImage
+                    width={props.width}
+                    style={styles.signInBackground}
+                />
+            )}
+        </Animatable.View>
+    );
 }
 
 BackgroundImage.displayName = 'BackgroundImage';

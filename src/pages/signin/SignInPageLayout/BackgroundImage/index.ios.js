@@ -22,7 +22,7 @@ function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
-console.log('[wildebug] props.transitionDuration', props.transitionDuration)
+    console.log('[wildebug] props.transitionDuration', props.transitionDuration);
     return (
         <Image
             source={src}

@@ -8,7 +8,7 @@ const propTypes = {
     width: PropTypes.number.isRequired,
 
     /** Tranistion duration in milisecond */
-    transitionDuration: PropTypes.number
+    transitionDuration: PropTypes.number,
 };
 
 export default propTypes;
