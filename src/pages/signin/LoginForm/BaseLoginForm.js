@@ -275,6 +275,7 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
+                    testID="username"
                     onBlur={() => {
                         if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
                             return;

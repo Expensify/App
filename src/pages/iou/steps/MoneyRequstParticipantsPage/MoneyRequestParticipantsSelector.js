@@ -85,6 +85,7 @@ function MoneyRequestParticipantsSelector({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
+    const [shouldShowReferralCTA, setShouldShowReferralCTA] = useState(true);
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
@@ -284,9 +285,14 @@ function MoneyRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                    <ReferralProgramCTA referralContentType={referralContentType} />
-                </View>
+                {shouldShowReferralCTA && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA
+                            referralContentType={referralContentType}
+                            onCloseButtonPress={() => setShouldShowReferralCTA(false)}
+                        />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -307,7 +313,7 @@ function MoneyRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, shouldShowReferralCTA, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(

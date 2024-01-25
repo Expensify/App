@@ -127,6 +127,7 @@ function ProfilePage(props) {
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                     previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                     originalFileName={currentUserDetails.originalFileName}
                     headerTitle={props.translate('profilePage.profileAvatar')}
