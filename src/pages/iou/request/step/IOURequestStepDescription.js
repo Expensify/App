@@ -36,7 +36,7 @@ const defaultProps = {
 
 function IOURequestStepDescription({
     route: {
-        params: {action, transactionID, backTo},
+        params: {action,iouType, transactionID, reportID, backTo},
     },
     transaction,
 }) {
@@ -70,7 +70,22 @@ function IOURequestStepDescription({
      * @param {String} value.moneyRequestComment
      */
     const updateComment = (value) => {
-        IOU.setMoneyRequestDescription_temporaryForRefactor(transactionID, value.moneyRequestComment, isDraft);
+        const newComment = value.moneyRequestComment
+        // Only update comment if it has changed
+        if (newComment.trim() !== lodashGet(transaction, 'comment.comment', '')) {
+            if (isDraft) {
+                IOU.setMoneyRequestDescription_temporaryForRefactor(transactionID, newComment, isDraft);
+            } else {
+                if (iouType ===CONST.IOU.TYPE.REQUEST) {
+                    IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment.trim());
+                }
+                if (iouType ===CONST.IOU.TYPE.SPLIT) {
+                    IOU.setDraftSplitTransaction(transaction.transactionID, {
+                        comment: newComment.trim()
+                    })
+                }
+            }
+        }
         navigateBack();
     };
 

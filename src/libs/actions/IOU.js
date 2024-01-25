@@ -201,10 +201,9 @@ function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
 /**
  * @param {String} transactionID
  * @param {String} comment
- * @param {Boolean} isDraft
  */
-function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment, isDraft) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
 /**
