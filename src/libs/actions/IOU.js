@@ -312,7 +312,7 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
 }
 
 /**
- * Return the object to update hasOutstandingChildRequest 
+ * Return the object to update hasOutstandingChildRequest
  * @param {Object} [policy]
  * @param {Boolean} needsToBeManuallySubmitted
  * @returns {Object}
