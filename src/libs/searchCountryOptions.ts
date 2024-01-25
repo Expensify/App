@@ -14,9 +14,6 @@ type CountryData = {
  * @returns An array of countries/states sorted based on the search query
  */
 function searchCountryOptions(searchValue: string, countriesData: CountryData[]): CountryData[] {
-    if (!searchValue) {
-        return countriesData;
-    }
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (!trimmedSearchValue) {
         return [];
