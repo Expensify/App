@@ -3,6 +3,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import useWindowDimensions from './useWindowDimensions';
 
 type ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: boolean;
     isSmallScreenWidth: boolean;
     isInModal: boolean;
 };
@@ -15,5 +16,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const lastRoute = state?.routes?.at(-1);
     const lastRouteName = lastRoute?.name;
     const isInModal = lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-    return {isSmallScreenWidth, isInModal};
+    const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
+    return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal};
 }
