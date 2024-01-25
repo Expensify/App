@@ -1,8 +1,8 @@
+import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
+import type Environment from '@libs/Environment/getEnvironment/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Config from 'react-native-config';
-import type Environment from '@libs/Environment/getEnvironment/types';
 
 function alertUser() {
     // For now, we will pretty much never have to do this on a platform other than production.
