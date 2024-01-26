@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
 
@@ -30,11 +31,12 @@ type ShowContextMenu = (
     isChronosReport?: boolean,
     isPinnedChat?: boolean,
     isUnreadChat?: boolean,
+    disabledOptions?: ContextMenuAction[],
 ) => void;
 
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback: OnHideCallback) => void;
+    hideContextMenu: (callback?: OnHideCallback) => void;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
@@ -101,13 +103,14 @@ function showContextMenu(
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
-    draftMessage = undefined,
+    draftMessage: string | undefined = undefined,
     onShow = () => {},
     onHide = () => {},
     isArchivedRoom = false,
     isChronosReport = false,
     isPinnedChat = false,
     isUnreadChat = false,
+    disabledActions: ContextMenuAction[] = [],
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -134,6 +137,7 @@ function showContextMenu(
         isChronosReport,
         isPinnedChat,
         isUnreadChat,
+        disabledActions,
     );
 }
 
@@ -176,3 +180,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
+export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu};

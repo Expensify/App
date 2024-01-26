@@ -39,7 +39,7 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string): Record<number, string> {
+function getMicroSecondOnyxError(error: string): Errors {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -52,7 +52,7 @@ function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<nu
 }
 
 type OnyxDataWithErrors = {
-    errors?: Errors;
+    errors?: Errors | null;
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
@@ -99,7 +99,7 @@ type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
 
 /**
  * Method used to generate error message for given inputID
- * @param errorList - An object containing current errors in the form
+ * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
 function addErrorMessage(errors: ErrorsList, inputID?: string, message?: MaybePhraseKey) {
