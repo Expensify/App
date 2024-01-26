@@ -70,7 +70,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
             <FullPageNotFoundView shouldShow={!ReportUtils.canEditReportDescription(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('reportDescriptionPage.roomDescription')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
