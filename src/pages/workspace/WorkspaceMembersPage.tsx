@@ -460,7 +460,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
-                            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                             showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
