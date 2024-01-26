@@ -31,8 +31,8 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, PolicyMember, PolicyMembers} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PersonalDetailsList, PolicyMember, PolicyMembers} from '@src/types/onyx';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
 import type {PolicyRoute} from './withPolicy';
@@ -89,7 +89,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /**
      * Get filtered personalDetails list with current policyMembers
      */
-    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): Record<string, PersonalDetails> =>
+    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
         Object.keys(members ?? {}).reduce((result, key) => {
             if (details?.[key]) {
                 return {
@@ -111,7 +111,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Check if the current selection includes members that cannot be removed
      */
     const validateSelection = useCallback(() => {
-        const newErrors: Record<number, string> = {};
+        const newErrors: Errors = {};
         const ownerAccountID = PersonalDetailsUtils.getAccountIDsByLogins(policy?.owner ? [policy.owner] : [])[0];
         selectedEmployees.forEach((member) => {
             if (member !== ownerAccountID && member !== session?.accountID) {
@@ -395,8 +395,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={(!policy && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={!policy ? undefined : 'workspace.common.notAuthorized'}
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton

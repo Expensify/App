@@ -1,6 +1,6 @@
-import type {RouteProp} from '@react-navigation/native';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import type {PolicyRoute} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
@@ -8,7 +8,7 @@ import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
 /** Defined route object that contains the policyID param, WorkspacePageWithSections is a common component for Workspaces and expect the route prop that includes the policyID */
 type WorkspaceInvoicesPageProps = {
-    route: RouteProp<{params: {policyID: string}}>;
+    route: PolicyRoute;
 };
 
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
