@@ -186,21 +186,21 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         ({category: newCategory}) => {
             // In case the same category has been selected, reset the category.
             const updatedCategory = newCategory === transactionCategory ? '' : newCategory;
-            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transactionCategory, transaction.transactionID, report.reportID],
+        [transactionCategory, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
 
     const saveComment = useCallback(
         ({comment: newComment}) => {
             // Only update comment if it has changed
             if (newComment.trim() !== transactionDescription) {
-                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
+                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim(), policy, policyTags, policyCategories);
             }
             Navigation.dismissModal();
         },
-        [transactionDescription, transaction.transactionID, report.reportID],
+        [transactionDescription, transaction.transactionID, report.reportID, policy, policyTags, policyCategories],
     );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
