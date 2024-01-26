@@ -5,9 +5,12 @@ import {
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
+    getDate,
+    getDay,
     getDayOfYear,
     isAfter,
     isBefore,
@@ -730,6 +733,25 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     };
 }
 
+/**
+ * Returns the last business day of given date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
+
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
+    }
+
+    return getDate(currentDate);
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -774,6 +796,7 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
+    getLastBusinessDayOfMonth,
 };
 
 export default DateUtils;
