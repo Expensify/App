@@ -46,7 +46,7 @@ type ValuePickerProps = {
     errorText?: string;
 
     /** Callback to call when the input changes */
-    onInputChange?: (value: string) => void;
+    onInputChange?: (value: string | undefined) => void;
 
     /** Text to display under the main menu item */
     furtherDetails?: string;
