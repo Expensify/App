@@ -4,6 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
+import useWindowDimensions from "@hooks/useWindowDimensions";
 import SignInHeroCopy from './SignInHeroCopy';
 import SignInHeroImage from './SignInHeroImage';
 
