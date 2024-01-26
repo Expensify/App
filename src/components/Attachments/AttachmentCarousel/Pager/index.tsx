@@ -44,17 +44,12 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     const activePage = useSharedValue(initialIndex);
     const [activePageState, setActivePageState] = useState(initialIndex);
 
-    const pageScrollHandler = usePageScrollHandler(
-        {
-            onPageScroll: (e) => {
-                'worklet';
+    const pageScrollHandler = usePageScrollHandler((e) => {
+        'worklet';
 
-                activePage.value = e.position;
-                isPagerScrolling.value = e.offset !== 0;
-            },
-        },
-        [],
-    );
+        activePage.value = e.position;
+        isPagerScrolling.value = e.offset !== 0;
+    }, []);
 
     useEffect(() => {
         setActivePageState(initialIndex);
