@@ -365,7 +365,7 @@ function getDBTimeFromDate(date: Date): string {
 }
 
 /**
- * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database 
+ * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database
  *
  * @param [timestamp] the given timestamp (if omitted, defaults to the current time)
  */
