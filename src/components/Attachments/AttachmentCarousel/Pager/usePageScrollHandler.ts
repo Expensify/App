@@ -16,6 +16,14 @@ type Handlers = {
 };
 type Deps = Parameters<typeof useHandler>[1];
 
+/**
+ * This hook is used to create a wrapped handler for the onPageScroll event from react-native-pager-view.
+ * The produced handler can react to the onPageScroll event and allows to use it with animated shared values (from REA)
+ * This hook is a wrapper around the useHandler and useEvent hooks from react-native-reanimated.
+ * @param handlers
+ * @param dependencies
+ * @returns
+ */
 const usePageScrollHandler = (handlers: Handlers, dependencies: Deps): PageScrollHandler => {
     const {context, doDependenciesDiffer} = useHandler(handlers, dependencies);
     const subscribeForEvents = ['onPageScroll'];
