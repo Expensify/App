@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -79,7 +80,7 @@ function WorkspacePageWithSections({
     guidesCallTaskID = '',
     headerText,
     policy,
-    reimbursementAccount = {},
+    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
