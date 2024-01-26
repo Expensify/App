@@ -1,5 +1,7 @@
 import React from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
@@ -34,7 +36,7 @@ type AmountTextInputProps = {
 
 function AmountTextInput(
     {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress}: AmountTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     return (

@@ -1158,7 +1158,7 @@ PODS:
   - react-native-airship (15.3.1):
     - AirshipFrameworkProxy (= 2.1.1)
     - React-Core
-  - react-native-blob-util (0.17.3):
+  - react-native-blob-util (0.19.4):
     - React-Core
   - react-native-cameraroll (5.4.0):
     - React-Core
@@ -1176,11 +1176,11 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
-  - react-native-netinfo (11.1.0):
+  - react-native-netinfo (11.2.1):
     - React-Core
   - react-native-pager-view (6.2.2):
     - React-Core
-  - react-native-pdf (6.7.4):
+  - react-native-pdf (6.7.3):
     - React-Core
   - react-native-performance (5.1.0):
     - React-Core
@@ -1399,7 +1399,7 @@ PODS:
     - React-Core
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.14.0):
+  - RNGestureHandler (2.14.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1901,7 +1901,7 @@ SPEC CHECKSUMS:
   React-logger: 66b168e2b2bee57bd8ce9e69f739d805732a5570
   React-Mapbuffer: 9ee041e1d7be96da6d76a251f92e72b711c651d6
   react-native-airship: 6ded22e4ca54f2f80db80b7b911c2b9b696d9335
-  react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
+  react-native-blob-util: 30a6c9fd067aadf9177e61a998f2c7efb670598d
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: 69ca2094d8780cfc1e7e613894d15290fdc54bba
@@ -1909,9 +1909,9 @@ SPEC CHECKSUMS:
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
-  react-native-netinfo: 3aa5637c18834966e0c932de8ae1ae56fea20a97
+  react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
-  react-native-pdf: 79aa75e39a80c1d45ffe58aa500f3cf08f267a2e
+  react-native-pdf: b4ca3d37a9a86d9165287741c8b2ef4d8940c00e
   react-native-performance: cef2b618d47b277fb5c3280b81a3aad1e72f2886
   react-native-plaid-link-sdk: df1618a85a615d62ff34e34b76abb7a56497fbc1
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
@@ -1951,7 +1951,7 @@ SPEC CHECKSUMS:
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
   RNFlashList: 4b4b6b093afc0df60ae08f9cbf6ccd4c836c667a
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: 61bfdfc05db9b79dd61f894dcd29d3dcc6db3c02
+  RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
@@ -1967,7 +1967,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
-  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
+  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2
 

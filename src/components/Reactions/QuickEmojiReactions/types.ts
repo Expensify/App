@@ -11,18 +11,7 @@ type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrig
 
 type CloseContextMenuCallback = () => void;
 
-type BaseQuickEmojiReactionsOnyxProps = {
-    /** All the emoji reactions for the report action. */
-    emojiReactions: OnyxEntry<ReportActionReactions>;
-
-    /** The user's preferred locale. */
-    preferredLocale: OnyxEntry<Locale>;
-
-    /** The user's preferred skin tone. */
-    preferredSkinTone: OnyxEntry<string | number>;
-};
-
-type BaseQuickEmojiReactionsProps = BaseQuickEmojiReactionsOnyxProps & {
+type BaseReactionsProps = {
     /** Callback to fire when an emoji is selected. */
     onEmojiSelected: (emoji: Emoji, emojiReactions: OnyxEntry<ReportActionReactions>) => void;
 
@@ -45,7 +34,20 @@ type BaseQuickEmojiReactionsProps = BaseQuickEmojiReactionsOnyxProps & {
     reportActionID: string;
 };
 
-type QuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
+type BaseQuickEmojiReactionsOnyxProps = {
+    /** All the emoji reactions for the report action. */
+    emojiReactions: OnyxEntry<ReportActionReactions>;
+
+    /** The user's preferred locale. */
+    preferredLocale: OnyxEntry<Locale>;
+
+    /** The user's preferred skin tone. */
+    preferredSkinTone: OnyxEntry<string | number>;
+};
+
+type BaseQuickEmojiReactionsProps = BaseReactionsProps & BaseQuickEmojiReactionsOnyxProps;
+
+type QuickEmojiReactionsProps = BaseReactionsProps & {
     /**
      * Function that can be called to close the context menu
      * in which this component is rendered.

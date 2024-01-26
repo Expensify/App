@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -198,9 +199,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             value: {
                 [contactMethod]: {
                     partnerUserID: '',
-                    errorFields: {
-                        deletedLogin: null,
-                    },
+                    errorFields: null,
                     pendingFields: {
                         deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
@@ -225,6 +224,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
+                        ...oldLoginData?.errorFields,
                         deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
@@ -491,6 +491,7 @@ function subscribeToUserEvents() {
         //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (Array.isArray(pushJSON)) {
+            Log.warn('Received pusher event with array format');
             pushJSON.forEach((multipleEvent) => {
                 PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
             });
