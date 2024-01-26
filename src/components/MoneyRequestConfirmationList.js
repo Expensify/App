@@ -758,7 +758,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={props.iouTag}
+                            title={PolicyUtils.getCleanedTagName(props.iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() => {
