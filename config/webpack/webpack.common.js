@@ -239,6 +239,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
     optimization: {
