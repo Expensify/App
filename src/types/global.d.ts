@@ -33,5 +33,5 @@ interface Window {
     enableMemoryOnlyKeys: () => void;
     disableMemoryOnlyKeys: () => void;
     setSupportToken: (token: string, email: string, accountID: number) => void;
-    Onyx: Record<string, T>;
+    Onyx: Record<string, unknown>;
 }
