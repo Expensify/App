@@ -60,7 +60,6 @@ function GetPhysicalCardPhone({
             onValidate={onValidate}
         >
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="phoneNumber"
                 name="phoneNumber"

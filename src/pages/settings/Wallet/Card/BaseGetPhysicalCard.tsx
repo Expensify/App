@@ -16,9 +16,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, GetPhysicalCardForm, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type OnValidate = (values: OnyxEntry<GetPhysicalCardForm>) => void;
+type OnValidate = (values: OnyxEntry<GetPhysicalCardForm>) => Errors;
 
 type RenderContentProps = ChildrenProps & {
     onSubmit: () => void;
@@ -76,7 +77,6 @@ function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}
     const styles = useThemeStyles();
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM}
             submitButtonText={submitButtonText}

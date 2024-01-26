@@ -54,7 +54,7 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
-type GetPhysicalCardForm = Form & {
+type GetPhysicalCardForm = Form<{
     /** Address line 1 for delivery */
     addressLine1?: string;
 
@@ -81,7 +81,7 @@ type GetPhysicalCardForm = Form & {
 
     /** Zip code  for delivery */
     zipPostCode?: string;
-};
+}>;
 
 export default Form;
 
