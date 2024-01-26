@@ -2305,6 +2305,8 @@ const styles = (theme: ThemeColors) =>
 
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 400,
+            alignSelf: 'center',
         },
 
         forcedBlockingViewContainer: {
