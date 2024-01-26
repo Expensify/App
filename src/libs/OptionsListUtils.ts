@@ -545,7 +545,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
         const htmlWithoutAccountIDBasedMentions = ReportActionUtils.convertAccountIDBasedMentionsToDisplayNames(htmlWithoutMutedTags, allPersonalDetails);
         lastMessageTextFromReport = htmlWithoutAccountIDBasedMentions.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1');
     } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+        lastMessageTextFromReport = report ? report.lastMessageText ?? '' : '';
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');

@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionName, ChangeLog, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -815,7 +815,7 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
-function convertAccountIDBasedMentionsToDisplayNames(html: string, personalDetails: Record<number, PersonalDetails>) {
+function convertAccountIDBasedMentionsToDisplayNames(html: string, personalDetails: OnyxEntry<PersonalDetailsList>) {
     let modifiedHtml = html.slice(0);
     [...html.matchAll(CONST.REGEX.ACCOUNT_ID_BASED_MENTION)].forEach((match) => {
         const [mention, accountID] = match;
