@@ -167,7 +167,7 @@ const ROUTES = {
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field/:tagIndex?',
         getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${threadReportID}/edit/${field}${tagIndex !== undefined ? `/${tagIndex}` : ''}` as const,
+            `r/${threadReportID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
