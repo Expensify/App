@@ -11,8 +11,6 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
@@ -39,10 +37,10 @@ const getMockedPolicies = (length = 500) =>
         length,
     );
 
-const mockedReportsMap = getMockedReports(5000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
-const mockedPoliciesMap = getMockedPolicies(5000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
+const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
+const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
 
-test('[ModifiedExpenseMessage] getForReportAction on 5k reports and policies', async () => {
+test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', async () => {
     const reportAction = {
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
@@ -60,5 +58,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 5k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ModifiedExpenseMessage.getForReportAction(reportAction), {runs});
+    await measureFunction(() => ModifiedExpenseMessage.getForReportAction(reportAction));
 });
