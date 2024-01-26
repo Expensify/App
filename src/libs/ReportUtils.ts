@@ -453,12 +453,6 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let loginList: OnyxEntry<Login>;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (value) => (loginList = value),
-});
-
 let allTransactions: OnyxCollection<Transaction> = {};
 
 Onyx.connect({
