@@ -24,7 +24,7 @@ import IncorporationStateBusiness from './substeps/IncorporationStateBusiness';
 import NameBusiness from './substeps/NameBusiness';
 import PhoneNumberBusiness from './substeps/PhoneNumberBusiness';
 import TaxIdBusiness from './substeps/TaxIdBusiness';
-import TypeBusiness from './substeps/TypeBusiness';
+import TypeBusiness from './substeps/TypeBusiness/TypeBusiness';
 import WebsiteBusiness from './substeps/WebsiteBusiness';
 
 type BusinessInfoOnyxProps = {
