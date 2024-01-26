@@ -146,7 +146,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
             )}
             {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                 <FormProvider
-                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
