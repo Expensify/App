@@ -18,6 +18,15 @@ const useScreenReaderStatus = (): boolean => {
     return isScreenReaderEnabled;
 };
 
+const useReduceMotionStatus = (): boolean => {
+    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
+    useEffect(() => {
+        AccessibilityInfo.isReduceMotionEnabled().then(enabled => setIsScreenReaderEnabled(enabled))
+    }, []);
+
+    return isScreenReaderEnabled;
+};
+
 const getHitSlopForSize = ({x, y}: HitSlop) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
     the minimum tappable area is 44x44 points */
@@ -49,5 +58,6 @@ const useAutoHitSlop = () => {
 export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
+    useReduceMotionStatus,
     useAutoHitSlop,
 };
