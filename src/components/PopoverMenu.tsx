@@ -52,7 +52,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     onClose: () => void;
 
     /** Optional callback passed to popover's children container */
-    onLayout: (e: LayoutChangeEvent) => void;
+    onLayout?: (e: LayoutChangeEvent) => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
@@ -182,3 +182,4 @@ function PopoverMenu({
 PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(PopoverMenu);
+export type {PopoverMenuItem};

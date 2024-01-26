@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
@@ -172,6 +173,7 @@ const chatReportSelector = (report) =>
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
+        notificationPreference: report.notificationPreference,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
@@ -201,6 +203,7 @@ const chatReportSelector = (report) =>
         parentReportActionID: report.parentReportActionID,
         parentReportID: report.parentReportID,
         isDeletedParentAction: report.isDeletedParentAction,
+        isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
     };
 
 /**
