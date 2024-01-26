@@ -2,6 +2,10 @@ import {exists, unlink} from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+/*
+ * We need to save the paths of PDF files so we can delete them later.
+ * This is to remove the cached PDFs when an attachment is deleted or the user logs out.
+ */
 let pdfPaths: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.CACHED_PDF_PATHS,
@@ -11,6 +15,9 @@ Onyx.connect({
 });
 
 function add(reportActionID: string, path: string): Promise<void> {
+    if (pdfPaths[reportActionID]) {
+        return Promise.resolve();
+    }
     return Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[reportActionID]: path});
 }
 
