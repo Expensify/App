@@ -724,6 +724,8 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        OPEN_SEARCH: 'open_search',
+        LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -1301,6 +1303,14 @@ const CONST = {
         AUTO_REPORTING_OFFSET: {
             LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
+        APPROVAL_MODE: {
+            OPTIONAL: 'OPTIONAL',
+            BASIC: 'BASIC',
+            ADVANCED: 'ADVANCED',
+            DYNAMICEXTERNAL: 'DYNAMIC_EXTERNAL',
+            SMARTREPORT: 'SMARTREPORT',
+            BILLCOM: 'BILLCOM',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,

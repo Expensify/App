@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -112,7 +112,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
 
-    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips?.length ?? 0) > 2;
+    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips?.length ?? 0) > 2;
     const fullTitle = isGroupChat ? getGroupChatName(!isEmptyObject(report) ? report : null) : optionItem.text;
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -164,6 +164,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                         ]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                        onLayout={onLayout}
                         needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
