@@ -24,6 +24,11 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+type DisabledFields = {
+    defaultBillable?: boolean;
+    reimbursable?: boolean;
+};
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -114,6 +119,27 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The approval mode set up on this policy */
         approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+        /** Whether transactions should be billable by default */
+        defaultBillable?: boolean;
+
+        /** The workspace description */
+        description?: string;
+
+        /** List of field names that are disabled */
+        disabledFields?: DisabledFields;
+
+        /** Whether new transactions need to be tagged */
+        requiresTag?: boolean;
+
+        /** Whether new transactions need to be categorized */
+        requiresCategory?: boolean;
+
+        /** Whether the workspace has multiple levels of tags enabled */
+        hasMultipleTagLists?: boolean;
+
+        /** When tax tracking is enabled */
+        isTaxTrackingEnabled?: boolean;
     },
     'generalSettings' | 'addWorkspaceRoom'
 >;

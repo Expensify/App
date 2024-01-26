@@ -173,7 +173,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ISO-formatted datetime */
     lastModified?: string;
 
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;

@@ -122,7 +122,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         visibleChatMemberAccountIDs?: number[];
         total?: number;
         currency?: string;
-        managerEmail?: string;
+        errors?: OnyxCommon.Errors;managerEmail?: string;
         parentReportActionIDs?: number[];
         errorFields?: OnyxCommon.ErrorFields;
 
@@ -153,6 +153,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         updateReportInLHN?: boolean;
         privateNotes?: Record<number, Note>;
         isLoadingPrivateNotes?: boolean;
+        selected?: boolean;
 
         /** If the report contains reportFields, save the field id and its value */
         reportFields?: Record<string, string>;
