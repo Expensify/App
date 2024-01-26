@@ -37,9 +37,10 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     }
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
-    const subtitle = userLogin.trim() && LocalePhoneNumber.formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
+    let subtitle = userLogin.trim() && LocalePhoneNumber.formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
+        subtitle = '';
     }
     const renderTooltipContent = useCallback(
         () => (
