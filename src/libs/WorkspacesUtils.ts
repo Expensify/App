@@ -3,8 +3,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
+import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -16,6 +17,24 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
+});
+
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
+let allPolicyMembers: OnyxCollection<PolicyMember>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        allPolicyMembers = val;
+    },
 });
 
 /**
@@ -51,6 +70,16 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
 
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
+
+    const cleanPolicies = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => !!policy));
+    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(allPolicyMembers ?? {}).filter(([, policyMembers]) => !!policyMembers));
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    Object.values(cleanPolicies).forEach((policy) => {
+        if (policy && (hasPolicyError(policy) || hasCustomUnitsError(policy) || hasPolicyMemberError(cleanAllPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]))) {
+            workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD.RBR;
+        }
+    });
 
     Object.keys(allReports).forEach((report) => {
         const policyID = allReports?.[report]?.policyID ?? CONST.POLICY.EMPTY;
