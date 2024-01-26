@@ -40,6 +40,11 @@ function BaseAttachmentViewPdf({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
+    /**
+     * When the PDF's onScaleChanged event is triggered, we must call the context's onScaleChanged callback,
+     * because we want to disable the pager scroll when the pdf is zoomed in,
+     * as well as call the onScaleChanged prop of the AttachmentViewPdf component if defined.
+     */
     const onScaleChanged = useCallback(
         (newScale) => {
             if (onScaleChangedProp !== undefined) {
