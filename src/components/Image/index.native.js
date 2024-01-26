@@ -1,6 +1,6 @@
 import {Image as ImageComponent} from 'expo-image';
 import lodashGet from 'lodash/get';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
