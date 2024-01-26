@@ -128,10 +128,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             participants,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            personalDetails,
-            true,
             indexOffset,
             maxParticipantsReached,
+            personalDetails,
+            true,
         );
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;

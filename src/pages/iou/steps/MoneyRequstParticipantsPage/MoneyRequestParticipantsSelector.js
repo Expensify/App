@@ -139,10 +139,10 @@ function MoneyRequestParticipantsSelector({
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
-            personalDetails,
-            true,
             indexOffset,
             maxParticipantsReached,
+            personalDetails,
+            true,
         );
         newSections.push(formatResults.section);
         indexOffset = formatResults.newIndexOffset;

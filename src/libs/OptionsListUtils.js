@@ -1938,10 +1938,10 @@ function shouldOptionShowTooltip(option) {
  * @param {Array} selectedOptions
  * @param {Array} filteredRecentReports
  * @param {Array} filteredPersonalDetails
- * @param {Object} personalDetails
- * @param {Boolean} shouldGetOptionDetails
  * @param {Number} indexOffset
  * @param {Boolean} maxOptionsSelected
+ * @param {Object} personalDetails
+ * @param {Boolean} shouldGetOptionDetails
  * @returns {Object}
  */
 function formatSectionsFromSearchTerm(
@@ -1949,10 +1949,10 @@ function formatSectionsFromSearchTerm(
     selectedOptions,
     filteredRecentReports,
     filteredPersonalDetails,
-    personalDetails = {},
-    shouldGetOptionDetails = false,
     indexOffset,
     maxOptionsSelected,
+    personalDetails = {},
+    shouldGetOptionDetails = false,
 ) {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
