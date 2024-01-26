@@ -21,7 +21,7 @@ const useScreenReaderStatus = (): boolean => {
 const useReduceMotionStatus = (): boolean => {
     const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
     useEffect(() => {
-        AccessibilityInfo.isReduceMotionEnabled().then(enabled => setIsScreenReaderEnabled(enabled))
+        AccessibilityInfo.isReduceMotionEnabled().then((enabled) => setIsScreenReaderEnabled(enabled));
     }, []);
 
     return isScreenReaderEnabled;
