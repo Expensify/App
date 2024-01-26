@@ -4593,7 +4593,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
-    const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
+    const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicy(report) &&
