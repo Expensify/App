@@ -2634,7 +2634,7 @@ export default {
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: '¿Por qué prefieres Expensify Classic?',
         },
         responsePlaceholder: 'Su respuesta',
-        thankYou: '¡Gracias por sus comentarios!',
+        thankYou: '¡Gracias por tus comentarios!',
         thankYouSubtitle: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
         goToExpensifyClassic: 'Cambiar a Expensify Classic',
         offline:
