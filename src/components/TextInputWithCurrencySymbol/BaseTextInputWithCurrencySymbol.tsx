@@ -1,10 +1,12 @@
 import React from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import type TextInputWithCurrencySymbolProps from './types';
 
 function BaseTextInputWithCurrencySymbol(
@@ -18,11 +20,12 @@ function BaseTextInputWithCurrencySymbol(
         onSelectionChange = () => {},
         onKeyPress = () => {},
     }: TextInputWithCurrencySymbolProps,
-    ref: React.ForwardedRef<TextInput>,
+    ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
+    const styles = useThemeStyles();
 
     const currencySymbolButton = (
         <CurrencySymbolButton
@@ -52,6 +55,7 @@ function BaseTextInputWithCurrencySymbol(
                 onSelectionChange(event);
             }}
             onKeyPress={onKeyPress}
+            style={styles.pr1}
         />
     );
 

@@ -1,7 +1,6 @@
 import React from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import type {ForwardedRef} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';

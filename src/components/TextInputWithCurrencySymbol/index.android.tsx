@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import BaseTextInputWithCurrencySymbol from './BaseTextInputWithCurrencySymbol';
 import type TextInputWithCurrencySymbolProps from './types';
 
-function TextInputWithCurrencySymbol({onSelectionChange = () => {}, ...props}: TextInputWithCurrencySymbolProps, ref: React.ForwardedRef<TextInput>) {
+function TextInputWithCurrencySymbol({onSelectionChange = () => {}, ...props}: TextInputWithCurrencySymbolProps, ref: React.ForwardedRef<BaseTextInputRef>) {
     const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
 
     useEffect(() => {
