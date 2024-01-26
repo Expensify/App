@@ -1,5 +1,3 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
