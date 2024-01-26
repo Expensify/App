@@ -504,11 +504,13 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
     const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
+    const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
 
-    if (ReportUtils.isArchivedRoom(report)  && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-        const archiveReason = lastReportAction?.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+    if (ReportUtils.isArchivedRoom(report)  && lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        const archiveReason = lastOriginalReportAction?.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
