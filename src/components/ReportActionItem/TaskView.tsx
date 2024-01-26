@@ -55,8 +55,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
     }, [report]);
 
     const taskTitle = convertToLTR(report.reportName ?? '');
-    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([report.managerID], props.personalDetails), false);
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role);
@@ -157,8 +156,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
                         <MenuItem
                             label={translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
-                            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
