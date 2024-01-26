@@ -33,6 +33,9 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
+
+    /** Whether suggestion should be displayed below the parent container or not */
+    shouldBelowParentContainer?: boolean
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps};

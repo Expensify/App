@@ -39,6 +39,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         suggestions,
         isSuggestionPickerLarge,
         keyExtractor,
+        shouldBelowParentContainer = false
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
@@ -67,7 +68,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
-    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
+    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, shouldBelowParentContainer));
     const estimatedListSize = useMemo(
         () => ({
             height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,

@@ -25,6 +25,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         left: 0,
         bottom: 0,
     });
+    const [shouldBelowContainer, setShouldBelowContainer] = React.useState(false);
     React.useEffect(() => {
         const container = containerRef.current;
         if (!container) {
@@ -46,6 +47,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
 
         measureParentContainer((x, y, w, h) => {
             const currenBottom = y < suggestionContainerHeight ? windowHeight - y - suggestionContainerHeight - h : windowHeight - y;
+            setShouldBelowContainer(y < suggestionContainerHeight);
             setContainerState({left: x, bottom: currenBottom, width: w})
         });
     }, [measureParentContainer, windowHeight, windowWidth]);
@@ -53,6 +55,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            shouldBelowParentContainer={shouldBelowContainer}
             ref={containerRef}
         />
     );
