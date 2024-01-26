@@ -13,11 +13,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import CONST from '@src/CONST';
 
 const propTypes = {
     /** The children to show inside the layout */
