@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native-onyx/lib/Onyx.js b/node_modules/react-native-onyx/lib/Onyx.js
+index 9212df3..3993d56 100644
+--- a/node_modules/react-native-onyx/lib/Onyx.js
++++ b/node_modules/react-native-onyx/lib/Onyx.js
+@@ -29,6 +29,9 @@ let lastConnectionID = 0;
+ // Holds a mapping of all the react components that want their state subscribed to a store key
+ const callbackToStateMapping = {};
+ 
++// Holds a mapping of the connected key to the connectionID for faster lookups
++const onyxKeyToConnectionIDs = new Map();
++
+ // Keeps a copy of the values of the onyx collection keys as a map for faster lookups
+ let onyxCollectionKeyMap = new Map();
+ 
+@@ -387,7 +390,13 @@ function keysChanged(collectionKey, partialCollection, notifyRegularSubscibers =
+     // We are iterating over all subscribers similar to keyChanged(). However, we are looking for subscribers who are subscribing to either a collection key or
+     // individual collection key member for the collection that is being updated. It is important to note that the collection parameter cane be a PARTIAL collection
+     // and does not represent all of the combined keys and values for a collection key. It is just the "new" data that was merged in via mergeCollection().
+-    const stateMappingKeys = _.keys(callbackToStateMapping);
++    const stateMappingKeys = onyxKeyToConnectionIDs.get(key);
++    
++    // If the key was not found in the mapping then we can skip notifying subscribers
++    if (!stateMappingKeys) {
++        return;
++    }
++
+     for (let i = 0; i < stateMappingKeys.length; i++) {
+         const subscriber = callbackToStateMapping[stateMappingKeys[i]];
+         if (!subscriber) {
+@@ -563,7 +572,13 @@ function keyChanged(key, data, canUpdateSubscriber, notifyRegularSubscibers = tr
+     // We are iterating over all subscribers to see if they are interested in the key that has just changed. If the subscriber's  key is a collection key then we will
+     // notify them if the key that changed is a collection member. Or if it is a regular key notify them when there is an exact match. Depending on whether the subscriber
+     // was connected via withOnyx we will call setState() directly on the withOnyx instance. If it is a regular connection we will pass the data to the provided callback.
+-    const stateMappingKeys = _.keys(callbackToStateMapping);
++    const stateMappingKeys = onyxKeyToConnectionIDs.get(key);
++
++    // If the key was not found in the mapping then we can skip notifying subscribers
++    if (!stateMappingKeys) {
++        return;
++    }
++
+     for (let i = 0; i < stateMappingKeys.length; i++) {
+         const subscriber = callbackToStateMapping[stateMappingKeys[i]];
+         if (!subscriber || !isKeyMatch(subscriber.key, key) || (_.isFunction(canUpdateSubscriber) && !canUpdateSubscriber(subscriber))) {
+@@ -799,6 +814,11 @@ function connect(mapping) {
+     callbackToStateMapping[connectionID] = mapping;
+     callbackToStateMapping[connectionID].connectionID = connectionID;
+ 
++    if (!onyxKeyToConnectionIDs.has(mapping)) {
++        onyxKeyToConnectionIDs.set(mapping, []);
++    }
++    onyxKeyToConnectionIDs.get(mapping).push(connectionID);
++
+     if (mapping.initWithStoredValues === false) {
+         return connectionID;
+     }
