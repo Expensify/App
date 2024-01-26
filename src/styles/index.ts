@@ -3184,7 +3184,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             gap: 8,
             paddingHorizontal: 24,
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusRounded,
         },
 
