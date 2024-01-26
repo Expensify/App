@@ -64,6 +64,7 @@ export default function (pageTitle) {
             const prevIsOffline = usePrevious(network.isOffline);
             const isReconnecting = prevIsOffline && !network.isOffline;
             const isOtherUserNote = accountID && Number(session.accountID) !== Number(accountID);
+            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
             const isPrivateNotesEmpty = accountID ? _.has(lodashGet(report, ['privateNotes', accountID, 'note'], '')) : _.isEmpty(report.privateNotes);
 
             useEffect(() => {
@@ -76,7 +77,7 @@ export default function (pageTitle) {
                 // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
             }, [report.reportID, network.isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
-            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchTriggered || (isPrivateNotesEmpty && (report.isLoadingPrivateNotes || !isOtherUserNote));
+            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished || (isPrivateNotesEmpty && (report.isLoadingPrivateNotes || !isOtherUserNote));
 
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
