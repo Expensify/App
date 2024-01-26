@@ -3,11 +3,14 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type ReportAttachmentsContextValue = {
-    isAttachmentHidden?: (reportActionID: string) => boolean;
-    updateHiddenAttachments?: (reportActionID: string, isHidden: boolean) => void;
+    isAttachmentHidden: (reportActionID: string) => boolean;
+    updateHiddenAttachments: (reportActionID: string, isHidden: boolean) => void;
 };
 
-const ReportAttachmentsContext = React.createContext<ReportAttachmentsContextValue>({});
+const ReportAttachmentsContext = React.createContext<ReportAttachmentsContextValue>({
+    isAttachmentHidden: () => false,
+    updateHiddenAttachments: () => {},
+});
 
 function ReportAttachmentsProvider({children}: ChildrenProps) {
     const currentReportID = useCurrentReportID();
