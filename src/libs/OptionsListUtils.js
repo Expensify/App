@@ -421,7 +421,26 @@ function getLastMessageTextForReport(report, lastActorDetails, policy) {
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
-    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    if (ReportUtils.isArchivedRoom(report)) {
+        const archiveReason =
+            (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
+            CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+
+        switch (archiveReason) {
+            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
+            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
+                    policyName: ReportUtils.getPolicyName(report, false, policy),
+                });
+                break;
+            }
+            default: {
+                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
+            }
+        }
+    } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
@@ -453,25 +472,6 @@ function getLastMessageTextForReport(report, lastActorDetails, policy) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else if (ReportUtils.isArchivedRoom(report)) {
-        const archiveReason =
-            (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
-            CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-
-        switch (archiveReason) {
-            case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
-            case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
-                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
-                    policyName: ReportUtils.getPolicyName(report, false, policy),
-                });
-                break;
-            }
-            default: {
-                lastMessageTextFromReport = Localize.translate(preferredLocale, `reportArchiveReasons.default`);
-            }
-        }
     }
 
     return lastMessageTextFromReport || lodashGet(report, 'lastMessageText', '');
