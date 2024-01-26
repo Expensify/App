@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {User} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -30,7 +31,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, PolicyMember, PolicyMembers} from '@src/types/onyx';
-import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -42,32 +44,16 @@ type WorkspaceMembersPageOnyxProps = {
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps & WithCurrentUserPersonalDetailsProps & WorkspaceMembersPageOnyxProps;
 
-type MemberOption = {
-    keyForList: string;
-    accountID: number;
-    isSelected: boolean;
-    isDisabled: boolean;
-    text: string;
-    alternateText: string;
-    rightElement: React.ReactNode | null;
-    icons: Icon[];
-    errors?: Errors;
-    pendingAction?: PendingAction;
-    invitedSecondaryLogin?: string;
-};
-
 /**
  * Inverts an object, equivalent of _.invert
  */
 function invertObject(object: Record<string, string>): Record<string, string> {
-    const obj: Record<string, string> = {};
-    for (const key in object) {
-        if (Object.prototype.hasOwnProperty.call(object, key)) {
-            obj[object[key]] = key;
-        }
-    }
-    return obj;
+    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key]);
+    const inverted: Record<string, string> = Object.fromEntries(invertedEntries);
+    return inverted;
 }
+
+type MemberOption = Omit<User, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
@@ -80,7 +66,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const isOfflineAndNoMemberDataAvailable = Object.keys(policyMembers ?? {}).length === 0 && isOffline;
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policyMembers) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
 
@@ -153,7 +139,9 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
             });
-            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails))].reduce((a, b) => a.filter((c) => b.includes(c)));
+            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails))].reduce((prev, members) =>
+                prev.filter((item) => members.includes(item)),
+            );
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyMembers]);
@@ -178,7 +166,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Remove selected users from the workspace
      */
     const removeUsers = () => {
-        if (Object.keys(errors).length > 0) {
+        if (!isEmptyObject(errors)) {
             return;
         }
 
@@ -194,7 +182,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Show the modal to confirm removal of the selected members
      */
     const askForConfirmationToRemove = () => {
-        if (Object.keys(errors).length > 0) {
+        if (!isEmptyObject(errors)) {
             return;
         }
         setRemoveMembersConfirmModalVisible(true);
@@ -275,8 +263,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /**
      * Check if the policy member is deleted from the workspace
      */
-    const isDeletedPolicyMember = (policyMember: PolicyMember) =>
-        !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && Object.keys(policyMember.errors ?? {}).length === 0;
+    const isDeletedPolicyMember = (policyMember: PolicyMember): boolean =>
+        !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const policyID = route.params.policyID;
@@ -284,7 +272,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
 
-    const getMemberOptions = () => {
+    const getUsers = (): MemberOption[] => {
         let result: MemberOption[] = [];
 
         Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
@@ -327,7 +315,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            if (PolicyUtils.isExpensifyTeam(details?.login ?? details?.displayName ?? '')) {
+            if (PolicyUtils.isExpensifyTeam(details?.login ?? details?.displayName)) {
                 if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
                     return;
                 }
@@ -343,14 +331,14 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                     accountID === session?.accountID ||
                     details.login === policy?.owner ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    Object.keys(policyMember.errors ?? {}).length > 0,
+                    !isEmptyObject(policyMember.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: isAdmin ? (
                     <View style={[styles.badge, styles.peopleBadge]}>
                         <Text style={styles.peopleBadgeText}>{translate('common.admin')}</Text>
                     </View>
-                ) : null,
+                ) : undefined,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
@@ -371,7 +359,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
 
         return result;
     };
-    const data = getMemberOptions();
+    const data = getUsers();
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
@@ -381,7 +369,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     };
 
     const getHeaderContent = () => {
-        if (Object.keys(invitedPrimaryToSecondaryLogins).length === 0) {
+        if (isEmptyObject(invitedPrimaryToSecondaryLogins)) {
             return null;
         }
         return (
@@ -467,7 +455,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
                             // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) ?? !policyMembers)}
+                            showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ref={textInputRef}
