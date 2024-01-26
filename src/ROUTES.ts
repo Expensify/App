@@ -29,6 +29,10 @@ const ROUTES = {
         route: 'a/:accountID',
         getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
     },
+    PROFILE_AVATAR: {
+        route: 'a/:accountID/avatar',
+        getRoute: (accountID: string) => `a/${accountID}/avatar` as const,
+    },
 
     TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
@@ -140,6 +144,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
+
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
@@ -155,6 +160,10 @@ const ROUTES = {
         route: 'r/:reportID?/:reportActionID?',
         getRoute: (reportID: string) => `r/${reportID}` as const,
     },
+    REPORT_AVATAR: {
+        route: 'r/:reportID/avatar',
+        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
+    },
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field',
         getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}` as const,
@@ -162,6 +171,10 @@ const ROUTES = {
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+    },
+    EDIT_REPORT_FIELD_REQUEST: {
+        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
+        getRoute: (reportID: string, policyID: string, fieldID: string) => `r/${reportID}/edit/policyField/${policyID}/${fieldID}` as const,
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
@@ -224,10 +237,6 @@ const ROUTES = {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
     },
-    PRIVATE_NOTES_VIEW: {
-        route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}` as const,
-    },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
         getRoute: (reportID: string) => `r/${reportID}/notes` as const,
@@ -258,10 +267,6 @@ const ROUTES = {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
     },
-    MONEY_REQUEST_CONFIRMATION: {
-        route: ':iouType/new/confirmation/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}` as const,
-    },
     MONEY_REQUEST_DATE: {
         route: ':iouType/new/date/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}` as const,
@@ -286,10 +291,6 @@ const ROUTES = {
         route: ':iouType/new/merchant/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
     },
-    MONEY_REQUEST_WAYPOINT: {
-        route: ':iouType/new/waypoint/:waypointIndex',
-        getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}` as const,
-    },
     MONEY_REQUEST_RECEIPT: {
         route: ':iouType/new/receipt/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
@@ -297,10 +298,6 @@ const ROUTES = {
     MONEY_REQUEST_DISTANCE: {
         route: ':iouType/new/address/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
-    },
-    MONEY_REQUEST_EDIT_WAYPOINT: {
-        route: 'r/:threadReportID/edit/distance/:transactionID/waypoint/:waypointIndex',
-        getRoute: (threadReportID: number, transactionID: string, waypointIndex: number) => `r/${threadReportID}/edit/distance/${transactionID}/waypoint/${waypointIndex}` as const,
     },
     MONEY_REQUEST_DISTANCE_TAB: {
         route: ':iouType/new/:reportID?/distance',
@@ -378,9 +375,9 @@ const ROUTES = {
             getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
-        route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
     // straight to those flows without needing to have optimistic transaction and report IDs.
@@ -441,6 +438,10 @@ const ROUTES = {
     WORKSPACE_SETTINGS: {
         route: 'workspace/:policyID/settings',
         getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
+    },
+    WORKSPACE_AVATAR: {
+        route: 'workspace/:policyID/avatar',
+        getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'workspace/:policyID/settings/currency',

@@ -511,6 +511,15 @@ const mainWindow = () => {
                     }
                 });
 
+                browserWindow.on('swipe', (e, direction) => {
+                    if (direction === 'left') {
+                        browserWindow.webContents.goBack();
+                    }
+                    if (direction === 'right') {
+                        browserWindow.webContents.goForward();
+                    }
+                });
+
                 browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
                     browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
                 });

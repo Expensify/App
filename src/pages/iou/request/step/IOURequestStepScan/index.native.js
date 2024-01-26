@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useCameraDevices} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
@@ -11,6 +11,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -216,6 +217,7 @@ function IOURequestStepScan({
 
     return (
         <StepScreenWrapper
+            includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={Boolean(backTo)}

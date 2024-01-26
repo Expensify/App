@@ -313,8 +313,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
-                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant && isPolicyExpenseChat) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={hasErrors && isPolicyExpenseChat && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
                         {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
@@ -350,7 +350,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={lodashGet(policyTag, 'name', translate('common.tag'))}
-                            title={transactionTag}
+                            title={PolicyUtils.getCleanedTagName(transactionTag)}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
@@ -427,12 +427,12 @@ export default compose(
     withOnyx({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions[report.parentReportActionID];
+                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
-        transactionViolation: {
+        transactionViolations: {
             key: ({report}) => {
                 const parentReportAction = ReportActionsUtils.getParentReportAction(report);
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);

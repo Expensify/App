@@ -106,7 +106,7 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
     let accountIDHashBucket: AvatarRange;
     if (avatarURL) {
-        const match = avatarURL.match(/(default-avatar_)(\d+)(?=\.)/);
+        const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
     } else {

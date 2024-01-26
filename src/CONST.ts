@@ -440,6 +440,14 @@ const CONST = {
     },
     CURRENCY: {
         USD: 'USD',
+        AUD: 'AUD',
+        CAD: 'CAD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+        EUR: 'EUR',
+    },
+    get DIRECT_REIMBURSEMENT_CURRENCIES() {
+        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.NZD, this.CURRENCY.EUR];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
@@ -479,7 +487,9 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
-    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
+    OLDDOT_URLS: {
+        INBOX: 'inbox',
+    },
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -527,6 +537,7 @@ const CONST = {
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -600,6 +611,10 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
+            INVITE: 'invited',
+            NOTHING: 'nothing',
+        },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
             ACCOUNT_CLOSED: 'accountClosed',
@@ -630,18 +645,13 @@ const CONST = {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
         },
-        STATE: {
-            OPEN: 'OPEN',
-            SUBMITTED: 'SUBMITTED',
-            PROCESSING: 'PROCESSING',
-        },
         STATE_NUM: {
             OPEN: 0,
-            PROCESSING: 1,
-            SUBMITTED: 2,
+            SUBMITTED: 1,
+            APPROVED: 2,
             BILLING: 3,
         },
-        STATUS: {
+        STATUS_NUM: {
             OPEN: 0,
             SUBMITTED: 1,
             CLOSED: 2,
@@ -714,6 +724,8 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
+        OPEN_SEARCH: 'open_search',
+        LOAD_SEARCH_OPTIONS: 'load_search_options',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -965,6 +977,7 @@ const CONST = {
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
     },
+    MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM: 83,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
@@ -975,7 +988,6 @@ const CONST = {
         SUGGESTER_INNER_PADDING: 8,
         SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_SUGGESTIONS: 3,
         MAX_AMOUNT_OF_SUGGESTIONS: 20,
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
@@ -1288,10 +1300,28 @@ const CONST = {
             TRIP: 'trip',
             MANUAL: 'manual',
         },
+        AUTO_REPORTING_OFFSET: {
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+        },
+        APPROVAL_MODE: {
+            OPTIONAL: 'OPTIONAL',
+            BASIC: 'BASIC',
+            ADVANCED: 'ADVANCED',
+            DYNAMICEXTERNAL: 'DYNAMIC_EXTERNAL',
+            SMARTREPORT: 'SMARTREPORT',
+            BILLCOM: 'BILLCOM',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_YES: 'reimburseYes',
+            REIMBURSEMENT_NO: 'reimburseNo',
+            REIMBURSEMENT_MANUAL: 'reimburseManual',
+        },
+        ID_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
@@ -1440,6 +1470,8 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
 
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+
+        REPORT_FIELD_TITLE: /{report:([a-zA-Z]+)}/g,
     },
 
     PRONOUNS: {
@@ -2725,7 +2757,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -3026,13 +3058,6 @@ const CONST = {
     MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
 
     /**
-     * Performance test setup - run the same test multiple times to get a more accurate result
-     */
-    PERFORMANCE_TESTS: {
-        RUNS: 20,
-    },
-
-    /**
      * Bank account names
      */
     BANK_NAMES: {
@@ -3060,7 +3085,8 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
@@ -3072,6 +3098,11 @@ const CONST = {
         RBR: 'RBR',
     },
 
+    /**
+     * Constants for types of violations.
+     * Defined here because they need to be referenced by the type system to generate the
+     * ViolationNames type.
+     */
     VIOLATIONS: {
         ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
         AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
@@ -3115,6 +3146,21 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    INTRO_CHOICES: {
+        TRACK: 'newDotTrack',
+        SUBMIT: 'newDotSubmit',
+        MANAGE_TEAM: 'newDotManageTeam',
+        CHAT_SPLIT: 'newDotSplitChat',
+    },
+
+    MINI_CONTEXT_MENU_MAX_ITEMS: 4,
+
+    REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 } as const;
+
+type Country = keyof typeof CONST.ALL_COUNTRIES;
+
+export type {Country};
 
 export default CONST;
