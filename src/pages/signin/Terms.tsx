@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import useLocalize from "@hooks/useLocalize";
 
 function Terms() {
     const styles = useThemeStyles();

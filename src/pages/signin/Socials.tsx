@@ -11,9 +11,9 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type Social = {
-    iconURL: IconAsset,
-    link: string,
-}
+    iconURL: IconAsset;
+    link: string;
+};
 
 const socialsList: Social[] = [
     {
@@ -41,7 +41,7 @@ const socialsList: Social[] = [
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const getColor = (hovered: boolean, pressed: boolean) => hovered || pressed ? theme.link : theme.textLight;
+    const getColor = (hovered: boolean, pressed: boolean) => (hovered || pressed ? theme.link : theme.textLight);
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
             {socialsList.map((social: Social) => (

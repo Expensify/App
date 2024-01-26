@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import LocalePicker from '@components/LocalePicker';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import useLocalize from "@hooks/useLocalize";
 
 const currentYear = new Date().getFullYear();
 
