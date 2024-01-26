@@ -111,7 +111,6 @@ const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNa
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../pages/EditSplitBillPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
-				//
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
