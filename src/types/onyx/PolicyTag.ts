@@ -13,7 +13,7 @@ type PolicyTag = {
 type PolicyTagList = {
     name: string;
     required: boolean;
-    tags: PolicyTags;
+    tags: Record<string, PolicyTag>;
 };
 
 type PolicyTags = Record<string, PolicyTagList>;
