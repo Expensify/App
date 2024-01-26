@@ -1,9 +1,8 @@
 import React from 'react';
-import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Accessibility from '@libs/Accessibility';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -22,7 +21,7 @@ function AnimatedEmptyStateBackground() {
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
     const xOffset = useSharedValue(0);
     const yOffset = useSharedValue(0);
-    const isReducedMotionEnabled = Accessibility.useReduceMotionStatus();
+    const isReducedMotionEnabled = useReducedMotion();
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
