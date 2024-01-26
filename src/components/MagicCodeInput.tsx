@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import useNetwork from '@hooks/useNetwork';
@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -113,7 +114,8 @@ function MagicCodeInput(
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const inputRefs = useRef<RNTextInput | HTMLInputElement | null>();
+    // const inputRefs = useRef<RNTextInput | HTMLInputElement | null>();
+    const inputRefs = useRef<BaseTextInputRef | null>();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
     const [editIndex, setEditIndex] = useState(0);

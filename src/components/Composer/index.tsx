@@ -6,6 +6,7 @@ import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
@@ -82,7 +83,7 @@ function Composer(
     const {windowWidth} = useWindowDimensions();
     const navigation = useNavigation();
     const textRef = useRef<HTMLElement & RNText>(null);
-    const textInput = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
+    const textInput = useRef<AnimatedTextInputRef | null>(null);
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
         | {
@@ -358,7 +359,7 @@ function Composer(
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
-                ref={(el: TextInput & HTMLTextAreaElement) => (textInput.current = el)}
+                ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
                 value={value}
@@ -367,7 +368,7 @@ function Composer(
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                rows={numberOfLines}
+                numberOfLines={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {

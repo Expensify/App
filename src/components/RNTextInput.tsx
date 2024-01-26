@@ -8,7 +8,9 @@ import useTheme from '@hooks/useTheme';
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<TextInput>) {
+type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
+
+function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTextInputRef>) {
     const theme = useTheme();
 
     return (
@@ -20,7 +22,7 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<TextInput>)
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as TextInput);
+                ref(refHandle as AnimatedTextInputRef);
             }}
             // eslint-disable-next-line
             {...props}
@@ -31,3 +33,4 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<TextInput>)
 RNTextInputWithRef.displayName = 'RNTextInputWithRef';
 
 export default React.forwardRef(RNTextInputWithRef);
+export type {AnimatedTextInputRef};

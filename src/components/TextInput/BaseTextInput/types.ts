@@ -1,5 +1,5 @@
-import type {ForwardedRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -110,7 +110,7 @@ type CustomBaseTextInputProps = {
     autoCompleteType?: string;
 };
 
-type BaseTextInputRef = ForwardedRef<HTMLInputElement | TextInput>;
+type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
