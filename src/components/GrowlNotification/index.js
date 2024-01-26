@@ -1,6 +1,6 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
-import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
+import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
@@ -92,23 +92,23 @@ function GrowlNotification(_, ref) {
         }, duration);
     }, [duration, fling]);
 
-    return (
-        <FlingGestureHandler
-            direction={Directions.UP}
-            onHandlerStateChange={({nativeEvent}) => {
-                if (nativeEvent.state !== State.ACTIVE) {
-                    return;
-                }
+    // GestureDetector by default runs callbacks on UI thread using Reanimated. In this
+    // case we want to trigger an RN's Animated animation, which needs to be done on JS thread.
+    const flingGesture = Gesture.Fling()
+        .direction(Directions.UP)
+        .runOnJS(true)
+        .onStart(() => {
+            fling();
+        });
 
-                fling();
-            }}
-        >
-            <View style={styles.growlNotificationWrapper}>
-                <GrowlNotificationContainer translateY={translateY}>
-                    <PressableWithoutFeedback
-                        accessibilityLabel={bodyText}
-                        onPress={() => fling()}
-                    >
+    return (
+        <View style={[styles.growlNotificationWrapper]}>
+            <GrowlNotificationContainer translateY={translateY}>
+                <PressableWithoutFeedback
+                    accessibilityLabel={bodyText}
+                    onPress={() => fling()}
+                >
+                    <GestureDetector gesture={flingGesture}>
                         <View style={styles.growlNotificationBox}>
                             <Icon
                                 src={types[type].icon}
@@ -116,10 +116,10 @@ function GrowlNotification(_, ref) {
                             />
                             <Text style={styles.growlNotificationText}>{bodyText}</Text>
                         </View>
-                    </PressableWithoutFeedback>
-                </GrowlNotificationContainer>
-            </View>
-        </FlingGestureHandler>
+                    </GestureDetector>
+                </PressableWithoutFeedback>
+            </GrowlNotificationContainer>
+        </View>
     );
 }
 
