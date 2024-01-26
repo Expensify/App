@@ -67,7 +67,7 @@ const defaultProps = {
  * @param {RegExp} amountRegex
  * @returns {String}
  */
-const filterInput = (amount, amountRegex?: RegExp) => {
+const filterInput = (amount, amountRegex) => {
     let value = amount ? amount.toString().trim() : '';
     value = value.replace(/^0+|0+$/g, '');
     if (value === '' || _.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value)) || (amountRegex && !amountRegex.test(value))) {
