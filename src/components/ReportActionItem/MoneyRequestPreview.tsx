@@ -36,7 +36,6 @@ import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -136,8 +135,7 @@ function MoneyRequestPreview({
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
     const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
-    // TODO: Remove the assertion once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {}) as OnyxCommon.Icon[];
+    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
         sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(chatReport));
