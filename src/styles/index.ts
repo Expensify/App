@@ -1267,7 +1267,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: "flex-end"
         },
 
-
         signInBackgroundImage: {
             height: 700,
         },
