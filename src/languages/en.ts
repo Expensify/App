@@ -1151,7 +1151,6 @@ export default {
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
-            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
         },
     },
     resendValidationForm: {
