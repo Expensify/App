@@ -39,7 +39,7 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string, isTranslated = false): Record<number, Localize.MaybePhraseKey> {
+function getMicroSecondOnyxError(error: string, isTranslated = false): Errors {
     return {[DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
 }
 
@@ -57,7 +57,7 @@ function getErrorMessageWithTranslationData(error: Localize.MaybePhraseKey): Loc
 }
 
 type OnyxDataWithErrors = {
-    errors?: Errors;
+    errors?: Errors | null;
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Localize.MaybePhraseKey {
@@ -119,7 +119,7 @@ function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | ErrorsLi
 
 /**
  * Method used to generate error message for given inputID
- * @param errorList - An object containing current errors in the form
+ * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
 function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {

@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,8 +55,8 @@ const propTypes = {
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
+    /** Whether the parent screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,7 +64,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
-    isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -75,7 +76,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
-    isSearchingForReports,
+    didScreenTransitionEnd,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -95,6 +96,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
+        if (!didScreenTransitionEnd) {
+            return [newSections, {}];
+        }
         let indexOffset = 0;
 
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -169,7 +173,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
 
     /**
      * Adds a single participant to the request
@@ -328,11 +332,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
+    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 onConfirm={handleConfirmSelection}
-                sections={sections}
+                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
@@ -341,7 +347,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
+                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>
@@ -358,9 +364,5 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(MoneyTemporaryForRefactorRequestParticipantsSelector);
