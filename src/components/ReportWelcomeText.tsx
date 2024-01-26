@@ -74,7 +74,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         {report?.description ? (
                             <PressableWithoutFeedback
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
+                                    if (ReportUtils.canEditReportDescription(report, policy)) {
+                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
                                 }}
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             >

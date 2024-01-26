@@ -321,7 +321,11 @@ function HeaderView(props) {
                                         {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
-                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.reportID));
+                                                    if (ReportUtils.canEditReportDescription(props.report, props.policy)) {
+                                                        Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.reportID));
+                                                        return;
+                                                    }
+                                                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.reportID));
                                                 }}
                                                 style={[styles.alignSelfStart, styles.mw100]}
                                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
