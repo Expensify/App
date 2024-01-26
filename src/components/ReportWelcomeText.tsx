@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
@@ -71,7 +72,14 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isChatRoom && (
                     <>
                         {report?.description ? (
-                            <RenderHTML html={report.description} />
+                            <PressableWithoutFeedback
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID));
+                                }}
+                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                            >
+                                <RenderHTML html={report.description} />
+                            </PressableWithoutFeedback>
                         ) : (
                             <>
                                 <Text>{roomWelcomeMessage.phrase1}</Text>

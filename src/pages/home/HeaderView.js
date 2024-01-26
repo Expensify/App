@@ -26,6 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -37,6 +38,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -317,12 +319,20 @@ function HeaderView(props) {
                                             </Text>
                                         )}
                                         {!_.isEmpty(reportDescription) && _.isEmpty(parentNavigationSubtitleData) && (
-                                            <Text
-                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
-                                                numberOfLines={1}
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.reportID));
+                                                }}
+                                                style={[styles.alignSelfStart, styles.mw100]}
+                                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                                             >
-                                                {reportDescription}
-                                            </Text>
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {reportDescription}
+                                                </Text>
+                                            </PressableWithoutFeedback>
                                         )}
                                     </View>
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
