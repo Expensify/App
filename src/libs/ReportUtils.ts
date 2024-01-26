@@ -28,6 +28,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -76,20 +77,6 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
-};
-
-type Participant = {
-    accountID: number;
-    alternateText: string;
-    firstName: string;
-    icons: Icon[];
-    keyForList: string;
-    lastName: string;
-    login: string;
-    phoneNumber: string;
-    searchText: string;
-    selected: boolean;
-    text: string;
 };
 
 type SpendBreakdown = {
@@ -366,7 +353,7 @@ type CustomIcon = {
 };
 
 type OptionData = {
-    text: string;
+    text?: string;
     alternateText?: string | null;
     allReportErrors?: Errors;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
@@ -396,6 +383,12 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: OnyxEntry<ReportAction>;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    isDefaultRoom?: boolean;
+    isExpenseReport?: boolean;
+    isOptimisticPersonalDetail?: boolean;
+    selected?: boolean;
+    isOptimisticAccount?: boolean;
+    isSelected?: boolean;
     descriptiveText?: string;
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
@@ -1617,7 +1610,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
-    if (personalDetails.isOptimisticPersonalDetail === true && formattedLogin) {
+    if (personalDetails.isOptimisticPersonalDetail === true) {
         return formattedLogin;
     }
 
@@ -2341,7 +2334,13 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
-    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
+    const participants = participantAccountIDs.map((id) => {
+        const name = getDisplayNameForParticipant(id);
+        if (name && name?.length > 0) {
+            return name;
+        }
+        return Localize.translateLocal('common.hidden');
+    });
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     if (!users) {
         return parentReportActionMessage;
