@@ -261,6 +261,8 @@ function WorkspaceSwitcherPage({policies}) {
                         showTitleTooltip={false}
                         contentContainerStyles={[styles.pt0, styles.mt0]}
                         textIconLeft={MagnifyingGlass}
+                        initiallyFocusedOptionKey={null}
+                        shouldUseStyleForChildren={false}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
