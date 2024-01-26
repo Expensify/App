@@ -1,8 +1,8 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '../Modal/modalPropTypes';
-import refPropTypes from '../refPropTypes';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import {defaultProps as defaultModalProps, propTypes as modalPropTypes} from '@components/Modal/modalPropTypes';
+import refPropTypes from '@components/refPropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ..._.omit(modalPropTypes, ['type', 'popoverAnchorPosition']),
@@ -26,6 +26,9 @@ const propTypes = {
 
     /** The ref of the popover */
     withoutOverlayRef: refPropTypes,
+
+    /** Whether we want to show the popover on the right side of the screen */
+    fromSidebarMediumScreen: PropTypes.bool,
 };
 
 const defaultProps = {

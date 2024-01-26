@@ -1,10 +1,14 @@
 import StatusBar from './types';
 
-// Only has custom web implementation
-StatusBar.getBackgroundColor = () => null;
+const setBackgroundColor = StatusBar.setBackgroundColor;
 
-// We override this because it's not used – on Android our app display edge-to-edge.
-// Also because Reanimated's interpolateColor gives Android native colors instead of hex strings, causing this to display a warning.
-StatusBar.setBackgroundColor = () => null;
+let statusBarColor: string | null = null;
+
+StatusBar.getBackgroundColor = () => statusBarColor;
+
+StatusBar.setBackgroundColor = (color, animated = false) => {
+    statusBarColor = color as string;
+    setBackgroundColor(color, animated);
+};
 
 export default StatusBar;

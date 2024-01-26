@@ -1,8 +1,8 @@
-import _ from 'underscore';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import Log from '../Log';
+import _ from 'underscore';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const DEPRECATED_ONYX_KEYS = {
     // Deprecated personal details object which was keyed by login instead of accountID.
@@ -255,6 +255,18 @@ export default function () {
                     reportWasModified = true;
                     Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report ${newReport.reportID}`);
                     delete newReport.participants;
+                }
+
+                if (lodashHas(newReport, ['ownerEmail'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report ${newReport.reportID}`);
+                    delete newReport.ownerEmail;
+                }
+
+                if (lodashHas(newReport, ['managerEmail'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report ${newReport.reportID}`);
+                    delete newReport.managerEmail;
                 }
 
                 if (reportWasModified) {

@@ -22,6 +22,7 @@ const TwoFactorAuthPropTypes = {
 const defaultAccount = {
     requiresTwoFactorAuth: false,
     twoFactorAuthStep: '',
+    recoveryCodes: '',
 };
 
 export {TwoFactorAuthPropTypes, defaultAccount};

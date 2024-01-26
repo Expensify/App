@@ -1,18 +1,16 @@
 import React from 'react';
 import _ from 'underscore';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import compose from '../../../libs/compose';
-import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import reportPropTypes from '../../reportPropTypes';
-import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
-import * as Report from '../../../libs/actions/Report';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import SelectionList from '../../../components/SelectionList';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ReportUtils from '@libs/ReportUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -41,11 +39,13 @@ function NotificationPreferencePage(props) {
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton
                     title={props.translate('notificationPreferencesPage.header')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
+                    onBackButtonPress={() => ReportUtils.goBackToDetailsPage(props.report)}
                 />
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
-                    onSelectRow={(option) => Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, option.value, true)}
+                    onSelectRow={(option) =>
+                        Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, option.value, true, undefined, undefined, props.report)
+                    }
                     initiallyFocusedOptionKey={_.find(notificationPreferenceOptions, (locale) => locale.isSelected).keyForList}
                 />
             </FullPageNotFoundView>
@@ -56,4 +56,4 @@ function NotificationPreferencePage(props) {
 NotificationPreferencePage.displayName = 'NotificationPreferencePage';
 NotificationPreferencePage.propTypes = propTypes;
 
-export default compose(withLocalize, withReportOrNotFound)(NotificationPreferencePage);
+export default compose(withLocalize, withReportOrNotFound())(NotificationPreferencePage);

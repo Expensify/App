@@ -6,23 +6,42 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = require('../libs/versionUp
 
 /**
  * @param {String} tag
+ * @param {String} [shallowExcludeTag] when fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
-function fetchTag(tag) {
-    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
-    try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                execSync(command);
+            }
 
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
+            command = `git fetch origin tag ${tag} --no-tags`;
+
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+
+            console.log(`Running command: ${command}`);
+            execSync(command);
+            shouldRetry = false;
+        } catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            } else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
         }
-
-        console.log(`Running command: ${command}`);
-        execSync(command);
-    } catch (e) {
-        console.error(e);
     }
 }
 
@@ -34,8 +53,10 @@ function fetchTag(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
@@ -112,16 +133,15 @@ function getValidMergedPRs(commits) {
  * @param {String} toTag
  * @returns {Promise<Array<Number>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsMergedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
-        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-        // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(commitList);
-        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-        return _.map(pullRequestNumbers, (prNum) => Number.parseInt(prNum, 10));
-    });
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
 }
 
 module.exports = {

@@ -1,13 +1,13 @@
-import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import useLocalize from '../hooks/useLocalize';
-import ReceiptSelector from './iou/ReceiptSelector';
-import DragAndDropProvider from '../components/DragAndDrop/Provider';
-import styles from '../styles/styles';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
 
 const propTypes = {
     /** React Navigation route */
@@ -21,16 +21,10 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
-
-    /** The id of the transaction we're editing */
-    transactionID: PropTypes.string,
 };
 
-const defaultProps = {
-    transactionID: '',
-};
-
-function EditRequestReceiptPage({route, transactionID}) {
+function EditRequestReceiptPage({route}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -48,11 +42,7 @@ function EditRequestReceiptPage({route, transactionID}) {
                             title={translate('common.receipt')}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <ReceiptSelector
-                            route={route}
-                            transactionID={transactionID}
-                            isInTabNavigator={false}
-                        />
+                        <IOURequestStepScan route={route} />
                     </View>
                 </DragAndDropProvider>
             )}
@@ -61,7 +51,6 @@ function EditRequestReceiptPage({route, transactionID}) {
 }
 
 EditRequestReceiptPage.propTypes = propTypes;
-EditRequestReceiptPage.defaultProps = defaultProps;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;

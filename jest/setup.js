@@ -1,7 +1,8 @@
-import 'setimmediate';
+import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock';
+import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
-import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock';
+import 'setimmediate';
 import setupMockImages from './setupMockImages';
 
 setupMockImages();

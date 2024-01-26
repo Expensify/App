@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from '../components/Header';
+import Header from '@components/Header';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

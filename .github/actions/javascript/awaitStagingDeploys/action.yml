@@ -8,5 +8,5 @@ inputs:
     description: If provided, this action will only wait for a deploy matching this tag.
     required: false
 runs:
-  using: 'node16'
+  using: 'node20'
   main: './index.js'

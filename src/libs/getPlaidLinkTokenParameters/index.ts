@@ -1,6 +1,6 @@
-import ROUTES from '../../ROUTES';
-import CONFIG from '../../CONFIG';
-import GetPlaidLinkTokenParameters from './types';
+import CONFIG from '@src/CONFIG';
+import ROUTES from '@src/ROUTES';
+import type GetPlaidLinkTokenParameters from './types';
 
 const getPlaidLinkTokenParameters: GetPlaidLinkTokenParameters = () => {
     const bankAccountRoute = window.location.href.includes('personal') ? ROUTES.BANK_ACCOUNT_PERSONAL : ROUTES.BANK_ACCOUNT;

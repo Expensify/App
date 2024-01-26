@@ -1,7 +1,7 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import reportPropTypes from '../../reportPropTypes';
-import ShareCodePage from '../../ShareCodePage';
+import React from 'react';
+import reportPropTypes from '@pages/reportPropTypes';
+import ShareCodePage from '@pages/ShareCodePage';
 import withReportOrNotFound from './withReportOrNotFound';
 
 const propTypes = {
@@ -28,4 +28,4 @@ function ReportDetailsShareCodePage(props) {
 ReportDetailsShareCodePage.propTypes = propTypes;
 ReportDetailsShareCodePage.defaultProps = defaultProps;
 
-export default withReportOrNotFound(ReportDetailsShareCodePage);
+export default withReportOrNotFound()(ReportDetailsShareCodePage);

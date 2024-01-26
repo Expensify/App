@@ -28,10 +28,11 @@ const Airship = {
         enableUserNotifications: () => Promise.resolve(false),
         clearNotifications: jest.fn(),
         getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false}),
+        getActiveNotifications: () => Promise.resolve([]),
     },
     contact: {
         identify: jest.fn(),
-        getNamedUserId: jest.fn(),
+        getNamedUserId: () => Promise.resolve(undefined),
         reset: jest.fn(),
     },
 };

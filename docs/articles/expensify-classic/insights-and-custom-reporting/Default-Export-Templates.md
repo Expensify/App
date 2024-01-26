@@ -20,7 +20,7 @@ Below is a breakdown of the available default templates.
 3. Click the **Export to** in the top right corner
 4. Select the export template you’d like to use
 
-# FAQ
+{% include faq-begin.md %}
 ## Why are my numbers exporting in a weird format? 
 Do your numbers look something like this: 1.7976931348623157e+308? This means that your spreadsheet program is formatting long numbers in an exponential or scientific format. If that happens, you can correct it by changing the data to Plain Text or a Number in your spreadsheet program. 
 ## Why are my leading zeros missing?
@@ -28,3 +28,4 @@ Is the export showing “1” instead of “01”? This means that your spreadsh
 ## I want a report that is not in the default list, how can I build that?
 For a guide on building your own custom template check out Exports > Custom Exports in the Help pages!
 
+{% include faq-end.md %}

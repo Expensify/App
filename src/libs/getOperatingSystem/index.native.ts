@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
-import CONST from '../../CONST';
-import GetOperatingSystem from './types';
+import CONST from '@src/CONST';
+import type GetOperatingSystem from './types';
 
 /**
  * Reads the current operating system for native platforms.

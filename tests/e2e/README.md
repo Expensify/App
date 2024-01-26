@@ -2,7 +2,7 @@
 
 This directory contains the scripts and configuration files for running the
 performance regression tests. These tests are called E2E tests because they
-run the app on a real device (physical or emulated).
+run the actual app on a real device (physical or emulated).
 
 ![Example of a e2e test run](https://raw.githubusercontent.com/hannojg/expensify-app/5f945c25e2a0650753f47f3f541b984f4d114f6d/e2e/example.gif)
 
@@ -70,7 +70,7 @@ components:
 - The tests themselves :
   - The tests are located in `src/libs/E2E/tests`
   - As opposed to other test frameworks, the tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
-  - For the tests there is a custom entry for react native, located in `src/libs/E2E/reactNativeLaunchingTest.js`
+  - For the tests there is a custom entry for react native, located in `src/libs/E2E/reactNativeLaunchingTest.ts`
 
 - The test runner:
     - Orchestrates the test suite.
@@ -85,13 +85,13 @@ components:
 
 - Client:
   - Client-side code (app) for communication with the test server.
-  - Located in `src/libs/E2E/client.js`.
+  - Located in `src/libs/E2E/client.ts`.
 
 
 ## How a test gets executed
 
 There exists a custom android entry point for the app, which is used for the e2e tests.
-The entry file used is `src/libs/E2E/reactNativeEntry.js`, and here we can add our test case.
+The entry file used is `src/libs/E2E/reactNativeEntry.ts`, and here we can add our test case.
 
 The test case should only execute its test once. The _test runner_ is responsible for running the
 test multiple time to average out the results.
@@ -116,6 +116,18 @@ from one test (e.g. measuring multiple things at the same time).
 
 To finish a test call `E2EClient.submitTestDone()`.
 
+## Network calls
+
+Network calls can add a variance to the test results. To mitigate this in the past we used to provide mocks for the API
+calls. However, this is not a realistic scenario, as we want to test the app in a realistic environment.
+
+Now we have a module called `NetworkInterceptor`. The interceptor will intercept all network calls and will
+cache the request and response. The next time the same request is made, it will return the cached response.
+
+When writing a test you usually don't need to care about this, as the interceptor is enabled by default.
+However, look out for "!!! Missed cache hit for url" logs when developing your test. This can indicate a bug
+with the NetworkInterceptor where a request should have been cached but wasn't (which would introduce variance in your test!).
+
 
 ## Android specifics
 
@@ -128,7 +140,7 @@ Therefore, a customized release build type is needed, which is called `e2eReleas
 text traffic enabled but works otherwise just like a release build.
 
 In addition to that, another entry file will be used (instead of `index.js`). The entry file used is
-`src/libs/E2E/reactNativeEntry.js`. By using a custom entry file we avoid bundling any e2e testing code
+`src/libs/E2E/reactNativeEntry.ts`. By using a custom entry file we avoid bundling any e2e testing code
 into the actual release app.
 
 For the app to detect that it is currently running e2e tests, an environment variable called `E2E_TESTING=true` must

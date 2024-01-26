@@ -1,6 +1,6 @@
 # Overview
 
-The navigation in the App consists of a top-level Stack Navigator (called `RootStack`) with each of its `Screen` components handling different high-level flow. All those flows can be seen in `AuthScreens.js` file.
+The navigation in the App consists of a top-level Stack Navigator (called `RootStack`) with each of its `Screen` components handling different high-level flow. All those flows can be seen in `AuthScreens.tsx` file.
 
 ## Terminology
 
@@ -20,11 +20,11 @@ Navigation Actions - User actions correspond to resulting navigation actions tha
 
 ## Adding RHP flows
 
-Most of the time, if you want to add some of the flows concerning one of your reports, e.g. `Money Request` from a user, you will most probably use `RightModalNavigator.js` and `ModalStackNavigators.js` file:
+Most of the time, if you want to add some of the flows concerning one of your reports, e.g. `Money Request` from a user, you will most probably use `RightModalNavigator.tsx` and `ModalStackNavigators.tsx` file:
 
-- Since each of those flows is kind of a modal stack, if you want to add a page to the existing flow, you should just add a page to the correct stack in `ModalStackNavigators.js`.
+- Since each of those flows is kind of a modal stack, if you want to add a page to the existing flow, you should just add a page to the correct stack in `ModalStackNavigators.tsx`.
 
-- If you want to create new flow, add a `Screen` in `RightModalNavigator.js` and make new modal in `ModalStackNavigators.js` with chosen pages.
+- If you want to create new flow, add a `Screen` in `RightModalNavigator.tsx` and make new modal in `ModalStackNavigators.tsx` with chosen pages.
 
 When creating RHP flows, you have to remember a couple things:
 
@@ -40,13 +40,36 @@ When creating RHP flows, you have to remember a couple things:
 
 An example of adding `Settings_Workspaces` page:
 
-1. Add path to `ROUTES.js`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/ROUTES.js#L36
+1. Add the page name to `SCREENS.ts` which will be reused throughout the app (linkingConfig, navigators, etc.):
+    
+```ts
+const SCREENS = {
+    SETTINGS: {
+        WORKSPACES: 'Settings_Workspaces',
+    },
+} as const;
+```
 
-2. Add `Settings_Workspaces` page to proper RHP flow in `linkingConfig.js`: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/libs/Navigation/linkingConfig.js#L40-L42
+2. Add path to `ROUTES.ts`: https://github.com/Expensify/App/blob/main/src/ROUTES.ts
 
-3. Add your page to proper navigator (it should be aligned with where you've put it in the previous step) https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/libs/Navigation/AppNavigator/ModalStackNavigators.js#L334-L338
+```ts
+export const ROUTES = {
+    // static route
+    SETTINGS_WORKSPACES: 'settings/workspaces',
+    // dynamic route
+    SETTINGS_WORKSPACES: {
+        route: 'settings/:accountID',
+        getRoute: (accountID: number) => `settings/${accountID}` as const,
+    },
+};
 
-4. Make sure `HeaderWithBackButton` leads to the previous page in navigation flow of your page: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/pages/workspace/WorkspacesListPage.js#L186
+```
+
+3. Add `Settings_Workspaces` page to proper RHP flow in `linkingConfig.ts`: https://github.com/Expensify/App/blob/fbc11ca729ffa4676fb3bc8cd110ac3890debff6/src/libs/Navigation/linkingConfig.ts#L47-L50
+
+4. Add your page to proper navigator (it should be aligned with where you've put it in the previous step) https://github.com/Expensify/App/blob/fbc11ca729ffa4676fb3bc8cd110ac3890debff6/src/libs/Navigation/AppNavigator/ModalStackNavigators.js#L141
+
+5. Make sure `HeaderWithBackButton` leads to the previous page in navigation flow of your page: https://github.com/Expensify/App/blob/3531af22dcadaa94ed11eccf370517dca0b8c305/src/pages/workspace/WorkspacesListPage.js#L186
 
 ## Performance solutions
 

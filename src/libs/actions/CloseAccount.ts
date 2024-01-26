@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Clear CloseAccount error message to hide modal

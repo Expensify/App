@@ -1,9 +1,10 @@
-import React, {ComponentType, ForwardRefExoticComponent, ForwardedRef, PropsWithoutRef, ReactNode, RefAttributes, createContext, forwardRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
-import {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '../ONYXKEYS';
-import ChildrenProps from '../types/utils/ChildrenProps';
+import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
+import React, {createContext, forwardRef, useContext} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {OnyxCollectionKey, OnyxKey, OnyxKeyValue, OnyxValues} from '@src/ONYXKEYS';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type OnyxKeys = (OnyxKey | OnyxCollectionKey) & keyof OnyxValues;
 
@@ -29,7 +30,12 @@ type WithOnyxKey<TOnyxKey extends OnyxKeys> = <TNewOnyxKey extends string = TOny
 ) => WrapComponentWithConsumer<TNewOnyxKey, TTransformedValue>;
 
 // createOnyxContext return type
-type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [WithOnyxKey<TOnyxKey>, ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>, React.Context<OnyxKeyValue<TOnyxKey>>];
+type CreateOnyxContext<TOnyxKey extends OnyxKeys> = [
+    WithOnyxKey<TOnyxKey>,
+    ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>,
+    React.Context<OnyxKeyValue<TOnyxKey>>,
+    () => OnyxValues[TOnyxKey],
+];
 
 export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey): CreateOnyxContext<TOnyxKey> => {
     const Context = createContext<OnyxKeyValue<TOnyxKey>>(null);
@@ -77,5 +83,13 @@ export default <TOnyxKey extends OnyxKeys>(onyxKeyName: TOnyxKey): CreateOnyxCon
         };
     }
 
-    return [withOnyxKey, ProviderWithOnyx, Context];
+    const useOnyxContext = () => {
+        const value = useContext(Context);
+        if (value === null) {
+            throw new Error(`useOnyxContext must be used within a OnyxProvider [key: ${onyxKeyName}]`);
+        }
+        return value;
+    };
+
+    return [withOnyxKey, ProviderWithOnyx, Context, useOnyxContext];
 };

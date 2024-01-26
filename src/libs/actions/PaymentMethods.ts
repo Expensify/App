@@ -1,36 +1,42 @@
 import {createRef} from 'react';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import ONYXKEYS, {OnyxValues} from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import * as CardUtils from '../CardUtils';
-import ROUTES from '../../ROUTES';
-import {FilterMethodPaymentType} from '../../types/onyx/WalletTransfer';
-import PaymentMethod from '../../types/onyx/PaymentMethod';
+import type {MutableRefObject} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {ValueOf} from 'type-fest';
+import type {TransferMethod} from '@components/KYCWall/types';
+import * as API from '@libs/API';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {BankAccountList, FundList} from '@src/types/onyx';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
-    continue?: () => void;
+    continueAction?: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => void;
 };
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
  */
-const kycWallRef = createRef<KYCWallRef>();
+const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
 function continueSetup(fallbackRoute = ROUTES.HOME) {
-    if (!kycWallRef.current?.continue) {
+    if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
     }
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack(fallbackRoute);
-    kycWallRef.current.continue();
+    kycWallRef.current.continueAction();
 }
 
 function openWalletPage() {
@@ -81,7 +87,7 @@ function getMakeDefaultPaymentOnyxData(
                   key: ONYXKEYS.USER_WALLET,
                   value: {
                       walletLinkedAccountID: bankAccountID || fundID,
-                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
                       errors: null,
                   },
@@ -91,7 +97,7 @@ function getMakeDefaultPaymentOnyxData(
                   key: ONYXKEYS.USER_WALLET,
                   value: {
                       walletLinkedAccountID: bankAccountID || fundID,
-                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
+                      walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
               },
     ];
@@ -99,7 +105,7 @@ function getMakeDefaultPaymentOnyxData(
     if (previousPaymentMethod?.methodID) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
+            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
                     isDefault: !isOptimisticData,
@@ -111,7 +117,7 @@ function getMakeDefaultPaymentOnyxData(
     if (currentPaymentMethod?.methodID) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
+            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
                     isDefault: isOptimisticData,
@@ -214,7 +220,7 @@ function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
-        setupComplete: true,
+        setupComplete: false,
     });
 }
 
@@ -223,7 +229,8 @@ function clearDebitCardFormErrorAndSubmit() {
  *
  */
 function transferWalletBalance(paymentMethod: PaymentMethod) {
-    const paymentMethodIDKey = paymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
+    const paymentMethodIDKey =
+        paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.PAYMENT_METHOD_ID_KEYS.BANK_ACCOUNT : CONST.PAYMENT_METHOD_ID_KEYS.DEBIT_CARD;
 
     type TransferWalletBalanceParameters = Partial<Record<ValueOf<typeof CONST.PAYMENT_METHOD_ID_KEYS>, number | undefined>>;
 
@@ -303,7 +310,7 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxValues[typeof ONYXKEYS.BANK_ACCOUNT_LIST], fundList: OnyxValues[typeof ONYXKEYS.FUND_LIST]): boolean {
+function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>): boolean {
     const combinedPaymentMethods = {...bankList, ...fundList};
 
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);

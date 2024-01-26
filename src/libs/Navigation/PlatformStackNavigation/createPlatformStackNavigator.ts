@@ -1,7 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
 
-function createPlatformStackNavigator() {
-    return createStackNavigator();
-}
+const createPlatformStackNavigator: typeof createStackNavigator = () => createStackNavigator();
 
 export default createPlatformStackNavigator;

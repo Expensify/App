@@ -1,5 +1,5 @@
 import React from 'react';
-import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

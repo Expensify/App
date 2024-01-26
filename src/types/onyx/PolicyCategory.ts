@@ -19,4 +19,6 @@ type PolicyCategory = {
     origin: string;
 };
 
-export default PolicyCategory;
+type PolicyCategories = Record<string, PolicyCategory>;
+
+export type {PolicyCategory, PolicyCategories};

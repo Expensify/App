@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
-import * as PersistedRequests from '../actions/PersistedRequests';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import * as Request from '@libs/Request';
+import * as RequestThrottle from '@libs/RequestThrottle';
+import * as PersistedRequests from '@userActions/PersistedRequests';
+import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ActiveClientManager from '../ActiveClientManager';
-import * as Request from '../Request';
-import * as RequestThrottle from '../RequestThrottle';
-import CONST from '../../CONST';
-import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
-import OnyxRequest from '../../types/onyx/Request';
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
 let isReadyPromise = new Promise((resolve) => {
@@ -160,7 +160,7 @@ NetworkStore.onReconnection(flush);
 
 function push(request: OnyxRequest) {
     // Add request to Persisted Requests so that it can be retried if it fails
-    PersistedRequests.save([request]);
+    PersistedRequests.save(request);
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
@@ -176,7 +176,7 @@ function push(request: OnyxRequest) {
     flush();
 }
 
-function getCurrentRequest(): OnyxRequest | Promise<void> {
+function getCurrentRequest(): Promise<void> {
     if (currentRequest === null) {
         return Promise.resolve();
     }

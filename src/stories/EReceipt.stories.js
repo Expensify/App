@@ -1,8 +1,8 @@
 /* eslint-disable rulesdir/prefer-actions-set-data */
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import EReceipt from '../components/EReceipt';
-import ONYXKEYS from '../ONYXKEYS';
+import EReceipt from '@components/EReceipt';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const transactionData = {
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_1`]: {

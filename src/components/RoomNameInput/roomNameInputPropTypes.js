@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {withNavigationFocusPropTypes} from '../withNavigationFocus';
+import refPropTypes from '@components/refPropTypes';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -15,7 +15,7 @@ const propTypes = {
     errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** A ref forwarded to the TextInput */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The ID used to uniquely identify the input in a Form */
     inputID: PropTypes.string,
@@ -29,7 +29,8 @@ const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
 
-    ...withNavigationFocusPropTypes,
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {

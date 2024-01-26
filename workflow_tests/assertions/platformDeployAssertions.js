@@ -13,15 +13,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 };
 
 const assertDeployChecklistJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'DEPLOY_CHECKLIST', 'Checkout'),
-        utils.createStepAssertion('Setup Node', true, null, 'DEPLOY_CHECKLIST', 'Setup Node'),
-        utils.createStepAssertion('Set version', true, null, 'DEPLOY_CHECKLIST', 'Set version'),
-        utils.createStepAssertion('Create or update staging deploy', true, null, 'DEPLOY_CHECKLIST', 'Create or update staging deploy', [
-            {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'NPM_VERSION', value: '1.2.3'},
-        ]),
-    ];
+    const steps = [utils.createStepAssertion('deployChecklist', true, null, 'DEPLOY_CHECKLIST', 'Run deployChecklist')];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -37,6 +29,18 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
         utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out'),
         utils.createStepAssertion('Configure MapBox SDK', true, null, 'ANDROID', 'Configure MapBox SDK'),
         utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setting up Node'),
+        utils.createStepAssertion(
+            'Setup Java',
+            true,
+            null,
+            'ANDROID',
+            'Setup Java',
+            [
+                {key: 'distribution', value: 'oracle'},
+                {key: 'java-version', value: '17'},
+            ],
+            [],
+        ),
         utils.createStepAssertion('Setup Ruby', true, null, 'ANDROID', 'Setting up Ruby', [
             {key: 'ruby-version', value: '2.7'},
             {key: 'bundler-cache', value: 'true'},
@@ -63,6 +67,10 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
     );
     if (!isProduction) {
         steps.push(
+            utils.createStepAssertion('Upload Android version to GitHub artifacts', true, null, 'ANDROID', 'Upload Android version to GitHub artifacts', [
+                {key: 'name', value: 'app-production-release.aab'},
+                {key: 'path', value: 'android/app/build/outputs/bundle/productionRelease/app-production-release.aab'},
+            ]),
             utils.createStepAssertion('Upload Android version to Browser Stack', true, null, 'ANDROID', 'Uploading Android version to Browser Stack', null, [
                 {key: 'BROWSERSTACK', value: '***'},
             ]),
@@ -162,7 +170,8 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
             {key: 'max_attempts', value: '5'},
             {key: 'command', value: 'cd ios && bundle exec pod install'},
         ]),
-        utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore Notification Service profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypting certificate', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt App Store Connect API key', true, null, 'IOS', 'Decrypting App Store API key', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
     ];
@@ -183,7 +192,13 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         ]),
     );
     if (!isProduction) {
-        steps.push(utils.createStepAssertion('Upload iOS version to Browser Stack', true, null, 'IOS', 'Uploading version to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]));
+        steps.push(
+            utils.createStepAssertion('Upload iOS version to GitHub artifacts', true, null, 'IOS', 'Upload iOS version to GitHub artifacts', [
+                {key: 'name', value: 'New Expensify.ipa'},
+                {key: 'path', value: '/Users/runner/work/App/App/New Expensify.ipa'},
+            ]),
+            utils.createStepAssertion('Upload iOS version to Browser Stack', true, null, 'IOS', 'Uploading version to Browser Stack', null, [{key: 'BROWSERSTACK', value: '***'}]),
+        );
     } else {
         steps.push(
             utils.createStepAssertion('Set iOS version in ENV', true, null, 'IOS', 'Setting iOS version'),
@@ -229,8 +244,9 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         utils.createStepAssertion('Setup Node', true, null, 'WEB', 'Setting up Node'),
         utils.createStepAssertion('Setup Cloudflare CLI', true, null, 'WEB', 'Setting up Cloudflare CLI'),
         utils.createStepAssertion('Configure AWS Credentials', true, null, 'WEB', 'Configuring AWS credentials', [
-            {key: 'AWS_ACCESS_KEY_ID', value: '***'},
-            {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+            {key: 'aws-access-key-id', value: '***'},
+            {key: 'aws-secret-access-key', value: '***'},
+            {key: 'aws-region', value: 'us-east-1'},
         ]),
     ];
     if (isProduction) {

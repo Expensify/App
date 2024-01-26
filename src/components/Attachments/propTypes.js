@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 const attachmentSourcePropType = PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]);
 const attachmentFilePropType = PropTypes.shape({
-    name: PropTypes.string,
+    name: PropTypes.string.isRequired,
 });
 
 const attachmentPropType = PropTypes.shape({
@@ -13,7 +13,7 @@ const attachmentPropType = PropTypes.shape({
     source: attachmentSourcePropType.isRequired,
 
     /** File object can be an instance of File or Object */
-    file: attachmentFilePropType,
+    file: attachmentFilePropType.isRequired,
 });
 
 const attachmentsPropType = PropTypes.arrayOf(attachmentPropType);

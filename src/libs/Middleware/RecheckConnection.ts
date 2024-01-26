@@ -1,6 +1,6 @@
-import CONST from '../../CONST';
-import NetworkConnection from '../NetworkConnection';
-import Middleware from './types';
+import NetworkConnection from '@libs/NetworkConnection';
+import CONST from '@src/CONST';
+import type Middleware from './types';
 
 /**
  * @returns cancel timer

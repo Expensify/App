@@ -1,16 +1,16 @@
-import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import * as LottieAnimations from '../../components/LottieAnimations';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import _ from 'underscore';
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as PaymentMethods from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import userWalletPropTypes from './userWalletPropTypes';
-import CONST from '../../CONST';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import walletTermsPropTypes from './walletTermsPropTypes';
-import ConfirmationPage from '../../components/ConfirmationPage';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -25,6 +25,7 @@ const propTypes = {
 const defaultProps = {
     userWallet: {},
     walletTerms: {
+        source: '',
         chatReportID: 0,
     },
 };
@@ -32,7 +33,15 @@ const defaultProps = {
 function ActivateStep(props) {
     const isActivatedWallet = _.contains([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM], props.userWallet.tierName);
     const animation = isActivatedWallet ? LottieAnimations.Fireworks : LottieAnimations.ReviewingBankInfo;
-    const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
+    let continueButtonText = '';
+
+    if (props.walletTerms.chatReportID) {
+        continueButtonText = props.translate('activateStep.continueToPayment');
+    } else if (props.walletTerms.source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET) {
+        continueButtonText = props.translate('common.continue');
+    } else {
+        continueButtonText = props.translate('activateStep.continueToTransfer');
+    }
 
     return (
         <>
@@ -43,7 +52,7 @@ function ActivateStep(props) {
                 description={props.translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
                 shouldShowButton={isActivatedWallet}
                 buttonText={continueButtonText}
-                onButtonPress={PaymentMethods.continueSetup}
+                onButtonPress={() => PaymentMethods.continueSetup()}
             />
         </>
     );

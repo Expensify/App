@@ -1,33 +1,14 @@
-import React from 'react';
-import {SvgProps} from 'react-native-svg';
-import emojis, {localeEmojis} from '../../assets/emojis';
-import Trie from './Trie';
+import emojis, {localeEmojis} from '@assets/emojis';
+import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
+import CONST from '@src/CONST';
 import Timing from './actions/Timing';
-import CONST from '../CONST';
-
-type Emoji = {
-    code: string;
-    header?: boolean;
-    icon?: React.FC<SvgProps>;
-    name?: string;
-    types?: string[];
-};
-
-type LocalizedEmoji = {
-    name?: string;
-    keywords: string[];
-};
-
-type LocalizedEmojis = Record<string, LocalizedEmoji>;
-
-type Suggestion = {
-    code: string;
-    types?: string[];
-    name?: string;
-};
+import Trie from './Trie';
 
 type EmojiMetaData = {
-    suggestions?: Suggestion[];
+    suggestions?: Emoji[];
+    code?: string;
+    types?: string[];
+    name?: string;
 };
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
@@ -77,41 +58,39 @@ function getNameParts(name: string): string[] {
 
 function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
     const trie = new Trie();
-    const langEmojis: LocalizedEmojis = localeEmojis[lang];
-    const defaultLangEmojis: LocalizedEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
+    const langEmojis = localeEmojis[lang];
+    const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
-    emojis.forEach((item: Emoji) => {
-        if (!item.name) {
-            return;
-        }
+    emojis
+        .filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header)
+        .forEach((item: Emoji) => {
+            const englishName = item.name;
+            const localeName = langEmojis?.[item.code]?.name ?? englishName;
 
-        const englishName = item.name;
-        const localeName = langEmojis?.[item.code]?.name ?? englishName;
+            const node = trie.search(localeName);
+            if (!node) {
+                trie.add(localeName, {code: item.code, types: item.types, name: localeName, suggestions: []});
+            } else {
+                trie.update(localeName, {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions});
+            }
 
-        const node = trie.search(localeName);
-        if (!node) {
-            trie.add(localeName, {code: item.code, types: item.types, name: localeName, suggestions: []});
-        } else {
-            trie.update(localeName, {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions});
-        }
+            const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
+            addKeywordsToTrie(trie, nameParts, item, localeName);
 
-        const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
-        addKeywordsToTrie(trie, nameParts, item, localeName);
+            // Add keywords for both the locale language and English to enable users to search using either language.
+            const keywords = (langEmojis?.[item.code]?.keywords ?? []).concat(isDefaultLocale ? [] : defaultLangEmojis?.[item.code]?.keywords ?? []);
+            addKeywordsToTrie(trie, keywords, item, localeName);
 
-        // Add keywords for both the locale language and English to enable users to search using either language.
-        const keywords = (langEmojis?.[item.code]?.keywords ?? []).concat(isDefaultLocale ? [] : defaultLangEmojis?.[item.code]?.keywords ?? []);
-        addKeywordsToTrie(trie, keywords, item, localeName);
-
-        /**
-         * If current language isn't the default, prepend the English name of the emoji in the suggestions as well.
-         * We do this because when the user types the english name of the emoji, we want to show the emoji in the suggestions before all the others.
-         */
-        if (!isDefaultLocale) {
-            const englishNameParts = getNameParts(englishName);
-            addKeywordsToTrie(trie, englishNameParts, item, localeName, true);
-        }
-    });
+            /**
+             * If current language isn't the default, prepend the English name of the emoji in the suggestions as well.
+             * We do this because when the user types the english name of the emoji, we want to show the emoji in the suggestions before all the others.
+             */
+            if (!isDefaultLocale) {
+                const englishNameParts = getNameParts(englishName);
+                addKeywordsToTrie(trie, englishNameParts, item, localeName, true);
+            }
+        });
 
     return trie;
 }
@@ -121,3 +100,4 @@ const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev,
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
+export type {SupportedLanguage};

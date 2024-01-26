@@ -1,7 +1,7 @@
-import {Component} from 'react';
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import KeyboardShortcut from '../libs/KeyboardShortcut';
+import {Component} from 'react';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Children to render. */

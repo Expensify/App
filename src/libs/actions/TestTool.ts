@@ -1,7 +1,7 @@
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let isTestToolsModalOpen = false;
 Onyx.connect({

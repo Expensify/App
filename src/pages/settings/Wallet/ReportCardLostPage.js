@@ -1,36 +1,41 @@
-import React, {useState, useEffect} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import styles from '../../../styles/styles';
-import ONYXKEYS from '../../../ONYXKEYS';
-import SingleOptionSelector from '../../../components/SingleOptionSelector';
-import useLocalize from '../../../hooks/useLocalize';
-import Text from '../../../components/Text';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import usePrivatePersonalDetails from '../../../hooks/usePrivatePersonalDetails';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SingleOptionSelector from '@components/SingleOptionSelector';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import * as CardActions from '@userActions/Card';
+import * as FormActions from '@userActions/FormActions';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import * as CardUtils from '../../../libs/CardUtils';
-import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import NotFoundPage from '../../ErrorPage/NotFoundPage';
-import usePrevious from '../../../hooks/usePrevious';
-import * as FormActions from '../../../libs/actions/FormActions';
-import * as CardActions from '../../../libs/actions/Card';
-import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
+
+const OPTIONS_KEYS = {
+    DAMAGED: 'damaged',
+    STOLEN: 'stolen',
+};
 
 /** Options for reason selector */
 const OPTIONS = [
     {
-        key: 'damaged',
+        key: OPTIONS_KEYS.DAMAGED,
         label: 'reportCardLostOrDamaged.cardDamaged',
     },
     {
-        key: 'stolen',
+        key: OPTIONS_KEYS.STOLEN,
         label: 'reportCardLostOrDamaged.cardLostOrStolen',
     },
 ];
@@ -85,6 +90,7 @@ function ReportCardLostPage({
     },
     formData,
 }) {
+    const styles = useThemeStyles();
     usePrivatePersonalDetails();
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain];
@@ -106,7 +112,7 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARDS.getRoute(domain));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
     }, [domain, formData.isLoading, prevIsLoading, physicalCard.errors]);
 
     useEffect(() => {
@@ -155,6 +161,8 @@ function ReportCardLostPage({
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 
+    const isDamaged = reason && reason.key === OPTIONS_KEYS.DAMAGED;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -177,14 +185,18 @@ function ReportCardLostPage({
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                                 numberOfLinesTitle={2}
                             />
-                            <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.currentCardInfo')}</Text>
+                            {isDamaged ? (
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
+                            ) : (
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
+                            )}
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={shouldShowAddressError}
                             onSubmit={handleSubmitSecondStep}
                             message={translate('reportCardLostOrDamaged.addressError')}
                             isLoading={formData.isLoading}
-                            buttonText={translate('reportCardLostOrDamaged.deactivateCardButton')}
+                            buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
                         />
                     </>
                 ) : (

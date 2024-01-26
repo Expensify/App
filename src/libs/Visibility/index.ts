@@ -1,5 +1,5 @@
 import {AppState} from 'react-native';
-import {HasFocus, IsVisible, OnVisibilityChange} from './types';
+import type {HasFocus, IsVisible, OnVisibilityChange} from './types';
 
 /**
  * Detects whether the app is visible or not.

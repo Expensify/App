@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type Login = {
     /** Phone/Email associated with user */
@@ -10,11 +10,17 @@ type Login = {
     /** Date login was validated, used to show info indicator status */
     validatedDate?: string;
 
+    /** Whether the user validation code was sent */
+    validateCodeSent?: boolean;
+
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
 
     /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.ErrorFields;
+    pendingFields?: OnyxCommon.PendingFields;
 };
 
+type LoginList = Record<string, Login>;
+
 export default Login;
+export type {LoginList};

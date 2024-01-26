@@ -1,37 +1,41 @@
-import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
-import _ from 'underscore';
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import * as Policy from '../../libs/actions/Policy';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import Button from '../../components/Button';
-import ROUTES from '../../ROUTES';
-import ConfirmModal from '../../components/ConfirmModal';
-import personalDetailsPropType from '../personalDetailsPropType';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
-import CONST from '../../CONST';
-import {withNetwork} from '../../components/OnyxProvider';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import networkPropTypes from '../../components/networkPropTypes';
-import * as UserUtils from '../../libs/UserUtils';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import usePrevious from '../../hooks/usePrevious';
-import Log from '../../libs/Log';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import SelectionList from '../../components/SelectionList';
-import Text from '../../components/Text';
-import * as Browser from '../../libs/Browser';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MessagesRow from '@components/MessagesRow';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as UserUtils from '@libs/UserUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
+import {policyDefaultProps, policyPropTypes} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -71,6 +75,7 @@ const defaultProps = {
 };
 
 function WorkspaceMembersPage(props) {
+    const styles = useThemeStyles();
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
@@ -81,6 +86,14 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(() => () => (SearchInputManager.searchInput = ''), []);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -289,6 +302,7 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
         let result = [];
@@ -350,7 +364,7 @@ function WorkspaceMembersPage(props) {
                     details.login === props.policy.owner ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                     !_.isEmpty(policyMember.errors),
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 rightElement: isAdmin ? (
                     <View style={[styles.badge, styles.peopleBadge]}>
@@ -360,12 +374,16 @@ function WorkspaceMembersPage(props) {
                 icons: [
                     {
                         source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
+                        name: props.formatPhoneNumber(details.login),
                         type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
                     },
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
+
+                // Note which secondary login was used to invite this primary login
+                invitedSecondaryLogin: invitedPrimaryToSecondaryLogins[details.login] || '',
             });
         });
 
@@ -382,6 +400,20 @@ function WorkspaceMembersPage(props) {
         return searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
     };
 
+    const getHeaderContent = () => {
+        if (_.isEmpty(invitedPrimaryToSecondaryLogins)) {
+            return null;
+        }
+        return (
+            <MessagesRow
+                type="success"
+                messages={{0: props.translate('workspace.people.addedWithPrimary')}}
+                containerStyles={[styles.pb5, styles.ph5]}
+                onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
+            />
+        );
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -389,7 +421,7 @@ function WorkspaceMembersPage(props) {
             testID={WorkspaceMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={((_.isEmpty(props.policy) || !PolicyUtils.isPolicyAdmin(props.policy)) && !props.isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(props.policy)}
+                shouldShow={(_.isEmpty(props.policy) && !props.isLoadingReportData) || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy)}
                 subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
@@ -444,14 +476,19 @@ function WorkspaceMembersPage(props) {
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
+                            headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
                             showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(props.personalDetails) || _.isEmpty(props.policyMembers))}
                             showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             inputRef={textInputRef}
                         />
                     </View>
@@ -468,7 +505,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {

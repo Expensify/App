@@ -1,13 +1,13 @@
-import React, {useCallback, useState, forwardRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
+import React, {forwardRef, useCallback, useImperativeHandle, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import MagicCodeInput from '../../../../../components/MagicCodeInput';
-import * as ErrorUtils from '../../../../../libs/ErrorUtils';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import compose from '../../../../../libs/compose';
-import * as ValidationUtils from '../../../../../libs/ValidationUtils';
-import * as Session from '../../../../../libs/actions/Session';
+import MagicCodeInput from '@components/MagicCodeInput';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -88,7 +88,7 @@ function BaseTwoFactorAuthForm(props) {
             autoComplete={props.autoComplete}
             textContentType="oneTimeCode"
             label={props.translate('common.twoFactorCode')}
-            nativeID="twoFactorAuthCode"
+            id="twoFactorAuthCode"
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
@@ -103,17 +103,19 @@ function BaseTwoFactorAuthForm(props) {
 BaseTwoFactorAuthForm.propTypes = propTypes;
 BaseTwoFactorAuthForm.defaultProps = defaultProps;
 
+const BaseTwoFactorAuthFormWithRef = forwardRef((props, ref) => (
+    <BaseTwoFactorAuthForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+BaseTwoFactorAuthFormWithRef.displayName = 'BaseTwoFactorAuthFormWithRef';
+
 export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
-)(
-    forwardRef((props, ref) => (
-        <BaseTwoFactorAuthForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+)(BaseTwoFactorAuthFormWithRef);

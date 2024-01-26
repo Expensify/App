@@ -1,28 +1,30 @@
-import React, {useMemo} from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import React, {useMemo} from 'react';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as Report from '../../../libs/actions/Report';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import useLocalize from '../../../hooks/useLocalize';
-import Text from '../../../components/Text';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import reportPropTypes from '../../reportPropTypes';
-import withReportOrNotFound from '../../home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import ROUTES from '../../../ROUTES';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import MenuItem from '../../../components/MenuItem';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DisplayNames from '@components/DisplayNames';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import {getGroupChatName} from '@libs/GroupChatUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Route params */
@@ -53,6 +55,7 @@ const defaultProps = {
 };
 
 function ReportSettingsPage(props) {
+    const styles = useThemeStyles();
     const {report, policies} = props;
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
@@ -60,9 +63,8 @@ function ReportSettingsPage(props) {
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    // We only want policy owners and admins to be able to modify the welcome message.
-    const shouldDisableWelcomeMessage =
-        isMoneyRequestReport || ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+    // We only want policy owners and admins to be able to modify the welcome message, but not in thread chat
+    const shouldDisableWelcomeMessage = ReportUtils.shouldDisableWelcomeMessage(report, linkedWorkspace);
 
     const shouldDisableSettings = _.isEmpty(report) || ReportUtils.isArchivedRoom(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
@@ -73,11 +75,11 @@ function ReportSettingsPage(props) {
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-    const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(report) && !isMoneyRequestReport;
+    const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.getReportName(props.report);
+    const reportName = ReportUtils.isGroupChat(props.report) ? getGroupChatName(props.report) : ReportUtils.getReportName(props.report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -112,12 +114,13 @@ function ReportSettingsPage(props) {
                                     >
                                         {roomNameLabel}
                                     </Text>
-                                    <Text
+                                    <DisplayNames
+                                        fullTitle={reportName}
+                                        tooltipEnabled
                                         numberOfLines={1}
-                                        style={[styles.optionAlternateText, styles.pre]}
-                                    >
-                                        {reportName}
-                                    </Text>
+                                        textStyles={[styles.optionAlternateText, styles.pre]}
+                                        shouldUseFullTitle
+                                    />
                                 </View>
                             ) : (
                                 <MenuItemWithTopDescription
@@ -162,12 +165,13 @@ function ReportSettingsPage(props) {
                                 >
                                     {translate('workspace.common.workspace')}
                                 </Text>
-                                <Text
+                                <DisplayNames
+                                    fullTitle={linkedWorkspace.name}
+                                    tooltipEnabled
                                     numberOfLines={1}
-                                    style={[styles.optionAlternateText, styles.pre]}
-                                >
-                                    {linkedWorkspace.name}
-                                </Text>
+                                    textStyles={[styles.optionAlternateText, styles.pre]}
+                                    shouldUseFullTitle
+                                />
                             </View>
                         )}
                         {Boolean(report.visibility) && (
@@ -206,7 +210,7 @@ ReportSettingsPage.propTypes = propTypes;
 ReportSettingsPage.defaultProps = defaultProps;
 ReportSettingsPage.displayName = 'ReportSettingsPage';
 export default compose(
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

@@ -1,8 +1,9 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../styles/styles';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 const propTypes = {
@@ -14,12 +15,13 @@ const propTypes = {
         PropTypes.shape({
             code: PropTypes.string.isRequired,
             index: PropTypes.number.isRequired,
-            icon: PropTypes.func.isRequired,
+            icon: sourcePropTypes.isRequired,
         }),
     ).isRequired,
 };
 
 function CategoryShortcutBar(props) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.ph4, styles.flexRow]}>
             {_.map(props.headerEmojis, (headerEmoji, i) => (

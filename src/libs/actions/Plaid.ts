@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
-import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
+import * as API from '@libs/API';
+import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
+import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -28,7 +28,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
             value: {
                 plaidAccountID: '',
             },

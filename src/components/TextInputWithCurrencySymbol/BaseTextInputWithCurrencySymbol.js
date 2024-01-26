@@ -1,15 +1,17 @@
 import React from 'react';
-import AmountTextInput from '../AmountTextInput';
-import CurrencySymbolButton from '../CurrencySymbolButton';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import useLocalize from '../../hooks/useLocalize';
-import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
+import AmountTextInput from '@components/AmountTextInput';
+import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import * as textInputWithCurrencySymbolPropTypes from './textInputWithCurrencySymbolPropTypes';
 
 function BaseTextInputWithCurrencySymbol(props) {
     const {fromLocaleDigit} = useLocalize();
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(props.selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(props.selectedCurrencyCode);
+    const styles = useThemeStyles();
 
     const currencySymbolButton = (
         <CurrencySymbolButton
@@ -39,6 +41,7 @@ function BaseTextInputWithCurrencySymbol(props) {
                 props.onSelectionChange(e);
             }}
             onKeyPress={props.onKeyPress}
+            style={[styles.pr1]}
         />
     );
 
@@ -63,10 +66,14 @@ BaseTextInputWithCurrencySymbol.propTypes = textInputWithCurrencySymbolPropTypes
 BaseTextInputWithCurrencySymbol.defaultProps = textInputWithCurrencySymbolPropTypes.defaultProps;
 BaseTextInputWithCurrencySymbol.displayName = 'BaseTextInputWithCurrencySymbol';
 
-export default React.forwardRef((props, ref) => (
+const BaseTextInputWithCurrencySymbolWithRef = React.forwardRef((props, ref) => (
     <BaseTextInputWithCurrencySymbol
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+BaseTextInputWithCurrencySymbolWithRef.displayName = 'BaseTextInputWithCurrencySymbolWithRef';
+
+export default BaseTextInputWithCurrencySymbolWithRef;

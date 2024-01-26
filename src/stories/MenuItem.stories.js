@@ -1,7 +1,7 @@
 import React from 'react';
-import MenuItem from '../components/MenuItem';
-import Chase from '../../assets/images/bankicons/chase.svg';
-import variables from '../styles/variables';
+import Chase from '@assets/images/bankicons/chase.svg';
+import MenuItem from '@components/MenuItem';
+import variables from '@styles/variables';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -128,6 +128,17 @@ BrickRoadIndicatorFailure.args = {
     brickRoadIndicator: 'error',
 };
 
+const ErrorMessage = Template.bind({});
+ErrorMessage.args = {
+    title: 'Alberta Bobbeth Charleson',
+    icon: Chase,
+    iconHeight: variables.iconSizeExtraLarge,
+    iconWidth: variables.iconSizeExtraLarge,
+    shouldShowRightIcon: true,
+    errorText: 'Error text which describes the error',
+    brickRoadIndicator: 'error',
+};
+
 export default story;
 export {
     Default,
@@ -141,4 +152,5 @@ export {
     BrickRoadIndicatorSuccess,
     BrickRoadIndicatorFailure,
     RightIconAndDescriptionWithLabel,
+    ErrorMessage,
 };
