@@ -35,7 +35,6 @@ function AttachmentViewPdf(props) {
             if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled) {
                 const translateX = Math.abs(evt.allTouches[0].absoluteX - offsetX.value);
                 const translateY = Math.abs(evt.allTouches[0].absoluteY - offsetY.value);
-
                 const allowEnablingScroll = !isPanRunning.value || isScrollEnabled.value;
 
                 // if the value of X is greater than Y and the pdf is not zoomed in,
