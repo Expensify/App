@@ -157,6 +157,7 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
                         <MenuItem
                             label={translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
+                            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                             icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
