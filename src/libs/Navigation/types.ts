@@ -185,9 +185,11 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CONFIRMATION]: {
+    [SCREENS.MONEY_REQUEST.CURRENCY]: {
         iouType: string;
         reportID: string;
+        currency: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.DATE]: {
         iouType: string;
