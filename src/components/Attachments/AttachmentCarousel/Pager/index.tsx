@@ -75,6 +75,10 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
         [isScrollEnabled, onRequestToggleArrows],
     );
 
+    /**
+     * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
+     * It is used to trigger touch events on the pager when the user taps on the MultiGestureCanvas/Lightbox.
+     */
     const onTap = useCallback(() => {
         if (!isScrollEnabled.value) {
             return;
