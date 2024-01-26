@@ -553,7 +553,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

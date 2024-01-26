@@ -1,3 +1,5 @@
+import type * as OnyxTypes from './index';
+
 type OnfidoData = Record<string, unknown>;
 
 type BankAccountStepProps = {
@@ -71,5 +73,7 @@ type ReimbursementAccountDraft = BankAccountStepProps &
     ReimbursementAccountProps &
     BeneficialOwnerDraftData;
 
+type ReimbursementAccountFormDraft = ReimbursementAccountDraft & OnyxTypes.Form;
+
 export default ReimbursementAccountDraft;
-export type {ACHContractStepProps, BeneficialOwnersStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps, BeneficialOwnerDraftData};
+export type {ACHContractStepProps,BeneficialOwnersStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps, ReimbursementAccountFormDraft, BeneficialOwnerDraftData};
