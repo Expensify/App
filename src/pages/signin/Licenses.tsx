@@ -3,25 +3,26 @@ import {View} from 'react-native';
 import LocalePicker from '@components/LocalePicker';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import useLocalize from "@hooks/useLocalize";
 
 const currentYear = new Date().getFullYear();
 
-function Licenses(props) {
+function Licenses() {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     return (
         <>
             <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>{`© ${currentYear} Expensify`}</Text>
             <Text style={[styles.textExtraSmallSupporting]}>
-                {props.translate('termsOfUse.phrase5')}
+                {translate('termsOfUse.phrase5')}
                 <TextLink
                     style={[styles.textExtraSmallSupporting, styles.link]}
                     href={CONST.LICENSES_URL}
                 >
                     {' '}
-                    {props.translate('termsOfUse.phrase6')}
+                    {translate('termsOfUse.phrase6')}
                 </TextLink>
                 .
             </Text>
@@ -32,7 +33,6 @@ function Licenses(props) {
     );
 }
 
-Licenses.propTypes = {...withLocalizePropTypes};
 Licenses.displayName = 'Licenses';
 
-export default withLocalize(Licenses);
+export default Licenses;
