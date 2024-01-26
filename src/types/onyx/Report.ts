@@ -121,6 +121,7 @@ type Report = {
     visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
+    errors?: OnyxCommon.Errors;
     managerEmail?: string;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
@@ -158,6 +159,7 @@ type Report = {
     updateReportInLHN?: boolean;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
+    selected?: boolean;
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, string>;
@@ -165,4 +167,4 @@ type Report = {
 
 export default Report;
 
-export type {NotificationPreference, WriteCapability};
+export type {NotificationPreference, WriteCapability, Note};
