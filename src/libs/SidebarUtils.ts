@@ -223,13 +223,6 @@ function getOrderedReportIDs(
     return LHNReports;
 }
 
-type ActorDetails = {
-    displayName?: string;
-    firstName?: string;
-    lastName?: string;
-    accountID?: number;
-};
-
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
@@ -338,7 +331,7 @@ function getOptionData({
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: ActorDetails | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
 
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
