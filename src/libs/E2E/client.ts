@@ -1,6 +1,5 @@
 import Config from '../../../tests/e2e/config';
 import Routes from '../../../tests/e2e/server/routes';
-import type {NetworkCacheMap, TestConfig} from './types';
 
 type TestResult = {
     name: string;
@@ -8,6 +7,10 @@ type TestResult = {
     duration?: number;
     error?: string;
     renderCount?: number;
+};
+
+type TestConfig = {
+    name: string;
 };
 
 type NativeCommandPayload = {
@@ -21,31 +24,26 @@ type NativeCommand = {
 
 const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
 
-const defaultHeaders = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'X-E2E-Server-Request': 'true',
-};
-
-const defaultRequestInit: RequestInit = {
-    headers: defaultHeaders,
-};
-
-const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> =>
-    fetch(url, {
+/**
+ * Submits a test result to the server.
+ * Note: a test can have multiple test results.
+ */
+const submitTestResults = (testResult: TestResult): Promise<void> => {
+    console.debug(`[E2E] Submitting test result '${testResult.name}'…`);
+    return fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
         method: 'POST',
         headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'Content-Type': 'application/json',
-            ...defaultHeaders,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(testResult),
     }).then((res) => {
         if (res.status === 200) {
-            return res;
+            console.debug(`[E2E] Test result '${testResult.name}' submitted successfully`);
+            return;
         }
-        const errorMsg = `[E2E] Client failed to send request to "${url}". Returned status: ${res.status}`;
-        return res
-            .json()
+        const errorMsg = `Test result submission failed with status code ${res.status}`;
+        res.json()
             .then((responseText) => {
                 throw new Error(`${errorMsg}: ${responseText}`);
             })
@@ -53,24 +51,14 @@ const sendRequest = (url: string, data: Record<string, unknown>): Promise<Respon
                 throw new Error(errorMsg);
             });
     });
-
-/**
- * Submits a test result to the server.
- * Note: a test can have multiple test results.
- */
-const submitTestResults = (testResult: TestResult): Promise<void> => {
-    console.debug(`[E2E] Submitting test result '${testResult.name}'…`);
-    return sendRequest(`${SERVER_ADDRESS}${Routes.testResults}`, testResult).then(() => {
-        console.debug(`[E2E] Test result '${testResult.name}' submitted successfully`);
-    });
 };
 
-const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`, defaultRequestInit);
+const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
 
 let currentActiveTestConfig: TestConfig | null = null;
 
 const getTestConfig = (): Promise<TestConfig> =>
-    fetch(`${SERVER_ADDRESS}${Routes.testConfig}`, defaultRequestInit)
+    fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
         .then((res: Response): Promise<TestConfig> => res.json())
         .then((config: TestConfig) => {
             currentActiveTestConfig = config;
@@ -79,30 +67,27 @@ const getTestConfig = (): Promise<TestConfig> =>
 
 const getCurrentActiveTestConfig = () => currentActiveTestConfig;
 
-const sendNativeCommand = (payload: NativeCommand) => {
-    console.debug(`[E2E] Sending native command '${payload.actionName}'…`);
-    return sendRequest(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, payload).then(() => {
-        console.debug(`[E2E] Native command '${payload.actionName}' sent successfully`);
+const sendNativeCommand = (payload: NativeCommand) =>
+    fetch(`${SERVER_ADDRESS}${Routes.testNativeCommand}`, {
+        method: 'POST',
+        headers: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    }).then((res) => {
+        if (res.status === 200) {
+            return true;
+        }
+        const errorMsg = `Sending native command failed with status code ${res.status}`;
+        res.json()
+            .then((responseText) => {
+                throw new Error(`${errorMsg}: ${responseText}`);
+            })
+            .catch(() => {
+                throw new Error(errorMsg);
+            });
     });
-};
-
-const updateNetworkCache = (appInstanceId: string, networkCache: NetworkCacheMap) => {
-    console.debug('[E2E] Updating network cache…');
-    return sendRequest(`${SERVER_ADDRESS}${Routes.testUpdateNetworkCache}`, {
-        appInstanceId,
-        cache: networkCache,
-    }).then(() => {
-        console.debug('[E2E] Network cache updated successfully');
-    });
-};
-
-const getNetworkCache = (appInstanceId: string): Promise<NetworkCacheMap> =>
-    sendRequest(`${SERVER_ADDRESS}${Routes.testGetNetworkCache}`, {appInstanceId})
-        .then((res): Promise<NetworkCacheMap> => res.json())
-        .then((networkCache: NetworkCacheMap) => {
-            console.debug('[E2E] Network cache fetched successfully');
-            return networkCache;
-        });
 
 export default {
     submitTestResults,
@@ -110,6 +95,4 @@ export default {
     getTestConfig,
     getCurrentActiveTestConfig,
     sendNativeCommand,
-    updateNetworkCache,
-    getNetworkCache,
 };

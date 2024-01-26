@@ -1,6 +1,6 @@
 import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
-import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
@@ -54,9 +54,6 @@ type CustomLHNOptionsListProps = {
 
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions?: boolean;
-
-    /** Callback to fire when the list is laid out */
-    onFirstItemRendered: () => void;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;
@@ -129,8 +126,6 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
-
-    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type RenderItemProps = {item: string};

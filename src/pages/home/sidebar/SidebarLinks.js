@@ -70,6 +70,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
+        App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
 
         InteractionManager.runAfterInteractions(() => {
@@ -197,7 +198,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
-                    onFirstItemRendered={App.setSidebarLoaded}
                 />
                 {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.highlightBG]}>
