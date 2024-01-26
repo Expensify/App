@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -9,8 +8,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-const socialsList = [
+type Social = {
+    iconURL: IconAsset,
+    link: string,
+}
+
+const socialsList: Social[] = [
     {
         iconURL: Expensicons.Podcast,
         link: CONST.SOCIALS.PODCAST,
@@ -36,14 +41,17 @@ const socialsList = [
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const getColor = (hovered: boolean, pressed: boolean) => hovered || pressed ? theme.link : theme.textLight;
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
-            {_.map(socialsList, (social) => (
+            {socialsList.map((social: Social) => (
                 <PressableWithoutFeedback
                     key={social.link}
                     href={social.link}
                     onPress={(e) => {
-                        e.preventDefault();
+                        if (e) {
+                            e.preventDefault();
+                        }
                         Link.openExternalLink(social.link);
                     }}
                     accessible={false}
@@ -55,7 +63,7 @@ function Socials() {
                             src={social.iconURL}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
-                            fill={hovered || pressed ? theme.link : theme.textLight}
+                            fill={getColor(hovered, pressed)}
                         />
                     )}
                 </PressableWithoutFeedback>
