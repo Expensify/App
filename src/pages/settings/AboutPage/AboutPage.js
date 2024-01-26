@@ -79,7 +79,7 @@ function AboutPage(props) {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.troubleshooting',
-                icon: Expensicons.Info,
+                icon: Expensicons.Lightbulb,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOTING)),
             },
             {
