@@ -152,7 +152,7 @@ type ReportActionBase = {
     childManagerAccountID?: number;
 
     /** The status of the child report */
-    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -175,7 +175,7 @@ type ReportActionBase = {
 
     /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
