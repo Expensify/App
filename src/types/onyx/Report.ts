@@ -122,7 +122,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         visibleChatMemberAccountIDs?: number[];
         total?: number;
         currency?: string;
-        errors?: OnyxCommon.Errors;managerEmail?: string;
+        errors?: OnyxCommon.Errors;
+        managerEmail?: string;
         parentReportActionIDs?: number[];
         errorFields?: OnyxCommon.ErrorFields;
 
