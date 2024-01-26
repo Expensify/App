@@ -1731,7 +1731,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             value: workspaceChatReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 pendingFields: {
@@ -1741,7 +1741,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
             value: {
                 pendingAction: null,
@@ -1818,14 +1818,14 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
                 pendingAction: null,
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1835,14 +1835,14 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: {
                 pendingAction: null,
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {
                 pendingFields: {
@@ -1852,14 +1852,14 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: {
                 pendingAction: null,
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1869,7 +1869,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: {
                 pendingAction: null,
