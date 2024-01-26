@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
+import {View} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -75,6 +75,41 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
     /**
+     * Sorts sections in the list based on the selection status and whether items are disabled.
+     * Disabled items are moved to the top, followed by selected items, and then unselected items.
+     */
+    const sortedSections = useMemo(() => {
+        // If multiple selection is not allowed, return the original list
+        if (!canSelectMultiple) {
+            return sections;
+        }
+
+        return sections.map((section) => {
+            const disabledItems: TItem[] = [];
+            const selectedItems: TItem[] = [];
+            const unselectedItems: TItem[] = [];
+
+            section.data.forEach((item) => {
+                if (item.isDisabled) {
+                    disabledItems.push(item);
+                } else if (item.isSelected) {
+                    selectedItems.push(item);
+                } else {
+                    unselectedItems.push(item);
+                }
+            });
+
+            // Combine items in the order: disabled, selected, unselected
+            const sortedData = [...disabledItems, ...selectedItems, ...unselectedItems];
+
+            return {
+                ...section,
+                data: sortedData,
+            };
+        });
+    }, [canSelectMultiple, sections]);
+
+    /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
      * - `disabledOptionsIndexes`: Contains the indexes of all the disabled items in the list, to be used by the ArrowKeyFocusManager
@@ -92,7 +127,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
         const selectedOptions: TItem[] = [];
 
-        sections.forEach((section, sectionIndex) => {
+        sortedSections.forEach((section, sectionIndex) => {
             const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
@@ -143,7 +178,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sections]);
+    }, [canSelectMultiple, sortedSections]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
@@ -173,7 +208,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             // Otherwise, it will cause an index-out-of-bounds error and crash the app.
             let adjustedSectionIndex = sectionIndex;
             for (let i = 0; i < sectionIndex; i++) {
-                if (sections[i].data) {
+                if (sortedSections[i].data) {
                     adjustedSectionIndex--;
                 }
             }
@@ -365,7 +400,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
         // set the focus on the first item when the sections list is changed
-        if (sections.length > 0) {
+        if (flattenedSections.allOptions.length > 0) {
             let newSelectedIndex;
 
             if (textInputValue === '') {
@@ -379,13 +414,12 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
             updateAndScrollToFocusedIndex(newSelectedIndex);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         canSelectMultiple,
+        flattenedSections.allOptions.length,
         flattenedSections.disabledOptionsIndexes.length,
         flattenedSections.selectedOptions.length,
-        isInitialSectionListRender,
-        prevTextInputValue,
-        sections,
         textInputValue,
         updateAndScrollToFocusedIndex,
     ]);
@@ -404,35 +438,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         isActive: !disableKeyboardShortcuts && !!onConfirm && isFocused,
     });
-
-    const sortedSections = useMemo(() => {
-        // If multiple selection is not allowed, return the original list
-        if (!canSelectMultiple) {
-            return sections;
-        }
-
-        return _.map(sections, (section) => {
-            const disabledItems = [];
-            const selectedItems = [];
-            const unselectedItems = [];
-
-            section.data.forEach((item) => {
-                if (item.isDisabled) {
-                    disabledItems.push(item);
-                } else if (item.isSelected) {
-                    selectedItems.push(item);
-                } else {
-                    unselectedItems.push(item);
-                }
-            });
-            // Combine items in the order: disabled, selected, unselected
-            const sortedData = [...disabledItems, ...selectedItems, ...unselectedItems];
-            return {
-                ...section,
-                data: sortedData,
-            };
-        });
-    }, [sections, canSelectMultiple]);
 
     return (
         <ArrowKeyFocusManager
