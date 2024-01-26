@@ -104,6 +104,10 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
         scrollEnabled: isScrollEnabled.value,
     }));
 
+    /**
+     * This "useImperativeHandle" call is needed to expose certain imperative methods via the pager's ref.
+     * setPage: can be used to programmatically change the page from a parent component
+     */
     useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
         ref,
         () => ({
