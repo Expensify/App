@@ -1,10 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {TextInput as RNTextInput} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,66 +15,45 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {IOU as IOUType, Report} from '@src/types/onyx';
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 
-const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-
-            /** Selected currency from IOUCurrencySelection */
-            currency: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
-
-    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+type NewRequestAmountPageOnyxProps = {
+    iou: OnyxEntry<IOUType>;
+    report: OnyxEntry<Report>;
+    selectedTab: OnyxEntry<string>;
 };
 
-const defaultProps = {
-    report: {},
-    iou: iouDefaultProps,
-    selectedTab: CONST.TAB_REQUEST.MANUAL,
-};
+type NewRequestAmountPageProps = NewRequestAmountPageOnyxProps & StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.AMOUNT>;
 
-function NewRequestAmountPage({route, iou, report, selectedTab}) {
+function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const prevMoneyRequestID = useRef(iou.id);
-    const textInput = useRef(null);
+    const prevMoneyRequestID = useRef(iou?.id);
+    const textInput = useRef<RNTextInput | null>(null);
 
-    const iouType = lodashGet(route, 'params.iouType', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
+    const iouType = route.params.iouType ?? '';
+    const reportID = route.params.reportID ?? '';
     const isEditing = Navigation.getActiveRoute().includes('amount');
-    const currentCurrency = lodashGet(route, 'params.currency', '');
-    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
+    const currentCurrency = route.params.currency ?? '';
+    const isDistanceRequestTab = MoneyRequestUtils.isDistanceRequest(iouType as ValueOf<typeof CONST.IOU.TYPE>, selectedTab as ValueOf<typeof CONST.TAB_REQUEST>);
 
-    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
+    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou?.currency ?? '';
 
-    const focusTimeoutRef = useRef(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => {
+                textInput.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -88,29 +68,29 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     useEffect(() => {
         if (isEditing) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-            if (prevMoneyRequestID.current !== iou.id) {
+            if (prevMoneyRequestID.current !== iou?.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
-                if (!iou.id) {
+                if (!iou?.id) {
                     return;
                 }
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
-            const shouldReset = iou.id !== moneyRequestID;
+            const shouldReset = iou?.id !== moneyRequestID;
             if (shouldReset) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
-            if (!isDistanceRequestTab && (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset)) {
+            if (!isDistanceRequestTab && (!iou?.participants?.length || iou?.amount === 0 || shouldReset)) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID), true);
             }
         }
 
         return () => {
-            prevMoneyRequestID.current = iou.id;
+            prevMoneyRequestID.current = iou?.id;
         };
-    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID, isDistanceRequestTab]);
+    }, [isEditing, iouType, reportID, isDistanceRequestTab, iou]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
@@ -128,7 +108,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
-    const navigateToNextPage = ({amount}) => {
+    const navigateToNextPage = ({amount}: {amount: string}) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
@@ -138,15 +118,18 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             return;
         }
 
-        IOU.navigateToNextPage(iou, iouType, report);
+        IOU.navigateToNextPage(iou ?? {}, iouType, report ?? {});
     };
 
     const content = (
         <MoneyRequestAmountForm
+            // @ts-expect-error TODO: Remove this once MoneyRequestAmountForm (https://github.com/Expensify/App/issues/32004) is migrated to TypeScript.
             isEditing={isEditing}
             currency={currency}
-            amount={iou.amount}
-            ref={(e) => (textInput.current = e)}
+            amount={iou?.amount}
+            ref={(e) => {
+                textInput.current = e;
+            }}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
             selectedTab={selectedTab}
@@ -180,14 +163,12 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
     );
 }
 
-NewRequestAmountPage.propTypes = propTypes;
-NewRequestAmountPage.defaultProps = defaultProps;
 NewRequestAmountPage.displayName = 'NewRequestAmountPage';
 
-export default withOnyx({
+export default withOnyx<NewRequestAmountPageProps, NewRequestAmountPageOnyxProps>({
     iou: {key: ONYXKEYS.IOU},
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? ''}`,
     },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,

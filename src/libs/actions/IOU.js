@@ -3626,7 +3626,6 @@ function setUpDistanceTransaction() {
  * @param {Object} iou
  * @param {String} iouType
  * @param {Object} report
- * @param {String} report.reportID
  * @param {String} path
  */
 function navigateToNextPage(iou, iouType, report, path = '') {
