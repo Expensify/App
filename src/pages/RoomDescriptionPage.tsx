@@ -21,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
@@ -111,4 +110,4 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
 
 RoomDescriptionPage.displayName = 'RoomDescriptionPage';
 
-export default withReportOrNotFound()(RoomDescriptionPage);
+export default RoomDescriptionPage;

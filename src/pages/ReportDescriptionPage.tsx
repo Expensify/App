@@ -1,25 +1,24 @@
-import PropTypes from 'prop-types';
+import type {RouteProp} from '@react-navigation/native';
 import React from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
+import type * as OnyxTypes from '@src/types/onyx';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import reportPropTypes from './reportPropTypes';
 import RoomDescriptionPage from './RoomDescriptionPage';
 import TaskDescriptionPage from './tasks/TaskDescriptionPage';
 
-const propTypes = {
+type ReportDescriptionPageProps = {
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: OnyxTypes.Report;
+
+    /** Policy for the current report */
+    policies: OnyxCollection<OnyxTypes.Policy>;
 
     /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** Report ID passed via route r/:reportID/roomDescription */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+    route: RouteProp<{params: {reportID: string}}>;
 };
 
-function ReportDescriptionPage(props) {
+function ReportDescriptionPage(props: ReportDescriptionPageProps) {
     const isTask = ReportUtils.isTaskReport(props.report);
 
     if (isTask) {
@@ -32,6 +31,5 @@ function ReportDescriptionPage(props) {
 }
 
 ReportDescriptionPage.displayName = 'ReportDescriptionPage';
-ReportDescriptionPage.propTypes = propTypes;
 
 export default withReportOrNotFound()(ReportDescriptionPage);
