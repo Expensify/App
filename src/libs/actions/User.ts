@@ -22,6 +22,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -490,6 +491,7 @@ function subscribeToUserEvents() {
         //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (Array.isArray(pushJSON)) {
+            Log.warn('Received pusher event with array format');
             pushJSON.forEach((multipleEvent) => {
                 PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
             });
