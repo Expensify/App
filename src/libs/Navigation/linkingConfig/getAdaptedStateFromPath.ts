@@ -20,6 +20,7 @@ type Metainfo = {
     // If the screens in the bottom tab and central pane are not mandatory for this state, we want to have this information.
     // It will help us later with creating proper diff betwen current and desired state.
     isCentralPaneAndBottomTabMandatory: boolean;
+    isFullScreenNavigatorMandatory: boolean;
 };
 
 type GetAdaptedStateReturnType = {
@@ -134,6 +135,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const isSmallScreenWidth = getIsSmallScreenWidth();
     const metainfo = {
         isCentralPaneAndBottomTabMandatory: true,
+        isFullScreenNavigatorMandatory: true,
     };
 
     // We need to check what is defined to know what we need to add.
@@ -158,6 +160,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
             if (!matchingRootRoute) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
+                metainfo.isFullScreenNavigatorMandatory = false;
                 matchingRootRoute = createCentralPaneNavigator({name: SCREENS.REPORT});
             }
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
@@ -177,7 +180,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default bottom tab
         // - default central pane on desktop layout
         // - found lhp
+
+        // Currently there is only the search and workspace switcher in LHP both can have any central pane under the overlay.
         metainfo.isCentralPaneAndBottomTabMandatory = false;
+        metainfo.isFullScreenNavigatorMandatory = false;
         const routes = [];
         routes.push(
             createBottomTabNavigator(
@@ -206,6 +212,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default bottom tab
         // - default central pane on desktop layout
         // - found fullscreen
+
+        // Full screen navigator can have any central pane and bottom tab under. They will be covered anyway.
+        metainfo.isCentralPaneAndBottomTabMandatory = false;
+
         const routes = [];
         routes.push(
             createBottomTabNavigator(
@@ -271,12 +281,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 }
 
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
-    const url = getPathWithoutPolicyID(path);
+    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
     const isAnonymous = isAnonymousUser();
     // Anonymous users don't have access to workspaces
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
-    const state = getStateFromPath(url, options) as PartialState<NavigationState<RootStackParamList>>;
+    const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
     replacePathInNestedState(state, path);
 
     if (state === undefined) {
@@ -286,3 +297,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
 };
 
 export default getAdaptedStateFromPath;
+export type {Metainfo};
