@@ -53,7 +53,7 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
 
     Object.keys(allReports).forEach((report) => {
-        const policyID = allReports?.[report]?.policyID;
+        const policyID = allReports?.[report]?.policyID ?? CONST.POLICY.EMPTY;
         const policyReport = allReports ? allReports[report] : null;
         if (!policyID || !policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
             return;

@@ -1325,6 +1325,7 @@ const CONST = {
             REIMBURSEMENT_MANUAL: 'reimburseManual',
         },
         ID_FAKE: '_FAKE_',
+        EMPTY: 'EMPTY',
     },
 
     CUSTOM_UNITS: {
