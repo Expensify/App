@@ -24,7 +24,7 @@ type BaseReactionListProps = ReactionListProps & {
     /**
      * Returns true if the current account has reacted to the report action (with the given skin tone).
      */
-    hasUserReacted: boolean;
+    hasUserReacted?: boolean;
 
     /**
      * Returns true if the reaction list is visible
@@ -40,10 +40,10 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
     offset: variables.listItemHeightNormal * index,
 });
 
-function BaseReactionList(props: BaseReactionListProps) {
+function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
-    if (!props.isVisible) {
+    if (!isVisible) {
         return null;
     }
 
@@ -59,7 +59,7 @@ function BaseReactionList(props: BaseReactionListProps) {
             style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
             hoverStyle={hoveredComponentBG}
             onSelectRow={() => {
-                props.onClose?.();
+                onClose?.();
 
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
             }}
@@ -84,14 +84,13 @@ function BaseReactionList(props: BaseReactionListProps) {
     return (
         <>
             <HeaderReactionList
-                onClose={props.onClose}
-                emojiName={props.emojiName}
-                emojiCodes={props.emojiCodes}
-                emojiCount={props.emojiCount}
-                hasUserReacted={props.hasUserReacted}
+                emojiName={emojiName}
+                emojiCodes={emojiCodes}
+                emojiCount={emojiCount}
+                hasUserReacted={hasUserReacted}
             />
             <FlatList
-                data={props.users}
+                data={users}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 getItemLayout={getItemLayout}

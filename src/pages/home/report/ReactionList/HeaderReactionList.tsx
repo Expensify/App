@@ -8,12 +8,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type ReactionListProps from './types';
 
-type HeaderReactionListProps = ReactionListProps & {
+type HeaderReactionListProps = Omit<ReactionListProps, 'onClose'> & {
     /** Returns true if the current account has reacted to the report action (with the given skin tone). */
-    hasUserReacted: boolean;
+    hasUserReacted?: boolean;
 };
 
-function HeaderReactionList(props: HeaderReactionListProps) {
+function HeaderReactionList({emojiCodes, emojiCount, emojiName, hasUserReacted = false}: HeaderReactionListProps) {
     const {
         flexRow,
         justifyContentBetween,
@@ -32,11 +32,11 @@ function HeaderReactionList(props: HeaderReactionListProps) {
     return (
         <View style={[flexRow, justifyContentBetween, alignItemsCenter, emojiReactionListHeader, !isSmallScreenWidth && pt4]}>
             <View style={flexRow}>
-                <View style={[emojiReactionListHeaderBubble, getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
-                    <Text style={[miniQuickEmojiReactionText, getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
-                    <Text style={[reactionCounterText, getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
+                <View style={[emojiReactionListHeaderBubble, getEmojiReactionBubbleStyle(false, hasUserReacted)]}>
+                    <Text style={[miniQuickEmojiReactionText, getEmojiReactionBubbleTextStyle(true)]}>{emojiCodes.join('')}</Text>
+                    <Text style={[reactionCounterText, getEmojiReactionCounterTextStyle(hasUserReacted)]}>{emojiCount}</Text>
                 </View>
-                <Text style={reactionListHeaderText}>{`:${EmojiUtils.getLocalizedEmojiName(props.emojiName, preferredLocale)}:`}</Text>
+                <Text style={reactionListHeaderText}>{`:${EmojiUtils.getLocalizedEmojiName(emojiName, preferredLocale)}:`}</Text>
             </View>
         </View>
     );
