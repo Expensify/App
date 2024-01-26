@@ -189,10 +189,6 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CONFIRMATION]: {
-        iouType: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.CURRENCY]: {
         iouType: string;
         reportID: string;
@@ -338,14 +334,7 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.VIEW]: {
-        reportID: string;
-        accountID: string;
-    };
-    [SCREENS.PRIVATE_NOTES.LIST]: {
-        reportID: string;
-        accountID: string;
-    };
+    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
