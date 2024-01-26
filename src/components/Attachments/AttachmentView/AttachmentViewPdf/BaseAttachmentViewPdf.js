@@ -59,6 +59,12 @@ function BaseAttachmentViewPdf({
         [attachmentCarouselPagerContext, isUsedInCarousel, onScaleChangedProp],
     );
 
+    /**
+     * This callback is used to pass-through the onPress event from the AttachmentViewPdf's props
+     * as well trigger the onTap event from the context.
+     * The onTap event should only be triggered, if the pager is currently scrollable.
+     * Otherwise it means that the PDF is currently zoomed in, therefore the onTap callback should be ignored
+     */
     const onPress = useCallback(
         (e) => {
             if (onPressProp !== undefined) {
