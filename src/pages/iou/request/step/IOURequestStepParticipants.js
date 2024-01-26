@@ -87,13 +87,16 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom
         >
-            <MoneyRequestParticipantsSelector
-                participants={participants}
-                onParticipantsAdded={addParticipant}
-                onFinish={goToNextStep}
-                iouType={iouType}
-                iouRequestType={iouRequestType}
-            />
+            {({didScreenTransitionEnd}) => (
+                <MoneyRequestParticipantsSelector
+                    participants={participants}
+                    onParticipantsAdded={addParticipant}
+                    onFinish={goToNextStep}
+                    iouType={iouType}
+                    iouRequestType={iouRequestType}
+                    didScreenTransitionEnd={didScreenTransitionEnd}
+                />
+            )}
         </StepScreenWrapper>
     );
 }
