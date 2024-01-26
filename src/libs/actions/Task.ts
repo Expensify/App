@@ -767,7 +767,6 @@ function deleteTask(taskReportID: string, taskTitle: string, originalStateNum: n
         ],
         errors: undefined,
         linkMetadata: [],
-        reportActionID: '',
     };
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: optimisticReportAction,
