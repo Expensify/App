@@ -66,7 +66,6 @@ function App() {
                     PopoverContextProvider,
                     CurrentReportIDContextProvider,
                     ReportAttachmentsProvider,
-                    // @ts-expect-error TODO: Remove this once ReactChild is replaced with ReactNode in react-native-picker-select.
                     PickerStateProvider,
                     EnvironmentProvider,
                     CustomStatusBarAndBackgroundContextProvider,
