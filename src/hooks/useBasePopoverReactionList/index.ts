@@ -11,7 +11,6 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const reactionListRef = useRef<ReactionListAnchor>(null);
 
-    // custom methods
     function getReactionInformation() {
         const selectedReaction = emojiReactions?.[emojiName];
 
@@ -41,8 +40,6 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
     /**
      * Get the BasePopoverReactionList anchor position
      * We calculate the achor coordinates from measureInWindow async method
-     *
-     * @returns promise<object>
      */
     function getReactionListMeasuredLocation(): Promise<{x: number; y: number}> {
         return new Promise((resolve) => {
