@@ -4233,9 +4233,8 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return true;
     }
 
-    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
-    // Still, we only want policy owners and admins to be able to modify the name.
-    return !Object.keys(loginList ?? {}).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+    // If there is a linked workspace, that means the user is a member of the workspace the report is in and is allowed to rename.
+    return false;
 }
 
 /**
