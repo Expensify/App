@@ -27,7 +27,6 @@ function BackgroundImage(props) {
 
     return (
         <View style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width), {height: windowHeight}]}>
-            <View style={styles.signInBackgroundTopView}/>
             <Image
                 source={src}
                 style={styles.signInBackgroundImage}

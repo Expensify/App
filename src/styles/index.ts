@@ -1263,13 +1263,11 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             top: 0,
             left: 0,
+            backgroundColor: colors.productDark200,
+            justifyContent: "flex-end"
         },
 
-        signInBackgroundTopView: {
-            flex: 1,
-            width: '100%',
-            backgroundColor: colors.productDark200
-        },
+
         signInBackgroundImage: {
             height: 700,
         },
