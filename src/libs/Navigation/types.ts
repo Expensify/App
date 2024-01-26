@@ -135,7 +135,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
-        taskID: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: undefined;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
@@ -198,10 +198,6 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.ROOT]: undefined;
     [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
-        iouType: string;
-        reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.CONFIRMATION]: {
         iouType: string;
         reportID: string;
     };
@@ -339,7 +335,9 @@ type SignInNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.REFERRAL_DETAILS]: undefined;
+    [SCREENS.REFERRAL_DETAILS]: {
+        contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+    };
 };
 
 type ProcessMoneyRequestHoldNavigatorParamList = {
@@ -347,14 +345,7 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.VIEW]: {
-        reportID: string;
-        accountID: string;
-    };
-    [SCREENS.PRIVATE_NOTES.LIST]: {
-        reportID: string;
-        accountID: string;
-    };
+    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
@@ -431,6 +422,15 @@ type AuthScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
         source: string;
+    };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;

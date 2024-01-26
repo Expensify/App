@@ -10,11 +10,12 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type Download from './Download';
-import type {AddDebitCardForm, DateOfBirthForm, GetPhysicalCardForm} from './Form';
+import type {AddDebitCardForm, DateOfBirthForm, DisplayNameForm, GetPhysicalCardForm, IKnowATeacherForm, IntroSchoolPrincipalForm, NewRoomForm, PrivateNotesForm} from './Form';
 import type Form from './Form';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type IntroSelected from './IntroSelected';
 import type IOU from './IOU';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
@@ -31,7 +32,7 @@ import type Policy from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
-import type PolicyReportField from './PolicyReportField';
+import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
@@ -40,6 +41,7 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type ReimbursementAccountDraft from './ReimbursementAccountDraft';
+import type {ReimbursementAccountFormDraft} from './ReimbursementAccountDraft';
 import type Report from './Report';
 import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
@@ -57,6 +59,7 @@ import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
+import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserWallet from './UserWallet';
@@ -71,6 +74,7 @@ export type {
     Account,
     AccountData,
     AddDebitCardForm,
+    DisplayNameForm,
     BankAccount,
     BankAccountList,
     Beta,
@@ -87,6 +91,7 @@ export type {
     Fund,
     FundList,
     GetPhysicalCardForm,
+    IntroSelected,
     IOU,
     Locale,
     Login,
@@ -113,6 +118,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     ReimbursementAccountDraft,
+    ReimbursementAccountFormDraft,
     Report,
     ReportAction,
     ReportActionReactions,
@@ -129,6 +135,7 @@ export type {
     Task,
     Transaction,
     TransactionViolation,
+    TransactionViolations,
     User,
     UserLocation,
     UserWallet,
@@ -141,5 +148,10 @@ export type {
     WalletTransfer,
     ReportUserIsTyping,
     PolicyReportField,
+    PolicyReportFields,
     RecentlyUsedReportFields,
+    NewRoomForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    PrivateNotesForm,
 };
