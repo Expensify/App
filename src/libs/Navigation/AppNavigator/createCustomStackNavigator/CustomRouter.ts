@@ -50,7 +50,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
         // We will generate a template state and compare the current state with it.
         // If there is a differences in the screens that should be visible under the overlay, we will add the screen from templateState to the current state.
         const pathFromCurrentState = getPathFromState(state, linkingConfig.config);
-        const templateState = getAdaptedStateFromPath(pathFromCurrentState, linkingConfig.config);
+        const {adaptedState: templateState} = getAdaptedStateFromPath(pathFromCurrentState, linkingConfig.config);
 
         if (!templateState) {
             return;

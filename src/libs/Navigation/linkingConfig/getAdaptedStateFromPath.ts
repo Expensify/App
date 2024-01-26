@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -15,8 +14,24 @@ import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForSta
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './replacePathInNestedState';
 
+type Metainfo = {
+    // Sometimes modal screens doesn't have information about what should be visible under the overlay.
+    // That means such screen can have different screens under the overlay depending on what was already in the state.
+    // If the screens in the bottom tab and central pane are not mandatory for this state, we want to have this information.
+    // It will help us later with creating proper diff betwen current and desired state.
+    isCentralPaneAndBottomTabMandatory: boolean;
+    isFullScreenNavigatorMandatory: boolean;
+};
+
+type GetAdaptedStateReturnType = {
+    adaptedState: ReturnType<typeof getStateFromPath>;
+    metainfo: Metainfo;
+};
+
+type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) => GetAdaptedStateReturnType;
+
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
-const getRoutesWithIndex = (routes: NavigationPartialRoute[]) => ({routes, index: routes.length - 1});
+const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
 const addPolicyIdToRoute = (route: NavigationPartialRoute, policyID?: string) => {
     const routeWithPolicyID = {...route};
@@ -71,7 +86,9 @@ function createFullScreenNavigator(route: NavigationPartialRoute<FullScreenName>
 }
 
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
-function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<typeof NAVIGATORS.CENTRAL_PANE_NAVIGATOR | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> {
+function getMatchingRootRouteForRHPRoute(
+    route: NavigationPartialRoute,
+): NavigationPartialRoute<typeof NAVIGATORS.CENTRAL_PANE_NAVIGATOR | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
@@ -112,13 +129,14 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
             return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
         }
     }
-
-    // Default route
-    return createCentralPaneNavigator({name: SCREENS.REPORT, params: route.params});
 }
 
-function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string) {
+function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>>, policyID?: string): GetAdaptedStateReturnType {
     const isSmallScreenWidth = getIsSmallScreenWidth();
+    const metainfo = {
+        isCentralPaneAndBottomTabMandatory: true,
+        isFullScreenNavigatorMandatory: true,
+    };
 
     // We need to check what is defined to know what we need to add.
     const bottomTabNavigator = state.routes.find((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
@@ -137,7 +155,14 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         const routes = [];
 
         if (topmostNestedRHPRoute) {
-            const matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
+            let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
+
+            // This may happen if this RHP doens't have a route that should be under the overlay defined.
+            if (!matchingRootRoute) {
+                metainfo.isCentralPaneAndBottomTabMandatory = false;
+                metainfo.isFullScreenNavigatorMandatory = false;
+                matchingRootRoute = createCentralPaneNavigator({name: SCREENS.REPORT});
+            }
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: [matchingRootRoute]});
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
@@ -145,13 +170,20 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
 
         routes.push(rhpNavigator);
-        return getRoutesWithIndex(routes);
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+            metainfo,
+        };
     }
     if (lhpNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
         // - found lhp
+
+        // Currently there is only the search and workspace switcher in LHP both can have any central pane under the overlay.
+        metainfo.isCentralPaneAndBottomTabMandatory = false;
+        metainfo.isFullScreenNavigatorMandatory = false;
         const routes = [];
         routes.push(
             createBottomTabNavigator(
@@ -170,13 +202,20 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
         routes.push(lhpNavigator);
 
-        return getRoutesWithIndex(routes);
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+            metainfo,
+        };
     }
     if (fullScreenNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
         // - found fullscreen
+
+        // Full screen navigator can have any central pane and bottom tab under. They will be covered anyway.
+        metainfo.isCentralPaneAndBottomTabMandatory = false;
+
         const routes = [];
         routes.push(
             createBottomTabNavigator(
@@ -191,7 +230,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
         routes.push(fullScreenNavigator);
 
-        return getRoutesWithIndex(routes);
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+            metainfo,
+        };
     }
     if (centralPaneNavigator) {
         // Routes
@@ -202,15 +244,20 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
         routes.push(centralPaneNavigator);
 
-        // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
-        return getRoutesWithIndex(routes);
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+            metainfo,
+        };
     }
     if (bottomTabNavigator) {
         // Routes
         // - found bottom tab
         // - matching central pane on desktop layout
         if (isSmallScreenWidth) {
-            return state;
+            return {
+                adaptedState: state,
+                metainfo,
+            };
         }
 
         const routes = [...state.routes];
@@ -219,27 +266,33 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             routes.push(createCentralPaneNavigator(matchingCentralPaneRoute));
         }
 
-        // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
-        return getRoutesWithIndex(routes);
+        return {
+            adaptedState: getRoutesWithIndex(routes),
+            metainfo,
+        };
     }
 
-    return state;
+    return {
+        adaptedState: state,
+        metainfo,
+    };
 }
 
-const getAdaptedStateFromPath: typeof getStateFromPath = (path, options) => {
-    const url = getPathWithoutPolicyID(path);
+const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
+    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
     const isAnonymous = isAnonymousUser();
     // Anonymous users don't have access to workspaces
     const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
-    const state = getStateFromPath(url, options) as PartialState<NavigationState<RootStackParamList>>;
+    const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootStackParamList>>;
     replacePathInNestedState(state, path);
 
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
-    const adaptedState = getAdaptedState(state, policyID);
-    return adaptedState;
+    return getAdaptedState(state, policyID);
 };
 
 export default getAdaptedStateFromPath;
+export type {Metainfo};

@@ -7,6 +7,8 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
+import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
@@ -14,6 +16,7 @@ import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
+import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './linkingConfig/getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './linkingConfig/replacePathInNestedState';
@@ -185,6 +188,16 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 dismissModal('', navigation);
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
+            // If this RHP has mandatory central pane and bottom tab screens defined we need to push them.
+            const {adaptedState, metainfo} = getAdaptedStateFromPath(path, linkingConfig.config);
+            if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isFullScreenNavigatorMandatory)) {
+                const diff = getPartialStateDiff(rootState, adaptedState as State<RootStackParamList>, metainfo);
+                const diffActions = getActionsFromPartialDiff(diff);
+                for (const diffAction of diffActions) {
+                    root.dispatch(diffAction);
+                }
+            }
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
             // If path contains a policyID, we should invoke the navigate function
