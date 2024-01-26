@@ -392,12 +392,16 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+type DateTimeValidationErrorKeys = {
+    dateValidationErrorKey: string;
+    timeValidationErrorKey: string;
+};
 /**
  * Validates that the date and time are at least one minute in the future.
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -413,6 +417,7 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidati
         timeValidationErrorKey,
     };
 };
+
 type ValuesType = Record<string, unknown>;
 
 /**

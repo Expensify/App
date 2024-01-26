@@ -1,9 +1,10 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Icon} from './OnyxCommon';
 
 type Participant = {
-    accountID?: number;
-    login?: string;
+    accountID: number;
+    login: string;
     displayName?: string;
     isPolicyExpenseChat?: boolean;
     isOwnPolicyExpenseChat?: boolean;
@@ -11,7 +12,15 @@ type Participant = {
     reportID?: string;
     policyID?: string;
     selected?: boolean;
-    text?: string;
+    searchText?: string;
+    alternateText: string;
+    firstName: string;
+    icons: Icon[];
+    keyForList: string;
+    lastName: string;
+    phoneNumber: string;
+    text: string;
+    isSelected?: boolean;
 };
 
 type Split = {

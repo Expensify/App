@@ -178,7 +178,7 @@ type ReportActionBase = {
 
     /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;

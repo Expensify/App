@@ -1197,13 +1197,22 @@ function updateMoneyRequestMerchant(transactionID: string, transactionThreadRepo
     API.write('UpdateMoneyRequestMerchant', params, onyxData);
 }
 
-/** Updates the created date of a money request */
+/** Updates the tag of a money request */
 function updateMoneyRequestTag(transactionID: string, transactionThreadReportID: string, tag: string) {
     const transactionChanges: TransactionChanges = {
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestTag', params, onyxData);
+}
+
+/** Updates the waypoints of a distance money request */
+function updateMoneyRequestDistance(transactionID: string, transactionThreadReportID: string, waypoints) {
+    const transactionChanges: TransactionChanges = {
+        waypoints,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestDistance', params, onyxData);
 }
 
 /** Updates the category of a money request */
@@ -3769,6 +3778,7 @@ export {
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
+    updateMoneyRequestDistance,
     updateMoneyRequestCategory,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestDescription,
