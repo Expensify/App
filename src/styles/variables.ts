@@ -186,6 +186,7 @@ export default {
     bankCardWidth: 40,
     bankCardHeight: 26,
     workspaceTypeIconWidth: 34,
+    sectionMargin: 16,
     workspaceSectionMaxWidth: 600,
     sectionIllustrationHeight: 240,
     photoUploadPopoverWidth: 335,

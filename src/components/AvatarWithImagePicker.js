@@ -34,6 +34,9 @@ const propTypes = {
     /** Additional style props */
     style: stylePropTypes,
 
+    /** Additional style props for disabled picker */
+    disabledStyle: stylePropTypes,
+
     /** Executed once an image has been selected */
     onImageSelected: PropTypes.func,
 
@@ -88,6 +91,14 @@ const propTypes = {
 
     /** Indicates if picker feature should be disabled */
     disabled: PropTypes.bool,
+    /** Executed once click on view photo option */
+    onViewPhotoPress: PropTypes.func,
+
+    /** Where the popover should be positioned relative to the anchor points. */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 };
 
 const defaultProps = {
@@ -95,6 +106,7 @@ const defaultProps = {
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
+    disabledStyle: [],
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
@@ -109,12 +121,18 @@ const defaultProps = {
     previewSource: '',
     originalFileName: '',
     disabled: false,
+    onViewPhotoPress: undefined,
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
 };
 
 function AvatarWithImagePicker({
     isFocused,
     DefaultAvatar,
     style,
+    disabledStyle,
     pendingAction,
     errors,
     errorRowStyles,
@@ -132,6 +150,7 @@ function AvatarWithImagePicker({
     editorMaskImage,
     avatarStyle,
     disabled,
+    onViewPhotoPress,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -314,6 +333,7 @@ function AvatarWithImagePicker({
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || disabled}
+                            disabledStyle={disabledStyle}
                             ref={anchorRef}
                         >
                             <View>
@@ -359,7 +379,13 @@ function AvatarWithImagePicker({
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: show,
+                                        onSelected: () => {
+                                            if (typeof onViewPhotoPress !== 'function') {
+                                                show();
+                                                return;
+                                            }
+                                            onViewPhotoPress();
+                                        },
                                     });
                                 }
 

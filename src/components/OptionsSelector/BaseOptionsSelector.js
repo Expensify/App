@@ -91,7 +91,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: false,
+            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             disableEnterShortCut: false,
@@ -215,11 +215,7 @@ class BaseOptionsSelector extends Component {
 
         const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
 
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
+        return indexOfInitiallyFocusedOption;
     }
 
     /**
@@ -662,9 +658,12 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && (
+                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <ReferralProgramCTA referralContentType={this.props.referralContentType} />
+                        <ReferralProgramCTA
+                            referralContentType={this.props.referralContentType}
+                            onCloseButtonPress={this.handleReferralModal}
+                        />
                     </View>
                 )}
 

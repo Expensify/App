@@ -5,6 +5,7 @@ import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
+import * as Modal from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -42,31 +43,34 @@ export default function subscribeToReportCommentPushNotifications() {
         const report = getReport(reportID.toString());
         const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
 
-        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyID, policyMembersAccountIDs);
+        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID);
 
         Log.info('[PushNotification] onSelected() - called', false, {reportID, reportActionID});
         Navigation.isNavigationReady()
             .then(Navigation.waitForProtectedRoutes)
             .then(() => {
-                try {
-                    // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-                    if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                        Navigation.goBack(ROUTES.HOME);
-                    }
+                // The attachment modal remains open when navigating to the report so we need to close it
+                Modal.close(() => {
+                    try {
+                        // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+                        if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                            Navigation.goBack(ROUTES.HOME);
+                        }
 
-                    Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    if (!reportBelongsToWorkspace) {
-                        Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
-                } catch (error) {
-                    let errorMessage = String(error);
-                    if (error instanceof Error) {
-                        errorMessage = error.message;
-                    }
+                        Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                        if (!reportBelongsToWorkspace) {
+                            Navigation.navigateWithSwitchPolicyID({policyID: undefined, route: ROUTES.HOME});
+                        }
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                    } catch (error) {
+                        let errorMessage = String(error);
+                        if (error instanceof Error) {
+                            errorMessage = error.message;
+                        }
 
-                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
-                }
+                        Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
+                    }
+                });
             });
     });
 }

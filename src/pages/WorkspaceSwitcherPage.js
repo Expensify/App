@@ -177,7 +177,6 @@ function WorkspaceSwitcherPage({policies}) {
                     source: Expensicons.ExpensifyAppIcon,
                     name: CONST.WORKSPACE_SWITCHER.NAME,
                     type: CONST.ICON_TYPE_AVATAR,
-                    displayInDefaultIconColor: true,
                 },
             ],
             brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
@@ -214,10 +213,10 @@ function WorkspaceSwitcherPage({policies}) {
     const workspacesSection = useMemo(
         () => (
             <>
-                <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
+                <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
                     <View>
                         <Text
-                            style={[styles.mt3, styles.label]}
+                            style={styles.label}
                             color={theme.textSupporting}
                         >
                             {translate('common.workspaces')}
@@ -235,6 +234,7 @@ function WorkspaceSwitcherPage({policies}) {
                                 width={12}
                                 height={12}
                                 additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                                fill={theme.icon}
                             />
                         )}
                     </PressableWithFeedback>
@@ -261,6 +261,9 @@ function WorkspaceSwitcherPage({policies}) {
                         showTitleTooltip={false}
                         contentContainerStyles={[styles.pt0, styles.mt0]}
                         textIconLeft={MagnifyingGlass}
+                        // It has to be set to null or -1 to avoid focus on any element at the beggining
+                        initiallyFocusedOptionKey={null}
+                        shouldUseStyleForChildren={false}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />

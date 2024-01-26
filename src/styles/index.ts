@@ -1478,7 +1478,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -2305,6 +2305,8 @@ const styles = (theme: ThemeColors) =>
 
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 400,
+            alignSelf: 'center',
         },
 
         forcedBlockingViewContainer: {
@@ -2945,6 +2947,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',
@@ -2954,18 +2960,18 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
-            borderRadius: 14,
+            borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
-            height: 28,
-            width: 28,
+            height: 40,
+            width: 40,
             justifyContent: 'center',
         },
 
         smallAvatarEditIcon: {
             position: 'absolute',
-            right: -4,
-            bottom: -4,
+            right: -8,
+            bottom: -8,
         },
 
         workspaceOwnerAvatarWrapper: {
@@ -3180,7 +3186,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             gap: 8,
             paddingHorizontal: 24,
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusRounded,
         },
 
@@ -3317,7 +3323,7 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: 16,
+            marginHorizontal: variables.sectionMargin,
         },
 
         cardSectionIllustration: {
@@ -4233,7 +4239,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth,
+            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
         },
 
         workspaceSectionMobile: {

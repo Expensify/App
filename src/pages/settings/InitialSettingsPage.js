@@ -17,7 +17,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
@@ -263,6 +262,7 @@ function InitialSettingsPage(props) {
                                 shouldStackHorizontally={item.shouldStackHorizontally}
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
+                                hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
                                 onSecondaryInteraction={
                                     !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
@@ -275,7 +275,19 @@ function InitialSettingsPage(props) {
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, props.userWallet.currentBalance, isExecuting, singleExecution, activeRoute, waitForNavigate],
+        [
+            styles.pb4,
+            styles.mh3,
+            styles.sectionTitle,
+            styles.sectionMenuItem,
+            styles.hoveredComponentBG,
+            translate,
+            props.userWallet.currentBalance,
+            isExecuting,
+            singleExecution,
+            activeRoute,
+            waitForNavigate,
+        ],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -286,56 +298,44 @@ function InitialSettingsPage(props) {
     const accountID = lodashGet(currentUserDetails, 'accountID', '');
 
     const headerContent = (
-        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter]}>
+        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
                 <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
-                    <Tooltip text={translate('common.profile')}>
-                        <PressableWithoutFeedback
-                            style={styles.mb3}
-                            disabled={isExecuting}
-                            onPress={singleExecution(openProfileSettings)}
-                            accessibilityLabel={translate('common.profile')}
-                            role={CONST.ROLE.BUTTON}
-                        >
-                            <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                <AvatarWithImagePicker
-                                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                                    source={UserUtils.getAvatar(avatarURL, accountID)}
-                                    onImageSelected={PersonalDetails.updateAvatar}
-                                    onImageRemoved={PersonalDetails.deleteAvatar}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                    avatarStyle={styles.avatarXLarge}
-                                    pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                                    errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
-                                    errorRowStyles={[styles.mt6]}
-                                    onErrorClose={PersonalDetails.clearAvatarErrors}
-                                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                                    originalFileName={currentUserDetails.originalFileName}
-                                    headerTitle={props.translate('profilePage.profileAvatar')}
-                                    style={[styles.mh5]}
-                                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
-                                />
-                            </OfflineWithFeedback>
-                        </PressableWithoutFeedback>
-                    </Tooltip>
                     <PressableWithoutFeedback
-                        style={[styles.mt1, styles.w100, styles.mw100]}
+                        style={styles.mb3}
                         disabled={isExecuting}
                         onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        role={CONST.ROLE.LINK}
+                        role={CONST.ROLE.BUTTON}
                     >
-                        <Tooltip text={translate('common.profile')}>
-                            <Text
-                                style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                                numberOfLines={1}
-                            >
-                                {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
-                            </Text>
-                        </Tooltip>
+                        <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                            <AvatarWithImagePicker
+                                isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                                source={UserUtils.getAvatar(avatarURL, accountID)}
+                                onImageSelected={PersonalDetails.updateAvatar}
+                                onImageRemoved={PersonalDetails.deleteAvatar}
+                                size={CONST.AVATAR_SIZE.XLARGE}
+                                avatarStyle={styles.avatarXLarge}
+                                pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                                errorRowStyles={[styles.mt6]}
+                                onErrorClose={PersonalDetails.clearAvatarErrors}
+                                previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                originalFileName={currentUserDetails.originalFileName}
+                                headerTitle={props.translate('profilePage.profileAvatar')}
+                                style={[styles.mh5]}
+                                fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
+                            />
+                        </OfflineWithFeedback>
                     </PressableWithoutFeedback>
+                    <Text
+                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                        numberOfLines={1}
+                    >
+                        {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                    </Text>
                     {Boolean(props.currentUserPersonalDetails.displayName) && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}

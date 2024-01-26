@@ -16,6 +16,7 @@ import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './linkingConfig/getMatchingCentralPaneRouteForState';
+import replacePathInNestedState from './linkingConfig/replacePathInNestedState';
 import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
 type ActionPayloadParams = {
@@ -128,6 +129,21 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
+
+    // Creating path with /w/ included if necessary.
+    const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
+    const policyIdFromState = getPolicyIdFromState(rootState);
+    const policyID = extractedPolicyID ?? policyIdFromState;
+
+    const isWorkspaceSettingsOpened = getTopmostBottomTabRoute(rootState as State<RootStackParamList>)?.name === SCREENS.WORKSPACE.INITIAL && path.includes('workspace');
+
+    if (policyID && !isWorkspaceSettingsOpened) {
+        // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
+        // We need to replace the path in the state with the proper one.
+        // To avoid this hacky solution we may want to create custom getActionFromState function in the future.
+        replacePathInNestedState(stateFromPath, `/w/${policyID}${pathWithoutPolicyID}`);
+    }
+
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
@@ -171,8 +187,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
-            const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
-            const policyID = extractedPolicyID === 'global' ? undefined : extractedPolicyID ?? getPolicyIdFromState(rootState);
             // If path contains a policyID, we should invoke the navigate function
             const shouldNavigate = !!extractedPolicyID;
             const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState, policyID, shouldNavigate);

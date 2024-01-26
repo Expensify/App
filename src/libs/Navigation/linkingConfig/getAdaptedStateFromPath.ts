@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath} from '@react-navigation/native';
+import {isAnonymousUser} from '@libs/actions/Session';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -12,6 +13,7 @@ import config from './config';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
+import replacePathInNestedState from './replacePathInNestedState';
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]) => ({routes, index: routes.length - 1});
@@ -143,7 +145,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
 
         routes.push(rhpNavigator);
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
     if (lhpNavigator) {
         // Routes
@@ -189,7 +191,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
         routes.push(fullScreenNavigator);
 
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
     if (centralPaneNavigator) {
         // Routes
@@ -201,7 +203,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         routes.push(centralPaneNavigator);
 
         // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
     if (bottomTabNavigator) {
         // Routes
@@ -218,7 +220,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         }
 
         // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
-        return {routes};
+        return getRoutesWithIndex(routes);
     }
 
     return state;
@@ -226,15 +228,17 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
 const getAdaptedStateFromPath: typeof getStateFromPath = (path, options) => {
     const url = getPathWithoutPolicyID(path);
-    const policyID = extractPolicyIDFromPath(path);
+    const isAnonymous = isAnonymousUser();
+    // Anonymous users don't have access to workspaces
+    const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
 
-    const state = getStateFromPath(url, options);
+    const state = getStateFromPath(url, options) as PartialState<NavigationState<RootStackParamList>>;
+    replacePathInNestedState(state, path);
 
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
-
-    const adaptedState = getAdaptedState(state as PartialState<NavigationState<RootStackParamList>>, policyID);
+    const adaptedState = getAdaptedState(state, policyID);
     return adaptedState;
 };
 

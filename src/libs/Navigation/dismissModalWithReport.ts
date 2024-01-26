@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
@@ -43,7 +43,7 @@ function dismissModalWithReport(targetReport: Report | EmptyObject, navigationRe
                 const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReport.reportID));
                 const policyID = getPolicyIdFromState(state as State<RootStackParamList>);
                 const policyMemberAccountIDs = getPolicyMemberAccountIDs(policyID);
-                const shouldOpenAllWorkspace = isNotEmptyObject(targetReport) ? !doesReportBelongToWorkspace(targetReport, policyID, policyMemberAccountIDs) : true;
+                const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
                 if (shouldOpenAllWorkspace) {
                     switchPolicyID(navigationRef, {route: ROUTES.HOME});
