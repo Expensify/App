@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -34,6 +35,7 @@ import type {PersonalDetails, PersonalDetailsList, PolicyMember, PolicyMembers} 
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
+import type {PolicyRoute} from './withPolicy';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -42,7 +44,11 @@ type WorkspaceMembersPageOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps & WithCurrentUserPersonalDetailsProps & WorkspaceMembersPageOnyxProps;
+type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
+    WithCurrentUserPersonalDetailsProps &
+    WorkspaceMembersPageOnyxProps & {
+        route: PolicyRoute;
+    };
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -127,7 +133,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     }, [preferredLocale, validateSelection]);
 
     useEffect(() => {
-        if (removeMembersConfirmModalVisible && JSON.stringify(accountIDs.sort()) !== JSON.stringify(prevAccountIDs.sort())) {
+        if (removeMembersConfirmModalVisible && !lodashIsEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
         setSelectedEmployees((prevSelected) => {
