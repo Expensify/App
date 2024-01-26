@@ -23,6 +23,7 @@ const includeModules = [
     'react-native-qrcode-svg',
     'react-native-view-shot',
     '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
