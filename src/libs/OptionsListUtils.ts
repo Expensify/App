@@ -10,7 +10,21 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTag,
+    PolicyTagList,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
@@ -767,7 +781,7 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
     return Object.values(options).some((option) => option.enabled);
 }
 
@@ -1128,6 +1142,14 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
     });
 
     return tagSections;
+}
+
+/**
+ * Checks if there is one enabled tag at least
+ */
+function hasEnabledTags(policyTagLists: PolicyTagList[]) {
+    const policyTagValueList = policyTagLists.map(({tags}) => Object.values(tags)).flat();
+    return hasEnabledOptions(policyTagValueList);
 }
 
 type PolicyTaxRateWithDefault = {
@@ -1989,6 +2011,7 @@ export {
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
+    hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,

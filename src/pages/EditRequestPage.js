@@ -3,7 +3,6 @@ import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -91,9 +90,8 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const tagIndex = +rawTagIndex;
 
     const tag = TransactionUtils.getTag(transaction, tagIndex);
-    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -102,7 +100,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && (reportTags || OptionsListUtils.hasEnabledOptions(policyTagValueList));
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && (reportTags || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, reportTags]);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {

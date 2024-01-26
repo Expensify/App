@@ -264,11 +264,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
 
-    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(policyTagValueList);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
     const shouldShowTax = isPolicyExpenseChat && policy && policy.isTaxTrackingEnabled;
@@ -804,7 +803,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         />
                     )}
                     {shouldShowTags &&
-                        _.map(policyTagList, ({name}, index) => (
+                        _.map(policyTagLists, ({name}, index) => (
                             <MenuItemWithTopDescription
                                 key={name}
                                 shouldShowRightIcon={!isReadOnly}

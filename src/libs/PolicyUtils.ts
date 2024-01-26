@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -183,11 +182,15 @@ function getTagLists(policyTags: OnyxCollection<PolicyTagList>): PolicyTagList[]
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTags: OnyxCollection<PolicyTagList>, tagIndex: number): PolicyTagList | EmptyObject {
+function getTagList(policyTags: OnyxCollection<PolicyTagList>, tagIndex: number): PolicyTagList {
     const tagLists = getTagLists(policyTags);
 
     if (tagLists.length === 0) {
-        return {};
+        return {
+            name: '',
+            required: false,
+            tags: {},
+        };
     }
 
     return tagLists[tagIndex];
