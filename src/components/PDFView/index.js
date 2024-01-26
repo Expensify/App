@@ -3,12 +3,9 @@ import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
-import {VariableSizeList as List} from 'react-window';
+import {pdfjs} from 'react-pdf';
 import _ from 'underscore';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import withLocalize from '@components/withLocalize';
 import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -18,19 +15,10 @@ import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import PDFViewConstants from './constants';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
-
-/**
- * Each page has a default border. The app should take this size into account
- * when calculates the page width and height.
- */
-const PAGE_BORDER = 9;
-/**
- * Pages should be more narrow than the container on large screens. The app should take this size into account
- * when calculates the page width.
- */
-const LARGE_SCREEN_SIDE_SPACING = 40;
+import PDFDocument from './WebPDFDocument';
 
 class PDFView extends Component {
     constructor(props) {
@@ -40,7 +28,9 @@ class PDFView extends Component {
             pageViewports: [],
             containerWidth: props.windowWidth,
             containerHeight: props.windowHeight,
-            shouldRequestPassword: false,
+            password: undefined,
+            /** used to keep the PDFPasswordForm mounted (for it to maintain state) while password is being verified */
+            isCheckingPassword: false,
             isPasswordInvalid: false,
             isKeyboardOpen: false,
         };
@@ -50,13 +40,21 @@ class PDFView extends Component {
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
         this.calculatePageHeight = this.calculatePageHeight.bind(this);
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
-        this.renderPage = this.renderPage.bind(this);
-        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
+        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio.bind(this));
         this.setListAttributes = this.setListAttributes.bind(this);
 
-        const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
-        pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        this.documentOpenedSuccessfully = false;
+
+        const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+        if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
+            pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
+        }
+
         this.retrieveCanvasLimits();
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(this.state, nextState) || !_.isEqual(this.props, nextProps);
     }
 
     componentDidUpdate(prevProps) {
@@ -97,9 +95,13 @@ class PDFView extends Component {
             this.setState({
                 pageViewports,
                 numPages,
-                shouldRequestPassword: false,
                 isPasswordInvalid: false,
+                isCheckingPassword: false,
             });
+
+            if (pageViewports.length) {
+                this.documentOpenedSuccessfully = true;
+            }
         });
     }
 
@@ -133,6 +135,7 @@ class PDFView extends Component {
         const ratioWidth = this.props.maxCanvasWidth / width;
         const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
         const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
+
         return ratio > window.devicePixelRatio ? undefined : ratio;
     }
 
@@ -144,7 +147,7 @@ class PDFView extends Component {
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
-        if (this.state.pageViewports.length === 0) {
+        if (this.state.pageViewports.length === 0 || _.some(this.state.pageViewports, (viewport) => !viewport)) {
             Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
 
             return 0;
@@ -153,7 +156,7 @@ class PDFView extends Component {
         const pageViewport = this.state.pageViewports[pageIndex];
         const pageWidth = this.calculatePageWidth();
         const scale = pageWidth / pageViewport.width;
-        const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
+        const actualHeight = pageViewport.height * scale + PDFViewConstants.PAGE_BORDER * 2;
 
         return actualHeight;
     }
@@ -165,14 +168,14 @@ class PDFView extends Component {
      */
     calculatePageWidth() {
         const pdfContainerWidth = this.state.containerWidth;
-        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - PDFViewConstants.LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
         const pageWidth = this.props.isSmallScreenWidth ? this.state.containerWidth : pageWidthOnLargeScreen;
 
-        return pageWidth + PAGE_BORDER * 2;
+        return pageWidth + PDFViewConstants.PAGE_BORDER * 2;
     }
 
     /**
-     * Initiate password challenge process. The react-pdf/Document
+     * Initiate password challenge process. The WebPDFDocument
      * component calls this handler to indicate that a PDF requires a
      * password, or to indicate that a previously provided password was
      * invalid.
@@ -180,16 +183,13 @@ class PDFView extends Component {
      * The PasswordResponses constants used below were copied from react-pdf
      * because they're not exported in entry.webpack.
      *
-     * @param {Function} callback Callback used to send password to react-pdf
      * @param {Number} reason Reason code for password request
      */
-    initiatePasswordChallenge(callback, reason) {
-        this.onPasswordCallback = callback;
-
+    initiatePasswordChallenge(reason) {
         if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.NEED_PASSWORD) {
-            this.setState({shouldRequestPassword: true});
+            this.setState({password: PDFViewConstants.REQUIRED_PASSWORD_MISSING, isCheckingPassword: false});
         } else if (reason === CONST.PDF_PASSWORD_FORM.REACT_PDF_PASSWORD_RESPONSES.INCORRECT_PASSWORD) {
-            this.setState({shouldRequestPassword: true, isPasswordInvalid: true});
+            this.setState({password: PDFViewConstants.REQUIRED_PASSWORD_MISSING, isPasswordInvalid: true, isCheckingPassword: false});
         }
     }
 
@@ -200,7 +200,7 @@ class PDFView extends Component {
      * @param {String} password Password to send via callback to react-pdf
      */
     attemptPDFLoad(password) {
-        this.onPasswordCallback(password);
+        this.setState({password, isCheckingPassword: true});
     }
 
     /**
@@ -233,44 +233,19 @@ class PDFView extends Component {
         }
     }
 
-    /**
-     * Render a specific page based on its index.
-     * The method includes a wrapper to apply virtualized styles.
-     * @param {Object} page item object of the List
-     * @param {Number} page.index index of the page
-     * @param {Object} page.style virtualized styles
-     * @returns {JSX.Element}
-     */
-    renderPage({index, style}) {
-        const pageWidth = this.calculatePageWidth();
-        const pageHeight = this.calculatePageHeight(index);
-        const devicePixelRatio = this.getDevicePixelRatio(pageWidth, pageHeight);
-
-        return (
-            <View style={style}>
-                <Page
-                    key={`page_${index}`}
-                    width={pageWidth}
-                    pageIndex={index}
-                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                    // See https://github.com/Expensify/App/issues/14358 for more details
-                    loading=""
-                    devicePixelRatio={devicePixelRatio}
-                />
-            </View>
-        );
-    }
-
     renderPDFView() {
         const styles = this.props.themeStyles;
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
+        const pdfContainerStyle = [styles.PDFView, styles.noSelect, this.props.style];
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
-        const pdfContainerStyle = this.state.shouldRequestPassword
-            ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
-            : [styles.PDFView, styles.noSelect, this.props.style];
+        if (this.state.password === PDFViewConstants.REQUIRED_PASSWORD_MISSING || this.state.isCheckingPassword) {
+            pdfContainerStyle.push(styles.invisible);
+        }
+
+        const estimatedItemSize = this.calculatePageHeight(0);
 
         return (
             <View style={outerContainerStyle}>
@@ -283,35 +258,29 @@ class PDFView extends Component {
                         },
                     }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
-                    <Document
-                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
-                        loading={<FullScreenLoadingIndicator />}
-                        file={this.props.sourceURL}
-                        options={{
-                            cMapUrl: 'cmaps/',
-                            cMapPacked: true,
-                        }}
-                        externalLinkTarget="_blank"
-                        onLoadSuccess={this.onDocumentLoadSuccess}
-                        onPassword={this.initiatePasswordChallenge}
-                    >
-                        {this.state.pageViewports.length > 0 && (
-                            <List
-                                outerRef={this.setListAttributes}
-                                style={styles.PDFViewList}
-                                width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
-                                height={this.state.containerHeight}
-                                estimatedItemSize={this.calculatePageHeight(0)}
-                                itemCount={this.state.numPages}
-                                itemSize={this.calculatePageHeight}
-                            >
-                                {this.renderPage}
-                            </List>
-                        )}
-                    </Document>
+                    <PDFDocument
+                        listStyle={styles.PDFViewList}
+                        errorLabelStyles={this.props.errorLabelStyles}
+                        translate={this.props.translate}
+                        sourceURL={this.props.sourceURL}
+                        onDocumentLoadSuccess={this.onDocumentLoadSuccess}
+                        pageViewportsLength={this.state.pageViewports.length}
+                        setListAttributes={this.setListAttributes}
+                        isSmallScreenWidth={this.props.isSmallScreenWidth}
+                        containerWidth={this.state.containerWidth}
+                        containerHeight={this.state.containerHeight}
+                        numPages={this.state.numPages}
+                        calculatePageHeight={this.calculatePageHeight}
+                        getDevicePixelRatio={this.getDevicePixelRatio}
+                        estimatedItemSize={estimatedItemSize}
+                        pageWidth={pageWidth}
+                        password={this.state.password}
+                        initiatePasswordChallenge={this.initiatePasswordChallenge}
+                    />
                 </View>
-                {this.state.shouldRequestPassword && (
+                {(this.state.password === PDFViewConstants.REQUIRED_PASSWORD_MISSING || this.state.isCheckingPassword) && (
                     <PDFPasswordForm
+                        shouldShowLoadingIndicator={this.state.isCheckingPassword}
                         isFocused={this.props.isFocused}
                         onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
@@ -339,7 +308,6 @@ class PDFView extends Component {
         );
     }
 }
-
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
