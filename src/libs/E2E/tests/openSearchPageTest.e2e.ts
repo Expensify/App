@@ -1,6 +1,5 @@
 import Config from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
-import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -13,10 +12,8 @@ const test = () => {
 
     E2ELogin().then((neededLogin: boolean): Promise<Response> | undefined => {
         if (neededLogin) {
-            return waitForAppLoaded().then(() =>
-                // we don't want to submit the first login to the results
-                E2EClient.submitTestDone(),
-            );
+            // we don't want to submit the first login to the results
+            return E2EClient.submitTestDone();
         }
 
         console.debug('[E2E] Logged in, getting search metrics and submitting them…');

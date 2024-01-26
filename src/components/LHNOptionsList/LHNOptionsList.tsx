@@ -32,23 +32,9 @@ function LHNOptionsList({
     currentReportID = '',
     draftComments = {},
     transactionViolations = {},
-    onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
-
-    // When the first item renders we want to call the onFirstItemRendered callback.
-    // At this point in time we know that the list is actually displaying items.
-    const hasCalledOnLayout = React.useRef(false);
-    const onLayoutItem = useCallback(() => {
-        if (hasCalledOnLayout.current) {
-            return;
-        }
-        hasCalledOnLayout.current = true;
-
-        onFirstItemRendered();
-    }, [onFirstItemRendered]);
-
     /**
      * Function which renders a row in the list
      */
@@ -82,7 +68,6 @@ function LHNOptionsList({
                     comment={itemComment}
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
-                    onLayout={onLayoutItem}
                 />
             );
         },
@@ -100,7 +85,6 @@ function LHNOptionsList({
             transactions,
             transactionViolations,
             canUseViolations,
-            onLayoutItem,
         ],
     );
 
