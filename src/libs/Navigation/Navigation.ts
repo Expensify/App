@@ -53,6 +53,9 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => originalG
 // Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
 const dismissModal = (ref = navigationRef) => originalDismissModal(ref);
 
+// Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
+// This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
+// Then we can pass the report as a param without getting it from the Onyx.
 const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
 
 const dismissModalWithReportID = (reportID: string, ref = navigationRef) => {
