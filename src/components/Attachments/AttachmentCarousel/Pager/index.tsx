@@ -70,7 +70,6 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
             scale.current = newScale;
 
             const newIsScrollEnabled = newScale === 1;
-
             if (isScrollEnabled.value === newIsScrollEnabled) {
                 return;
             }
