@@ -55,7 +55,10 @@ function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskView
     }, [report]);
 
     const taskTitle = convertToLTR(report.reportName ?? '');
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails), false);
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails),
+        false,
+    );
     const isCompleted = ReportUtils.isCompletedTaskReport(report);
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role);
