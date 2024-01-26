@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -23,7 +24,7 @@ function WorkspaceNamePage({policy}: Props) {
 
     // TODO: Change this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
     const submit = useCallback(
-        (values: {name: string}) => {
+        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
             if (!policy || policy.isPolicyUpdating) {
                 return;
             }
@@ -36,7 +37,7 @@ function WorkspaceNamePage({policy}: Props) {
     );
 
     // TODO: Change this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
-    const validate = useCallback((values: {name: string}) => {
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
         const errors: Record<string, string> = {};
         const name = values.name.trim();
 
@@ -62,7 +63,6 @@ function WorkspaceNamePage({policy}: Props) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
 
-            {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                 submitButtonText={translate('workspace.editor.save')}
@@ -74,7 +74,6 @@ function WorkspaceNamePage({policy}: Props) {
             >
                 <View style={styles.mb4}>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
                         inputID="name"
