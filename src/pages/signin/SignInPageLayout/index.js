@@ -17,6 +17,7 @@ import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import scrollViewContentContainerStyles from './signInPageStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -127,6 +128,7 @@ function SignInPageLayout(props) {
                                     isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
+                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION}
                                 />
                             </View>
                             <View>
@@ -166,6 +168,7 @@ function SignInPageLayout(props) {
                             isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
+                            transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION}
                         />
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}

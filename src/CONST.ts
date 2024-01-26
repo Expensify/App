@@ -46,6 +46,7 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    BACKGROUND_IMAGE_TRANSITION: 1000,
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
