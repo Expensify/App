@@ -205,7 +205,7 @@ function ReportScreen({
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
     }, []);
-     
+
     const prevReportID = usePrevious(reportID);
 
     useEffect(() => {
