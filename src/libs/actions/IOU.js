@@ -608,7 +608,7 @@ function buildOnyxDataForMoneyRequest(
  * Gathers all the data needed to make a money request. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  *
- * @param {Object} report
+ * @param {Object} parentChatReport
  * @param {Object} participant
  * @param {String} comment
  * @param {Number} amount
@@ -625,6 +625,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {Object} [policy]
  * @param {Object} [policyTags]
  * @param {Object} [policyCategories]
+ * @param {Number} [moneyRequestReportID]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -640,7 +641,7 @@ function buildOnyxDataForMoneyRequest(
  * @returns {Object} data.onyxData.failureData
  */
 function getMoneyRequestInformation(
-    report,
+    parentChatReport,
     participant,
     comment,
     amount,
@@ -657,6 +658,7 @@ function getMoneyRequestInformation(
     policy = undefined,
     policyTags = undefined,
     policyCategories = undefined,
+    moneyRequestReportID = 0,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -664,7 +666,7 @@ function getMoneyRequestInformation(
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    let chatReport = lodashGet(parentChatReport, 'reportID', null) ? parentChatReport : null;
 
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
