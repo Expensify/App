@@ -255,8 +255,8 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const isDistanceRequestWithoutRoute = props.isDistanceRequest && !hasRoute;
-    const formattedAmount = isDistanceRequestWithoutRoute
+    const isDistanceRequestWithPendingRoute = props.isDistanceRequest && (!hasRoute || !rate);
+    const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
@@ -332,7 +332,7 @@ function MoneyRequestConfirmationList(props) {
         let text;
         if (isSplitBill && props.iouAmount === 0) {
             text = translate('iou.split');
-        } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
+        } else if ((props.receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
             if (props.iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: formattedAmount});
@@ -347,7 +347,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.iouType,
             },
         ];
-    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate]);
+    }, [isSplitBill, isTypeRequest, props.iouType, props.iouAmount, props.receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -427,13 +427,13 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
 
-        if (!hasRoute) {
+        if (isDistanceRequestWithPendingRoute) {
             IOU.setMoneyRequestPendingFields_temporaryForRefactor(props.transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
         }
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
      * @param {Object} option
@@ -487,7 +487,7 @@ function MoneyRequestConfirmationList(props) {
             } else {
                 // validate the amount for distance requests
                 const decimals = CurrencyUtils.getCurrencyDecimals(props.iouCurrencyCode);
-                if (props.isDistanceRequest && !isDistanceRequestWithoutRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount), decimals)) {
+                if (props.isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(props.iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
@@ -510,7 +510,7 @@ function MoneyRequestConfirmationList(props) {
             props.iouType,
             props.isDistanceRequest,
             props.iouCategory,
-            isDistanceRequestWithoutRoute,
+            isDistanceRequestWithPendingRoute,
             props.iouCurrencyCode,
             props.iouAmount,
             transaction,
