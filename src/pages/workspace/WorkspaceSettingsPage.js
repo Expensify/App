@@ -16,12 +16,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,6 +99,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
             headerText={translate('workspace.common.settings')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+            shouldShowLoading={false}
         >
             {(hasVBA) => (
                 <FormProvider
@@ -111,6 +112,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                     enabledWhenOffline
                 >
                     <AvatarWithImagePicker
+                        onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id))}
                         source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.LARGE}
                         DefaultAvatar={() => (

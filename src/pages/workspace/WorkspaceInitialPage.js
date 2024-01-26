@@ -18,6 +18,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -26,7 +27,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -65,6 +65,15 @@ function openEditor(policyID) {
 function dismissError(policyID) {
     Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
+}
+
+/**
+ * Whether the policy report should be archived when we delete the policy.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldArchiveReport(report) {
+    return ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report);
 }
 
 function WorkspaceInitialPage(props) {
@@ -111,7 +120,7 @@ function WorkspaceInitialPage(props) {
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports, policy.name);
+        Policy.deleteWorkspace(policyID, _.filter(policyReports, shouldArchiveReport), policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -17,6 +18,8 @@ import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
@@ -24,8 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -36,12 +37,22 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
+    /** The policy of root parent report */
+    policy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
+};
+
+const defaultProps = {
+    policy: {},
 };
 
 function TaskView(props) {
@@ -55,7 +66,7 @@ function TaskView(props) {
     const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails), false);
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID, lodashGet(props.policy, 'role', ''));
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -188,6 +199,7 @@ function TaskView(props) {
 }
 
 TaskView.propTypes = propTypes;
+TaskView.defaultProps = defaultProps;
 TaskView.displayName = 'TaskView';
 
 export default compose(
@@ -197,6 +209,13 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        policy: {
+            key: ({report}) => {
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskView);

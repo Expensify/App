@@ -59,7 +59,7 @@ Expenses can be imported as either reimbursable or non-reimbursable. Select the 
 
 *Remove a card*: If you need to remove a card, you can select the red trash can icon. Please remember this will remove all unreported and un-submitted transactions from your account that are tied to this card, so be careful! 
 
-# FAQ
+{% include faq-begin.md %}
 *Is the bank/credit card import option right for me?*
 If you incur expenses using your personal or business card and need to get them accounted for in your company’s accounting, then you might want to import your bank/credit card. Please note, if you have a company-assigned corporate card, check with your company's Expensify admin on how to handle these cards. Often, admins will take care of card assignments, and you won't need to import them yourself.
 
@@ -74,3 +74,5 @@ If you aren't able to see the expenses imported when you click “View expenses�
 
 *How do I remove an imported spreadsheet?*
 If you need to remove an imported spreadsheet, you can select the red trash can icon. Please remember this will remove all unreported and unsubmitted transactions from your account that are tied to this import, so be careful!  
+
+{% include faq-end.md %}

@@ -1,16 +1,21 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import categoryPropTypes from '@components/categoryPropTypes';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -19,10 +24,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -40,11 +43,14 @@ const propTypes = {
     /** The personal details of the current user */
     ...withCurrentUserPersonalDetailsPropTypes,
 
-    /** Personal details of all users */
-    personalDetails: personalDetailsPropType,
-
     /** The policy of the report */
     ...policyPropTypes,
+
+    /** The tag configuration of the report's policy */
+    policyTags: tagPropTypes,
+
+    /** The category configuration of the report's policy */
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     /** The full IOU report */
     report: reportPropTypes,
@@ -53,16 +59,18 @@ const propTypes = {
     transaction: transactionPropTypes,
 };
 const defaultProps = {
-    personalDetails: {},
     policy: {},
+    policyCategories: {},
+    policyTags: {},
     report: {},
     transaction: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 function IOURequestStepConfirmation({
     currentUserPersonalDetails,
-    personalDetails,
     policy,
+    policyTags,
+    policyCategories,
     report,
     route: {
         params: {iouType, reportID, transactionID},
@@ -73,20 +81,20 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
+    const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
+    const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     const participants = useMemo(
         () =>
-            _.chain(transaction.participants)
-                .map((participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-                })
-                .filter((participant) => !!participant.login || !!participant.text)
-                .value(),
+            _.map(transaction.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+            }),
         [transaction.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -119,7 +127,7 @@ function IOURequestStepConfirmation({
     }, [transaction, iouType, requestType, transactionID, reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
     }, [iouType, transactionID, reportID]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -162,10 +170,15 @@ function IOURequestStepConfirmation({
                 receiptObj,
                 transaction.category,
                 transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
                 transaction.billable,
+                policy,
+                policyTags,
+                policyCategories,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID],
+        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
     );
 
     /**
@@ -186,9 +199,12 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 transaction.billable,
                 TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                policy,
+                policyTags,
+                policyCategories,
             );
         },
-        [report, transaction],
+        [policy, policyCategories, policyTags, report, transaction],
     );
 
     const createTransaction = useCallback(
@@ -197,8 +213,16 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(report.reportID) ? reportID : '';
-                IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
+                IOU.startSplitBill(
+                    selectedParticipants,
+                    currentUserPersonalDetails.login,
+                    currentUserPersonalDetails.accountID,
+                    trimmedComment,
+                    transaction.category,
+                    transaction.tag,
+                    receiptFile,
+                    report.reportID,
+                );
                 return;
             }
 
@@ -212,10 +236,10 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.merchant,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
-                    transaction.merchant,
                 );
                 return;
             }
@@ -229,9 +253,9 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.merchant,
                     transaction.category,
                     transaction.tag,
-                    transaction.merchant,
                 );
                 return;
             }
@@ -248,7 +272,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**
@@ -340,7 +364,6 @@ function IOURequestStepConfirmation({
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction.merchant}
                         iouCreated={transaction.created}
-                        isScanRequest={requestType === CONST.IOU.REQUEST_TYPE.SCAN}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={_.isEmpty(lodashGet(transaction, 'receipt.source', ''))}
                     />
@@ -359,14 +382,14 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID', '0')}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepConfirmation);

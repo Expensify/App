@@ -1,10 +1,11 @@
-import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
+import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
+import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
-import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';

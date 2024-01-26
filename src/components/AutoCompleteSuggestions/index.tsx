@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useStyleUtils from '@styles/useStyleUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type {AutoCompleteSuggestionsProps} from './types';
 

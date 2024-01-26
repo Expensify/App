@@ -1,17 +1,18 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -35,7 +36,7 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
@@ -62,10 +63,9 @@ function AvatarWithDisplayName({
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
-    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
@@ -118,7 +118,7 @@ function AvatarWithDisplayName({
                                 backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
-                                size={defaultSubscriptSize}
+                                size={size}
                             />
                         ) : (
                             <MultipleAvatars
@@ -141,6 +141,7 @@ function AvatarWithDisplayName({
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                 parentReportID={report?.parentReportID}
+                                pressableStyles={[styles.alignSelfStart, styles.mw100]}
                             />
                         )}
                         {!!subtitle && (

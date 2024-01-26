@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
-import {GestureResponderEvent} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {GestureResponderEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 

@@ -1,16 +1,17 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import themeColors from '@styles/themes/default';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 function SAMLLoadingIndicator() {
-    const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.deeplinkWrapperContainer]}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -30,7 +31,7 @@ function SAMLLoadingIndicator() {
                 <Icon
                     width={154}
                     height={34}
-                    fill={themeColors.success}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>

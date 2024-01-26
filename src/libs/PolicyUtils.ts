@@ -1,9 +1,11 @@
 import Str from 'expensify-common/lib/str';
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
@@ -31,7 +33,7 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  * Check if the policy has any error fields.
  */
 function hasPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
-    return Object.keys(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
+    return Object.values(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
 }
 
 /**
@@ -71,12 +73,12 @@ function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string)
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
-function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): string {
+function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
     const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}`] ?? {};
     if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
-    return '';
+    return undefined;
 }
 
 /**
@@ -193,8 +195,19 @@ function getTagList(policyTags: OnyxCollection<PolicyTags>, tagKey: string) {
     return policyTags?.[policyTagKey]?.tags ?? {};
 }
 
+/**
+ * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
+ */
+function getCleanedTagName(tag: string) {
+    return tag?.replace(/\\{1,2}:/g, ':');
+}
+
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
 export {
@@ -215,6 +228,8 @@ export {
     getTag,
     getTagListName,
     getTagList,
+    getCleanedTagName,
     isPendingDeletePolicy,
     isPolicyMember,
+    isPaidGroupPolicy,
 };
