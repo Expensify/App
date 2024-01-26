@@ -489,7 +489,6 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     return allReportErrors;
 }
 
-
 /**
  * Get the last actor display name from last actor details.
  */
@@ -509,7 +508,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
 
-    if (ReportUtils.isArchivedRoom(report)  && lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (ReportUtils.isArchivedRoom(report) && lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         const archiveReason = lastOriginalReportAction?.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
