@@ -382,7 +382,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm ?? selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && !!onConfirm && isFocused,
+        isActive: !disableKeyboardShortcuts && isFocused,
     });
 
     return (
