@@ -56,6 +56,11 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
         activePage.value = initialIndex;
     }, [activePage, initialIndex]);
 
+    /**
+     * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
+     * It is used to react to zooming/pinching and (mostly) enabling/disabling scrolling on the pager,
+     * as well as enabling/disabling the carousel buttons.
+     */
     const handleScaleChange = useCallback(
         (newScale: number) => {
             if (newScale === scale.current) {
@@ -79,7 +84,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
      * It is used to trigger touch events on the pager when the user taps on the MultiGestureCanvas/Lightbox.
      */
-    const onTap = useCallback(() => {
+    const handleTap = useCallback(() => {
         if (!isScrollEnabled.value) {
             return;
         }
@@ -92,10 +97,10 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
             pagerRef,
             isPagerScrolling,
             isScrollEnabled,
-            onTap,
+            onTap: handleTap,
             onScaleChanged: handleScaleChange,
         }),
-        [isPagerScrolling, isScrollEnabled, onTap, handleScaleChange],
+        [isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
     );
 
     const animatedProps = useAnimatedProps(() => ({
