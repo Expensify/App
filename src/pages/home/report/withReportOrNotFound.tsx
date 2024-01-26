@@ -23,7 +23,11 @@ type OnyxProps = {
 };
 
 type ComponentProps = OnyxProps & {
+    /** Route params */
     route: RouteProp<{params: {reportID: string}}>;
+
+    /** The report currently being looked at */
+    report: OnyxTypes.Report;
 };
 
 export default function (
