@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScreenContext';
+import type {AnchorPosition} from '@src/styles';
 import type {ReportActionReactions} from '@src/types/onyx';
 
 type BasePopoverReactionListOnyxProps = {
@@ -33,16 +34,10 @@ type BasePopoverReactionListState = {
     isPopoverVisible: boolean;
 
     /** The horizontal and vertical position (relative to the screen) where the popover will display. */
-    popoverAnchorPosition: {
-        horizontal: number;
-        vertical: number;
-    };
+    popoverAnchorPosition: AnchorPosition;
 
     /** The horizontal and vertical position (relative to the screen) where the cursor is. */
-    cursorRelativePosition: {
-        horizontal: number;
-        vertical: number;
-    };
+    cursorRelativePosition: AnchorPosition;
 };
 
 type ShowReactionList = (event: ReactionListEvent | undefined, reactionListAnchor: ReactionListAnchor) => void;
