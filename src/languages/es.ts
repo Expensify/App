@@ -793,6 +793,8 @@ export default {
             viewConsole: 'Ver consola',
             description: 'Utilice las siguientes herramientas para ayudar a solucionar los problemas de Expensify. Si tiene algún problema',
             submitBug: 'envíe un error',
+            dataWiped: 'Data wiped',
+            dataWipedDescription: 'All data has been wiped. In case of any issues, open the app again.',
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
