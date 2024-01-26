@@ -54,6 +54,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         methodID: null,
         selectedPaymentMethodType: null,
     });
+
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
