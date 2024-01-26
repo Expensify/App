@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-onyx/lib/Onyx.js b/node_modules/react-native-onyx/lib/Onyx.js
-index 9212df3..3993d56 100644
+index 9212df3..508cc52 100644
 --- a/node_modules/react-native-onyx/lib/Onyx.js
 +++ b/node_modules/react-native-onyx/lib/Onyx.js
 @@ -29,6 +29,9 @@ let lastConnectionID = 0;
@@ -46,10 +46,10 @@ index 9212df3..3993d56 100644
      callbackToStateMapping[connectionID] = mapping;
      callbackToStateMapping[connectionID].connectionID = connectionID;
  
-+    if (!onyxKeyToConnectionIDs.has(mapping)) {
-+        onyxKeyToConnectionIDs.set(mapping, []);
++    if (!onyxKeyToConnectionIDs.has(mapping.key)) {
++        onyxKeyToConnectionIDs.set(mapping.key, []);
 +    }
-+    onyxKeyToConnectionIDs.get(mapping).push(connectionID);
++    onyxKeyToConnectionIDs.get(mapping.key).push(connectionID);
 +
      if (mapping.initWithStoredValues === false) {
          return connectionID;
