@@ -76,15 +76,15 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                     <AvatarWithImagePicker
                         onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy.id))}
                         source={lodashGet(policy, 'avatar')}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                        avatarStyle={styles.avatarLarge}
+                        size={CONST.AVATAR_SIZE.XLARGE}
+                        avatarStyle={styles.avatarXLarge}
                         DefaultAvatar={() => (
                             <Avatar
-                                containerStyles={styles.avatarLarge}
-                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                containerStyles={styles.avatarXLarge}
+                                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                                 source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                size={CONST.AVATAR_SIZE.LARGE}
+                                size={CONST.AVATAR_SIZE.XLARGE}
                                 name={policyName}
                                 type={CONST.ICON_TYPE_WORKSPACE}
                             />
@@ -126,7 +126,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
                                 shouldGreyOutWhenDisabled={false}
                                 shouldUseDefaultCursorWhenDisabled
                             />
-                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt2, styles.mh5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5]}>
                                 {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                             </Text>
                         </View>
