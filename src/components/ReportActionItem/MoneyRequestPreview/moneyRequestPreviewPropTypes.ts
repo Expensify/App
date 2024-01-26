@@ -29,7 +29,7 @@ const propTypes = {
 
     /** Extra styles to pass to View wrapper */
     // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    containerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object, PropTypes.bool]),
 
     /* Onyx Props */
 
