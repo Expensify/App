@@ -66,6 +66,7 @@ function App() {
                     PopoverContextProvider,
                     CurrentReportIDContextProvider,
                     ReportAttachmentsProvider,
+                    // @ts-expect-error TODO: Remove this once ReactChild is replaced with ReactNode in react-native-picker-select.
                     PickerStateProvider,
                     EnvironmentProvider,
                     CustomStatusBarAndBackgroundContextProvider,
@@ -74,6 +75,7 @@ function App() {
                 <CustomStatusBarAndBackground />
                 <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                     <ColorSchemeWrapper>
+                        {/* @ts-expect-error TODO: Remove this once Expensify (https://github.com/Expensify/App/issues/25231) is migrated to TypeScript. */}
                         <Expensify />
                     </ColorSchemeWrapper>
                 </ErrorBoundary>
