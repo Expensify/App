@@ -244,10 +244,6 @@ const ROUTES = {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string) => `r/${reportID}/assignee` as const,
     },
-    PRIVATE_NOTES_VIEW: {
-        route: 'r/:reportID/notes/:accountID',
-        getRoute: (reportID: string, accountID: string | number) => `r/${reportID}/notes/${accountID}` as const,
-    },
     PRIVATE_NOTES_LIST: {
         route: 'r/:reportID/notes',
         getRoute: (reportID: string) => `r/${reportID}/notes` as const,
@@ -277,10 +273,6 @@ const ROUTES = {
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
-    MONEY_REQUEST_CONFIRMATION: {
-        route: ':iouType/new/confirmation/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}` as const,
     },
     MONEY_REQUEST_DATE: {
         route: ':iouType/new/date/:reportID?',
