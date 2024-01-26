@@ -260,7 +260,10 @@ function ReportPreview(props) {
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>
+        <OfflineWithFeedback 
+            pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}
+            shouldDisableOpacity={props.action.pendingAction || props.action.isOptimisticAction}
+        >
             <View style={[styles.chatItemMessage, ...props.containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
