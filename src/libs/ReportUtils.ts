@@ -2552,7 +2552,7 @@ function getReportDescriptionText(report: Report): string {
     return parser.htmlToText(report.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: File): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: File, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
     const isAttachment = !text && file !== undefined;
