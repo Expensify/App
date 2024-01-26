@@ -1563,7 +1563,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login))) {
+            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login ?? ''))) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
