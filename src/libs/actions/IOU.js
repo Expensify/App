@@ -26,7 +26,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -2273,16 +2272,10 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
         // Update the last message of the chat report
         const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-        const payer = ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || '';
-        const formattedAmount = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency);
-        let messageText;
-        if (hasNonReimbursableTransactions) {
-            messageText = Localize.translateLocal('iou.payerSpentAmount', {payer, amount: formattedAmount});
-        } else {
-            const comment = TransactionUtils.getDescription(updatedTransaction);
-            messageText = Localize.translateLocal('iou.payerOwesAmount', {payer, amount: formattedAmount, comment});
-        }
-
+        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
+            payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID).login || '',
+            amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
+        });
         updatedChatReport.lastMessageText = messageText;
         updatedChatReport.lastMessageHtml = messageText;
     }
@@ -2570,16 +2563,10 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-    const payer = ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '';
-    const formattedAmount = CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency);
-    let messageText;
-    if (hasNonReimbursableTransactions) {
-        messageText = Localize.translateLocal('iou.payerSpentAmount', {payer, amount: formattedAmount});
-    } else {
-        const comment = !isEmptyObject(transaction) ? TransactionUtils.getDescription(transaction) : undefined;
-        messageText = Localize.translateLocal('iou.payerOwesAmount', {payer, amount: formattedAmount, comment});
-    }
-
+    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
+        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
+        amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
+    });
     updatedReportPreviewAction.message[0].text = messageText;
     updatedReportPreviewAction.message[0].html = messageText;
 
