@@ -443,7 +443,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                                             ref={buttonRef}
                                                             text={translate('walletPage.enableWallet')}
                                                             onPress={triggerKYCFlow}
-                                                            style={styles.mh5}
                                                             isDisabled={network.isOffline}
                                                             success
                                                             large

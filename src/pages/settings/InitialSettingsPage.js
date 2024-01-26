@@ -262,6 +262,7 @@ function InitialSettingsPage(props) {
                                 shouldStackHorizontally={item.shouldStackHorizontally}
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
+                                hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
                                 onSecondaryInteraction={
                                     !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
@@ -274,7 +275,19 @@ function InitialSettingsPage(props) {
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, props.userWallet.currentBalance, isExecuting, singleExecution, activeRoute, waitForNavigate],
+        [
+            styles.pb4,
+            styles.mh3,
+            styles.sectionTitle,
+            styles.sectionMenuItem,
+            styles.hoveredComponentBG,
+            translate,
+            props.userWallet.currentBalance,
+            isExecuting,
+            singleExecution,
+            activeRoute,
+            waitForNavigate,
+        ],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);

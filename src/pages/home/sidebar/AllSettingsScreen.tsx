@@ -68,8 +68,9 @@ function AllSettingsScreen() {
             wrapperStyle: styles.sectionMenuItem,
             isPaneMenu: true,
             focused: item.focused,
+            hoverAndPressStyle: styles.hoveredComponentBG,
         }));
-    }, [isSmallScreenWidth, styles.sectionMenuItem, translate, waitForNavigate]);
+    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate]);
 
     return (
         <ScreenWrapper
