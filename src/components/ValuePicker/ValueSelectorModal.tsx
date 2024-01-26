@@ -7,19 +7,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ValuePickerItem, ValueSelectorModalProps} from './types';
 
-function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips}: ValueSelectorModalProps) {
+function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
     const [sectionsData, setSectionsData] = useState<ValuePickerItem[]>([]);
 
     useEffect(() => {
-        const itemsData = items.map((item, index) => ({
+        const itemsData = items.map((item) => ({
             value: item?.value,
             alternateText: item?.description,
             keyForList: item.value ?? '',
             text: item?.label ?? '',
             isSelected: item === selectedItem,
-            sectionIndex: 0,
-            index,
         }));
         setSectionsData(itemsData);
     }, [items, selectedItem]);
@@ -34,7 +32,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
             useNativeDriver
         >
             <ScreenWrapper
-                style={[styles.pb0]}
+                style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID="ValueSelectorModal"

@@ -29,7 +29,7 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
         hidePickerModal();
     };
 
-    const descStyle = value?.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = items?.find((item) => item.value === value);
 
     return (

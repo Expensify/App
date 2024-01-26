@@ -4,9 +4,9 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {UserListItemProps} from './types';
+import type {ListItemProps} from './types';
 
-function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}: UserListItemProps) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}: ListItemProps) {
     const styles = useThemeStyles();
     return (
         <>

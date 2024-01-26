@@ -1,9 +1,9 @@
-import type {RadioItem} from '@components/SelectionList/types';
-
-type ValuePickerItem = RadioItem & {
+type ValuePickerItem = {
     value?: string;
     label?: string;
     description?: string;
+    text: string;
+    keyForList: string;
 };
 
 type ValueSelectorModalProps = {

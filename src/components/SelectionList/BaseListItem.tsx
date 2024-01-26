@@ -11,10 +11,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import type {BaseListItemProps, RadioItem, User} from './types';
+import type {BaseListItemProps, ListItem} from './types';
 import UserListItem from './UserListItem';
 
-function BaseListItem<TItem extends User | RadioItem>({
+function BaseListItem<TItem extends ListItem>({
     item,
     isFocused = false,
     isDisabled = false,

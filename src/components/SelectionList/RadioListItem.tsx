@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {RadioListItemProps} from './types';
+import type {ListItemProps} from './types';
 
-function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: RadioListItemProps) {
+function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}: ListItemProps) {
     const styles = useThemeStyles();
 
     return (
