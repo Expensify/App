@@ -1341,6 +1341,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-launch-arguments (4.0.2):
+    - React
   - react-native-netinfo (11.2.1):
     - glog
     - hermes-engine
@@ -2109,6 +2111,7 @@ DEPENDENCIES:
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
+  - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -2305,6 +2308,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
+  react-native-launch-arguments:
+    :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -2505,6 +2510,7 @@ SPEC CHECKSUMS:
   react-native-image-manipulator: 8a443cd2fce585cff10ceb5a0c3695960223b520
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 74d18ad516037536c2f671ef0914bcce7739b2f5
+  react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6479e7e2198f936e5abc14a3ec4d469ccbaf81e2
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
   react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
@@ -2566,7 +2572,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
-  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
+  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
 
 PODFILE CHECKSUM: 2748a60cfcfb5c160d044e3e7700449d03902536
 

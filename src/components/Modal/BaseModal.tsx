@@ -178,12 +178,15 @@ function BaseModal(
         // it's necessary to have a non-collapseable view as a parent of the modal to prevent
         // a conflict between RN core and Reanimated shadow tree operations
         // position absolute is needed to prevent the view from interfering with flex layout
-        <View collapsable={false} style={[styles.pAbsolute]}>
+        <View
+            collapsable={false}
+            style={[styles.pAbsolute]}
+        >
             <ReactNativeModal
                 onBackdropPress={handleBackdropPress}
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                onBackButtonPress={onClose}
+                onBackButtonPress={Modal.closeTop}
                 onModalShow={handleShowModal}
                 propagateSwipe={propagateSwipe}
                 onModalHide={hideModal}
@@ -193,7 +196,7 @@ function BaseModal(
                 swipeDirection={swipeDirection}
                 isVisible={isVisible}
                 backdropColor={theme.overlay}
-                backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
+                backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={fullscreen}
                 coverScreen={fullscreen}
