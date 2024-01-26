@@ -4222,7 +4222,7 @@ function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEn
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function shouldDisableRename(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
     if (isDefaultRoom(report) || isArchivedRoom(report) || isThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
         return true;
     }
@@ -4241,7 +4241,7 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function canEditWriteCapability(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
     return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report) && !isThread(report);
 }
 
@@ -4499,7 +4499,7 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 /**
  *  We only want policy owners and admins to be able to modify the welcome message, but not in thread chat.
  */
-function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 /**

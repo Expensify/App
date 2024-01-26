@@ -1,15 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -17,39 +16,37 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
-import * as Report from '@userActions/Report';
+import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useLocalize from "@hooks/useLocalize";
+import type {Policy, Report} from "@src/types/onyx";
+import type {OnyxFormValuesFields} from "@components/Form/types";
+import type {AnimatedTextInputRef} from "@components/RNTextInput";
 
-const propTypes = {
-    ...withLocalizePropTypes,
-
-    /** The room report for which the name is being edited */
-    report: reportPropTypes.isRequired,
-
+type RoomNamePageOnyxProps = {
     /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
+    reports: OnyxCollection<Report>,
 
     /** Policy of the report for which the name is being edited */
-    policy: PropTypes.shape({
-        role: PropTypes.string,
-        owner: PropTypes.string,
-    }),
-};
-const defaultProps = {
-    reports: {},
-    policy: {},
+    policy: OnyxEntry<Policy>
+}
+
+type RoomNamePageProps = RoomNamePageOnyxProps & WithReportOrNotFoundProps & {
+    /** The room report for which the name is being edited */
+    report: Report
 };
 
-function RoomNamePage({policy, report, reports, translate}) {
+function RoomNamePage({ report, policy, reports }: RoomNamePageProps) {
     const styles = useThemeStyles();
-    const roomNameInputRef = useRef(null);
+    const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
+    const {translate} = useLocalize()
 
     const validate = useCallback(
-        (values) => {
+        (values:  OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
             const errors = {};
 
             // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
@@ -78,7 +75,7 @@ function RoomNamePage({policy, report, reports, translate}) {
 
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
+            onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom={false}
             testID={RoomNamePage.displayName}
         >
@@ -90,7 +87,7 @@ function RoomNamePage({policy, report, reports, translate}) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                    onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                    onSubmit={(values) => ReportActions.updatePolicyRoomNameAndNavigate(report, values.roomName)}
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
@@ -110,14 +107,10 @@ function RoomNamePage({policy, report, reports, translate}) {
     );
 }
 
-RoomNamePage.propTypes = propTypes;
-RoomNamePage.defaultProps = defaultProps;
 RoomNamePage.displayName = 'RoomNamePage';
 
 export default compose(
-    withLocalize,
-    withReportOrNotFound(),
-    withOnyx({
+    withOnyx<RoomNamePageProps, RoomNamePageOnyxProps>({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
@@ -125,4 +118,6 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
+    withReportOrNotFound(),
+
 )(RoomNamePage);
