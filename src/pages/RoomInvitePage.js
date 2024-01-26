@@ -77,7 +77,10 @@ function RoomInvitePage(props) {
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'visibleChatMemberAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS],
+        () =>
+            _.map([...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'visibleChatMemberAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], (participant) =>
+                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
+            ),
         [props.report],
     );
 
