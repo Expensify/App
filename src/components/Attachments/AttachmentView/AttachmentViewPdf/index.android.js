@@ -27,7 +27,7 @@ function AttachmentViewPdf(props) {
 
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
-    const isPanRunning = useSharedValue(false);
+    const isPanGestureActive = useSharedValue(false);
 
     const Pan = Gesture.Pan()
         .manualActivation(true)
@@ -35,7 +35,7 @@ function AttachmentViewPdf(props) {
             if (offsetX.value !== 0 && offsetY.value !== 0 && isScrollEnabled) {
                 const translateX = Math.abs(evt.allTouches[0].absoluteX - offsetX.value);
                 const translateY = Math.abs(evt.allTouches[0].absoluteY - offsetY.value);
-                const allowEnablingScroll = !isPanRunning.value || isScrollEnabled.value;
+                const allowEnablingScroll = !isPanGestureActive.value || isScrollEnabled.value;
 
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
@@ -47,12 +47,12 @@ function AttachmentViewPdf(props) {
                 }
             }
 
-            isPanRunning.value = true;
+            isPanGestureActive.value = true;
             offsetX.value = evt.allTouches[0].absoluteX;
             offsetY.value = evt.allTouches[0].absoluteY;
         })
         .onTouchesUp(() => {
-            isPanRunning.value = false;
+            isPanGestureActive.value = false;
             isScrollEnabled.value = true;
         });
 
