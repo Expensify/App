@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
@@ -47,7 +48,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={EditRequestAmountPage.displayName}
         >
-            <HeaderWithBackButton title={translate('iou.amount')} />
+            <HeaderWithBackButton
+                title={translate('iou.amount')}
+                onBackButtonPress={Navigation.dismissModal}
+            />
             <MoneyRequestAmountForm
                 currency={defaultCurrency}
                 amount={defaultAmount}

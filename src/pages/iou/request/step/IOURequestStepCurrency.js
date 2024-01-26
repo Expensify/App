@@ -54,13 +54,14 @@ const defaultProps = {
 function IOURequestStepCurrency({
     currencyList,
     route: {
-        params: {backTo, iouType, pageIndex, reportID, transactionID, threadReportID},
+        params: {backTo, iouType, pageIndex, reportID, transactionID, threadReportID, currency: paramCurrency},
     },
-    transaction: {currency},
+    transaction: {currency: transactionCurrency},
 }) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
+    const currency = paramCurrency || transactionCurrency;
 
     useEffect(() => {
         // Do not dismiss the modal, when it is not the edit flow.
@@ -96,6 +97,16 @@ function IOURequestStepCurrency({
             }
             return;
         }
+
+        if (pageIndex === 'edit') {
+            if (selectedCurrency) {
+                Navigation.navigate(`${backTo}?currency=${selectedCurrency}`);
+            } else {
+                Navigation.navigate(backTo);
+            }
+            return;
+        }
+
         Navigation.goBack(backTo || ROUTES.HOME);
     };
 

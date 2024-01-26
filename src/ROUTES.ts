@@ -169,9 +169,17 @@ const ROUTES = {
         getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${threadReportID}/edit/${field}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
-        route: 'r/:action/:iouType/:threadReportID/edit/currency',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, threadReportID: string, backTo: string) =>
-            `r/${action}/${iouType}/${threadReportID}/edit/currency?backTo=${backTo}` as const,
+        route: 'r/:action/:iouType/:transactionID/:threadReportID/:reportID/currency/:pageIndex',
+        getRoute: (
+            action: ValueOf<typeof CONST.IOU.ACTION>,
+            iouType: ValueOf<typeof CONST.IOU.TYPE>,
+            transactionID: string,
+            reportID: string,
+            threadReportID: string,
+            pageIndex: string,
+            currency: string,
+            backTo: string,
+        ) => `r/${action}/${iouType}/${transactionID}/${threadReportID}/${reportID}/currency/${pageIndex}?backTo=${backTo}&currency=${currency}` as const,
     },
     EDIT_REPORT_FIELD_REQUEST: {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
@@ -222,9 +230,17 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => `r/${reportID}/split/${reportActionID}/edit/${field}` as const,
     },
     EDIT_SPLIT_BILL_CURRENCY: {
-        route: 'r/:action/:iouType/:reportID/split/:reportActionID/edit/currency',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, reportActionID: string, backTo: string) =>
-            `r/${action}/${iouType}/${reportID}/split/${reportActionID}/edit/currency?backTo=${backTo}` as const,
+        route: 'r/:action/:iouType/:transactionID/:reportID/:reportActionID/currency/:pageIndex',
+        getRoute: (
+            action: ValueOf<typeof CONST.IOU.ACTION>,
+            iouType: ValueOf<typeof CONST.IOU.TYPE>,
+            transactionID: string,
+            reportID: string,
+            reportActionID: string,
+            pageIndex: string,
+            currency: string,
+            backTo: string,
+        ) => `r/${action}/${iouType}/${transactionID}/${reportID}/${reportActionID}/currency/${pageIndex}?backTo=${backTo}&currency=${currency}` as const,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
