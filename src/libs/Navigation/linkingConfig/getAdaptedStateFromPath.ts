@@ -244,7 +244,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
         routes.push(centralPaneNavigator);
 
-        // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
         return {
             adaptedState: getRoutesWithIndex(routes),
             metainfo,
@@ -267,7 +266,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             routes.push(createCentralPaneNavigator(matchingCentralPaneRoute));
         }
 
-        // TODO: TEMPORARY FIX - REPLACE WITH getRoutesWithIndex(routes)
         return {
             adaptedState: getRoutesWithIndex(routes),
             metainfo,
