@@ -86,7 +86,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormValues) => {
-        const participants = session?.accountID ? [session.accountID] : [];
+        const participants = [session?.accountID ?? 0];
         const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
