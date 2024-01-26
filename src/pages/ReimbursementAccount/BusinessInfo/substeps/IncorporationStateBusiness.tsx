@@ -40,9 +40,8 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -51,7 +50,6 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
         >
             <Text style={[styles.textHeadline, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={StatePicker}
                 fomrID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={COMPANY_INCORPORATION_STATE_KEY}

@@ -11,7 +11,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const BENEFICIAL_OWNER_INFO_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
@@ -19,7 +19,7 @@ const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BE
 
 type AddressUBOOnyxProps = {
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 type AddressUBOProps = SubStepProps & AddressUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
 type FormValues = BeneficialOwnerDraftData;
@@ -65,9 +65,8 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -91,6 +90,6 @@ AddressUBO.displayName = 'AddressUBO';
 
 export default withOnyx<AddressUBOProps, AddressUBOOnyxProps>({
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(AddressUBO);

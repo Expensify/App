@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -21,7 +21,7 @@ type IncorporationDateBusinessOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
 type IncorporationDateBusinessProps = IncorporationDateBusinessOnyxProps & SubStepProps;
@@ -54,9 +54,8 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -65,9 +64,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25140) is migrated to TypeScript
                 InputComponent={DatePicker}
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}
                 containerStyles={[styles.mt4]}
@@ -87,6 +84,6 @@ export default withOnyx<IncorporationDateBusinessProps, IncorporationDateBusines
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(IncorporationDateBusiness);

@@ -65,9 +65,8 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     }, [defaultCompanyWebsite]);
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -77,7 +76,6 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
             <Text style={[styles.textHeadline]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
             <Text style={[styles.label, styles.mb2]}>{translate('common.websiteExample')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={TextInput}
                 inputID={COMPANY_WEBSITE_KEY}
                 label={translate('businessInfoStep.companyWebsite')}

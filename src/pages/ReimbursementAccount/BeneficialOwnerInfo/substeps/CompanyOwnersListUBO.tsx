@@ -16,7 +16,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 
 const reimbursementAccountDefault = {
     achData: {
@@ -34,10 +34,10 @@ type CompanyOwnersListUBOIOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
-type CompanyOwnersListUBOProps = {
+type CompanyOwnersListUBOProps = CompanyOwnersListUBOIOnyxProps & {
     /** Method called when user confirms data */
     handleUBOsConfirmation: () => void;
 
@@ -52,12 +52,6 @@ type CompanyOwnersListUBOProps = {
 
     /** Info about other existing UBOs */
     isAnyoneElseUBO: boolean;
-
-    /** Reimbursement account from ONYX */
-    reimbursementAccount?: ReimbursementAccount;
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft?: ReimbursementAccountDraft;
 };
 
 const REQUESTOR_PERSONAL_INFO_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
@@ -155,6 +149,6 @@ export default withOnyx<CompanyOwnersListUBOProps, CompanyOwnersListUBOIOnyxProp
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(CompanyOwnersListUBO);

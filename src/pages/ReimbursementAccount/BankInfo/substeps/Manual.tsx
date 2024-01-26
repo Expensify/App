@@ -65,9 +65,8 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
     const shouldDisableInputs = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             onSubmit={onNext}
             validate={validate}
             submitButtonText={translate('common.next')}
@@ -78,7 +77,6 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <Text style={[styles.mb5, styles.textLabel]}>{translate('bankAccount.checkHelpLine')}</Text>
             <ExampleCheckImage />
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID={BANK_INFO_STEP_KEYS.ROUTING_NUMBER}
                 label={translate('bankAccount.routingNumber')}
@@ -91,7 +89,6 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
                 shouldUseDefaultValue={shouldDisableInputs}
             />
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID={BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER}
                 containerStyles={[styles.mt4]}

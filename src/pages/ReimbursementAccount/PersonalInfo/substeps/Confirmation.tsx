@@ -15,14 +15,14 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
@@ -130,6 +130,6 @@ export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(Confirmation);

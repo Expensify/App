@@ -542,7 +542,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form;
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.ReimbursementAccountFormDraft;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

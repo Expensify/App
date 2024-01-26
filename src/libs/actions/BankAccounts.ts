@@ -135,7 +135,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
 }
 
 function addBusinessWebsiteForDraft(website: string) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {website});
+    Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {website});
 }
 
 /**

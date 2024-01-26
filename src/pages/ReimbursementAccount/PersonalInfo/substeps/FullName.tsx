@@ -56,9 +56,8 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -69,7 +68,6 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
                 <View style={[styles.flex2, styles.mb5]}>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
                         label={translate('personalInfoStep.legalFirstName')}
@@ -81,7 +79,6 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
                 </View>
                 <View style={[styles.flex2, styles.mb3]}>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
                         label={translate('personalInfoStep.legalLastName')}

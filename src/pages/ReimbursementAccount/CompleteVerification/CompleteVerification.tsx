@@ -14,7 +14,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import ConfirmAgreements from './substeps/ConfirmAgreements';
 
 type CompleteVerificationOnyxProps = {
@@ -22,7 +22,7 @@ type CompleteVerificationOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
 type CompleteVerificationProps = CompleteVerificationOnyxProps & {
@@ -95,6 +95,6 @@ export default withOnyx<CompleteVerificationProps, CompleteVerificationOnyxProps
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(CompleteVerification);

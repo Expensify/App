@@ -50,9 +50,8 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -64,7 +63,6 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
                 <Text style={[styles.mb3]}>{translate('personalInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
                         label={translate('personalInfoStep.last4SSN')}

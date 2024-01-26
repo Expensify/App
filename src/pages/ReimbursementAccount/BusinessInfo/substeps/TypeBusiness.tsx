@@ -42,9 +42,8 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -53,9 +52,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={Picker}
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={COMPANY_INCORPORATION_TYPE_KEY}
                 label={translate('businessInfoStep.companyType')}
                 items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({
@@ -65,6 +62,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
                 placeholder={{value: '', label: '-'}}
                 defaultValue={defaultIncorporationType}
                 shouldSaveDraft={!isEditing}
+                onInputChange={() => {}}
             />
         </FormProvider>
     );

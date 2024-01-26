@@ -63,16 +63,14 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
             style={[styles.pt3]}
         >
             <Text style={[styles.textHeadline, styles.ph5, styles.mb3]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
-            {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
                 onSubmit={onNext}
                 submitButtonText={translate('common.saveAndContinue')}
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
                     inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
@@ -82,7 +80,6 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     shouldSaveDraft
                 />
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
                     inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
@@ -92,7 +89,6 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     shouldSaveDraft
                 />
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
                     inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}

@@ -47,9 +47,8 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
             testID={BeneficialOwnerCheckUBO.displayName}
             style={[styles.pt0]}
         >
-            {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 submitButtonText={translate('common.confirm')}
                 onSubmit={handleSubmit}
                 style={[styles.mh5, styles.flexGrow1]}

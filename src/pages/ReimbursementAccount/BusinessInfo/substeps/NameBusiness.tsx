@@ -52,9 +52,8 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -63,7 +62,6 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
         >
             <Text style={styles.textHeadline}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.businessName')}
                 aria-label={translate('businessInfoStep.businessName')}

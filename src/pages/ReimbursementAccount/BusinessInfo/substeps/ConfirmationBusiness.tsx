@@ -19,7 +19,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -28,7 +28,7 @@ type ConfirmationBusinessOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
 type ConfirmationBusinessProps = ConfirmationBusinessOnyxProps & SubStepProps;
@@ -130,9 +130,8 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         onMove(7);
                     }}
                 />
-                {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript */}
                 <FormProvider
-                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     validate={validate}
                     onSubmit={onNext}
                     scrollContextEnabled
@@ -174,6 +173,6 @@ export default withOnyx<ConfirmationBusinessProps, ConfirmationBusinessOnyxProps
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(ConfirmationBusiness);

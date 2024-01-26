@@ -1,3 +1,4 @@
+import type {FormValues} from './Form';
 import type * as OnyxTypes from './index';
 
 type OnfidoData = Record<string, unknown>;
@@ -76,4 +77,14 @@ type ReimbursementAccountDraft = BankAccountStepProps &
 type ReimbursementAccountFormDraft = ReimbursementAccountDraft & OnyxTypes.Form;
 
 export default ReimbursementAccountDraft;
-export type {ACHContractStepProps,BeneficialOwnersStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps, ReimbursementAccountFormDraft, BeneficialOwnerDraftData};
+export type {
+    ACHContractStepProps,
+    BeneficialOwnersStepProps,
+    RequestorStepProps,
+    OnfidoData,
+    BankAccountStepProps,
+    CompanyStepProps,
+    ReimbursementAccountProps,
+    ReimbursementAccountFormDraft,
+    BeneficialOwnerDraftData,
+};

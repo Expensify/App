@@ -10,7 +10,12 @@ type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing
     fieldIds: Array<keyof FormValues>;
 };
 
-export default function useReimbursementAccountStepFormSubmit({formId = ONYXKEYS.REIMBURSEMENT_ACCOUNT, isEditing, onNext, fieldIds}: UseReimbursementAccountStepFormSubmitParams) {
+export default function useReimbursementAccountStepFormSubmit({
+    formId = ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM,
+    isEditing,
+    onNext,
+    fieldIds,
+}: UseReimbursementAccountStepFormSubmitParams) {
     return useCallback(
         (values: FormValues) => {
             if (isEditing) {

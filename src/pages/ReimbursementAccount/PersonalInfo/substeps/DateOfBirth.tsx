@@ -14,7 +14,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -23,7 +23,7 @@ type DateOfBirthOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
 type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
@@ -61,9 +61,8 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -72,9 +71,8 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={DatePicker}
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 inputID={PERSONAL_INFO_DOB_KEY}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
@@ -96,6 +94,6 @@ export default withOnyx<DateOfBirthProps, DateOfBirthOnyxProps>({
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(DateOfBirth);

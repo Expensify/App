@@ -9,21 +9,21 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {PlaidData, ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type PlaidOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<OnyxTypes.ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 
     /** Contains plaid data */
-    plaidData: OnyxEntry<OnyxTypes.PlaidData>;
+    plaidData: OnyxEntry<PlaidData>;
 };
 
 type PlaidProps = PlaidOnyxProps & SubStepProps;
@@ -72,16 +72,15 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
         };
 
-        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+        ReimbursementAccountActions.updateReimbursementAccountDraft(bankAccountData);
         onNext();
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             validate={validate}
             onSubmit={handleNextPress}
             scrollContextEnabled
@@ -89,11 +88,10 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             style={[styles.mh5, styles.flexGrow1]}
         >
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID: string) => {
-                    ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
+                    ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
                 }}
                 plaidData={plaidData}
                 onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
@@ -118,7 +116,7 @@ export default withOnyx<PlaidProps, PlaidOnyxProps>({
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,

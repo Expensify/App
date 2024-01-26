@@ -81,9 +81,8 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
         [reimbursementAccount],
     );
     return (
-        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('connectBankAccountStep.validateButtonText')}
             onSubmit={submit}
             validate={validate}
@@ -94,7 +93,6 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
 
             <View style={[styles.mv5]}>
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={TextInput}
                     inputID="amount1"
                     shouldSaveDraft
@@ -103,7 +101,6 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 1`}
                 />
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={TextInput}
                     inputID="amount2"
                     shouldSaveDraft
@@ -112,7 +109,6 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 2`}
                 />
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                     InputComponent={TextInput}
                     shouldSaveDraft
                     inputID="amount3"

@@ -50,9 +50,8 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -61,7 +60,6 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
         >
             <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={TextInput}
                 inputID={COMPANY_TAX_ID_KEY}
                 label={translate('businessInfoStep.taxIDNumber')}

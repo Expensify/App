@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const DOB = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.DOB;
@@ -21,7 +21,7 @@ const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BE
 
 type DateOfBirthUBOOnyxProps = {
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 type DateOfBirthUBOProps = SubStepProps & DateOfBirthUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
 type FormValues = BeneficialOwnerDraftData;
@@ -59,9 +59,8 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -70,9 +69,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25140) is migrated to TypeScript
                 InputComponent={DatePicker}
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={dobInputID}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
@@ -90,6 +87,6 @@ DateOfBirthUBO.displayName = 'DateOfBirthUBO';
 
 export default withOnyx<DateOfBirthUBOProps, DateOfBirthUBOOnyxProps>({
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(DateOfBirthUBO);

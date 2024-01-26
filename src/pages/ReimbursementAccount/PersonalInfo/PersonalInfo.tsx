@@ -14,7 +14,7 @@ import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -26,7 +26,7 @@ type PersonalInfoOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountFormDraft>;
 };
 
 type PersonalInfoProps = PersonalInfoOnyxProps & {
@@ -97,6 +97,6 @@ export default withOnyx<PersonalInfoProps, PersonalInfoOnyxProps>({
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
     },
 })(forwardRef(PersonalInfo));

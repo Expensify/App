@@ -48,9 +48,8 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
     });
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <FormProvider
-            formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -59,7 +58,6 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
         >
             <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
                 InputComponent={TextInput}
                 inputID={COMPANY_PHONE_NUMBER_KEY}
                 label={translate('common.phoneNumber')}
