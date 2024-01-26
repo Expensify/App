@@ -6,6 +6,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type {AutoCompleteSuggestionsProps} from './types';
+import { measureHeightOfSuggestioContainer } from '@libs/SuggestionUtils';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -18,6 +19,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
     const StyleUtils = useStyleUtils();
     const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
+    const suggestionContainerHeight = measureHeightOfSuggestioContainer(props.suggestions.length, props.isSuggestionPickerLarge);
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,
         left: 0,
@@ -41,9 +43,12 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         if (!measureParentContainer) {
             return;
         }
-        measureParentContainer((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
-    }, [measureParentContainer, windowHeight, windowWidth]);
 
+        measureParentContainer((x, y, w, h) => {
+            const currenBottom = y < suggestionContainerHeight ? windowHeight - y - suggestionContainerHeight - h : windowHeight - y;
+            setContainerState({left: x, bottom: currenBottom, width: w})
+        });
+    }, [measureParentContainer, windowHeight, windowWidth]);
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading

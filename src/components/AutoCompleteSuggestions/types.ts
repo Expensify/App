@@ -1,6 +1,6 @@
 import type {ReactElement} from 'react';
 
-type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
+type MeasureParentContainerCallback = (x: number, y: number, width: number, height: number) => void;
 
 type RenderSuggestionMenuItemProps<TSuggestion> = {
     item: TSuggestion;
