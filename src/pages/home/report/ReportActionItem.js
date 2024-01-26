@@ -837,6 +837,7 @@ function ReportActionItem(props) {
         </PressableWithSecondaryInteraction>
     );
 }
+
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 

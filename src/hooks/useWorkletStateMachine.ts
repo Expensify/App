@@ -18,7 +18,7 @@ type State = {
     previous: StateHolder | null;
     current: StateHolder;
 };
-// <S, A, S>
+
 type StateMachine = Record<string, Record<string, string>>;
 
 /**

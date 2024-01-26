@@ -67,7 +67,7 @@ const States = {
     POPOVER_CLOSED: 'popoverClosed',
     KEYBOARD_POPOVER_CLOSED: 'keyboardPopoverClosed',
     KEYBOARD_POPOVER_OPEN: 'keyboardPopoverOpen',
-    KEYBOARD_CLOSED_POPOVER: 'keyboardClosingPopover', // needed?
+    KEYBOARD_CLOSED_POPOVER: 'keyboardClosingPopover',
     POPOVER_MEASURED: 'popoverMeasured',
     EMOJI_PICKER_POPOVER_OPEN: 'emojiPickerPopoverOpen',
     DELETE_MODAL_OPEN: 'deleteModalOpen',
