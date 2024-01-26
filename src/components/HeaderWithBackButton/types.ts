@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon?: IconAsset;
+    icon: IconAsset;
 
     /** Text label */
     text: string;
