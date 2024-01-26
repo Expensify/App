@@ -9,7 +9,7 @@ import RESIZE_MODES from './resizeModes';
 
 function Image(props) {
     const {source: propsSource, isAuthTokenRequired, onLoad, session} = props;
-    const [aspectRatio, setAspectRatio] = useState();
+    const [aspectRatio, setAspectRatio] = useState(null);
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
@@ -54,7 +54,7 @@ function Image(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             source={source}
-            style={[forwardedProps.style, aspectRatio !== undefined && {aspectRatio, height: 'auto'}, props.objectPositionTop && !aspectRatio && {opacity: 0}]}
+            style={[forwardedProps.style, !!aspectRatio && {aspectRatio, height: 'auto'}, props.objectPositionTop && !aspectRatio && {opacity: 0}]}
         />
     );
 }

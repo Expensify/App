@@ -35,27 +35,6 @@ function Image(props) {
         };
     }
 
-    const newSource = useMemo(() => {
-        if (isAuthTokenRequired) {
-            const authToken = lodashGet(session, 'encryptedAuthToken', null);
-            return {uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
-        }
-        return source;
-    }, [source, isAuthTokenRequired, session]);
-
-    useEffect(() => {
-        if (props.onLoad == null) {
-            return;
-        }
-        RNImage.getSize(newSource.uri, (width, height) => {
-            props.onLoad({nativeEvent: {width, height}});
-
-            if (props.objectPositionTop) {
-                setAspectRatio(height ? width / height : 'auto');
-            }
-        });
-    }, [props.onLoad, newSource, props]);
-
     return (
         <ImageComponent
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -67,8 +46,11 @@ function Image(props) {
                 if (props.onLoad) {
                     props.onLoad({nativeEvent: {width, height}});
                 }
+                if (props.objectPositionTop) {
+                    setAspectRatio(height ? width / height : 'auto');
+                }
             }}
-            style={[props.style, aspectRatio !== undefined && {aspectRatio, height: 'auto'}, props.objectPositionTop && !aspectRatio && {opacity: 0}]}
+            style={[props.style, !!aspectRatio && {aspectRatio, height: 'auto'}, props.objectPositionTop && !aspectRatio && {opacity: 0}]}
         />
     );
 }
