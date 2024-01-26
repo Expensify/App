@@ -397,7 +397,7 @@ function MenuItem(
                             combinedStyle,
                             !interactive && styles.cursorDefault,
                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                            (isHovered || pressed) && hoverAndPressStyle,
+                            !focused && (isHovered || pressed) && hoverAndPressStyle,
                             ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                             shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                         ] as StyleProp<ViewStyle>
