@@ -718,15 +718,15 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     if (!chat) {
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+    const report = chat ?? newChat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, userLogins, newChat);
+    openReport(report.reportID, userLogins, newChat);
     if (shouldDismissModal) {
-        Navigation.dismissModal(reportID);
+        Navigation.dismissModalWithReport(report);
     } else {
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
 }
 
@@ -741,11 +741,11 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     if (!chat) {
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+    const report = chat ?? newChat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, [], newChat, '0', false, participantAccountIDs);
-    Navigation.dismissModal(reportID);
+    openReport(report.reportID, [], newChat, '0', false, participantAccountIDs);
+    Navigation.dismissModalWithReport(report);
 }
 
 /**
@@ -1701,7 +1701,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     };
 
     API.write('AddWorkspaceRoom', parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(policyReport.reportID);
+    Navigation.dismissModalWithReportID(policyReport.reportID);
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */

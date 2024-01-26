@@ -256,7 +256,7 @@ function createTaskAndNavigate(
 
     API.write('CreateTask', parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(parentReportID);
+    Navigation.dismissModalWithReportID(parentReportID);
 }
 
 /**

@@ -66,14 +66,14 @@ function TaskTitlePage(props) {
                 Task.editTask(props.report, {title: values.title});
             }
 
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModalWithReportID(props.report.reportID);
         },
         [props],
     );
 
     if (!ReportUtils.isTaskReport(props.report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModalWithReportID(props.report.reportID);
         });
     }
 
