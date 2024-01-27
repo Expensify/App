@@ -22,6 +22,9 @@ const getTopMostReportIDFromRHP = (state: State): string => {
     }
 
     const topmostRoute = state.routes.at(-1);
+
+    // In the case of money requests, send money and split bill,
+    // we want to ignore the associated report and fall back to the default navigation behavior
     if (
         topmostRoute?.params &&
         'iouType' in topmostRoute.params &&
