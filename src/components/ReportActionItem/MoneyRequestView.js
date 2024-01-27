@@ -175,7 +175,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
-    const hasViolations = useCallback((field) => canUseViolations && getViolationsForField(field).length > 0, [canUseViolations, getViolationsForField]);
+    const hasViolations = useCallback((field, data) => canUseViolations && getViolationsForField(field, data).length > 0, [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -359,9 +359,21 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}
                                 onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG, index))}
-                                brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                                brickRoadIndicator={
+                                    hasViolations('tag', {
+                                        tagName: name,
+                                    })
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : ''
+                                }
                             />
-                            {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
+                            {canUseViolations && (
+                                <ViolationMessages
+                                    violations={getViolationsForField('tag', {
+                                        tagName: name,
+                                    })}
+                                />
+                            )}
                         </OfflineWithFeedback>
                     ))}
                 {isCardTransaction && (
