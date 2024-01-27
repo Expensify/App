@@ -17,12 +17,10 @@ Onyx.connect({
 });
 
 function saveExitReason(reason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>) {
-    console.log('RORY_DEBUG setting exit reason:', reason);
     Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[CONST.EXIT_SURVEY.REASON_INPUT_ID]: reason});
 }
 
 function saveResponse(response: string) {
-    console.log('RORY_DEBUG setting response:', response);
     Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: response});
 }
 
@@ -31,7 +29,6 @@ function saveResponse(response: string) {
  */
 function switchToOldDot() {
     if (!exitReason || !exitSurveyResponse) {
-        console.log('RORY_DEBUG', {exitReason, exitSurveyResponse});
         Log.hmmm('Attempted to call SwitchToOldDot without filling out mandatory survey.');
         return;
     }
