@@ -1038,7 +1038,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     // Should only update if the transaction matches the currency of the report, else we wait for the update
     // from the server with the currency conversion
     let updatedMoneyRequestReport = {...iouReport};
-    if (updatedTransaction.currency === iouReport.currency && (updatedTransaction.modifiedAmount || hasPendingWaypoints)) {
+    if ((hasPendingWaypoints || updatedTransaction.modifiedAmount) && updatedTransaction.currency === iouReport.currency) {
         const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
         if (ReportUtils.isExpenseReport(iouReport)) {
             updatedMoneyRequestReport.total += diff;
