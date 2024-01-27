@@ -321,7 +321,7 @@ function HeaderView(props) {
                     )}
                 </View>
             </View>
-            {isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }
