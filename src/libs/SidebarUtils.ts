@@ -307,7 +307,14 @@ function getOptionData({
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
+    let reportID = report.reportID;
 
+    // If this is a one expense report, we'll want to navigate to the money request instead of the report
+    // so update the reportID accordingly.
+    if (ReportUtils.isOneExpenseMoneyReport(report)) {
+        const moneyRequestReportID = ReportUtils.getOneExpenseMoneyRequestReportID(report.reportID)
+        reportID = moneyRequestReportID ?? report.reportID;
+    }
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
@@ -322,7 +329,7 @@ function getOptionData({
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
-    result.reportID = report.reportID;
+    result.reportID = reportID;
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;

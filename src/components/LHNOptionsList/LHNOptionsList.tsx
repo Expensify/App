@@ -54,6 +54,14 @@ function LHNOptionsList({
      */
     const renderItem = useCallback(
         ({item: reportID}: RenderItemProps): ReactElement => {
+            // If the report is a one-expense money request report, we want to show the money report details in the LHN
+            // instead, so use the parentReportID. Store the activeReportID so we still focus the item
+            const activeReportID = reportID;
+            if (ReportUtils.isOneExpenseMoneyRequest(activeReportID)) {
+                const report = ReportUtils.getReport(reportID);
+                reportID = report?.parentReportID ?? reportID;
+            }
+
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? null;
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
@@ -76,7 +84,7 @@ function LHNOptionsList({
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
                     viewMode={optionMode}
-                    isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
+                    isFocused={!shouldDisableFocusOptions && (reportID === currentReportID || activeReportID === currentReportID)}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
