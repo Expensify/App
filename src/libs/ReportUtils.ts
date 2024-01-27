@@ -1168,6 +1168,35 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | string): boolean {
 }
 
 /**
+ * Checks if a report is an IOU or expense request on a report with only one request
+ */
+function isOneExpenseMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+    const parentReport = getParentReport(report);
+    return isOneExpenseMoneyReport(parentReport?.reportID ?? '');
+}
+
+/**
+ * Checks if a report is an IOU or expense report with only one request
+ */
+function isOneExpenseMoneyReport(reportOrID: OnyxEntry<Report> | string): boolean {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+
+    // Check the parent report (which would be the IOU or expense report if the passed report is an IOU or expense request)
+    // to see how many IOU report actions it contains
+    const iouReportActions = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '');
+    return (iouReportActions?.length ?? 0) === 1;
+}
+
+function getOneExpenseMoneyRequestReportID(reportOrID: OnyxEntry<Report> | string): string | undefined {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+
+    // Get all IOU report actions for the report.
+    const iouReportActions = ReportActionsUtils.getIOUReportActions(report?.reportID ?? '');
+    return iouReportActions?.find(reportAction => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.childReportID)?.childReportID;
+
+}
+/**
  * Should return true only for personal 1:1 report
  *
  */
@@ -4108,7 +4137,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isExpenseRequest(report)) {
+    if (isExpenseRequest(report) || isOneExpenseMoneyReport(report)) {
         return true;
     }
 
@@ -4763,6 +4792,9 @@ export {
     isReportApproved,
     isMoneyRequestReport,
     isMoneyRequest,
+    isOneExpenseMoneyRequest,
+    isOneExpenseMoneyReport,
+    getOneExpenseMoneyRequestReportID,
     chatIncludesChronos,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,

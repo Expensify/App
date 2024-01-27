@@ -240,6 +240,24 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
 }
 
 /**
+ * Gets an array of IOU report actions
+ */
+function getIOUReportActions(reportID: string): ReportAction[] | null {
+    const reportActions = Object.values(getAllReportActions(reportID));
+    if (!reportActions.length) {
+        return null;
+    }
+
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
+
+    if (iouRequestActions.length === 0) {
+        return null;
+    }
+    return iouRequestActions;
+}
+
+/**
  * Returns array of links inside a given report action
  */
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
@@ -815,6 +833,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getIOUReportActions,
     getMostRecentIOURequestActionID,
     getMostRecentReportActionLastModified,
     getNumberOfMoneyRequests,
