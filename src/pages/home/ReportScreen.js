@@ -73,6 +73,9 @@ const propTypes = {
     /** The report's parentReportAction */
     parentReportAction: PropTypes.shape(reportActionPropTypes),
 
+    /** All the reportActions for this report's parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
@@ -150,6 +153,7 @@ function ReportScreen({
     reportMetadata,
     reportActions,
     parentReportAction,
+    parentReportActions,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -191,9 +195,17 @@ function ReportScreen({
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
+    const isOneExpenseMoneyRequest = ReportUtils.isOneExpenseMoneyRequest(report);
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
+    // If this is a one expense money request, we want to include the report actions from the parent money report
+    let sortedReportActions = reportActions;
+    if (isOneExpenseMoneyRequest) {
+        sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay([...reportActions, ...parentReportActions]);
+        sortedReportActions = sortedReportActions.filter((action) => !(action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE));
+    }
 
     useEffect(() => {
         if (!report || !report.reportID || shouldHideReport) {
@@ -215,7 +227,7 @@ function ReportScreen({
         />
     );
 
-    if (isSingleTransactionView) {
+    if (isSingleTransactionView && !isOneExpenseMoneyRequest) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -227,10 +239,10 @@ function ReportScreen({
         );
     }
 
-    if (ReportUtils.isMoneyRequestReport(report)) {
+    if (ReportUtils.isMoneyRequestReport(report) || isOneExpenseMoneyRequest) {
         headerView = (
             <MoneyReportHeader
-                report={report}
+                report={isOneExpenseMoneyRequest ? ReportUtils.getReport(report.parentReportID) : report}
                 policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
@@ -521,7 +533,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={reportActions}
+                                        reportActions={sortedReportActions}
                                         report={report}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
@@ -620,6 +632,11 @@ export default compose(
                     }
                     return lodashGet(parentReportActions, parentReportActionID);
                 },
+                canEvict: false,
+            },
+            parentReportActions: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(parentReportActions, true),
                 canEvict: false,
             },
         },
