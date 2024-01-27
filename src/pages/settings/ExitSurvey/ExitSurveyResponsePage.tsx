@@ -16,6 +16,7 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import * as ExitSurvey from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,7 +74,10 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={() => Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM)}
+                onSubmit={() => {
+                    ExitSurvey.saveResponse(response);
+                    Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM);
+                }}
                 submitButtonText={translate('common.next')}
                 validate={() => {
                     if (response?.trim()) {

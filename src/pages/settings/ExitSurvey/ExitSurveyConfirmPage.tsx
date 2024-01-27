@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import * as ExitSurvey from '@userActions/ExitSurvey';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 
@@ -31,7 +32,10 @@ function ExitSurveyConfirmPage() {
                 <Button
                     success
                     text={translate('exitSurvey.goToExpensifyClassic')}
-                    onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
+                    onPress={() => {
+                        ExitSurvey.switchToOldDot();
+                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    }}
                 />
             </FixedFooter>
         </ScreenWrapper>

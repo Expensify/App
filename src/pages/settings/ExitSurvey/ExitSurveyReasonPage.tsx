@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import * as ExitSurvey from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +52,7 @@ function ExitSurveyReasonPage() {
                     if (!reason) {
                         return;
                     }
+                    ExitSurvey.saveExitReason(reason);
                     Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason));
                 }}
                 submitButtonText={translate('common.next')}
