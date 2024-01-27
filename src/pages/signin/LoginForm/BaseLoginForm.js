@@ -97,7 +97,7 @@ function LoginForm(props) {
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
 
     const {translate} = props;
 
@@ -157,7 +157,7 @@ function LoginForm(props) {
     );
 
     function getSignInWithStyles() {
-        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+        return shouldUseNarrowLayout ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     /**
@@ -211,7 +211,7 @@ function LoginForm(props) {
             return;
         }
         let focusTimeout;
-        if (shouldUseNarrowLayout) {
+        if (isInModal) {
             focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
@@ -330,7 +330,7 @@ function LoginForm(props) {
                                         {props.translate('common.signInWith')}
                                     </Text>
 
-                                    <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                    <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View onMouseDown={(e) => e.preventDefault()}>
                                             <AppleSignIn />
                                         </View>
