@@ -1,9 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
+import focusInputOnPaste from './focusInputOnPaste';
 import type UseHtmlPaste from './types';
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnmountedOnBlur = true) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, removeListenerOnScreenBlur = true) => {
     const navigation = useNavigation();
 
     /**
@@ -13,6 +14,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnm
     const paste = useCallback((text: string) => {
         try {
             document.execCommand('insertText', false, text);
+
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             textInputRef.current?.blur();
             textInputRef.current?.focus();
@@ -54,25 +56,14 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnm
             if (!textInputRef.current) {
                 return;
             }
-            const isVisible = typeof checkComposerVisibility === 'function' && checkComposerVisibility();
+            const isComposerVisible = checkComposerVisibility?.();
             const isFocused = textInputRef.current?.isFocused();
 
-            if (!isFocused && !isVisible) {
+            if (!isFocused && !isComposerVisible) {
                 return;
             }
 
-            if (textInputRef.current !== event.target) {
-                // To make sure the text input does not capture paste events from other inputs, we check where the event originated
-                // If it did originate in another input, we return early to prevent the text input from handling the paste
-                const target = event.target as HTMLInputElement;
-                const isTargetInput = (target && target.nodeName === 'INPUT') || target.nodeName === 'TEXTAREA' || target.contentEditable === 'true';
-
-                if (isTargetInput) {
-                    return;
-                }
-
-                textInputRef.current?.focus();
-            }
+            focusInputOnPaste(textInputRef, event);
 
             event.preventDefault();
 
@@ -108,7 +99,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnm
         // when navigating away to different screen (report)
         let unsubscribeFocus: () => void;
         let unsubscribeBlur: () => void;
-        if (!isUnmountedOnBlur) {
+        if (!removeListenerOnScreenBlur) {
             unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
             unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
         }
@@ -116,7 +107,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnm
         document.addEventListener('paste', handlePaste);
 
         return () => {
-            if (!isUnmountedOnBlur) {
+            if (!removeListenerOnScreenBlur) {
                 unsubscribeFocus();
                 unsubscribeBlur();
             }

@@ -10,6 +10,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import focusInputOnPaste from '@hooks/useHtmlPaste/focusInputOnPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -165,18 +166,7 @@ function Composer(
                 return;
             }
 
-            if (textInput.current !== event.target) {
-                const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
-
-                // To make sure the composer does not capture paste events from other inputs, we check where the event originated
-                // If it did originate in another input, we return early to prevent the composer from handling the paste
-                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
-                if (isTargetInput) {
-                    return;
-                }
-
-                textInput.current?.focus();
-            }
+            focusInputOnPaste(textInput, event);
 
             event.preventDefault();
 
