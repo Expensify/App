@@ -400,20 +400,14 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
         // set the focus on the first item when the sections list is changed
-        if (flattenedSections.allOptions.length > 0) {
-            let newSelectedIndex;
+        let newSelectedIndex = -1;
 
-            if (textInputValue === '') {
-                // if the textInputValue is empty then focus is removed
-                newSelectedIndex = -1;
-            } else {
-                // if multiple selection then focus on the first non-selected item
-                // else focus on the first item
-                newSelectedIndex = canSelectMultiple ? flattenedSections.selectedOptions.length + flattenedSections.disabledOptionsIndexes.length : 0;
-            }
-
-            updateAndScrollToFocusedIndex(newSelectedIndex);
+        if (textInputValue !== '') {
+            // Focus on the first non-selected item if multiple selection, otherwise focus on the first item
+            newSelectedIndex = canSelectMultiple ? flattenedSections.selectedOptions.length + flattenedSections.disabledOptionsIndexes.length : 0;
         }
+
+        updateAndScrollToFocusedIndex(newSelectedIndex);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         canSelectMultiple,
