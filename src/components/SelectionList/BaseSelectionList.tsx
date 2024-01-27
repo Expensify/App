@@ -76,7 +76,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
     /**
      * Sorts sections in the list based on the selection status and whether items are disabled.
-     * Disabled items are moved to the top, followed by selected items, and then unselected items.
+     * Selected items are moved to the top, followed by unselected items, and then disabled items.
      */
     const sortedSections = useMemo(() => {
         // If multiple selection is not allowed, return the original list
