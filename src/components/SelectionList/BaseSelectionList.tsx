@@ -395,8 +395,8 @@ function BaseSelectionList<TItem extends User | RadioItem>(
 
     const prevTextInputValue = usePrevious(textInputValue);
     useEffect(() => {
-        // do not change focus when the textInputValue is the same
-        if (prevTextInputValue === textInputValue) {
+        // Avoid changing focus if the textInputValue remains unchanged.
+        if (prevTextInputValue === textInputValue  || flattenedSections.allOptions.length === 0) {
             return;
         }
         // set the focus on the first item when the sections list is changed
