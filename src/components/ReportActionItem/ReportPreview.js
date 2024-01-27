@@ -264,7 +264,14 @@ function ReportPreview(props) {
             <View style={[styles.chatItemMessage, ...props.containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
+                        if (numberOfRequests === 1) {
+                            // We only have one moneyRequest associated with this report, so navigate directly
+                            // to the child report of the active IOU report instead
+                            const moneyRequestReportID = ReportUtils.getOneExpenseMoneyRequestReportID(props.iouReportID) ?? props.iouReportID;
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReportID ?? props.iouReportID));
+                        } else {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
+                        }
                     }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
