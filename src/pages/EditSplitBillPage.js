@@ -76,20 +76,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         navigateBackToSplitDetails();
     };
 
-    // I removed EditRequestDescriptionPage because we won't use this component anymore. This page EditSplitBillPage also be removed in https://github.com/Expensify/App/issues/29107
-    // if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
-    //     return (
-    //         <EditRequestDescriptionPage
-    //             defaultDescription={transactionDescription}
-    //             onSubmit={(transactionChanges) => {
-    //                 setDraftSplitTransaction({
-    //                     comment: transactionChanges.comment.trim(),
-    //                 });
-    //             }}
-    //         />
-    //     );
-    // }
-
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
