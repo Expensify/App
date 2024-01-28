@@ -52,13 +52,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
         return null;
     }
 
-    // Fetch the keys, sort them, and map through each key to get the corresponding message
-    const sortedMessages = Object.keys(messages)
-        .sort()
-        .map((key) => messages[key]);
-
-    // Removing duplicates using Set and transforming the result into an array
-    const uniqueMessages = [...new Set(sortedMessages)].map((message) => Localize.translateIfPhraseKey(message));
+    // Fetch the keys, sort them, and reverse to get the last message
+    const lastKey = Object.keys(messages).sort().reverse()[0];
+    const message = messages[lastKey] as string;
 
     const isErrorMessage = type === 'error';
 
@@ -71,34 +67,27 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                 />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
-                {uniqueMessages.map((message, i) =>
-                    isReceiptError(message) ? (
-                        <PressableWithoutFeedback
-                            accessibilityLabel={Localize.translateLocal('iou.error.saveFileMessage')}
-                            key={i}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                            onPress={() => {
-                                fileDownload(message.source, message.filename);
-                            }}
-                        >
-                            <Text
-                                key={i}
-                                style={styles.offlineFeedback.text}
-                            >
-                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
-                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
-                                <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
-                            </Text>
-                        </PressableWithoutFeedback>
-                    ) : (
-                        <Text
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={i}
-                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
-                        >
-                            {message}
+                {isReceiptError(message) ? (
+                    <PressableWithoutFeedback
+                        accessibilityLabel={Localize.translateLocal('iou.error.saveFileMessage')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                        onPress={() => {
+                            fileDownload(message.source, message.filename);
+                        }}
+                    >
+                        <Text style={styles.offlineFeedback.text}>
+                            <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
+                            <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), styles.link]}>{Localize.translateLocal('iou.error.saveFileMessage')}</Text>
+                            <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
                         </Text>
-                    ),
+                    </PressableWithoutFeedback>
+                ) : (
+                    <Text
+                        // eslint-disable-next-line react/no-array-index-key
+                        style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                    >
+                        {message}
+                    </Text>
                 )}
             </View>
         </View>
