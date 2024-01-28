@@ -21,10 +21,10 @@ function getAcceptableFileTypes(type: string): string | undefined {
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
-function AttachmentPicker({ children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE }: AttachmentPickerProps): React.JSX.Element {
+function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: AttachmentPickerProps): React.JSX.Element {
     const fileInput = useRef<HTMLInputElement>(null);
-    const onPicked = useRef<(file: File) => void>(() => { });
-    const onCanceled = useRef<() => void>(() => { });
+    const onPicked = useRef<(file: File) => void>(() => {});
+    const onCanceled = useRef<() => void>(() => {});
 
     return (
         <>
@@ -71,13 +71,13 @@ function AttachmentPicker({ children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE }
                                 unsubscribeVisibilityListener();
                             });
                         },
-                        { once: true },
+                        {once: true},
                     );
                 }}
                 accept={getAcceptableFileTypes(type)}
             />
             {children({
-                openPicker: ({ onPicked: newOnPicked, onCanceled: newOnCanceled = () => { } }) => {
+                openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;
                     fileInput.current?.click();
                     onCanceled.current = newOnCanceled;

@@ -21,8 +21,8 @@ type AttachmentPickerProps = {
      * )}
      * </AttachmentPicker>
      * */
-    children: (openPicker: ({onPicked, onCanceled}: {onPicked: (file: File) => void, onCanceled?: () => void}) => void) => ReactNode;
-    
+    children: (openPicker: ({onPicked, onCanceled}: {onPicked: (file: File) => void; onCanceled?: () => void}) => void) => ReactNode;
+
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 };

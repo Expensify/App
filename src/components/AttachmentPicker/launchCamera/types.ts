@@ -8,13 +8,13 @@ type OptionsCommon = {
     includeBase64?: boolean;
     includeExtra?: boolean;
     presentationStyle?: 'currentContext' | 'fullScreen' | 'pageSheet' | 'formSheet' | 'popover' | 'overFullScreen' | 'overCurrentContext';
-}
+};
 
 type CameraOptions = OptionsCommon & {
     durationLimit?: number;
     saveToPhotos?: boolean;
     cameraType?: CameraType;
-}
+};
 type Asset = {
     base64?: string;
     uri?: string;
@@ -27,13 +27,13 @@ type Asset = {
     bitrate?: number;
     timestamp?: string;
     id?: string;
-}
+};
 type ImagePickerResponse = {
     didCancel?: boolean;
     errorCode?: ErrorCode;
     errorMessage?: string;
     assets?: Asset[];
-}
+};
 type PhotoQuality = 0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1;
 type CameraType = 'back' | 'front';
 type MediaType = 'photo' | 'video' | 'mixed';
