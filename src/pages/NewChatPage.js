@@ -229,7 +229,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         updateOptions();
     }, [didScreenTransitionEnd, updateOptions]);
 
-    // When search term updates we will fetch any reports
+    // When search term updates & user hasn't selected max number of participants we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback(
         (text = '') => {
             if (text && !maxParticipantsReached) {

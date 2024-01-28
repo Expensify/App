@@ -259,7 +259,7 @@ function MoneyRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
     );
 
-    // When search term updates we will fetch any reports
+    // When search term updates & user hasn't selected max number of participants we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback(
         (text = '') => {
             if (text && !maxParticipantsReached) {
