@@ -335,7 +335,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     );
 
     const continueFunction = () => {
-        setShouldShowContinueSetupButton(false);
+        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+        });
         fetchData(true);
     };
 
@@ -397,18 +399,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     };
 
-    if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
-        return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                />
-            </ScreenWrapper>
-        );
-    }
-
     const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
@@ -424,6 +414,18 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 isSubmittingVerificationsData={isSubmittingVerificationsData}
                 onBackButtonPress={goBack}
             />
+        );
+    }
+
+    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
+        return (
+            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <FullPageNotFoundView
+                    shouldShow
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                />
+            </ScreenWrapper>
         );
     }
 
@@ -551,7 +553,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

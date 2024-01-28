@@ -4,7 +4,25 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {
+    AddNewContactMethodParams,
+    CloseAccountParams,
+    DeleteContactMethodParams,
+    GetStatementPDFParams,
+    RequestContactMethodValidateCodeParams,
+    SetContactMethodAsDefaultParams,
+    UpdateChatPriorityModeParams,
+    UpdateFrequentlyUsedEmojisParams,
+    UpdateNewsletterSubscriptionParams,
+    UpdatePreferredEmojiSkinToneParams,
+    UpdateStatusParams,
+    UpdateThemeParams,
+    ValidateLoginParams,
+    ValidateSecondaryLoginParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -73,11 +91,9 @@ function closeAccount(reason: string) {
         },
     ];
 
-    type CloseAccountParams = {message: string};
-
     const parameters: CloseAccountParams = {message: reason};
 
-    API.write('CloseAccount', parameters, {
+    API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
     });
@@ -147,11 +163,9 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    type RequestContactMethodValidateCodeParams = {email: string};
-
     const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod};
 
-    API.write('RequestContactMethodValidateCode', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -173,11 +187,9 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
         },
     ];
 
-    type UpdateNewsletterSubscriptionParams = {isSubscribed: boolean};
-
     const parameters: UpdateNewsletterSubscriptionParams = {isSubscribed};
 
-    API.write('UpdateNewsletterSubscription', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION, parameters, {
         optimisticData,
         failureData,
     });
@@ -198,9 +210,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             value: {
                 [contactMethod]: {
                     partnerUserID: '',
-                    errorFields: {
-                        deletedLogin: null,
-                    },
+                    errorFields: null,
                     pendingFields: {
                         deletedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
@@ -225,6 +235,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
+                        ...oldLoginData?.errorFields,
                         deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
@@ -235,11 +246,9 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
         },
     ];
 
-    type DeleteContactMethodParams = {partnerUserID: string};
-
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
-    API.write('DeleteContactMethod', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
@@ -324,11 +333,9 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
         },
     ];
 
-    type AddNewContactMethodParams = {partnerUserID: string};
-
     const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod};
 
-    API.write('AddNewContactMethod', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
 }
 
@@ -348,14 +355,9 @@ function validateLogin(accountID: number, validateCode: string) {
         },
     ];
 
-    type ValidateLoginParams = {
-        accountID: number;
-        validateCode: string;
-    };
-
     const parameters: ValidateLoginParams = {accountID, validateCode};
 
-    API.write('ValidateLogin', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData});
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -433,11 +435,9 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
         },
     ];
 
-    type ValidateSecondaryLoginParams = {partnerUserID: string; validateCode: string};
-
     const parameters: ValidateSecondaryLoginParams = {partnerUserID: contactMethod, validateCode};
 
-    API.write('ValidateSecondaryLogin', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VALIDATE_SECONDARY_LOGIN, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -491,6 +491,7 @@ function subscribeToUserEvents() {
         //     - The data is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         //       Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         if (Array.isArray(pushJSON)) {
+            Log.warn('Received pusher event with array format');
             pushJSON.forEach((multipleEvent) => {
                 PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
             });
@@ -544,13 +545,9 @@ function updatePreferredSkinTone(skinTone: number) {
         },
     ];
 
-    type UpdatePreferredEmojiSkinToneParams = {
-        value: number;
-    };
-
     const parameters: UpdatePreferredEmojiSkinToneParams = {value: skinTone};
 
-    API.write('UpdatePreferredEmojiSkinTone', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE, parameters, {optimisticData});
 }
 
 /**
@@ -564,11 +561,10 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[])
             value: frequentlyUsedEmojis,
         },
     ];
-    type UpdateFrequentlyUsedEmojisParams = {value: string};
 
     const parameters: UpdateFrequentlyUsedEmojisParams = {value: JSON.stringify(frequentlyUsedEmojis)};
 
-    API.write('UpdateFrequentlyUsedEmojis', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_FREQUENTLY_USED_EMOJIS, parameters, {optimisticData});
 }
 
 /**
@@ -594,17 +590,12 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
         });
     }
 
-    type UpdateChatPriorityModeParams = {
-        value: ValueOf<typeof CONST.PRIORITY_MODE>;
-        automatic: boolean;
-    };
-
     const parameters: UpdateChatPriorityModeParams = {
         value: mode,
         automatic,
     };
 
-    API.write('UpdateChatPriorityMode', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE, parameters, {optimisticData});
 
     if (!autoSwitchedToFocusMode) {
         Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
@@ -673,11 +664,9 @@ function generateStatementPDF(period: string) {
         },
     ];
 
-    type GetStatementPDFParams = {period: string};
-
     const parameters: GetStatementPDFParams = {period};
 
-    API.read('GetStatementPDF', parameters, {
+    API.read(READ_COMMANDS.GET_STATEMENT_PDF, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -766,15 +755,11 @@ function setContactMethodAsDefault(newDefaultContactMethod: string) {
         },
     ];
 
-    type SetContactMethodAsDefaultParams = {
-        partnerUserID: string;
-    };
-
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };
 
-    API.write('SetContactMethodAsDefault', parameters, {
+    API.write(WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -791,15 +776,11 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
         },
     ];
 
-    type UpdateThemeParams = {
-        value: string;
-    };
-
     const parameters: UpdateThemeParams = {
         value: theme,
     };
 
-    API.write('UpdateTheme', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
@@ -820,15 +801,9 @@ function updateCustomStatus(status: Status) {
         },
     ];
 
-    type UpdateStatusParams = {
-        text?: string;
-        emojiCode: string;
-        clearAfter?: string;
-    };
-
     const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
 
-    API.write('UpdateStatus', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_STATUS, parameters, {
         optimisticData,
     });
 }
@@ -848,9 +823,7 @@ function clearCustomStatus() {
             },
         },
     ];
-    API.write('ClearStatus', undefined, {
-        optimisticData,
-    });
+    API.write(WRITE_COMMANDS.CLEAR_STATUS, {}, {optimisticData});
 }
 
 /**
