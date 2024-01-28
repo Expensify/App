@@ -102,7 +102,7 @@ function IOURequestStepCurrency({
             if (selectedCurrency) {
                 Navigation.navigate(`${backTo}?currency=${selectedCurrency}`);
             } else {
-                Navigation.navigate(backTo);
+                Navigation.goBack(backTo || ROUTES.HOME);
             }
             return;
         }

@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
 const propTypes = {
@@ -41,6 +42,10 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         }, []),
     );
 
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.HOME);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -50,7 +55,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         >
             <HeaderWithBackButton
                 title={translate('iou.amount')}
-                onBackButtonPress={Navigation.dismissModal}
+                onBackButtonPress={navigateBack}
             />
             <MoneyRequestAmountForm
                 currency={defaultCurrency}
