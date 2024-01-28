@@ -50,14 +50,10 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
             const errors: Errors = {};
 
-            if (!ValidationUtils.isValidLegalName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.firstName) {
+            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
-            if (!ValidationUtils.isValidLegalName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.lastName) {
+            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
             if (!values.partnerUserID) {
