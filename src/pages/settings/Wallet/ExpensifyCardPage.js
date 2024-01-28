@@ -208,7 +208,7 @@ function ExpensifyCardPage({
                                     medium
                                     style={[styles.mh5, styles.mb5]}
                                     text={translate('cardPage.reviewTransaction')}
-                                    onPress={() => Link.openOldDotLink('inbox')}
+                                    onPress={() => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX)}
                                 />
                             </>
                         ) : null}
@@ -226,7 +226,7 @@ function ExpensifyCardPage({
                                         {details.pan ? (
                                             <CardDetails
                                                 pan={details.pan}
-                                                expiration={details.expiration}
+                                                expiration={CardUtils.formatCardExpiration(details.expiration)}
                                                 cvv={details.cvv}
                                                 privatePersonalDetails={{address: details.address}}
                                                 domain={domain}
@@ -235,7 +235,7 @@ function ExpensifyCardPage({
                                             <>
                                                 <MenuItemWithTopDescription
                                                     description={translate('cardPage.virtualCardNumber')}
-                                                    title={CardUtils.maskCard(virtualCard.lastFourPAN)}
+                                                    title={CardUtils.maskCard('')}
                                                     interactive={false}
                                                     titleStyle={styles.walletCardNumber}
                                                     shouldShowRightComponent
@@ -271,7 +271,7 @@ function ExpensifyCardPage({
                                             description={translate('cardPage.physicalCardNumber')}
                                             title={CardUtils.maskCard(physicalCard.lastFourPAN)}
                                             interactive={false}
-                                            titleStyle={styles.walletCardMenuItem}
+                                            titleStyle={styles.walletCardNumber}
                                         />
                                         <MenuItem
                                             title={translate('reportCardLostOrDamaged.report')}

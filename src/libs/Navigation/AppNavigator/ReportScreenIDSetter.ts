@@ -35,6 +35,8 @@ const getLastAccessedReportID = (
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,
     openOnAdminRoom: boolean,
     reportMetadata: OnyxCollection<ReportMetadata>,
+    policyID?: string,
+    policyMemberAccountIDs?: number[],
 ): string | undefined => {
     const currentRoute = Navigation.getActiveRoute();
     const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
@@ -43,7 +45,16 @@ const getLastAccessedReportID = (
         return reportID;
     }
 
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom, reportMetadata);
+    const lastReport = ReportUtils.findLastAccessedReport(
+        reports,
+        ignoreDefaultRooms,
+        policies,
+        !!isFirstTimeNewExpensifyUser,
+        openOnAdminRoom,
+        reportMetadata,
+        policyID,
+        policyMemberAccountIDs,
+    );
     return lastReport?.reportID;
 };
 

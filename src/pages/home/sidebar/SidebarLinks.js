@@ -17,9 +17,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Performance from '@libs/Performance';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
@@ -68,7 +70,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
 
         InteractionManager.runAfterInteractions(() => {
@@ -122,6 +123,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
+
+        // Capture metric for opening the search page
+        Timing.start(CONST.TIMING.OPEN_SEARCH);
+        Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
         Navigation.navigate(ROUTES.SEARCH);
     }, [isCreateMenuOpen]);
@@ -192,6 +197,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
+                    onFirstItemRendered={App.setSidebarLoaded}
                 />
                 {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.highlightBG]}>
