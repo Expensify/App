@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -12,26 +12,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Credentials} from '@src/types/onyx';
 
-const propTypes = {
-    /* Onyx Props */
-
+type EmailDeliveryFailurePageOnyxProps = {
     /** The credentials of the logged in person */
-    credentials: PropTypes.shape({
-        /** The email/phone the user logged in with */
-        login: PropTypes.string,
-    }),
+    credentials: OnyxEntry<Credentials>;
 };
 
-const defaultProps = {
-    credentials: {},
-};
+type EmailDeliveryFailurePageProps = EmailDeliveryFailurePageOnyxProps;
 
-function EmailDeliveryFailurePage(props) {
+function EmailDeliveryFailurePage({credentials}: EmailDeliveryFailurePageProps) {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-    const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
+    const login = useMemo(() => {
+        if (!credentials?.login) {
+            return '';
+        }
+        return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
+    }, [credentials]);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -43,7 +42,7 @@ function EmailDeliveryFailurePage(props) {
 
     return (
         <>
-            <View style={[styles.mv3, styles.flexRow, styles.justifyContentetween]}>
+            <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
                     <Text style={[styles.mt5]}>
@@ -89,10 +88,8 @@ function EmailDeliveryFailurePage(props) {
     );
 }
 
-EmailDeliveryFailurePage.propTypes = propTypes;
-EmailDeliveryFailurePage.defaultProps = defaultProps;
 EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
-export default withOnyx({
+export default withOnyx<EmailDeliveryFailurePageProps, EmailDeliveryFailurePageOnyxProps>({
     credentials: {key: ONYXKEYS.CREDENTIALS},
 })(EmailDeliveryFailurePage);
