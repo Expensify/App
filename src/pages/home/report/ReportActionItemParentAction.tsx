@@ -58,6 +58,7 @@ function ReportActionItemParentAction({allReportActions = {}, allReports = {}, i
                         onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                     >
                         <ReportActionItem
+                            key={ancestor.reportAction.reportActionID}
                             // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
                             onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
                             report={ancestor.report}
