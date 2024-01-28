@@ -1,33 +1,39 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-    navigateFocus: PropTypes.func.isRequired,
-    shouldShowSmallScreen: PropTypes.bool,
+type FooterProps = {
+    navigateFocus: () => void;
+    shouldShowSmallScreen?: boolean;
 };
 
-const defaultProps = {
-    shouldShowSmallScreen: false,
+type ColumnRow = {
+    onPress?: () => void;
+    link?: string;
+    translationPath: TranslationPaths;
 };
 
-const columns = ({navigateFocus}) => [
+type ColumnData = {
+    translationPath: TranslationPaths;
+    rows: ColumnRow[];
+};
+
+const columns = ({navigateFocus}: {navigateFocus: () => void}): ColumnData[] => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -138,19 +144,21 @@ const columns = ({navigateFocus}) => [
     },
 ];
 
-function Footer(props) {
+function Footer({shouldShowSmallScreen = false, navigateFocus}: FooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isVertical = props.shouldShowSmallScreen;
+    const {translate} = useLocalize();
+    const {isMediumScreenWidth} = useWindowDimensions();
+    const isVertical = shouldShowSmallScreen;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
     const columnDirection = isVertical ? styles.flexColumn : styles.flexRow;
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
-    const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
+    const footerColumn = isVertical ? [styles.p4] : [styles.p4, isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
-
+    const getTextLinkStyle = (hovered: boolean) => [styles.footerRow, hovered ? styles.textBlue : {}];
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
@@ -164,23 +172,23 @@ function Footer(props) {
                 ) : null}
                 <View style={pageFooterWrapper}>
                     <View style={footerColumns}>
-                        {_.map(columns({navigateFocus: props.navigateFocus}), (column, i) => (
+                        {columns({navigateFocus}).map((column, i) => (
                             <View
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>{props.translate(column.translationPath)}</Text>
+                                <Text style={[styles.textHeadline, styles.footerTitle]}>{translate(column.translationPath)}</Text>
                                 <View style={[styles.footerRow]}>
-                                    {_.map(column.rows, (row) => (
-                                        <Hoverable key={row.translationPath}>
+                                    {column.rows.map(({link, onPress, translationPath}) => (
+                                        <Hoverable key={translationPath}>
                                             {(hovered) => (
                                                 <View>
                                                     <TextLink
-                                                        style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                        href={row.link}
-                                                        onPress={row.onPress}
+                                                        style={getTextLinkStyle(hovered)}
+                                                        href={link}
+                                                        onPress={onPress}
                                                     >
-                                                        {props.translate(row.translationPath)}
+                                                        {translate(translationPath)}
                                                     </TextLink>
                                                 </View>
                                             )}
@@ -217,8 +225,6 @@ function Footer(props) {
     );
 }
 
-Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';
-Footer.defaultProps = defaultProps;
 
-export default withLocalize(Footer);
+export default Footer;
