@@ -1,8 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -29,12 +28,17 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {hideContextMenu, showContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionText(reportAction: OnyxEntry<ReportAction>): string {
+function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     const message = reportAction?.message?.at(-1) ?? null;
     return message?.html ?? '';
+}
+
+/** Gets the text version of the message in an action */
+function getActionText(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
 }
 
 /** Sets the HTML string to Clipboard */
@@ -70,8 +74,7 @@ type ContextMenuActionPayload = {
     close: () => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: MutableRefObject<HTMLElement | View | Text | null>;
-    checkIfContextMenuActive?: () => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
 };
 
@@ -162,7 +165,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportAction}) => {
-            const html = getActionText(reportAction);
+            const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
             const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
@@ -220,7 +223,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             const editAction = () => {
                 if (!draftMessage) {
-                    Report.saveReportActionDraft(reportID, reportAction, getActionText(reportAction));
+                    Report.saveReportActionDraft(reportID, reportAction, getActionHtml(reportAction));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);
                 }
@@ -240,7 +243,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
-        icon: Expensicons.Mail,
+        icon: Expensicons.ChatBubbleUnread,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
@@ -371,7 +374,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
-            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionText(reportAction);
+            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionHtml(reportAction);
+            const messageText = getActionText(reportAction);
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -392,11 +396,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
-                } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
-                    const submittedMessage = reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '');
-                    Clipboard.setString(submittedMessage ?? '');
                 } else if (content) {
                     setClipboardMessage(content);
+                } else if (messageText) {
+                    Clipboard.setString(messageText);
                 }
             }
 
@@ -502,27 +505,12 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.menu',
         icon: Expensicons.ThreeDots,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
-        onPress: (closePopover, {reportAction, reportID, event, anchor, selection, draftMessage, checkIfContextMenuActive}) => {
-            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-            const originalReport = ReportUtils.getReport(originalReportID);
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event as GestureResponderEvent | MouseEvent,
-                selection,
-                anchor?.current as View | RNText | null,
-                reportID,
-                reportAction.reportActionID,
-                originalReportID,
-                draftMessage,
-                checkIfContextMenuActive,
-                checkIfContextMenuActive,
-                ReportUtils.isArchivedRoom(originalReport),
-                ReportUtils.chatIncludesChronos(originalReport),
-            );
+        onPress: (closePopover, {openOverflowMenu, event}) => {
+            openOverflowMenu(event as GestureResponderEvent | MouseEvent);
         },
         getDescription: () => {},
     },
 ];
 
 export default ContextMenuActions;
-export type {ContextMenuActionPayload};
+export type {ContextMenuActionPayload, ContextMenuAction};
