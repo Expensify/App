@@ -10,6 +10,7 @@ import * as API from '@libs/API';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -313,6 +314,29 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
 }
 
 /**
+ * Return the object to update hasOutstandingChildRequest
+ * @param {Object} [policy]
+ * @param {Boolean} needsToBeManuallySubmitted
+ * @returns {Object}
+ */
+function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
+    if (!needsToBeManuallySubmitted) {
+        return {
+            hasOutstandingChildRequest: false,
+        };
+    }
+
+    if (PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    // We don't need to update hasOutstandingChildRequest in this case
+    return {};
+}
+
+/**
  * Builds the Onyx data for a money request.
  *
  * @param {Object} chatReport
@@ -330,8 +354,8 @@ function getReceiptError(receipt, filename, isScanRequest = true) {
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
- * @param {Boolean} hasOutstandingChildRequest
  * @param {Object} [optimisticNextStep]
+ * @param {Boolean} needsToBeManuallySubmitted
  * @returns {Array} - An array containing the optimistic data, success data, and failure data.
  */
 function buildOnyxDataForMoneyRequest(
@@ -350,10 +374,11 @@ function buildOnyxDataForMoneyRequest(
     policy,
     policyTags,
     policyCategories,
-    hasOutstandingChildRequest = false,
     optimisticNextStep,
+    needsToBeManuallySubmitted = true,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
+    const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -364,7 +389,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                hasOutstandingChildRequest,
+                ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
@@ -517,6 +542,7 @@ function buildOnyxDataForMoneyRequest(
                 iouReportID: chatReport.iouReportID,
                 lastReadTime: chatReport.lastReadTime,
                 pendingFields: null,
+                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -698,7 +724,7 @@ function getMoneyRequestInformation(
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
     // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = false;
+    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -817,12 +843,7 @@ function getMoneyRequestInformation(
           }
         : undefined;
 
-    // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
-    // so the employee has to submit to their manager manually.
-    const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
-
     const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
-
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
@@ -840,8 +861,8 @@ function getMoneyRequestInformation(
         policy,
         policyTags,
         policyCategories,
-        hasOutstandingChildRequest,
         optimisticNextStep,
+        needsToBeManuallySubmitted,
     );
 
     return {
@@ -1837,6 +1858,9 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         receiptObject,
         filename,
+        undefined,
+        category,
+        tag,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -2638,7 +2662,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
     });
     updatedReportPreviewAction.message[0].text = messageText;
-    updatedReportPreviewAction.message[0].html = messageText;
+    updatedReportPreviewAction.message[0].html = shouldDeleteIOUReport ? '' : messageText;
 
     if (reportPreviewAction.childMoneyRequestCount > 0) {
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
@@ -3707,6 +3731,32 @@ function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
+/**
+ * @param {String} receiptFilename
+ * @param {String} receiptPath
+ * @param {Function} onSuccess
+ * @param {String} requestType
+ * @param {String} iouType
+ * @param {String} transactionID
+ * @param {String} reportID
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    const onFailure = () => {
+        setMoneyRequestReceipt(transactionID, '', '', true);
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            return;
+        }
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
+    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3766,4 +3816,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    navigateToStartStepIfScanFileCannotBeRead,
 };
