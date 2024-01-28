@@ -414,15 +414,19 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     const onVisibilityChange = useCallback(() => {
+        if (report.reportID !== Navigation.getTopmostReportId()) {
+            return;
+        }
+
         if (!Visibility.isVisible()) {
             userInactiveSince.current = DateUtils.getDBTime();
             return;
         }
+
         // In case the user read new messages (after being inactive) with other device we should
         // show marker based on report.lastReadTime
         const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         if (
-            report.reportID !== Navigation.getTopmostReportId() ||
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
             !(
                 sortedVisibleReportActions &&
