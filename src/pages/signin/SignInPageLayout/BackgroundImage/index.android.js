@@ -10,7 +10,7 @@ const defaultProps = {
 };
 
 const propTypes = {
-    /** Tranistion duration in milisecond */
+    /** Transition duration in milliseconds */
     transitionDuration: PropTypes.number,
 
     ...defaultPropTypes,
