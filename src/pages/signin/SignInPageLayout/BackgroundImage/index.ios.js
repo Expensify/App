@@ -16,7 +16,7 @@ const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
 
-    /** Tranistion duration in milisecond */
+    /** Transition duration in milliseconds */
     transitionDuration: PropTypes.number,
 
     ...defaultPropTypes,
