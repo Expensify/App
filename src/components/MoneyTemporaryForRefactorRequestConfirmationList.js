@@ -316,6 +316,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
+    const isCategoryRequired = canUseViolations && Boolean(policy.requiresCategory);
+    const isTagRequired = canUseViolations && Boolean(policy.requiresTag);
+
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
             return;
@@ -723,6 +726,33 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     error={merchantError ? translate('common.error.fieldRequired') : ''}
                 />
             )}
+            {isCategoryRequired && (
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouCategory}
+                    description={translate('common.category')}
+                    numberOfLinesTitle={2}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={translate('common.required')}
+                />
+            )}
+            {isTagRequired && (
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isReadOnly}
+                    title={PolicyUtils.getCleanedTagName(iouTag)}
+                    description={policyTagListName}
+                    numberOfLinesTitle={2}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    style={[styles.moneyRequestMenuItem]}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={translate('common.required')}
+                />
+            )}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
@@ -794,7 +824,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                         />
                     )}
-                    {shouldShowCategories && (
+                    {!isCategoryRequired && shouldShowCategories && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={iouCategory}
@@ -807,10 +837,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
-                    {shouldShowTags && (
+                    {!isTagRequired && shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={PolicyUtils.getCleanedTagName(iouTag)}
@@ -822,7 +851,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTax && (
