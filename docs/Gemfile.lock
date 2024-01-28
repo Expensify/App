@@ -149,6 +149,8 @@ GEM
     jekyll-sitemap (1.4.0)
       jekyll (>= 3.7, < 5.0)
     jekyll-swiss (1.0.0)
+    jekyll-tabs (1.2.1)
+      jekyll (>= 3.0, < 5.0)
     jekyll-theme-architect (0.2.0)
       jekyll (> 3.5, < 5.0)
       jekyll-seo-tag (~> 2.0)
@@ -266,6 +268,7 @@ DEPENDENCIES
   jekyll-feed (~> 0.12)
   jekyll-redirect-from
   jekyll-seo-tag
+  jekyll-tabs
   liquid (~> 4.0.4)
   tzinfo (~> 1.2)
   tzinfo-data

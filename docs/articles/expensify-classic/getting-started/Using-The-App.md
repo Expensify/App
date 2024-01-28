@@ -4,11 +4,52 @@ description: Streamline expense management effortlessly with the Expensify mobil
 ---
 # Overview
 The Expensify mobile app is the ultimate expense management solution that makes it effortless to track and submit your receipts and expenses. Use the app to snap a picture of your receipts, categorize and submit expenses, and even review and approve expense reports.
-# How to install the Expensify app
+
+# How to download the Expensify app
+
+{% tabs log %}
+
+{% tab log iOS %}
 To get started with Expensify on your mobile device, you need to download the app:
-1. Visit the App Store (iOS) or Google Play Store (Android).
+1. Visit the App Store (iOS).
 2. Search for "Expensify" and select the official Expensify app.
 3. Tap "Download" or "Install."
+
+{% endtab %}
+
+{% tab log android %}
+To get started with Expensify on your mobile device, you need to download the app:
+1. Visit the Google Play Store (Android).
+2. Search for "Expensify" and select the official Expensify app.
+3. Tap "Download" or "Install."
+{% endtab %}
+
+{% endtabs %}
+
+
+# How to smart scan
+
+{% tabs log %}
+{% tab log iOS %}
+To get started with Smartscan:
+1. Open the app.
+2. Click request money.
+3. Allow permissions.
+4. Take a photo of a receipt.
+
+{% endtab %}
+
+{% tab log android %}
+To get started with Smartscan:
+1. Open system settings.
+2. Go to camera settings and allow permissions for Expensify.
+3. Open the app.
+4. Click request money.
+5. Take a photo of a receipt.
+{% endtab %}
+
+{% endtabs %}
+
    
 Once the app is installed, open it and log in with your Expensify credentials. If you don't have an Expensify account, you can create one during the sign-up process.
 # How to enable on push notifications
@@ -54,3 +95,4 @@ Expensify takes security seriously and employs encryption and other security mea
 Yes, you can use the mobile app offline to capture receipts and create expenses. The app will sync your data once you have an internet connection.
 
 {% include faq-end.md %}
+
