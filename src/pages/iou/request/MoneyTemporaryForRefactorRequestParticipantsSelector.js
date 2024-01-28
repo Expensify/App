@@ -133,8 +133,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             participants,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            indexOffset,
             maxParticipantsReached,
+            indexOffset,
             personalDetails,
             true,
         );

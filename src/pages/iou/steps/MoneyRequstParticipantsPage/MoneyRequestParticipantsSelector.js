@@ -140,8 +140,8 @@ function MoneyRequestParticipantsSelector({
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
-            indexOffset,
             maxParticipantsReached,
+            indexOffset,
             personalDetails,
             true,
         );
