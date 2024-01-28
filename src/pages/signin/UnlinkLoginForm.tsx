@@ -17,7 +17,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials} from '@src/types/onyx';
 
 type UnlinkLoginFormOnyxProps = {
+    /** State for the account */
     account: OnyxEntry<Account>;
+
+    /** The credentials of the logged in person */
     credentials: OnyxEntry<Credentials>;
 };
 
