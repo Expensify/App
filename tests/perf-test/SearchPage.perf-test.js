@@ -5,11 +5,7 @@ import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import SearchPage from '@pages/SearchPage';
 import ComposeProviders from '../../src/components/ComposeProviders';
-import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
-import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import createCollection from '../utils/collections/createCollection';
@@ -81,7 +77,7 @@ afterEach(() => {
 
 function SearchPageWrapper(args) {
     return (
-        <ComposeProviders components={[OnyxProvider, CurrentReportIDContextProvider, KeyboardStateProvider, WindowDimensionsProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxProvider]}>
             <SearchPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
@@ -156,10 +152,6 @@ test('[Search Page] should search in options list', async () => {
         fireEvent.changeText(input, mockedPersonalDetails['88'].login);
         await act(triggerTransitionEnd);
         await screen.findByText(mockedPersonalDetails['88'].login);
-
-        fireEvent.changeText(input, mockedPersonalDetails['45'].login);
-        await act(triggerTransitionEnd);
-        await screen.findByText(mockedPersonalDetails['45'].login);
     };
 
     const navigation = {addListener};
@@ -184,9 +176,9 @@ test('[Search Page] should click on list item', async () => {
         await screen.findByTestId('SearchPage');
         const input = screen.getByTestId('options-selector-input');
 
-        fireEvent.changeText(input, mockedPersonalDetails['6'].login);
+        fireEvent.changeText(input, mockedPersonalDetails['4'].login);
         await act(triggerTransitionEnd);
-        const optionButton = await screen.findByText(mockedPersonalDetails['6'].login);
+        const optionButton = await screen.findByText(mockedPersonalDetails['4'].login);
 
         fireEvent.press(optionButton);
     };

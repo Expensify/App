@@ -335,7 +335,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     );
 
     const continueFunction = () => {
-        setShouldShowContinueSetupButton(false);
+        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+        });
         fetchData(true);
     };
 
@@ -551,7 +553,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,
