@@ -1919,7 +1919,7 @@ function formatSectionsFromSearchTerm(
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
-    // We show the selected participants at the top of the list when there is no search term
+    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
     if (searchTerm === '' || maxOptionsSelected) {
