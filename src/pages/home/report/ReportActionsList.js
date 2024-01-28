@@ -15,7 +15,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
-import getTopmostReportId from '@libs/Navigation/getTopmostReportId';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -422,7 +422,7 @@ function ReportActionsList({
         // show marker based on report.lastReadTime
         const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         if (
-            report.reportID !== getTopmostReportId() ||
+            report.reportID !== Navigation.getTopmostReportId() ||
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
             !(
                 sortedVisibleReportActions &&
