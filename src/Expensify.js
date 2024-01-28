@@ -13,7 +13,6 @@ import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
-import CONST from './CONST';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -77,9 +76,6 @@ const propTypes = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
-    /** True when the user must update to the latest minimum version of the app */
-    updateRequired: PropTypes.bool,
-
     /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: PropTypes.bool,
 
@@ -95,7 +91,6 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
-    updateRequired: false,
     focusModeNotification: false,
 };
 
@@ -209,10 +204,6 @@ function Expensify(props) {
         return null;
     }
 
-    if (props.updateRequired) {
-        throw new Error(CONST.ERROR.UPDATE_REQUIRED);
-    }
-
     return (
         <DeeplinkWrapper
             isAuthenticated={isAuthenticated}
@@ -224,8 +215,7 @@ function Expensify(props) {
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {/* If the update is required we won't show this option since a full screen update view will be displayed instead. */}
-                    {props.updateAvailable && !props.updateRequired ? <UpdateAppModal /> : null}
+                    {props.updateAvailable ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
                         <ConfirmModal
                             title={props.translate('guides.screenShare')}
@@ -277,10 +267,6 @@ export default compose(
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-        },
-        updateRequired: {
-            key: ONYXKEYS.UPDATE_REQUIRED,
-            initWithStoredValues: false,
         },
         focusModeNotification: {
             key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,

@@ -28,6 +28,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -76,20 +77,6 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
-};
-
-type Participant = {
-    accountID: number;
-    alternateText: string;
-    firstName: string;
-    icons: Icon[];
-    keyForList: string;
-    lastName: string;
-    login: string;
-    phoneNumber: string;
-    searchText: string;
-    selected: boolean;
-    text: string;
 };
 
 type SpendBreakdown = {
@@ -366,7 +353,7 @@ type CustomIcon = {
 };
 
 type OptionData = {
-    text: string;
+    text?: string;
     alternateText?: string | null;
     allReportErrors?: Errors;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
@@ -396,7 +383,14 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: OnyxEntry<ReportAction>;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    isDefaultRoom?: boolean;
+    isExpenseReport?: boolean;
+    isOptimisticPersonalDetail?: boolean;
+    selected?: boolean;
+    isOptimisticAccount?: boolean;
+    isSelected?: boolean;
     descriptiveText?: string;
+    notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
     name?: string | null;
 } & Report;
@@ -1616,7 +1610,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     // This is to check if account is an invite/optimistically created one
     // and prevent from falling back to 'Hidden', so a correct value is shown
     // when searching for a new user
-    if (personalDetails.isOptimisticPersonalDetail === true && formattedLogin) {
+    if (personalDetails.isOptimisticPersonalDetail === true) {
         return formattedLogin;
     }
 
@@ -2335,12 +2329,18 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  */
 function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
     if (!parentReportAction?.originalMessage) {
-        return '';
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
-    const participants = participantAccountIDs.map((id) => getDisplayNameForParticipant(id));
+    const participants = participantAccountIDs.map((id) => {
+        const name = getDisplayNameForParticipant(id);
+        if (name && name?.length > 0) {
+            return name;
+        }
+        return Localize.translateLocal('common.hidden');
+    });
     const users = participants.length > 1 ? participants.join(` ${Localize.translateLocal('common.and')} `) : participants[0];
     if (!users) {
         return parentReportActionMessage;
@@ -3707,7 +3707,7 @@ function shouldReportBeInOptionList({
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInGSDMode) {
-        return isUnread(report);
+        return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
@@ -4486,6 +4486,36 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
     );
 }
 
+/**
+ * Assume any report without a reportID is unusable.
+ */
+function isValidReport(report?: OnyxEntry<Report>): boolean {
+    return Boolean(report?.reportID);
+}
+
+/**
+ * Check to see if we are a participant of this report.
+ */
+function isReportParticipant(accountID: number, report: OnyxEntry<Report>): boolean {
+    if (!accountID) {
+        return false;
+    }
+
+    // If we have a DM AND the accountID we are checking is the current user THEN we won't find them as a participant and must assume they are a participant
+    if (isDM(report) && accountID === currentUserAccountID) {
+        return true;
+    }
+
+    const possibleAccountIDs = report?.participantAccountIDs ?? [];
+    if (report?.ownerAccountID) {
+        possibleAccountIDs.push(report?.ownerAccountID);
+    }
+    if (report?.managerID) {
+        possibleAccountIDs.push(report?.managerID);
+    }
+    return possibleAccountIDs.includes(accountID);
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
@@ -4809,6 +4839,8 @@ export {
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    isReportParticipant,
+    isValidReport,
     isReportFieldOfTypeTitle,
 };
 
