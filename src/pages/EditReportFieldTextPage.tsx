@@ -20,11 +20,14 @@ type EditReportFieldTextPageProps = {
     /** ID of the policy report field */
     fieldID: string;
 
+    /** Flag to indicate if the field can be left blank */
+    isRequired: boolean;
+
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: Record<string, string>) => void;
 };
 
-function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, fieldID}: EditReportFieldTextPageProps) {
+function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldID}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -32,12 +35,12 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, fieldID}: Edi
     const validate = useCallback(
         (value: Record<string, string>) => {
             const errors: Record<string, string> = {};
-            if (value[fieldID].trim() === '') {
+            if (isRequired && value[fieldID].trim() === '') {
                 errors[fieldID] = 'common.error.fieldRequired';
             }
             return errors;
         },
-        [fieldID],
+        [fieldID, isRequired],
     );
 
     return (

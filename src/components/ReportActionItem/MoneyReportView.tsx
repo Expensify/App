@@ -19,11 +19,14 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import type {PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
     report: Report;
+
+    /** Policy that the report belongs to */
+    policy: Policy;
 
     /** Policy report fields */
     policyReportFields: PolicyReportField[];
@@ -32,7 +35,7 @@ type MoneyReportViewProps = {
     shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -55,10 +58,13 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const sortedPolicyReportFields = useMemo<PolicyReportField[]>(
-        (): PolicyReportField[] => policyReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight),
-        [policyReportFields],
-    );
+    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
+        const reportFields = Object.values(report.reportFields ?? {});
+        const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
+        const mergedFields = mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+        const allReportFields = isSettled ? reportFields : mergedFields;
+        return allReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+    }, [policyReportFields, report.reportFields, isSettled]);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
@@ -66,7 +72,10 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {canUseReportFields &&
                     sortedPolicyReportFields.map((reportField) => {
-                        const title = ReportUtils.getReportFieldTitle(report, reportField);
+                        const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
+                        const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
+                        const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+
                         return (
                             <OfflineWithFeedback
                                 pendingAction={report.pendingFields?.[reportField.fieldID]}
@@ -75,11 +84,11 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule}:
                                 key={`menuItem-${reportField.fieldID}`}
                             >
                                 <MenuItemWithTopDescription
-                                    description={reportField.name}
-                                    title={title}
+                                    description={`${reportField.name.slice(0, 1).toUpperCase()}${reportField.name.slice(1)}`}
+                                    title={fieldValue}
                                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon
-                                    disabled={ReportUtils.isReportFieldOfTypeTitle(reportField)}
+                                    disabled={isFieldDisabled}
                                     wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                     shouldGreyOutWhenDisabled={false}
                                     numberOfLinesTitle={0}

@@ -1,12 +1,13 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyReportFields, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportFields, Report} from '@src/types/onyx';
 import EditReportFieldDatePage from './EditReportFieldDatePage';
 import EditReportFieldDropdownPage from './EditReportFieldDropdownPage';
 import EditReportFieldTextPage from './EditReportFieldTextPage';
@@ -17,6 +18,9 @@ type EditReportFieldPageOnyxProps = {
 
     /** Policy report fields */
     policyReportFields: OnyxEntry<PolicyReportFields>;
+
+    /** Policy to which the report belongs to */
+    policy: OnyxEntry<Policy>;
 };
 
 type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
@@ -36,70 +40,77 @@ type EditReportFieldPageProps = EditReportFieldPageOnyxProps & {
     };
 };
 
-function EditReportFieldPage({route, report, policyReportFields}: EditReportFieldPageProps) {
-    const policyReportField = policyReportFields?.[route.params.fieldID];
-    const reportFieldValue = report?.reportFields?.[policyReportField?.fieldID ?? ''];
+function EditReportFieldPage({route, policy, report, policyReportFields}: EditReportFieldPageProps) {
+    const reportField = report?.reportFields?.[route.params.fieldID] ?? policyReportFields?.[route.params.fieldID];
+    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
 
-    // Decides whether to allow or disallow editing a money request
-    useEffect(() => {}, []);
+    if (!reportField || !report || isDisabled) {
+        return (
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={EditReportFieldPage.displayName}
+            >
+                <FullPageNotFoundView
+                    shouldShow
+                    onBackButtonPress={() => {}}
+                    onLinkPress={() => {}}
+                />
+            </ScreenWrapper>
+        );
+    }
+
+    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
     const handleReportFieldChange = (form: Record<string, string>) => {
-        if (report && policyReportField) {
-            const value = form[policyReportField.fieldID] || '';
-            ReportActions.updatePolicyReportField(report.reportID, policyReportField, value);
+        const value = form[reportField.fieldID] || '';
+        if (isReportFieldTitle) {
+            ReportActions.updatePolicyReportName(report.reportID, value);
+        } else {
+            ReportActions.updatePolicyReportField(report.policyID ?? '', report.reportID, {...reportField, value});
         }
+
         Navigation.dismissModal(report?.reportID);
     };
 
-    if (policyReportField) {
-        if (policyReportField.type === 'text' || policyReportField.type === 'formula') {
-            return (
-                <EditReportFieldTextPage
-                    fieldName={policyReportField.name}
-                    fieldID={policyReportField.fieldID}
-                    fieldValue={reportFieldValue ?? policyReportField.defaultValue}
-                    onSubmit={handleReportFieldChange}
-                />
-            );
-        }
+    const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
 
-        if (policyReportField.type === 'date') {
-            return (
-                <EditReportFieldDatePage
-                    fieldName={policyReportField.name}
-                    fieldID={policyReportField.fieldID}
-                    fieldValue={reportFieldValue ?? policyReportField.defaultValue}
-                    onSubmit={handleReportFieldChange}
-                />
-            );
-        }
-
-        if (policyReportField.type === 'dropdown') {
-            return (
-                <EditReportFieldDropdownPage
-                    fieldID={policyReportField.fieldID}
-                    fieldName={policyReportField.name}
-                    fieldValue={reportFieldValue ?? policyReportField.defaultValue}
-                    fieldOptions={policyReportField.values}
-                    onSubmit={handleReportFieldChange}
-                />
-            );
-        }
+    if (reportField.type === 'text' || isReportFieldTitle) {
+        return (
+            <EditReportFieldTextPage
+                fieldName={reportField.name}
+                fieldID={reportField.fieldID}
+                fieldValue={fieldValue}
+                isRequired={!reportField.deletable}
+                onSubmit={handleReportFieldChange}
+            />
+        );
     }
 
-    return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={EditReportFieldPage.displayName}
-        >
-            <FullPageNotFoundView
-                shouldShow
-                onBackButtonPress={() => {}}
-                onLinkPress={() => {}}
+    if (reportField.type === 'date') {
+        return (
+            <EditReportFieldDatePage
+                fieldName={reportField.name}
+                fieldID={reportField.fieldID}
+                fieldValue={fieldValue}
+                isRequired={!reportField.deletable}
+                onSubmit={handleReportFieldChange}
             />
-        </ScreenWrapper>
-    );
+        );
+    }
+
+    if (reportField.type === 'dropdown') {
+        return (
+            <EditReportFieldDropdownPage
+                policyID={report.policyID ?? ''}
+                fieldID={reportField.fieldID}
+                fieldName={reportField.name}
+                fieldValue={fieldValue}
+                fieldOptions={reportField.values}
+                onSubmit={handleReportFieldChange}
+            />
+        );
+    }
 }
 
 EditReportFieldPage.displayName = 'EditReportFieldPage';
@@ -110,5 +121,8 @@ export default withOnyx<EditReportFieldPageProps, EditReportFieldPageOnyxProps>(
     },
     policyReportFields: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${route.params.policyID}`,
+    },
+    policy: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
     },
 })(EditReportFieldPage);

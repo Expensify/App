@@ -32,7 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, PolicyReportField, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -135,6 +135,13 @@ Linking.getInitialURL().then((url) => {
     const exitToRoute = params.get('exitTo') ?? '';
     const {reportID} = ReportUtils.parseReportRouteParams(exitToRoute);
     reportIDDeeplinkedFromOldDot = reportID;
+});
+
+let allRecentlyUsedReportFields: OnyxCollection<RecentlyUsedReportFields> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedReportFields = val),
 });
 
 /** Get the private pusher channel name for a Report. */
@@ -1499,17 +1506,15 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
-function updatePolicyReportField(reportID: string, policyField: PolicyReportField, fieldValue: string) {
+function updatePolicyReportName(reportID: string, value: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportFields: {
-                    [policyField.fieldID]: fieldValue,
-                },
+                reportName: value,
                 pendingFields: {
-                    [policyField.fieldID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1520,10 +1525,10 @@ function updatePolicyReportField(reportID: string, policyField: PolicyReportFiel
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingFields: {
-                    [policyField.fieldID]: null,
+                    reportName: null,
                 },
                 errorFields: {
-                    [policyField.fieldID]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                    reportName: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReporNameEditFailureMessage'),
                 },
             },
         },
@@ -1535,10 +1540,91 @@ function updatePolicyReportField(reportID: string, policyField: PolicyReportFiel
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingFields: {
-                    [policyField.fieldID]: null,
+                    reportName: null,
                 },
                 errorFields: {
-                    [policyField.fieldID]: null,
+                    reportName: null,
+                },
+            },
+        },
+    ];
+
+    type UpdateReportNameParameters = {
+        reportID: string;
+        reportName: string;
+    };
+
+    const parameters: UpdateReportNameParameters = {
+        reportID,
+        reportName: value,
+    };
+
+    API.write('RenameReport', parameters, {optimisticData, failureData, successData});
+}
+
+function updatePolicyReportField(policyID: string, reportID: string, reportField: PolicyReportField) {
+    const recentlyUsedValues = allRecentlyUsedReportFields?.[policyID]?.[reportField.fieldID] ?? [];
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportFields: {
+                    [reportField.fieldID]: reportField,
+                },
+                pendingFields: {
+                    [reportField.fieldID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    if (reportField.type === 'dropdown') {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS}${policyID}`,
+            value: {
+                [reportField.fieldID]: [...new Set([...recentlyUsedValues, reportField.value])],
+            },
+        });
+    }
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [reportField.fieldID]: null,
+                },
+                errorFields: {
+                    [reportField.fieldID]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    if (reportField.type === 'dropdown') {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS}${policyID}`,
+            value: {
+                [reportField.fieldID]: recentlyUsedValues,
+            },
+        });
+    }
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [reportField.fieldID]: null,
+                },
+                errorFields: {
+                    [reportField.fieldID]: null,
                 },
             },
         },
@@ -1551,7 +1637,7 @@ function updatePolicyReportField(reportID: string, policyField: PolicyReportFiel
 
     const parameters: UpdateReportFieldParameters = {
         reportID,
-        reportFields: JSON.stringify({[policyField.fieldID]: {fieldID: policyField.fieldID, value: fieldValue, type: policyField.type, name: policyField.name}}),
+        reportFields: JSON.stringify({[reportField.fieldID]: {fieldID: reportField.fieldID, value: reportField.value, type: reportField.type, name: reportField.name}}),
     };
 
     API.write('Report_SetFields', parameters, {optimisticData, failureData, successData});
@@ -2885,5 +2971,6 @@ export {
     updateLastVisitTime,
     clearNewRoomFormError,
     updatePolicyReportField,
+    updatePolicyReportName,
     resolveActionableMentionWhisper,
 };

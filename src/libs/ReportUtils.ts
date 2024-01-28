@@ -21,6 +21,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyReportField,
+    PolicyReportFields,
     Report,
     ReportAction,
     ReportMetadata,
@@ -465,8 +466,21 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-let allTransactions: OnyxCollection<Transaction> = {};
+let allPolicyReportFields: OnyxCollection<PolicyReportFields>;
 
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicyReportFields = value),
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -1899,9 +1913,53 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
 }
 
 /**
+ * Given a report field, check if the field is for the report title.
+ */
+function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): boolean {
+    return reportField?.type === 'formula' && reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+}
+
+/**
+ * Given a report field, check if the field can be edited or not.
+ * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
+ * For non title fields, its considered disabled if:
+ * 1. The user is not admin of the report
+ * 2. Report is settled or it is closed
+ */
+function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    const isReportSettled = isSettled(report?.reportID);
+    const isReportClosed = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isTitleField = isReportFieldOfTypeTitle(reportField);
+    const isAdmin = isPolicyAdmin(report?.policyID ?? '', {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id ?? ''}`]: policy});
+    return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
+}
+
+/**
+ * Given a set of report fields, return the field of type formula
+ */
+function getFormulaTypeReportField(reportFields: PolicyReportFields) {
+    return Object.values(reportFields).find((field) => field.type === 'formula');
+}
+
+/**
+ * Get the report fields attached to the policy given policyID
+ */
+function getReportFieldsByPolicyID(policyID: string) {
+    return Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === policyID)?.[1];
+}
+
+/**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
+    const isReportSettled = isSettled(report?.reportID ?? '');
+    const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
+    const titleReportField = getFormulaTypeReportField(reportFields ?? {});
+
+    if (titleReportField && report?.reportName && Permissions.canUseReportFields(allBetas ?? [])) {
+        return report.reportName;
+    }
+
     const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
@@ -4552,32 +4610,6 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
- * Given a report field and a report, get the title of the field.
- * This is specially useful when we have a report field of type formula.
- */
-function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyReportField): string {
-    const value = report?.reportFields?.[reportField.fieldID] ?? reportField.defaultValue;
-
-    if (reportField.type !== 'formula') {
-        return value;
-    }
-
-    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
-        if (report && property in report) {
-            return report[property as keyof Report]?.toString() ?? match;
-        }
-        return match;
-    });
-}
-
-/**
- * Given a report field, check if the field is for the report title.
- */
-function isReportFieldOfTypeTitle(reportField: PolicyReportField): boolean {
-    return reportField.type === 'formula' && reportField.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-}
-
-/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -4787,12 +4819,12 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
-    getReportFieldTitle,
     shouldDisplayThreadReplies,
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
     isReportFieldOfTypeTitle,
+    isReportFieldDisabled,
 };
 
 export type {
