@@ -43,10 +43,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         onScrollBeginDrag,
         headerMessage = '',
         confirmButtonText = '',
-        onConfirm = () => {},
+        onConfirm,
         headerContent,
         footerContent,
-        showScrollIndicator = false,
+        showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
@@ -363,6 +363,11 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
 
+        // scroll is unnecessary if multiple options cannot be selected
+        if (!canSelectMultiple) {
+            return;
+        }
+
         // set the focus on the first item when the sections list is changed
         if (sections.length > 0) {
             updateAndScrollToFocusedIndex(0);
@@ -379,10 +384,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm ?? selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && !!onConfirm && isFocused,
+        isActive: !disableKeyboardShortcuts && isFocused,
     });
 
     return (

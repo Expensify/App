@@ -1,17 +1,21 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+
+/* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
+import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
+import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
 type Location = {
@@ -58,6 +62,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+    const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement>(null);
@@ -157,6 +162,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         isChronosReport = false,
         isPinnedChat = false,
         isUnreadChat = false,
+        disabledOptions = [],
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -167,16 +173,27 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
         onPopoverShow.current = onShow;
         onPopoverHide.current = onHide;
 
-        getContextMenuMeasuredLocation().then(({x, y}) => {
-            popoverAnchorPosition.current = {
-                horizontal: pageX - x,
-                vertical: pageY - y,
-            };
-
-            popoverAnchorPosition.current = {
-                horizontal: pageX,
-                vertical: pageY,
-            };
+        new Promise<void>((resolve) => {
+            if (!pageX && !pageY && contextMenuAnchorRef.current) {
+                calculateAnchorPosition(contextMenuAnchorRef.current).then((position) => {
+                    popoverAnchorPosition.current = position;
+                    resolve();
+                });
+            } else {
+                getContextMenuMeasuredLocation().then(({x, y}) => {
+                    cursorRelativePosition.current = {
+                        horizontal: pageX - x,
+                        vertical: pageY - y,
+                    };
+                    popoverAnchorPosition.current = {
+                        horizontal: pageX,
+                        vertical: pageY,
+                    };
+                    resolve();
+                });
+            }
+        }).then(() => {
+            setDisabledActions(disabledOptions);
             typeRef.current = type;
             reportIDRef.current = reportID ?? '0';
             reportActionIDRef.current = reportActionID ?? '0';
@@ -306,6 +323,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}
                     originalReportID={originalReportIDRef.current}
+                    disabledActions={disabledActions}
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

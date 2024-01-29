@@ -1793,28 +1793,6 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
-    const allAvailableReports = allReportsDict ?? allReports;
-    let moneyRequestReport: OnyxEntry<Report> | undefined;
-    if (isMoneyRequestReport(report)) {
-        moneyRequestReport = report;
-    }
-    if (allAvailableReports && report?.iouReportID) {
-        moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-    }
-    if (moneyRequestReport) {
-        const total = moneyRequestReport?.total ?? 0;
-
-        if (total !== 0) {
-            // There is a possibility that if the Expense report has a negative total.
-            // This is because there are instances where you can get a credit back on your card,
-            // or you enter a negative expense to “offset” future expenses
-            return isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total);
-        }
-    }
-    return 0;
-}
-
 function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
@@ -1895,7 +1873,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency, hasOnlyDistanceRequestTransactions(report?.reportID));
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
@@ -2195,7 +2173,7 @@ function getReportPreviewMessage(
         }
     }
 
-    const totalAmount = getMoneyRequestReimbursableTotal(report);
+    const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
@@ -2790,7 +2768,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(!isEmptyObject(report) ? report : null), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : null).totalDisplaySpend, currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -4485,6 +4463,36 @@ function isGroupChat(report: OnyxEntry<Report>): boolean {
     );
 }
 
+/**
+ * Assume any report without a reportID is unusable.
+ */
+function isValidReport(report?: OnyxEntry<Report>): boolean {
+    return Boolean(report?.reportID);
+}
+
+/**
+ * Check to see if we are a participant of this report.
+ */
+function isReportParticipant(accountID: number, report: OnyxEntry<Report>): boolean {
+    if (!accountID) {
+        return false;
+    }
+
+    // If we have a DM AND the accountID we are checking is the current user THEN we won't find them as a participant and must assume they are a participant
+    if (isDM(report) && accountID === currentUserAccountID) {
+        return true;
+    }
+
+    const possibleAccountIDs = report?.participantAccountIDs ?? [];
+    if (report?.ownerAccountID) {
+        possibleAccountIDs.push(report?.ownerAccountID);
+    }
+    if (report?.managerID) {
+        possibleAccountIDs.push(report?.managerID);
+    }
+    return possibleAccountIDs.includes(accountID);
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
 }
@@ -4614,7 +4622,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
-    const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
+    const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicy(report) &&
@@ -4661,7 +4669,6 @@ export {
     hasExpensifyGuidesEmails,
     requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
-    getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
@@ -4808,6 +4815,8 @@ export {
     shouldDisableThread,
     doesReportBelongToWorkspace,
     getChildReportNotificationPreference,
+    isReportParticipant,
+    isValidReport,
     isReportFieldOfTypeTitle,
 };
 
