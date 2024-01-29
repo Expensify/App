@@ -35,7 +35,7 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
 
     /** The id of the policy */
     // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string;
+    policyID: string | undefined;
 };
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
