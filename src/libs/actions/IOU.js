@@ -3749,6 +3749,10 @@ function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath,
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
+function savePreferredPaymentMethod(policyID, paymentMethod) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3809,4 +3813,5 @@ export {
     getIOUReportID,
     editMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
+    savePreferredPaymentMethod,
 };
