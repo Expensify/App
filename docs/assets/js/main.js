@@ -194,7 +194,7 @@ const tocbotOptions = {
 
     // If there is a fixed article scroll container, set to calculate titles' offset
     scrollContainer: 'content-area',
-}
+};
 
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
@@ -212,14 +212,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const expensifyClassicTab = document.getElementById('platform-tab-expensify-classic');
     const newExpensifyTab = document.getElementById('platform-tab-new-expensify');
-    
+
     const expensifyClassicContent = document.getElementById('expensify-classic');
     const newExpensifyContent = document.getElementById('new-expensify');
 
     let contentSelector;
     if (expensifyClassicContent) {
         contentSelector = '#expensify-classic';
-    } else if(newExpensifyContent) {
+    } else if (newExpensifyContent) {
         contentSelector = '#new-expensify';
     } else {
         contentSelector = '.article-toc-content';
@@ -232,33 +232,31 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (expensifyClassicTab) {
-        expensifyClassicTab.addEventListener('click', () => {
-            expensifyClassicTab.classList.add('active');
-            expensifyClassicContent.classList.remove('hidden');
-        
-            newExpensifyTab.classList.remove('active');
-            newExpensifyContent.classList.add('hidden');
-            window.tocbot.refresh({
-                ...tocbotOptions,
-                contentSelector: '#expensify-classic'
-            });
-        });
-    }
+    // eslint-disable-next-line es/no-optional-chaining
+    expensifyClassicTab?.addEventListener('click', () => {
+        expensifyClassicTab.classList.add('active');
+        expensifyClassicContent.classList.remove('hidden');
 
-    if (newExpensifyTab) {
-        newExpensifyTab.addEventListener('click', () => {
-            newExpensifyTab.classList.add('active');
-            newExpensifyContent.classList.remove('hidden');
-        
-            expensifyClassicTab.classList.remove('active');
-            expensifyClassicContent.classList.add('hidden');
-            window.tocbot.refresh({
-                ...tocbotOptions,
-                contentSelector: '#new-expensify'
-            });
+        newExpensifyTab.classList.remove('active');
+        newExpensifyContent.classList.add('hidden');
+        window.tocbot.refresh({
+            ...tocbotOptions,
+            contentSelector: '#expensify-classic',
         });
-    }
+    });
+
+    // eslint-disable-next-line es/no-optional-chaining
+    newExpensifyTab?.addEventListener('click', () => {
+        newExpensifyTab.classList.add('active');
+        newExpensifyContent.classList.remove('hidden');
+
+        expensifyClassicTab.classList.remove('active');
+        expensifyClassicContent.classList.add('hidden');
+        window.tocbot.refresh({
+            ...tocbotOptions,
+            contentSelector: '#new-expensify',
+        });
+    });
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
