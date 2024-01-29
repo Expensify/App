@@ -37,8 +37,9 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
             const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(network.isOffline);
             const isReconnecting = prevIsOffline && !network.isOffline;
-            const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
-            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)].note : isEmptyObject(report?.privateNotes);
+            const isOtherUserNote = accountID && Number(session?.accountID) !== Number(accountID);
+            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
+            const isPrivateNotesEmpty = accountID ? !!report?.privateNotes?.[Number(accountID)].note ?? '' : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
@@ -50,7 +51,7 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
                 // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
             }, [report?.reportID, network.isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
-            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchTriggered || (isPrivateNotesEmpty && (report?.isLoadingPrivateNotes ?? !isOtherUserNote));
+            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished || (isPrivateNotesEmpty && (!!report.isLoadingPrivateNotes || !isOtherUserNote));
 
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
