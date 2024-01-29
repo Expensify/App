@@ -50,6 +50,9 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
+    /** The ID of the current report */
+    reportID: PropTypes.string.isRequired,
+
     /** Callback for the preview pressed */
     onPreviewPressed: PropTypes.func,
 
@@ -190,7 +193,7 @@ function MoneyRequestPreview(props) {
     };
 
     const showContextMenu = (event) => {
-        showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
+        showContextMenuForReport(event, props.contextMenuAnchor, props.reportID, props.action, props.checkIfContextMenuActive);
     };
 
     const getPreviewHeaderText = () => {

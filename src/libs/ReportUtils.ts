@@ -1793,28 +1793,6 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
-    const allAvailableReports = allReportsDict ?? allReports;
-    let moneyRequestReport: OnyxEntry<Report> | undefined;
-    if (isMoneyRequestReport(report)) {
-        moneyRequestReport = report;
-    }
-    if (allAvailableReports && report?.iouReportID) {
-        moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-    }
-    if (moneyRequestReport) {
-        const total = moneyRequestReport?.total ?? 0;
-
-        if (total !== 0) {
-            // There is a possibility that if the Expense report has a negative total.
-            // This is because there are instances where you can get a credit back on your card,
-            // or you enter a negative expense to “offset” future expenses
-            return isExpenseReport(moneyRequestReport) ? total * -1 : Math.abs(total);
-        }
-    }
-    return 0;
-}
-
 function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
@@ -1895,7 +1873,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
-    const moneyRequestTotal = getMoneyRequestReimbursableTotal(report);
+    const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
     const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
@@ -2200,7 +2178,7 @@ function getReportPreviewMessage(
         }
     }
 
-    const totalAmount = getMoneyRequestReimbursableTotal(report);
+    const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
@@ -2799,7 +2777,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestReimbursableTotal(!isEmptyObject(report) ? report : null), currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : null).totalDisplaySpend, currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -4653,7 +4631,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return false;
     }
     type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
-    const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
+    const reimbursableTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicy(report) &&
@@ -4700,7 +4678,6 @@ export {
     hasExpensifyGuidesEmails,
     requiresAttentionFromCurrentUser,
     isIOUOwnedByCurrentUser,
-    getMoneyRequestReimbursableTotal,
     getMoneyRequestSpendBreakdown,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
