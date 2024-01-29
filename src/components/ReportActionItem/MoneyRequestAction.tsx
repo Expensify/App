@@ -41,6 +41,9 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
     /** The ID of the associated request report */
     requestReportID: string;
 
+    /** The ID of the current report */
+    reportID: string;
+
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: boolean;
 
@@ -64,6 +67,7 @@ function MoneyRequestAction({
     action,
     chatReportID,
     requestReportID,
+    reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive = () => {},
@@ -120,6 +124,7 @@ function MoneyRequestAction({
         <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
+            reportID={reportID}
             isBillSplit={isSplitBillAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}

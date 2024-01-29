@@ -70,6 +70,9 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     /** The associated chatReport */
     chatReportID: string;
 
+    /** The ID of the current report */
+    reportID: string;
+
     /** Callback for the preview pressed */
     onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -110,6 +113,7 @@ function MoneyRequestPreview({
     transaction,
     contextMenuAnchor,
     chatReportID,
+    reportID,
     onPreviewPressed,
     containerStyles,
     walletTerms,
@@ -177,7 +181,7 @@ function MoneyRequestPreview({
     };
 
     const showContextMenu = (event: GestureResponderEvent) => {
-        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
     const getPreviewHeaderText = (): string => {
