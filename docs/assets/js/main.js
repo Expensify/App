@@ -232,7 +232,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // eslint-disable-line es/no-optional-chaining
+    // eslint-disable-next-line es/no-optional-chaining
     expensifyClassicTab?.addEventListener('click', () => {
         expensifyClassicTab.classList.add('active');
         expensifyClassicContent.classList.remove('hidden');
@@ -245,7 +245,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // eslint-disable-line es/no-optional-chaining
+    // eslint-disable-next-line es/no-optional-chaining
     newExpensifyTab?.addEventListener('click', () => {
         newExpensifyTab.classList.add('active');
         newExpensifyContent.classList.remove('hidden');
