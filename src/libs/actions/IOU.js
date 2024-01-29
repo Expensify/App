@@ -377,7 +377,7 @@ function buildOnyxDataForMoneyRequest(
     needsToBeManuallySubmitted = true,
 ) {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy, iouReport);
+    const outstandingChildRequest = getOutstandingChildRequest(policy, iouReport, needsToBeManuallySubmitted);
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
