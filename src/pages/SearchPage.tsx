@@ -67,14 +67,10 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
 
     const updateOptions = useCallback(() => {
         const {
-            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             recentReports: localRecentReports,
-            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             personalDetails: localPersonalDetails,
-            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
             userToInvite: localUserToInvite,
-            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
-        } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas);
+        } = OptionsListUtils.getSearchOptions(reports, personalDetails, searchValue.trim(), betas ?? undefined);
 
         setSearchOptions({
             recentReports: localRecentReports,
@@ -163,7 +159,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
         }
     };
 
-    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/pull/32470) is migrated to TypeScript.
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
