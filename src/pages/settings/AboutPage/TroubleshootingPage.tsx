@@ -46,7 +46,7 @@ function TroubleshootingPage() {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
 
-    const clearOnyx = useCallback(() => {
+    const wipeOnyxData = useCallback(() => {
         Onyx.clear(keysToPreserve).then(() => {
             App.openApp();
         });
@@ -57,7 +57,7 @@ function TroubleshootingPage() {
             {
                 translationKey: 'initialSettingsPage.troubleshooting.resetAndRefresh',
                 icon: Expensicons.RotateLeft,
-                action: clearOnyx,
+                action: wipeOnyxData,
             },
         ];
 
@@ -67,7 +67,7 @@ function TroubleshootingPage() {
             icon: item.icon,
             onPress: item.action,
         }));
-    }, [clearOnyx, translate]);
+    }, [translate, wipeOnyxData]);
 
     return (
         <IllustratedHeaderPageLayout
