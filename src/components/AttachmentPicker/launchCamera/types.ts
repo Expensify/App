@@ -11,7 +11,7 @@ type OptionsCommon = {
 };
 type ImageLibraryOptions = OptionsCommon & {
     selectionLimit?: number;
-}
+};
 type CameraOptions = OptionsCommon & {
     durationLimit?: number;
     saveToPhotos?: boolean;

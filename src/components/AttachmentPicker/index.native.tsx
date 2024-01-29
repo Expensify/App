@@ -14,10 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
-import type {CameraOptions, Asset, ImagePickerResponse, Callback} from './launchCamera/types';
+import type {Asset, Callback, CameraOptions, ImagePickerResponse} from './launchCamera/types';
 import type BaseAttachmentPickerProps from './types';
 
 type AttachmentPickerProps = BaseAttachmentPickerProps & {
@@ -47,7 +47,7 @@ type FileResult = {
     height: number;
     uri: string;
     size: number;
-}
+};
 
 /**
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
@@ -126,7 +126,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * A generic handling when we don't know the exact reason for an error
      */
     const showGeneralAlert = useCallback(() => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment')); 
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     }, [translate]);
 
     /**
@@ -241,10 +241,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 return Promise.resolve();
             }
 
-            // TODO: Convert ot slice
             const fileData = attachments[0];
-
-            // TODO: return if fileData empty
 
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
