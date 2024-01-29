@@ -35,7 +35,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         };
     }, [isNested, setRootStatusBarEnabled]);
 
-    // the prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
+    // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
     const prevStatusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
