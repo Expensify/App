@@ -501,10 +501,11 @@ function ReportActionsList({
     const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
+    const canShowHeader = !isOffline && !hasHeaderRendered.current && scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD;
 
     const contentContainerStyle = useMemo(
-        () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
-        [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader],
+        () => [styles.chatContentScrollView, isLoadingNewerReportActions && canShowHeader ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
     );
 
     const lastReportAction = useMemo(() => _.last(sortedReportActions) || {}, [sortedReportActions]);
@@ -542,7 +543,7 @@ function ReportActionsList({
     );
 
     const listHeaderComponent = useCallback(() => {
-        if (!isOffline && !hasHeaderRendered.current) {
+        if (!canShowHeader) {
             hasHeaderRendered.current = true;
             return null;
         }
@@ -553,7 +554,7 @@ function ReportActionsList({
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
             />
         );
-    }, [isLoadingNewerReportActions, isOffline]);
+    }, [isLoadingNewerReportActions, canShowHeader]);
 
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
