@@ -349,7 +349,7 @@ function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
  * @param {Array} optimisticPolicyRecentlyUsedCategories
  * @param {Array} optimisticPolicyRecentlyUsedTags
  * @param {boolean} isNewChatReport
- * @param {boolean} isNewIOUReport
+ * @param {boolean} shouldCreateNewMoneyRequestReport
  * @param {Object} policy - May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param {Array} policyTags
  * @param {Array} policyCategories
@@ -368,7 +368,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedCategories,
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
-    isNewIOUReport,
+    shouldCreateNewMoneyRequestReport,
     policy,
     policyTags,
     policyCategories,
@@ -391,14 +391,14 @@ function buildOnyxDataForMoneyRequest(
             },
         },
         {
-            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
                 lastMessageText: iouAction.message[0].text,
                 lastMessageHtml: iouAction.message[0].html,
                 pendingFields: {
-                    ...(isNewIOUReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
             },
         },
@@ -416,10 +416,10 @@ function buildOnyxDataForMoneyRequest(
             },
         },
         {
-            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                ...(isNewIOUReport ? {[iouCreatedAction.reportActionID]: iouCreatedAction} : {}),
+                ...(shouldCreateNewMoneyRequestReport ? {[iouCreatedAction.reportActionID]: iouCreatedAction} : {}),
                 [iouAction.reportActionID]: iouAction,
             },
         },
@@ -507,7 +507,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                ...(isNewIOUReport
+                ...(shouldCreateNewMoneyRequestReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
                               pendingAction: null,
@@ -547,7 +547,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingFields: null,
                 errorFields: {
-                    ...(isNewIOUReport ? {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage')} : {}),
+                    ...(shouldCreateNewMoneyRequestReport ? {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage')} : {}),
                 },
             },
         },
@@ -593,7 +593,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                ...(isNewIOUReport
+                ...(shouldCreateNewMoneyRequestReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
                               errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
@@ -651,7 +651,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {Object} [policy]
  * @param {Object} [policyTags]
  * @param {Object} [policyCategories]
- * @param {Number} [moneyRequestReportID]
+ * @param {Number} [moneyRequestReportID] - If user requests money from a composer on some money request report, we always add a request to that specific report.
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -710,10 +710,15 @@ function getMoneyRequestInformation(
         chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID]);
     }
 
-    // STEP 2: Get existing IOU report, either from the chat report, or by the provided specific moneyRequestReportID,
-    // then update its total OR build a new optimistic one.
-    const isNewIOUReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
-    let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID > 0 ? moneyRequestReportID : chatReport.iouReportID}`];
+    // STEP 2: Get the money request report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic money request report.
+    let iouReport = null;
+    const shouldCreateNewMoneyRequestReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
+    if (moneyRequestReportID > 0) {
+        iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`];
+    } else if (!shouldCreateNewMoneyRequestReport) {
+        iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
+    }
 
     // Check if the Scheduled Submit is enabled in case of expense report
     let needsToBeManuallySubmitted = true;
@@ -810,7 +815,7 @@ function getMoneyRequestInformation(
         currentTime,
     );
 
-    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
@@ -848,7 +853,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedCategories,
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
-        isNewIOUReport,
+        shouldCreateNewMoneyRequestReport,
         policy,
         policyTags,
         policyCategories,
@@ -863,7 +868,7 @@ function getMoneyRequestInformation(
         transaction: optimisticTransaction,
         iouAction,
         createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
-        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOU.reportActionID : 0,
         reportPreviewAction,
         onyxData: {
             optimisticData,
