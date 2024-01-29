@@ -60,6 +60,9 @@ type Message = {
     /** ID of an expense report */
     expenseReportID?: string;
 
+    /** Amount of an expense */
+    amount?: number;
+
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };
