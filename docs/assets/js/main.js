@@ -232,31 +232,33 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // eslint-disable-next-line es/no-optional-chaining
-    expensifyClassicTab?.addEventListener('click', () => {
-        expensifyClassicTab.classList.add('active');
-        expensifyClassicContent.classList.remove('hidden');
-    
-        newExpensifyTab.classList.remove('active');
-        newExpensifyContent.classList.add('hidden');
-        window.tocbot.refresh({
-            ...tocbotOptions,
-            contentSelector: '#expensify-classic'
+    if (expensifyClassicTab) {
+        expensifyClassicTab.addEventListener('click', () => {
+            expensifyClassicTab.classList.add('active');
+            expensifyClassicContent.classList.remove('hidden');
+        
+            newExpensifyTab.classList.remove('active');
+            newExpensifyContent.classList.add('hidden');
+            window.tocbot.refresh({
+                ...tocbotOptions,
+                contentSelector: '#expensify-classic'
+            });
         });
-    });
+    }
 
-    // eslint-disable-next-line es/no-optional-chaining
-    newExpensifyTab?.addEventListener('click', () => {
-        newExpensifyTab.classList.add('active');
-        newExpensifyContent.classList.remove('hidden');
-    
-        expensifyClassicTab.classList.remove('active');
-        expensifyClassicContent.classList.add('hidden');
-        window.tocbot.refresh({
-            ...tocbotOptions,
-            contentSelector: '#new-expensify'
+    if (newExpensifyTab) {
+        newExpensifyTab.addEventListener('click', () => {
+            newExpensifyTab.classList.add('active');
+            newExpensifyContent.classList.remove('hidden');
+        
+            expensifyClassicTab.classList.remove('active');
+            expensifyClassicContent.classList.add('hidden');
+            window.tocbot.refresh({
+                ...tocbotOptions,
+                contentSelector: '#new-expensify'
+            });
         });
-    });
+    }
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
