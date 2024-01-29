@@ -140,7 +140,7 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOUUtils.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
     }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     useEffect(() => {
