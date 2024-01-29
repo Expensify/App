@@ -292,5 +292,6 @@ export type {
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageAddComment,
+    OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
 };
