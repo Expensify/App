@@ -51,6 +51,7 @@ function ReportActionItemParentAction({allReportActions = {}, allReports = {}, i
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
                 {allAncestors.map((ancestor) => (
                     <OfflineWithFeedback
+                        key={ancestor.reportAction.reportActionID}
                         shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
                         pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
                         errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
@@ -58,7 +59,6 @@ function ReportActionItemParentAction({allReportActions = {}, allReports = {}, i
                         onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                     >
                         <ReportActionItem
-                            key={ancestor.reportAction.reportActionID}
                             // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
                             onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
                             report={ancestor.report}
