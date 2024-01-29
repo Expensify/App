@@ -606,7 +606,6 @@ const CONST = {
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
-                    JOIN_ROOM: 'JOINROOM',
                 },
             },
             THREAD_DISABLED: ['CREATED'],
