@@ -246,6 +246,9 @@ const ONYXKEYS = {
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
 
+    /** Indicates whether an forced upgrade is required */
+    UPDATE_REQUIRED: 'updateRequired',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -444,6 +447,7 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
+    [ONYXKEYS.UPDATE_REQUIRED]: boolean;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

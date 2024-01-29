@@ -669,7 +669,7 @@ function createOption(
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
-    result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result).totalDisplaySpend;
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail?.login;

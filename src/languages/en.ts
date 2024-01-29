@@ -302,6 +302,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -778,6 +779,11 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
     },
     initialSettingsPage: {
         about: 'About',
@@ -1296,8 +1302,8 @@ export default {
             dob: 'Please select a valid date of birth',
             age: 'Must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
-            firstName: 'Please enter valid first name',
-            lastName: 'Please enter valid last name',
+            firstName: 'Please enter a valid first name',
+            lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
