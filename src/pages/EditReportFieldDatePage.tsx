@@ -3,12 +3,15 @@ import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type EditReportFieldDatePageProps = {
     /** Value of the policy report field */
@@ -27,12 +30,13 @@ type EditReportFieldDatePageProps = {
 function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: EditReportFieldDatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<AnimatedTextInputRef>(null);
 
     const validate = useCallback(
-        (value: Record<string, string>) => {
-            const errors: Record<string, string> = {};
-            if (value[fieldID].trim() === '') {
+        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
+            const errors: Errors = {};
+            const value = values[fieldID];
+            if (typeof value === 'string' && value.trim() === '') {
                 errors[fieldID] = 'common.error.fieldRequired';
             }
             return errors;
@@ -48,7 +52,6 @@ function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: Edi
             testID={EditReportFieldDatePage.displayName}
         >
             <HeaderWithBackButton title={fieldName} />
-            {/* @ts-expect-error TODO: TS migration */}
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM}
@@ -58,8 +61,8 @@ function EditReportFieldDatePage({fieldName, onSubmit, fieldValue, fieldID}: Edi
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <InputWrapper
-                        // @ts-expect-error TODO: TS migration
+                    {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
+                    <InputWrapper<unknown>
                         InputComponent={DatePicker}
                         inputID={fieldID}
                         name={fieldID}

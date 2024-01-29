@@ -5,7 +5,6 @@ import ComposeProviders from '../../src/components/ComposeProviders';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
-import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import ReportActionsList from '../../src/pages/home/report/ReportActionsList';
@@ -97,8 +96,6 @@ function ReportActionsListWrapper() {
     );
 }
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 test('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
@@ -113,7 +110,7 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             }),
         )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
+        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
 });
 
 test('[ReportActionsList] should scroll and click some of the reports', () => {
@@ -151,5 +148,5 @@ test('[ReportActionsList] should scroll and click some of the reports', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             }),
         )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
+        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
 });

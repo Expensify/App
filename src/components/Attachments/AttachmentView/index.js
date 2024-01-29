@@ -4,6 +4,7 @@ import React, {memo, useEffect, useState} from 'react';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
@@ -29,6 +30,9 @@ import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 const propTypes = {
     ...attachmentViewPropTypes,
     ...withLocalizePropTypes,
+
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
     /** Flag to show/hide download icon */
     shouldShowDownloadIcon: PropTypes.bool,
@@ -72,7 +76,6 @@ function AttachmentView({
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
     containerStyles,
-    onScaleChanged,
     onToggleKeyboard,
     translate,
     isFocused,
@@ -157,7 +160,6 @@ function AttachmentView({
                     carouselItemIndex={carouselItemIndex}
                     carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
-                    onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
@@ -179,7 +181,7 @@ function AttachmentView({
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                source={imageError ? fallbackSource : source}
+                url={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
@@ -190,7 +192,6 @@ function AttachmentView({
                 carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
-                onScaleChanged={onScaleChanged}
                 onError={() => {
                     setImageError(true);
                 }}
