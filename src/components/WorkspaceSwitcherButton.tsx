@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,28 +14,26 @@ import {PressableWithFeedback} from './Pressable';
 import SubscriptAvatar from './SubscriptAvatar';
 
 type WorkspaceSwitcherButtonOnyxProps = {
-    policies: OnyxCollection<Policy>;
+    policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
+type WorkspaceSwitcherButtonProps = {activeWorkspaceID?: string} & WorkspaceSwitcherButtonOnyxProps;
 
-function WorkspaceSwitcherButton({policies}: WorkspaceSwitcherButtonProps) {
+function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const policy = useMemo(() => (policies && activeWorkspaceID ? policies[`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`] : null), [policies, activeWorkspaceID]);
 
     const {source, name, type} = useMemo(() => {
-        if (!policy) {
+        if (!activeWorkspaceID) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
         const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
-            name: policy?.name,
+            name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
         };
-    }, [policy]);
+    }, [policy, activeWorkspaceID]);
 
     return (
         <PressableWithFeedback
@@ -62,8 +59,7 @@ function WorkspaceSwitcherButton({policies}: WorkspaceSwitcherButtonProps) {
 WorkspaceSwitcherButton.displayName = 'WorkspaceSwitcherButton';
 
 export default withOnyx<WorkspaceSwitcherButtonProps, WorkspaceSwitcherButtonOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-        selector: (policy: OnyxEntry<Policy>) => policy && {avatar: policy.avatar, name: policy.name},
+    policy: {
+        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
     },
 })(WorkspaceSwitcherButton);
