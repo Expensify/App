@@ -1,44 +1,38 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
 import variables from '@styles/variables';
 
-const propTypes = {
+type SignInPageContentProps = {
     /** The children to show inside the layout */
-    children: PropTypes.node.isRequired,
+    children?: React.ReactNode;
 
     /** Welcome text to show in the header of the form, changes depending
      * on form type (for example, sign in) */
-    welcomeText: PropTypes.string.isRequired,
+    welcomeText: string;
 
     /** Welcome header to show in the header of the form, changes depending
      * on form type (for example. sign in) and small vs large screens */
-    welcomeHeader: PropTypes.string.isRequired,
+    welcomeHeader: string;
 
     /** Whether to show welcome text on a particular page */
-    shouldShowWelcomeText: PropTypes.bool.isRequired,
+    shouldShowWelcomeText: boolean;
 
     /** Whether to show welcome header on a particular page */
-    shouldShowWelcomeHeader: PropTypes.bool.isRequired,
+    shouldShowWelcomeHeader: boolean;
 
     /** Whether to show signIn hero image on a particular page */
-    shouldShowSmallScreen: PropTypes.bool.isRequired,
-
-    ...withLocalizePropTypes,
+    shouldShowSmallScreen: boolean;
 };
 
-function SignInPageContent(props) {
+function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText, shouldShowWelcomeText, shouldShowSmallScreen, children}: SignInPageContentProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -54,30 +48,30 @@ function SignInPageContent(props) {
                             <ExpensifyWordmark />
                         </View>
                         <View style={[styles.signInPageWelcomeTextContainer]}>
-                            {props.shouldShowWelcomeHeader && props.welcomeHeader ? (
+                            {shouldShowWelcomeHeader && welcomeHeader ? (
                                 <Text
                                     style={[
                                         styles.loginHeroHeader,
                                         StyleUtils.getLineHeightStyle(variables.lineHeightSignInHeroXSmall),
                                         StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
-                                        !props.welcomeText ? styles.mb5 : {},
+                                        !welcomeText ? styles.mb5 : {},
                                         !isSmallScreenWidth ? styles.textAlignLeft : {},
                                         styles.mb5,
                                     ]}
                                 >
-                                    {props.welcomeHeader}
+                                    {welcomeHeader}
                                 </Text>
                             ) : null}
-                            {props.shouldShowWelcomeText && props.welcomeText ? (
-                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{props.welcomeText}</Text>
+                            {shouldShowWelcomeText && welcomeText ? (
+                                <Text style={[styles.loginHeroBody, styles.mb5, styles.textNormal, !isSmallScreenWidth ? styles.textAlignLeft : {}]}>{welcomeText}</Text>
                             ) : null}
                         </View>
-                        {props.children}
+                        {children}
                     </SignInPageForm>
                     <View style={[styles.mb8, styles.signInPageWelcomeTextContainer, styles.alignSelfCenter]}>
                         <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
                     </View>
-                    {props.shouldShowSmallScreen ? (
+                    {shouldShowSmallScreen ? (
                         <View style={[styles.mt8]}>
                             <SignInHeroImage shouldShowSmallScreen />
                         </View>
@@ -88,7 +82,6 @@ function SignInPageContent(props) {
     );
 }
 
-SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
 
-export default compose(withLocalize, withSafeAreaInsets)(SignInPageContent);
+export default SignInPageContent;
