@@ -2,7 +2,6 @@
 title: Deposit Accounts - USD
 description: How to add a deposit account to receive payments for yourself or your business (US)
 ---
-
 # Overview  
 
 There are two types of deposit-only accounts:  
