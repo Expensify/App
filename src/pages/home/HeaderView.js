@@ -217,7 +217,7 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
-    const isLoading = !props.report || !title;
+    const isLoading = !props.report || !props.report.reportID || !title;
 
     return (
         <View
@@ -321,7 +321,7 @@ function HeaderView(props) {
                     )}
                 </View>
             </View>
-            {canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }
