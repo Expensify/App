@@ -10,6 +10,38 @@ import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
+import type {
+    AddCommentOrAttachementParams,
+    AddEmojiReactionParams,
+    AddWorkspaceRoomParams,
+    CompleteEngagementModalParams,
+    DeleteCommentParams,
+    ExpandURLPreviewParams,
+    FlagCommentParams,
+    GetNewerActionsParams,
+    GetOlderActionsParams,
+    GetReportPrivateNoteParams,
+    InviteToRoomParams,
+    LeaveRoomParams,
+    MarkAsUnreadParams,
+    OpenReportParams,
+    OpenRoomMembersPageParams,
+    ReadNewestActionParams,
+    ReconnectToReportParams,
+    RemoveEmojiReactionParams,
+    RemoveFromRoomParams,
+    ResolveActionableMentionWhisperParams,
+    SearchForReportsParams,
+    SetNameValuePairParams,
+    TogglePinnedChatParams,
+    UpdateCommentParams,
+    UpdatePolicyRoomNameParams,
+    UpdateReportNotificationPreferenceParams,
+    UpdateReportPrivateNoteParams,
+    UpdateReportWriteCapabilityParams,
+    UpdateWelcomeMessageParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -35,7 +67,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -126,6 +158,13 @@ Onyx.connect({
         const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
         draftNoteMap[reportID] = value;
     },
+});
+
+let reportMetadata: OnyxCollection<ReportMetadata> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+    waitForCollectionCallback: true,
+    callback: (value) => (reportMetadata = value),
 });
 
 const allReports: OnyxCollection<Report> = {};
@@ -312,7 +351,7 @@ function addActions(reportID: string, text = '', file?: File) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
-    let commandName = 'AddComment';
+    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text) {
         const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
@@ -323,7 +362,7 @@ function addActions(reportID: string, text = '', file?: File) {
     if (file) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
-        commandName = 'AddAttachment';
+        commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         const attachment = ReportUtils.buildOptimisticAddCommentReportAction('', file);
         attachmentAction = attachment.reportAction;
     }
@@ -358,19 +397,7 @@ function addActions(reportID: string, text = '', file?: File) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
-    type AddCommentOrAttachementParameters = {
-        reportID: string;
-        reportActionID?: string;
-        commentReportActionID?: string | null;
-        reportComment?: string;
-        file?: File;
-        timezone?: string;
-        shouldAllowActionableMentionWhispers?: boolean;
-        clientCreatedTime?: string;
-        isOldDotConciergeChat?: boolean;
-    };
-
-    const parameters: AddCommentOrAttachementParameters = {
+    const parameters: AddCommentOrAttachementParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
@@ -520,8 +547,6 @@ function openReport(
               reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
           };
 
-    const commandName = 'OpenReport';
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -573,23 +598,12 @@ function openReport(
         },
     ];
 
-    type OpenReportParameters = {
-        reportID: string;
-        emailList?: string;
-        accountIDList?: string;
-        parentReportActionID?: string;
-        shouldRetry?: boolean;
-        createdReportActionID?: string;
-        clientLastReadTime?: string;
-        idempotencyKey?: string;
-    };
-
-    const parameters: OpenReportParameters = {
+    const parameters: OpenReportParams = {
         reportID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        idempotencyKey: `${commandName}_${reportID}`,
+        idempotencyKey: `${SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT}_${reportID}`,
     };
 
     if (isFromDeepLink) {
@@ -694,12 +708,12 @@ function openReport(
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(commandName, parameters, {optimisticData, successData, failureData}).finally(() => {
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(commandName, parameters, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
     }
 }
 
@@ -824,15 +838,11 @@ function reconnect(reportID: string) {
         },
     ];
 
-    type ReconnectToReportParameters = {
-        reportID: string;
-    };
-
-    const parameters: ReconnectToReportParameters = {
+    const parameters: ReconnectToReportParams = {
         reportID,
     };
 
-    API.write('ReconnectToReport', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RECONNECT_TO_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -870,17 +880,12 @@ function getOlderActions(reportID: string, reportActionID: string) {
         },
     ];
 
-    type GetOlderActionsParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: GetOlderActionsParameters = {
+    const parameters: GetOlderActionsParams = {
         reportID,
         reportActionID,
     };
 
-    API.read('GetOlderActions', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_OLDER_ACTIONS, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -918,38 +923,28 @@ function getNewerActions(reportID: string, reportActionID: string) {
         },
     ];
 
-    type GetNewerActionsParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: GetNewerActionsParameters = {
+    const parameters: GetNewerActionsParams = {
         reportID,
         reportActionID,
     };
 
-    API.read('GetNewerActions', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_NEWER_ACTIONS, parameters, {optimisticData, successData, failureData});
 }
 
 /**
  * Gets metadata info about links in the provided report action
  */
 function expandURLPreview(reportID: string, reportActionID: string) {
-    type ExpandURLPreviewParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: ExpandURLPreviewParameters = {
+    const parameters: ExpandURLPreviewParams = {
         reportID,
         reportActionID,
     };
 
-    API.read('ExpandURLPreview', parameters);
+    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
 /** Marks the new report actions as read */
-function readNewestAction(reportID: string, shouldEmitEvent = true) {
+function readNewestAction(reportID: string) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -962,22 +957,12 @@ function readNewestAction(reportID: string, shouldEmitEvent = true) {
         },
     ];
 
-    type ReadNewestActionParameters = {
-        reportID: string;
-        lastReadTime: string;
-    };
-
-    const parameters: ReadNewestActionParameters = {
+    const parameters: ReadNewestActionParams = {
         reportID,
         lastReadTime,
     };
 
-    API.write('ReadNewestAction', parameters, {optimisticData});
-
-    if (!shouldEmitEvent) {
-        return;
-    }
-
+    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
     DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
@@ -1013,17 +998,12 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
         },
     ];
 
-    type MarkAsUnreadParameters = {
-        reportID: string;
-        lastReadTime: string;
-    };
-
-    const parameters: MarkAsUnreadParameters = {
+    const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
     };
 
-    API.write('MarkAsUnread', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
@@ -1040,17 +1020,12 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
         },
     ];
 
-    type TogglePinnedChatParameters = {
-        reportID: string;
-        pinnedValue: boolean;
-    };
-
-    const parameters: TogglePinnedChatParameters = {
+    const parameters: TogglePinnedChatParams = {
         reportID,
         pinnedValue,
     };
 
-    API.write('TogglePinnedChat', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.TOGGLE_PINNED_CHAT, parameters, {optimisticData});
 }
 
 /**
@@ -1233,17 +1208,12 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         }
     }
 
-    type DeleteCommentParameters = {
-        reportID: string;
-        reportActionID: string;
-    };
-
-    const parameters: DeleteCommentParameters = {
+    const parameters: DeleteCommentParams = {
         reportID: originalReportID,
         reportActionID,
     };
 
-    API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1386,19 +1356,13 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
         },
     ];
 
-    type UpdateCommentParameters = {
-        reportID: string;
-        reportComment: string;
-        reportActionID: string;
-    };
-
-    const parameters: UpdateCommentParameters = {
+    const parameters: UpdateCommentParams = {
         reportID: originalReportID,
         reportComment: htmlForNewComment,
         reportActionID,
     };
 
-    API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /** Deletes the draft for a comment report action. */
@@ -1463,14 +1427,9 @@ function updateNotificationPreference(
         });
     }
 
-    type UpdateReportNotificationPreferenceParameters = {
-        reportID: string;
-        notificationPreference: NotificationPreference;
-    };
+    const parameters: UpdateReportNotificationPreferenceParams = {reportID, notificationPreference: newValue};
 
-    const parameters: UpdateReportNotificationPreferenceParameters = {reportID, notificationPreference: newValue};
-
-    API.write('UpdateReportNotificationPreference', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_NOTIFICATION_PREFERENCE, parameters, {optimisticData, failureData});
     if (navigate && !isEmptyObject(report)) {
         ReportUtils.goBackToDetailsPage(report);
     }
@@ -1543,14 +1502,9 @@ function updateWelcomeMessage(reportID: string, previousValue: string, newValue:
         },
     ];
 
-    type UpdateWelcomeMessageParameters = {
-        reportID: string;
-        welcomeMessage: string;
-    };
+    const parameters: UpdateWelcomeMessageParams = {reportID, welcomeMessage: parsedWelcomeMessage};
 
-    const parameters: UpdateWelcomeMessageParameters = {reportID, welcomeMessage: parsedWelcomeMessage};
-
-    API.write('UpdateWelcomeMessage', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE, parameters, {optimisticData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
@@ -1575,14 +1529,9 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
         },
     ];
 
-    type UpdateReportWriteCapabilityParameters = {
-        reportID: string;
-        writeCapability: WriteCapability;
-    };
+    const parameters: UpdateReportWriteCapabilityParams = {reportID: report.reportID, writeCapability: newValue};
 
-    const parameters: UpdateReportWriteCapabilityParameters = {reportID: report.reportID, writeCapability: newValue};
-
-    API.write('UpdateReportWriteCapability', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_WRITE_CAPABILITY, parameters, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID));
 }
@@ -1680,17 +1629,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
         },
     ];
 
-    type AddWorkspaceRoomParameters = {
-        reportID: string;
-        createdReportActionID: string;
-        policyID?: string;
-        reportName?: string;
-        visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
-        writeCapability?: WriteCapability;
-        welcomeMessage?: string;
-    };
-
-    const parameters: AddWorkspaceRoomParameters = {
+    const parameters: AddWorkspaceRoomParams = {
         policyID: policyReport.policyID,
         reportName: policyReport.reportName,
         visibility: policyReport.visibility,
@@ -1700,7 +1639,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
         welcomeMessage: policyReport.welcomeMessage,
     };
 
-    API.write('AddWorkspaceRoom', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
     Navigation.dismissModalWithReportID(policyReport.reportID);
 }
 
@@ -1790,14 +1729,9 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport: Report, policyRoomNam
         },
     ];
 
-    type UpdatePolicyRoomNameParameters = {
-        reportID: string;
-        policyRoomName: string;
-    };
+    const parameters: UpdatePolicyRoomNameParams = {reportID, policyRoomName};
 
-    const parameters: UpdatePolicyRoomNameParameters = {reportID, policyRoomName};
-
-    API.write('UpdatePolicyRoomName', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_NAME, parameters, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
 }
 
@@ -1966,16 +1900,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         },
     ];
 
-    type AddEmojiReactionParameters = {
-        reportID: string;
-        skinTone: string | number;
-        emojiCode: string;
-        reportActionID: string;
-        createdAt: string;
-        useEmojiReactions: boolean;
-    };
-
-    const parameters: AddEmojiReactionParameters = {
+    const parameters: AddEmojiReactionParams = {
         reportID,
         skinTone,
         emojiCode: emoji.name,
@@ -1985,7 +1910,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         useEmojiReactions: true,
     };
 
-    API.write('AddEmojiReaction', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -2007,14 +1932,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         },
     ];
 
-    type RemoveEmojiReactionParameters = {
-        reportID: string;
-        reportActionID: string;
-        emojiCode: string;
-        useEmojiReactions: boolean;
-    };
-
-    const parameters: RemoveEmojiReactionParameters = {
+    const parameters: RemoveEmojiReactionParams = {
         reportID,
         reportActionID,
         emojiCode: emoji.name,
@@ -2022,7 +1940,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         useEmojiReactions: true,
     };
 
-    API.write('RemoveEmojiReaction', parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
 }
 
 /**
@@ -2186,17 +2104,36 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         });
     }
 
-    type LeaveRoomParameters = {
-        reportID: string;
-    };
-
-    const parameters: LeaveRoomParameters = {
+    const parameters: LeaveRoomParams = {
         reportID,
     };
 
-    API.write('LeaveRoom', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
 
-    if (isWorkspaceMemberLeavingWorkspaceRoom) {
+    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(allReports ?? {}) as Report[], reportMetadata);
+
+    // We want to filter out the current report, hidden reports and empty chats
+    const filteredReportsByLastRead = sortedReportsByLastRead.filter(
+        (sortedReport) =>
+            sortedReport?.reportID !== reportID &&
+            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
+            ReportUtils.shouldReportBeInOptionList({
+                report: sortedReport,
+                currentReportId: '',
+                isInGSDMode: false,
+                betas: [],
+                policies: {},
+                excludeEmptyChats: true,
+                doesReportHaveViolations: false,
+            }),
+    );
+    const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
+
+    if (lastAccessedReportID) {
+        // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
+        Navigation.goBack(ROUTES.HOME);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
+    } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
@@ -2253,17 +2190,12 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         ...newPersonalDetailsOnyxData.finallyData,
     ];
 
-    type InviteToRoomParameters = {
-        reportID: string;
-        inviteeEmails: string[];
-    };
-
-    const parameters: InviteToRoomParameters = {
+    const parameters: InviteToRoomParams = {
         reportID,
         inviteeEmails,
     };
 
-    API.write('InviteToRoom', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
 /** Removes people from a room */
@@ -2308,17 +2240,12 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
         },
     ];
 
-    type RemoveFromRoomParameters = {
-        reportID: string;
-        targetAccountIDs: number[];
-    };
-
-    const parameters: RemoveFromRoomParameters = {
+    const parameters: RemoveFromRoomParams = {
         reportID,
         targetAccountIDs,
     };
 
-    API.write('RemoveFromRoom', parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
 function setLastOpenedPublicRoom(reportID: string) {
@@ -2406,13 +2333,7 @@ function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, se
         },
     ];
 
-    type FlagCommentParameters = {
-        severity: string;
-        reportActionID: string;
-        isDevRequest: boolean;
-    };
-
-    const parameters: FlagCommentParameters = {
+    const parameters: FlagCommentParams = {
         severity,
         reportActionID,
         // This check is to prevent flooding Concierge with test flags
@@ -2420,7 +2341,7 @@ function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, se
         isDevRequest: Environment.isDevelopment(),
     };
 
-    API.write('FlagComment', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.FLAG_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /** Updates a given user's private notes on a report */
@@ -2470,14 +2391,9 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
         },
     ];
 
-    type UpdateReportPrivateNoteParameters = {
-        reportID: string;
-        privateNotes: string;
-    };
+    const parameters: UpdateReportPrivateNoteParams = {reportID, privateNotes: note};
 
-    const parameters: UpdateReportPrivateNoteParameters = {reportID, privateNotes: note};
-
-    API.write('UpdateReportPrivateNote', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 };
 
 /** Fetches all the private notes for a given report */
@@ -2520,13 +2436,9 @@ function getReportPrivateNote(reportID: string) {
         },
     ];
 
-    type GetReportPrivateNoteParameters = {
-        reportID: string;
-    };
+    const parameters: GetReportPrivateNoteParams = {reportID};
 
-    const parameters: GetReportPrivateNoteParameters = {reportID};
-
-    API.read('GetReportPrivateNote', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -2536,7 +2448,6 @@ function getReportPrivateNote(reportID: string) {
  * - Creates an optimistic report comment from concierge
  */
 function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
-    const commandName = 'CompleteEngagementModal';
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
@@ -2569,16 +2480,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
 
-    type CompleteEngagementParameters = {
-        reportID: string;
-        reportActionID?: string;
-        commentReportActionID?: string | null;
-        reportComment?: string;
-        engagementChoice: string;
-        timezone?: string;
-    };
-
-    const parameters: CompleteEngagementParameters = {
+    const parameters: CompleteEngagementModalParams = {
         reportID: conciergeChatReportID ?? '',
         reportActionID: reportCommentAction.reportActionID,
         reportComment: reportCommentText,
@@ -2611,7 +2513,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
         },
     ];
 
-    API.write(commandName, parameters, {
+    API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
         optimisticData,
         successData,
     });
@@ -2619,8 +2521,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTR
 }
 
 function dismissEngagementModal() {
-    const commandName = 'SetNameValuePair';
-    const parameters = {
+    const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
         value: true,
     };
@@ -2633,20 +2534,16 @@ function dismissEngagementModal() {
         },
     ];
 
-    API.write(commandName, parameters, {
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
     });
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */
 function openRoomMembersPage(reportID: string) {
-    type OpenRoomMembersPageParameters = {
-        reportID: string;
-    };
+    const parameters: OpenRoomMembersPageParams = {reportID};
 
-    const parameters: OpenRoomMembersPageParameters = {reportID};
-
-    API.read('OpenRoomMembersPage', parameters);
+    API.read(READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE, parameters);
 }
 
 /**
@@ -2699,13 +2596,9 @@ function searchForReports(searchInput: string) {
         },
     ];
 
-    type SearchForReportsParameters = {
-        searchInput: string;
-    };
+    const parameters: SearchForReportsParams = {searchInput};
 
-    const parameters: SearchForReportsParameters = {searchInput};
-
-    API.read('SearchForReports', parameters, {successData, failureData});
+    API.read(READ_COMMANDS.SEARCH_FOR_REPORTS, parameters, {successData, failureData});
 }
 
 function searchInServer(searchInput: string) {
@@ -2777,17 +2670,12 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
         },
     ];
 
-    type ResolveActionableMentionWhisperParams = {
-        reportActionID: string;
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
-    };
-
     const parameters: ResolveActionableMentionWhisperParams = {
         reportActionID: reportAction.reportActionID,
         resolution,
     };
 
-    API.write('ResolveActionableMentionWhisper', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
 export {
