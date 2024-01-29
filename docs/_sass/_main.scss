@@ -369,18 +369,20 @@ button {
         display: block;
     }
 
-    .tab > * > a {
-        color: $color-product-dark-800;
-
-    }
-
     .tab > * {
         border-bottom: 2px solid $color-borders;
         transition: color .1s ease-in-out;
     }
 
+    .tab > * > a {
+        color: $color-product-dark-800;
+    }
+
     .tab > .active {
         border-color: $color-green400;
+    }
+
+    .tab > .active > a {
         color: $color-product-dark-900;
     }
 
