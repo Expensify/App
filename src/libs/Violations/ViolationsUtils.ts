@@ -56,15 +56,15 @@ const ViolationsUtils = {
             const policyTagKeys = Object.keys(policyTags);
 
             policyTagKeys.forEach((key, index) => {
-                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'tagOutOfPolicy' && violation.data?.tagName === key);
-                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === 'missingTag' && violation.data?.tagName === key);
+                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.data?.tagName === key);
+                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG && violation.data?.tagName === key);
                 const selectedTag = selectedTags[index];
                 const isTagInPolicy = Boolean(policyTags[key]?.tags[selectedTag]?.enabled);
 
                 // Add 'tagOutOfPolicy' violation if tag is not in policy
                 if (!hasTagOutOfPolicyViolation && selectedTag && !isTagInPolicy) {
                     newTransactionViolations.push({
-                        name: 'tagOutOfPolicy',
+                        name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                         type: 'violation',
                         userMessage: '',
                         data: {
@@ -76,7 +76,7 @@ const ViolationsUtils = {
                 // Remove 'tagOutOfPolicy' violation if tag is in policy
                 if (hasTagOutOfPolicyViolation && selectedTag && isTagInPolicy) {
                     newTransactionViolations = reject(newTransactionViolations, {
-                        name: 'tagOutOfPolicy',
+                        name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                         data: {
                             tagName: key,
                         },
@@ -86,7 +86,7 @@ const ViolationsUtils = {
                 // Remove 'missingTag' violation if tag is valid according to policy
                 if (hasMissingTagViolation && isTagInPolicy) {
                     newTransactionViolations = reject(newTransactionViolations, {
-                        name: 'missingTag',
+                        name: CONST.VIOLATIONS.MISSING_TAG,
                         data: {
                             tagName: key,
                         },
@@ -96,7 +96,7 @@ const ViolationsUtils = {
                 // Add 'missingTag violation' if tag is required and not set
                 if (!hasMissingTagViolation && !selectedTag && policyRequiresTags) {
                     newTransactionViolations.push({
-                        name: 'missingTag',
+                        name: CONST.VIOLATIONS.MISSING_TAG,
                         type: 'violation',
                         userMessage: '',
                         data: {
@@ -113,6 +113,7 @@ const ViolationsUtils = {
             value: newTransactionViolations,
         };
     },
+
     /**
      * Gets the translated message for each violation type.
      *
