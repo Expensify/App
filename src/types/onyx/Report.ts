@@ -13,6 +13,13 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+type Participant = {
+    hidden: boolean;
+    role?: 'admin' | 'member';
+};
+
+type Participants = Record<number, Participant>;
+
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The specific type of chat */
@@ -118,7 +125,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastActorAccountID?: number;
         ownerAccountID?: number;
         ownerEmail?: string;
-        participantAccountIDs?: number[];
+        participants?: Participants;participantAccountIDs?: number[];
         visibleChatMemberAccountIDs?: number[];
         total?: number;
         currency?: string;
