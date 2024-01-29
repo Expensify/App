@@ -32,17 +32,17 @@ type EditReportFieldDropdownPageComponentProps = {
 };
 
 type EditReportFieldDropdownPageOnyxProps = {
-    policyRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
+    recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
 };
 
 type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
 
-function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, policyRecentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
     const {getSafeAreaMargins} = useStyleUtils();
     const {translate} = useLocalize();
-    const recentlyUsedOptions = useMemo(() => policyRecentlyUsedReportFields?.[fieldID] ?? [], [policyRecentlyUsedReportFields, fieldID]);
+    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldID] ?? [], [recentlyUsedReportFields, fieldID]);
 
     const sections = useMemo(() => {
         const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
@@ -105,7 +105,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, 
 EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
 
 export default withOnyx<EditReportFieldDropdownPageProps, EditReportFieldDropdownPageOnyxProps>({
-    policyRecentlyUsedReportFields: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS}${policyID}`,
+    recentlyUsedReportFields: {
+        key: () => ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     },
 })(EditReportFieldDropdownPage);

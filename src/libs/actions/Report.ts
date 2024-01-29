@@ -176,10 +176,9 @@ Linking.getInitialURL().then((url) => {
     reportIDDeeplinkedFromOldDot = reportID;
 });
 
-let allRecentlyUsedReportFields: OnyxCollection<RecentlyUsedReportFields> = {};
+let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS,
-    waitForCollectionCallback: true,
+    key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
 });
 
@@ -1526,8 +1525,8 @@ function updatePolicyReportName(reportID: string, value: string) {
     API.write('RenameReport', parameters, {optimisticData, failureData, successData});
 }
 
-function updatePolicyReportField(policyID: string, reportID: string, reportField: PolicyReportField) {
-    const recentlyUsedValues = allRecentlyUsedReportFields?.[policyID]?.[reportField.fieldID] ?? [];
+function updatePolicyReportField(reportID: string, reportField: PolicyReportField) {
+    const recentlyUsedValues = allRecentlyUsedReportFields?.[reportField.fieldID] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1547,7 +1546,7 @@ function updatePolicyReportField(policyID: string, reportID: string, reportField
     if (reportField.type === 'dropdown') {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS}${policyID}`,
+            key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
             value: {
                 [reportField.fieldID]: [...new Set([...recentlyUsedValues, reportField.value])],
             },
@@ -1572,7 +1571,7 @@ function updatePolicyReportField(policyID: string, reportID: string, reportField
     if (reportField.type === 'dropdown') {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS}${policyID}`,
+            key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
             value: {
                 [reportField.fieldID]: recentlyUsedValues,
             },
