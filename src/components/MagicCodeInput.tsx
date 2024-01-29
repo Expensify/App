@@ -114,7 +114,6 @@ function MagicCodeInput(
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // const inputRefs = useRef<RNTextInput | HTMLInputElement | null>();
     const inputRefs = useRef<BaseTextInputRef | null>();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
