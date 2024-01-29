@@ -340,10 +340,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        verticalAlignMiddle: {
-            verticalAlign: 'middle',
-        },
-
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -1467,7 +1463,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -2875,6 +2871,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',
@@ -4165,6 +4165,19 @@ const styles = (theme: ThemeColors) =>
         },
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+
+        updateAnimation: {
+            width: variables.updateAnimationW,
+            height: variables.updateAnimationH,
+        },
+
+        updateRequiredViewHeader: {
+            height: variables.updateViewHeaderHeight,
+        },
+
+        updateRequiredViewTextContainer: {
+            width: variables.updateTextViewContainerWidth,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
