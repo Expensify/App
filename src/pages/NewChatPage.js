@@ -279,7 +279,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
-                            shouldShowReferralCTA={dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT] !== true}
+                            shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
                             onCallToActionClose={dismissCallToAction}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
