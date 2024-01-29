@@ -3,8 +3,6 @@ title: Deposit Accounts (AUD)
 description: Expensify allows you to add a personal bank account to receive reimbursements for your expenses. We never take money out of this account — it is only a place for us to deposit funds from your employer. This article covers deposit accounts for Australian banks.
 ---
 
-<div id="expensify-classic" markdown="1">
-
 ## How-to add your Australian personal deposit account information
 1. Confirm with your Policy Admin that they’ve set up Global Reimbursment
 2. Set your default policy (by selecting the correct policy after clicking on your profile picture) before adding your deposit account.
@@ -22,9 +20,4 @@ Bank accounts are easy to delete! Simply click the red **Delete** button in the 
 
 You can complete this process on a computer or on the mobile app.
 
-</div>
 
-<div id="new-expensify" markdown="1">
-## How-to add your Australian personal deposit account information
-
-</div>
