@@ -69,7 +69,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
 
     const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): Errors => {
         const requiredFields = ['phoneOrEmail'];
-        const userEmailOrPhone = formatPhoneNumber(session?.email ?? '');
+        const userEmailOrPhone = formatPhoneNumber(session?.email);
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         if (values.phoneOrEmail && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
@@ -78,7 +78,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
         return errors;
     };
 
-    const userEmailOrPhone = formatPhoneNumber(session?.email ?? '');
+    const userEmailOrPhone = formatPhoneNumber(session?.email);
 
     return (
         <ScreenWrapper
