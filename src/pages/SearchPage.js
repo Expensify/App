@@ -14,7 +14,6 @@ import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -25,9 +24,6 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
@@ -48,14 +44,13 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
-    dismissedReferralBanners: {},
     personalDetails: {},
     reports: {},
     isSearchingForReports: false,
     navigation: {},
 };
 
-function SearchPage({betas, dismissedReferralBanners, personalDetails, reports, isSearchingForReports, navigation}) {
+function SearchPage({betas, personalDetails, reports, isSearchingForReports, navigation}) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState({
         recentReports: {},
@@ -166,10 +161,6 @@ function SearchPage({betas, dismissedReferralBanners, personalDetails, reports, 
         }
     };
 
-    const dismissCallToAction = (referralContentType) => {
-        User.dismissReferralBanner(referralContentType);
-    };
-
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
         searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
@@ -197,9 +188,8 @@ function SearchPage({betas, dismissedReferralBanners, personalDetails, reports, 
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]}
+                            shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
-                            onCallToActionClose={dismissCallToAction}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onLayout={searchRendered}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
@@ -217,10 +207,6 @@ SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
 SearchPage.displayName = 'SearchPage';
 export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
-    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
