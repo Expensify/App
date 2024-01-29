@@ -6,12 +6,12 @@ import isObject from 'lodash/isObject';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {OnyxCollection} from "react-native-onyx";
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
-import type {OnyxCollection} from "react-native-onyx";
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card

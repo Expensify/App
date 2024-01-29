@@ -109,8 +109,7 @@ function RoomNamePage({ report, policy, reports }: RoomNamePageProps) {
 
 RoomNamePage.displayName = 'RoomNamePage';
 
-export default compose(
-    withReportOrNotFound(),
+export default withReportOrNotFound()(
     withOnyx<RoomNamePageProps, RoomNamePageOnyxProps>({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -118,6 +117,5 @@ export default compose(
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
-    }),
-
-)(RoomNamePage);
+    })(RoomNamePage)
+);
