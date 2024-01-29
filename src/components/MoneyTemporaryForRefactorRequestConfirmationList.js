@@ -748,7 +748,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        CONST.IOU.TYPE.REQUEST,
+                                        transaction.transactionID,
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                )
                             }
                             disabled={didConfirm || !isTypeRequest}
                             interactive={!isReadOnly}

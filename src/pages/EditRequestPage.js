@@ -23,7 +23,6 @@ import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
@@ -260,16 +259,6 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
             <EditRequestReceiptPage
                 route={route}
                 transactionID={transaction.transactionID}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
-        return (
-            <EditRequestDistancePage
-                report={report}
-                transactionID={transaction.transactionID}
-                route={route}
             />
         );
     }

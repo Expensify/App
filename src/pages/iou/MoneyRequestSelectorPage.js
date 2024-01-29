@@ -23,7 +23,6 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import NewDistanceRequestPage from './NewDistanceRequestPage';
 import IOURequestStepScan from './request/step/IOURequestStepScan';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
@@ -72,10 +71,6 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const isFromGlobalCreate = !reportID;
-    const isExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType}${reportID}`;
@@ -133,13 +128,6 @@ function MoneyRequestSelectorPage(props) {
                                         initialParams={{reportID, iouType}}
                                     />
                                     <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={props.route} />}</TopTab.Screen>
-                                    {shouldDisplayDistanceRequest && (
-                                        <TopTab.Screen
-                                            name={CONST.TAB_REQUEST.DISTANCE}
-                                            component={NewDistanceRequestPage}
-                                            initialParams={{reportID, iouType}}
-                                        />
-                                    )}
                                 </OnyxTabNavigator>
                             ) : (
                                 <NewRequestAmountPage route={props.route} />
