@@ -1,16 +1,14 @@
-import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
 import ImageSVG from '@components/ImageSVG';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import SignInPageHero from '@pages/signin/SignInPageHero';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -19,63 +17,69 @@ import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import scrollViewContentContainerStyles from './signInPageStyles';
 
-const propTypes = {
+type SignInPageLayoutProps = {
     /** The children to show inside the layout */
-    children: PropTypes.node.isRequired,
+    children?: React.ReactNode;
 
     /** Welcome text to show in the header of the form, changes depending
      * on form type (for example, sign in) */
-    welcomeText: PropTypes.string.isRequired,
+    welcomeText?: string;
 
     /** Welcome header to show in the header of the form, changes depending
      * on form type (for example, sign in) and small vs large screens */
-    welcomeHeader: PropTypes.string.isRequired,
+    welcomeHeader: string;
 
     /** Whether to show welcome text on a particular page */
-    shouldShowWelcomeText: PropTypes.bool.isRequired,
+    shouldShowWelcomeText?: boolean;
 
     /** Whether to show welcome header on a particular page */
-    shouldShowWelcomeHeader: PropTypes.bool.isRequired,
+    shouldShowWelcomeHeader?: boolean;
 
-    /** A reference so we can expose scrollPageToTop */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-
-    /** Whether or not the sign in page is being rendered in the RHP modal */
-    shouldShowSmallScreen: PropTypes.bool,
+    /** Whether the sign-in page is being rendered in the RHP modal */
+    shouldShowSmallScreen?: boolean;
 
     /** Override the green headline copy */
-    customHeadline: PropTypes.string,
+    customHeadline?: string;
 
     /** Override the smaller hero body copy below the headline */
-    customHeroBody: PropTypes.string,
+    customHeroBody?: string;
 
-    ...withLocalizePropTypes,
+    navigateFocus?: () => void;
 };
 
-const defaultProps = {
-    innerRef: () => {},
-    shouldShowSmallScreen: false,
-    customHeadline: '',
-    customHeroBody: '',
-};
-
-function SignInPageLayout(props) {
+function SignInPageLayout(
+    {
+        shouldShowSmallScreen = false,
+        customHeadline = '',
+        customHeroBody = '',
+        shouldShowWelcomeHeader = false,
+        welcomeHeader,
+        welcomeText = '',
+        shouldShowWelcomeText = false,
+        navigateFocus = () => {},
+        children,
+    }: SignInPageLayoutProps,
+    ref: any,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const scrollViewRef = useRef();
-    const prevPreferredLocale = usePrevious(props.preferredLocale);
-    let containerStyles = [styles.flex1, styles.signInPageInner];
-    let contentContainerStyles = [styles.flex1, styles.flexRow];
-    const {windowHeight} = useWindowDimensions();
+    const {preferredLocale} = useLocalize();
+    const {top: topInsets, bottom: bottomInsets} = useSafeAreaInsets();
+    const scrollViewRef = useRef<ScrollView>(null);
+    const prevPreferredLocale = usePrevious(preferredLocale);
+    const {windowHeight, isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
+
+    const {containerStyles, contentContainerStyles} = useMemo(
+        () => ({
+            containerStyles: shouldShowSmallScreen ? [styles.flex1] : [styles.flex1, styles.signInPageInner],
+            contentContainerStyles: [styles.flex1, shouldShowSmallScreen ? styles.flexColumn : styles.flexRow],
+        }),
+        [shouldShowSmallScreen, styles],
+    );
 
     // To scroll on both mobile and web, we need to set the container height manually
-    const containerHeight = windowHeight - props.insets.top - props.insets.bottom;
-
-    if (props.shouldShowSmallScreen) {
-        containerStyles = [styles.flex1];
-        contentContainerStyles = [styles.flex1, styles.flexColumn];
-    }
+    const containerHeight = windowHeight - topInsets - bottomInsets;
 
     const scrollPageToTop = (animated = false) => {
         if (!scrollViewRef.current) {
@@ -84,17 +88,17 @@ function SignInPageLayout(props) {
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
 
-    useImperativeHandle(props.innerRef, () => ({
+    useImperativeHandle(ref, () => ({
         scrollPageToTop,
     }));
 
     useEffect(() => {
-        if (prevPreferredLocale !== props.preferredLocale) {
+        if (prevPreferredLocale !== preferredLocale) {
             return;
         }
 
         scrollPageToTop();
-    }, [props.welcomeHeader, props.welcomeText, prevPreferredLocale, props.preferredLocale]);
+    }, [welcomeHeader, welcomeText, prevPreferredLocale, preferredLocale]);
 
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
@@ -102,7 +106,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!props.shouldShowSmallScreen ? (
+            {!shouldShowSmallScreen ? (
                 <View style={contentContainerStyles}>
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
@@ -110,13 +114,13 @@ function SignInPageLayout(props) {
                         contentContainerStyle={[styles.flex1]}
                     >
                         <SignInPageContent
-                            welcomeHeader={props.welcomeHeader}
-                            welcomeText={props.welcomeText}
-                            shouldShowWelcomeText={props.shouldShowWelcomeText}
-                            shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
-                            shouldShowSmallScreen={props.shouldShowSmallScreen}
+                            welcomeHeader={welcomeHeader}
+                            welcomeText={welcomeText}
+                            shouldShowWelcomeText={shouldShowWelcomeText}
+                            shouldShowWelcomeHeader={shouldShowWelcomeHeader}
+                            shouldShowSmallScreen={shouldShowSmallScreen}
                         >
-                            {props.children}
+                            {children}
                         </SignInPageContent>
                     </ScrollView>
                     <ScrollView
@@ -145,15 +149,15 @@ function SignInPageLayout(props) {
                                     style={[
                                         styles.alignSelfCenter,
                                         StyleUtils.getMaximumWidth(variables.signInContentMaxWidth),
-                                        props.isMediumScreenWidth ? styles.ph10 : {},
-                                        props.isLargeScreenWidth ? styles.ph25 : {},
+                                        isMediumScreenWidth ? styles.ph10 : {},
+                                        isLargeScreenWidth ? styles.ph25 : {},
                                     ]}
                                 >
                                     <SignInPageHero
-                                        customHeadline={props.customHeadline}
-                                        customHeroBody={props.customHeroBody}
+                                        customHeadline={customHeadline}
+                                        customHeroBody={customHeroBody}
                                     />
-                                    <Footer navigateFocus={props.navigateFocus} />
+                                    <Footer navigateFocus={navigateFocus} />
                                 </View>
                             </View>
                         </View>
@@ -175,18 +179,18 @@ function SignInPageLayout(props) {
                             />
                         </View>
                         <SignInPageContent
-                            welcomeHeader={props.welcomeHeader}
-                            welcomeText={props.welcomeText}
-                            shouldShowWelcomeText={props.shouldShowWelcomeText}
-                            shouldShowWelcomeHeader={props.shouldShowWelcomeHeader}
-                            shouldShowSmallScreen={props.shouldShowSmallScreen}
+                            welcomeHeader={welcomeHeader}
+                            welcomeText={welcomeText}
+                            shouldShowWelcomeText={shouldShowWelcomeText}
+                            shouldShowWelcomeHeader={shouldShowWelcomeHeader}
+                            shouldShowSmallScreen={shouldShowSmallScreen}
                         >
-                            {props.children}
+                            {children}
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
                         <Footer
-                            navigateFocus={props.navigateFocus}
+                            navigateFocus={navigateFocus}
                             shouldShowSmallScreen
                         />
                     </View>
@@ -196,18 +200,6 @@ function SignInPageLayout(props) {
     );
 }
 
-SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
-SignInPageLayout.defaultProps = defaultProps;
 
-const SignInPageLayoutWithRef = forwardRef((props, ref) => (
-    <SignInPageLayout
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-SignInPageLayoutWithRef.displayName = 'SignInPageLayoutWithRef';
-
-export default compose(withSafeAreaInsets, withLocalize)(SignInPageLayoutWithRef);
+export default forwardRef(SignInPageLayout);
