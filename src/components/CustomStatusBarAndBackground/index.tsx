@@ -128,7 +128,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         }
 
         updateGlobalBackgroundColor(theme);
-    }, [isDisabled, theme]);
+        updateStatusBarStyle();
+    }, [isDisabled, theme, updateStatusBarStyle]);
 
     if (isDisabled) {
         return null;
