@@ -243,6 +243,9 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    /** Indicates whether an forced upgrade is required */
+    UPDATE_REQUIRED: 'updateRequired',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -441,6 +444,7 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.UPDATE_REQUIRED]: boolean;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;

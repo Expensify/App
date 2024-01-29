@@ -929,7 +929,7 @@ function expandURLPreview(reportID: string, reportActionID: string) {
 }
 
 /** Marks the new report actions as read */
-function readNewestAction(reportID: string, shouldEmitEvent = true) {
+function readNewestAction(reportID: string) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -948,11 +948,6 @@ function readNewestAction(reportID: string, shouldEmitEvent = true) {
     };
 
     API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
-
-    if (!shouldEmitEvent) {
-        return;
-    }
-
     DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
