@@ -213,7 +213,7 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     lodashMap(reportActions, (reportAction) => {
-        const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
+        const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
         const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
         return {
@@ -226,6 +226,7 @@ const reportActionsSelector = (reportActions) =>
                     moderationDecision: {decision},
                 },
             ],
+            originalMessage,
         };
     });
 
