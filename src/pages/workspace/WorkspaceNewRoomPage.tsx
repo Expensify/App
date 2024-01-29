@@ -63,8 +63,9 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    const wasLoading = usePrevious(formState?.isLoading);
+    const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
+    const {isLoading = false, errorFields = {}} = formState ?? {};
 
     const workspaceOptions = useMemo(
         () =>
@@ -100,7 +101,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             participants,
             values.roomName,
             CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-            policyID ?? undefined,
+            policyID,
             CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
@@ -134,12 +135,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     }, [activePolicyID, policyID, workspaceOptions]);
 
     useEffect(() => {
-        if (!(((wasLoading && !formState?.isLoading) || (isOffline && formState?.isLoading)) && isEmptyObject(formState?.errorFields))) {
+        if (!(((wasLoading && !isLoading) || (isOffline && isLoading)) && isEmptyObject(errorFields))) {
             return;
         }
         Navigation.dismissModal(newRoomReportID);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
-    }, [formState]);
+    }, [isLoading, errorFields]);
 
     useEffect(() => {
         if (isPolicyAdmin) {
