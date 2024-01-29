@@ -1,4 +1,4 @@
 import {createContext} from 'react';
 
-const TwoFactorAuthContext = createContext();
+const TwoFactorAuthContext = createContext({});
 export default TwoFactorAuthContext;
