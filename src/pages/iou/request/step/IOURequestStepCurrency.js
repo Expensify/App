@@ -98,12 +98,8 @@ function IOURequestStepCurrency({
             return;
         }
 
-        if (pageIndex === 'edit') {
-            if (selectedCurrency) {
-                Navigation.navigate(`${backTo}?currency=${selectedCurrency}`);
-            } else {
-                Navigation.goBack(backTo || ROUTES.HOME);
-            }
+        if (pageIndex === 'edit' && selectedCurrency) {
+            Navigation.navigate(`${backTo}?currency=${selectedCurrency}`);
             return;
         }
 
