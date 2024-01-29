@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {SyntheticEvent} from 'react';
 import {Dimensions} from 'react-native';
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -68,8 +67,8 @@ function KYCWall({
     walletTerms,
     shouldShowPersonalBankAccountOption = false,
 }: BaseKYCWallProps) {
-    const anchorRef = useRef<HTMLDivElement>(null);
-    const transferBalanceButtonRef = useRef<HTMLDivElement | null>(null);
+    const anchorRef = useRef<HTMLDivElement | View | null>(null);
+    const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
 
@@ -110,7 +109,7 @@ function KYCWall({
             return;
         }
 
-        const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current);
+        const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current as HTMLDivElement);
         const position = getAnchorPosition(buttonPosition);
 
         setPositionAddPaymentMenu(position);
@@ -146,7 +145,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: TransferMethod) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -161,7 +160,7 @@ function KYCWall({
             }
 
             // Use event target as fallback if anchorRef is null for safety
-            const targetElement = anchorRef.current ?? (event?.nativeEvent.target as HTMLDivElement);
+            const targetElement = anchorRef.current ?? (event?.currentTarget as HTMLDivElement);
 
             transferBalanceButtonRef.current = targetElement;
 
@@ -180,7 +179,7 @@ function KYCWall({
                     return;
                 }
 
-                const clickedElementLocation = getClickedTargetLocation(targetElement);
+                const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
                 const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
@@ -203,7 +202,7 @@ function KYCWall({
 
             Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
 
-            onSuccessfulKYC(currentSource, iouPaymentType);
+            onSuccessfulKYC(iouPaymentType, currentSource);
         },
         [
             bankAccountList,

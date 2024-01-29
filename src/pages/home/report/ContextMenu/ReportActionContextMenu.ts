@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
 
@@ -30,6 +31,7 @@ type ShowContextMenu = (
     isChronosReport?: boolean,
     isPinnedChat?: boolean,
     isUnreadChat?: boolean,
+    disabledOptions?: ContextMenuAction[],
 ) => void;
 
 type ReportActionContextMenu = {
@@ -108,6 +110,7 @@ function showContextMenu(
     isChronosReport = false,
     isPinnedChat = false,
     isUnreadChat = false,
+    disabledActions: ContextMenuAction[] = [],
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -134,6 +137,7 @@ function showContextMenu(
         isChronosReport,
         isPinnedChat,
         isUnreadChat,
+        disabledActions,
     );
 }
 

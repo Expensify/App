@@ -64,10 +64,10 @@ type KYCWallProps = {
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */
-    onSuccessfulKYC: (currentSource?: Source, iouPaymentType?: TransferMethod) => void;
+    onSuccessfulKYC: (iouPaymentType?: TransferMethod, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event?: GestureResponderEvent | KeyboardEvent, method?: TransferMethod) => void, anchorRef: ForwardedRef<HTMLDivElement | View>) => void;
+    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: TransferMethod) => void, anchorRef: ForwardedRef<HTMLDivElement | View>) => void;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect};

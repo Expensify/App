@@ -128,6 +128,8 @@ type ReportActionItemProps = {
     shouldHideThreadDividerLine?: boolean;
 
     linkedReportActionID?: string;
+
+    transactionViolations?: OnyxTypes.TransactionViolation[];
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -149,6 +151,7 @@ function ReportActionItem({
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
     policyReportFields,
+    transactionViolations,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -364,8 +367,10 @@ function ReportActionItem({
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
-                    chatReportID={report.reportID}
+                    // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
+                    chatReportID={action.originalMessage.IOUReportID ? report.chatReportID : report.reportID}
                     requestReportID={iouReportID}
+                    reportID={report.reportID}
                     action={action}
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
@@ -388,7 +393,7 @@ function ReportActionItem({
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
-                    transactionViolations={props.transactionViolations}
+                    transactionViolations={transactionViolations}
                 />
             );
         } else if (
@@ -465,7 +470,7 @@ function ReportActionItem({
 
             children = <ReportActionItemBasicMessage message={translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(action)} />;
         } else {
@@ -676,7 +681,6 @@ function ReportActionItem({
 
         return (
             <ReportActionItemCreated
-                //  @ts-expect-error TODO: Remove this once TaskView (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                 reportID={report.reportID}
                 policyID={report.policyID}
             />
