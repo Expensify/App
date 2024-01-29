@@ -7,6 +7,23 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
+import type {
+    ApproveMoneyRequestParams,
+    CompleteSplitBillParams,
+    CreateDistanceRequestParams,
+    DeleteMoneyRequestParams,
+    DetachReceiptParams,
+    EditMoneyRequestParams,
+    PayMoneyRequestParams,
+    ReplaceReceiptParams,
+    RequestMoneyParams,
+    SendMoneyParams,
+    SplitBillParams,
+    StartSplitBillParams,
+    SubmitReportParams,
+    UpdateMoneyRequestParams,
+} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -42,10 +59,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-type MoneyRequestRoute = StackScreenProps<
-    MoneyRequestNavigatorParamList,
-    typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG | typeof SCREENS.MONEY_REQUEST.CONFIRMATION
->['route'];
+type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -80,22 +94,9 @@ type SplitsAndOnyxData = {
     onyxData: OnyxData;
 };
 
-type UpdateMoneyRequestParams = Partial<TransactionDetails> & {
-    reportID?: string;
-    transactionID: string;
-    reportActionID?: string;
-};
-
 type UpdateMoneyRequestData = {
     params: UpdateMoneyRequestParams;
     onyxData: OnyxData;
-};
-
-type PayMoneyRequestParams = {
-    iouReportID: string;
-    chatReportID: string;
-    reportActionID: string;
-    paymentMethodType: PaymentMethodType;
 };
 
 type PayMoneyRequestData = {
@@ -105,22 +106,15 @@ type PayMoneyRequestData = {
     failureData: OnyxUpdate[];
 };
 
-type SendMoneyParams = {
-    iouReportID: string;
-    chatReportID: string;
-    reportActionID: string;
-    paymentMethodType: PaymentMethodType;
-    transactionID: string;
-    newIOUReportDetails: string;
-    createdReportActionID: string;
-    reportPreviewReportActionID: string;
-};
-
 type SendMoneyParamsData = {
     params: SendMoneyParams;
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
+};
+
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
 };
 
 let betas: OnyxTypes.Beta[] = [];
@@ -358,13 +352,8 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source ?? '', filename: filename ?? ''});
 }
 
-/**
- * Return the object to update hasOutstandingChildRequest
- * @param {Object} [policy]
- * @param {Boolean} needsToBeManuallySubmitted
- * @returns {Object}
- */
-function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
+/** Return the object to update hasOutstandingChildRequest */
+function getOutstandingChildRequest(needsToBeManuallySubmitted: boolean, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject = null): OutstandingChildRequest {
     if (!needsToBeManuallySubmitted) {
         return {
             hasOutstandingChildRequest: false,
@@ -579,7 +568,7 @@ function buildOnyxDataForMoneyRequest(
                 iouReportID: chatReport?.iouReportID,
                 lastReadTime: chatReport?.lastReadTime,
                 pendingFields: null,
-                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
+                hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -942,22 +931,6 @@ function createDistanceRequest(
         currentUserEmail,
     );
 
-    type CreateDistanceRequestParams = {
-        comment: string;
-        iouReportID: string;
-        chatReportID: string;
-        transactionID: string;
-        reportActionID: string;
-        createdChatReportActionID: string;
-        createdIOUReportActionID: string;
-        reportPreviewReportActionID: string;
-        waypoints: string;
-        created: string;
-        category?: string;
-        tag?: string;
-        billable?: boolean;
-    };
-
     const parameters: CreateDistanceRequestParams = {
         comment,
         iouReportID: iouReport.reportID,
@@ -974,7 +947,7 @@ function createDistanceRequest(
         billable,
     };
 
-    API.write('CreateDistanceRequest', parameters, onyxData);
+    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
@@ -1198,7 +1171,7 @@ function updateMoneyRequestDate(transactionID: string, transactionThreadReportID
         created: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestDate', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
 /** Updates the billable field of a money request */
@@ -1207,7 +1180,7 @@ function updateMoneyRequestBillable(transactionID: string, transactionThreadRepo
         billable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestBillable', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
 
 /** Updates the merchant field of a money request */
@@ -1216,7 +1189,7 @@ function updateMoneyRequestMerchant(transactionID: string, transactionThreadRepo
         merchant: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestMerchant', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
 /** Updates the tag of a money request */
@@ -1225,16 +1198,16 @@ function updateMoneyRequestTag(transactionID: string, transactionThreadReportID:
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestTag', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
 /** Updates the waypoints of a distance money request */
-function updateMoneyRequestDistance(transactionID: string, transactionThreadReportID: string, waypoints) {
+function updateMoneyRequestDistance(transactionID: string, transactionThreadReportID: string, waypoints: WaypointCollection) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestDistance', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
 
 /** Updates the category of a money request */
@@ -1243,7 +1216,7 @@ function updateMoneyRequestCategory(transactionID: string, transactionThreadRepo
         category,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestCategory', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
 /** Updates the description of a money request */
@@ -1252,13 +1225,13 @@ function updateMoneyRequestDescription(transactionID: string, transactionThreadR
         comment,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestDescription', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
 /** Edits an existing distance request */
 function updateDistanceRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, false);
-    API.write('UpdateDistanceRequest', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST, params, onyxData);
 }
 
 /**
@@ -1310,30 +1283,6 @@ function requestMoney(
         );
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
-    type RequestMoneyParams = {
-        debtorEmail: string;
-        debtorAccountID: number;
-        amount: number;
-        currency: string;
-        comment: string;
-        created: string;
-        merchant: string;
-        iouReportID: string;
-        chatReportID: string;
-        transactionID: string;
-        reportActionID: string;
-        createdChatReportActionID: string;
-        createdIOUReportActionID: string;
-        reportPreviewReportActionID: string;
-        receipt: Receipt;
-        receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
-        category?: string;
-        tag?: string;
-        taxCode: string;
-        taxAmount: number;
-        billable?: boolean;
-    };
-
     const parameters: RequestMoneyParams = {
         debtorEmail: payerEmail,
         debtorAccountID: payerAccountID,
@@ -1358,7 +1307,7 @@ function requestMoney(
         billable,
     };
 
-    API.write('RequestMoney', parameters, onyxData);
+    API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
     resetMoneyRequestInfo();
     Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);
@@ -1761,21 +1710,6 @@ function splitBill(
         existingSplitChatReportID,
     );
 
-    type SplitBillParams = {
-        reportID: string;
-        amount: number;
-        splits: string;
-        comment: string;
-        currency: string;
-        merchant: string;
-        category: string;
-        tag: string;
-        transactionID: string;
-        reportActionID: string;
-        createdReportActionID?: string;
-        policyID?: string;
-    };
-
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
         amount,
@@ -1791,7 +1725,7 @@ function splitBill(
         policyID: splitData.policyID,
     };
 
-    API.write('SplitBill', parameters, onyxData);
+    API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     resetMoneyRequestInfo();
     Navigation.dismissModal();
@@ -1814,22 +1748,7 @@ function splitBillAndOpenReport(
 ) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
 
-    type SplitBillAndOpenReport = {
-        reportID: string;
-        amount: number;
-        splits: string;
-        currency: string;
-        merchant: string;
-        comment: string;
-        category: string;
-        tag: string;
-        transactionID: string;
-        reportActionID: string;
-        createdReportActionID?: string;
-        policyID?: string;
-    };
-
-    const parameters: SplitBillAndOpenReport = {
+    const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
         amount,
         splits: JSON.stringify(splits),
@@ -1844,7 +1763,7 @@ function splitBillAndOpenReport(
         policyID: splitData.policyID,
     };
 
-    API.write('SplitBillAndOpenReport', parameters, onyxData);
+    API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(splitData.chatReportID);
@@ -2108,19 +2027,6 @@ function startSplitBill(
         },
     });
 
-    type StartSplitBillParams = {
-        chatReportID: string;
-        reportActionID: string;
-        transactionID: string;
-        splits: string;
-        receipt: Receipt;
-        comment: string;
-        category: string;
-        tag: string;
-        isFromGroupDM: boolean;
-        createdReportActionID?: string;
-    };
-
     const parameters: StartSplitBillParams = {
         chatReportID: splitChatReport.reportID,
         reportActionID: splitIOUReportAction.reportActionID,
@@ -2134,7 +2040,7 @@ function startSplitBill(
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
     };
 
-    API.write('StartSplitBill', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(splitChatReport.reportID);
@@ -2343,18 +2249,6 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         tag: transactionTag,
     } = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
 
-    type CompleteSplitBillParams = {
-        transactionID: string;
-        amount?: number;
-        currency?: string;
-        created?: string;
-        merchant?: string;
-        comment?: string;
-        category?: string;
-        tag?: string;
-        splits: string;
-    };
-
     const parameters: CompleteSplitBillParams = {
         transactionID,
         amount: transactionAmount,
@@ -2367,7 +2261,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         splits: JSON.stringify(splits),
     };
 
-    API.write('CompleteSplitBill', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
@@ -2600,19 +2494,6 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
     // STEP 6: Call the API endpoint
     const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
 
-    type EditMoneyRequestParams = {
-        transactionID: string;
-        reportActionID: string;
-        created?: string;
-        amount?: number;
-        currency?: string;
-        comment?: string;
-        merchant?: string;
-        category?: string;
-        billable?: boolean;
-        tag?: string;
-    };
-
     const parameters: EditMoneyRequestParams = {
         transactionID,
         reportActionID: updatedReportAction.reportActionID,
@@ -2626,7 +2507,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         tag,
     };
 
-    API.write('EditMoneyRequest', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.EDIT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
 function editMoneyRequest(transaction: OnyxTypes.Transaction, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
@@ -2644,7 +2525,7 @@ function updateMoneyRequestAmountAndCurrency(transactionID: string, transactionT
         currency,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestAmountAndCurrency', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
 function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
@@ -2920,18 +2801,13 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         });
     }
 
-    type DeleteMoneyRequestParams = {
-        transactionID: string;
-        reportActionID: string;
-    };
-
     const parameters: DeleteMoneyRequestParams = {
         transactionID,
         reportActionID: reportAction.reportActionID,
     };
 
     // STEP 6: Make the API request
-    API.write('DeleteMoneyRequest', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -3325,7 +3201,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
 function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
-    API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
@@ -3339,7 +3215,7 @@ function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: 
 function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
-    API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
@@ -3411,17 +3287,12 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
         });
     }
 
-    type ApproveMoneyRequestParams = {
-        reportID: string;
-        approvedReportActionID: string;
-    };
-
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
     };
 
-    API.write('ApproveMoneyRequest', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
 function submitReport(expenseReport: OnyxTypes.Report) {
@@ -3525,19 +3396,13 @@ function submitReport(expenseReport: OnyxTypes.Report) {
         });
     }
 
-    type SubmitReportParams = {
-        reportID: string;
-        managerAccountID?: number;
-        reportActionID: string;
-    };
-
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
         managerAccountID: policy.submitsTo ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
-    API.write('SubmitReport', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report) {
@@ -3546,7 +3411,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
-    const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
+    const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReport.reportID);
@@ -3572,7 +3437,9 @@ function detachReceipt(transactionID: string) {
         },
     ];
 
-    API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
+    const parameters: DetachReceiptParams = {transactionID};
+
+    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, failureData});
 }
 
 function replaceReceipt(transactionID: string, file: File, source: string) {
@@ -3604,17 +3471,12 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
         },
     ];
 
-    type ReplaceReceiptParams = {
-        transactionID: string;
-        receipt: File;
-    };
-
     const parameters: ReplaceReceiptParams = {
         transactionID,
         receipt: file,
     };
 
-    API.write('ReplaceReceipt', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, failureData});
 }
 
 /**
@@ -3717,6 +3579,7 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
     if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
+        // @ts-expect-error TODO: Remove this once NewRequestAmountPage (https://github.com/Expensify/App/issues/34614) and NewDistanceRequestPage (https://github.com/Expensify/App/issues/34610) are removed.
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
         return;
     }
@@ -3735,6 +3598,7 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
             resetMoneyRequestCategory();
             resetMoneyRequestTag();
         }
+        // @ts-expect-error TODO: Remove this once NewRequestAmountPage (https://github.com/Expensify/App/issues/34614) and NewDistanceRequestPage (https://github.com/Expensify/App/issues/34610) are removed.
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
     }
@@ -3752,17 +3616,16 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
     return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
-/**
- * @param {String} receiptFilename
- * @param {String} receiptPath
- * @param {Function} onSuccess
- * @param {String} requestType
- * @param {String} iouType
- * @param {String} transactionID
- * @param {String} reportID
- */
 // eslint-disable-next-line rulesdir/no-negated-variables
-function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID) {
+function navigateToStartStepIfScanFileCannotBeRead(
+    receiptFilename: string,
+    receiptPath: string,
+    onSuccess: (file: File) => void,
+    requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    transactionID: string,
+    reportID: string,
+) {
     if (!receiptFilename || !receiptPath) {
         return;
     }
