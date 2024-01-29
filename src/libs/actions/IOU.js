@@ -1857,7 +1857,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         undefined,
         category,
         tag,
-        billable
+        billable,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
