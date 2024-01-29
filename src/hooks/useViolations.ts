@@ -62,11 +62,7 @@ function useViolations(violations: TransactionViolation[]) {
 
     const getViolationsForField = useCallback(
         (field: ViolationField, data: TransactionViolation['data']) => {
-            const currentViolations = violationsByField.get(field);
-
-            if (!currentViolations) {
-                return [];
-            }
+            const currentViolations = violationsByField.get(field) ?? [];
 
             if (data?.tagName) {
                 return currentViolations.filter((violation) => violation.data?.tagName === data.tagName);
