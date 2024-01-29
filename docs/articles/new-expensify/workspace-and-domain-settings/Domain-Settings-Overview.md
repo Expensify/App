@@ -2,7 +2,7 @@
 title: Domains
 description: Want to gain greater control over your company settings in Expensify? Read on to find out more about our Domains feature and how it can help you save time and effort when managing your company expenses. 
 ---
-
+<div id="new-expensify" markdown="1">
 # Overview
 Domains is a feature in Expensify that allows admins to have more nuanced control over a specific Expensify activity, as well as providing a bird’s eye view of company card expenditure. Think of it as your command center for things like managing user account access, enforcing stricter Workspace rules for certain groups, or issuing cards and reconciling statements.
 There are several settings within Domains that you can configure so that you have more control and visibility into your organization’s settings. Those features are:
@@ -140,3 +140,4 @@ You can manage multiple domains by adding them through **Settings > Domains > Ne
 Claiming a domain is limited to users with matching email domains, and allows Workspace Admins with a company email to manage bills, company cards, and reconciliation. Verifying a domain offers extra features and security.
 
 {% include faq-end.md %}
+</div>
