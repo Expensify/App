@@ -44,11 +44,13 @@ type PopoverMenuItem = {
     /** Determines how the icon should be resized to fit its container */
     contentFit?: ImageContentFit;
 
-    /** Sub menu items to be rendered after a menu item is slected */
+    /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
 
+    /** Determines whether an icon should be displayed on the right side of the menu item. */
     shouldShowRightIcon?: boolean;
 
+    /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
 };
 

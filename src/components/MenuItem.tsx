@@ -224,6 +224,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     /** Determines how the icon should be resized to fit its container */
     contentFit?: ImageContentFit;
 
+    /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
 };
 
