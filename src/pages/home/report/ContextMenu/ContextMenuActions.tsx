@@ -77,6 +77,7 @@ type ContextMenuActionPayload = {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
+    onPressAddReaction?: () => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -108,9 +109,10 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
+        restoreType: CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE,
         shouldShow: (type, reportAction): reportAction is ReportAction =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !ReportActionsUtils.isMessageDeleted(reportAction),
-        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
+        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, onPressAddReaction}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback?: () => void) => {
@@ -145,7 +147,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 <QuickEmojiReactions
                     key="BaseQuickEmojiReactions"
-                    closeContextMenu={closeContextMenu}
+                    closeContextMenu={(onHideCallback) => {
+                        onPressAddReaction?.();
+                        closeContextMenu(onHideCallback);
+                    }}
                     onEmojiSelected={toggleEmojiAndCloseMenu}
                     reportActionID={reportAction?.reportActionID}
                     reportAction={reportAction}

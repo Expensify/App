@@ -232,6 +232,7 @@ function BaseReportActionContextMenu({
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
                         openOverflowMenu,
+                        onPressAddReaction: () => onItemSelected(contextAction),
                     };
 
                     if ('renderContent' in contextAction) {
