@@ -66,4 +66,4 @@ type Account = {
 };
 
 export default Account;
-export type {TwoFactorAuthStep};
+export type {TwoFactorAuthStep, DismissedReferralBanners};

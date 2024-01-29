@@ -42,7 +42,7 @@ const propTypes = {
     shouldShowReferralCTA: PropTypes.bool,
 
     /** A method triggered when the user closes the call to action banner */
-    onCallToActionClose: PropTypes.func,
+    onCallToActionClosed: PropTypes.func,
 
     /** Referral content type */
     referralContentType: PropTypes.string,
@@ -272,7 +272,7 @@ class BaseOptionsSelector extends Component {
 
     closeReferralModal() {
         this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
-        this.props.onCallToActionClose(this.props.referralContentType);
+        this.props.onCallToActionClosed(this.props.referralContentType);
     }
 
     handleFocusIn() {
