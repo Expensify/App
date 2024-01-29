@@ -128,7 +128,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     while ((current = root.getParent())) {
         root = current;
     }
-
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
@@ -167,8 +166,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         ) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath);
-            if (topmostBottomTabRoute && topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
+            const matchingBottomTabRoute = policyID ? getMatchingBottomTabRouteForState(stateFromPath, policyID) : getMatchingBottomTabRouteForState(stateFromPath);
+            const isNewPolicyID = topmostBottomTabRoute?.params?.policyID !== matchingBottomTabRoute?.params?.policyID;
+            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
