@@ -60,9 +60,9 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     // Updates the status bar style and background color depending on the current route and theme
     // This callback is triggered everytime the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
-        (listenerId?: number) => {
+        (listenerID?: number) => {
             // Check if this function is either called through the current navigation listener or the general useEffect which listens for theme changes.
-            if (listenerId !== undefined && listenerId !== listenerCount.current) {
+            if (listenerID !== undefined && listenerID !== listenerCount.current) {
                 return;
             }
 
@@ -125,8 +125,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
         // Add navigation state listeners to update the status bar every time the route changes
         // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
-        const listenerId = ++listenerCount.current;
-        const listener = () => updateStatusBarStyle(listenerId);
+        const listenerID = ++listenerCount.current;
+        const listener = () => updateStatusBarStyle(listenerID);
 
         navigationRef.addListener('state', listener);
         return () => navigationRef.removeListener('state', listener);
