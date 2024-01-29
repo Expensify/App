@@ -9,7 +9,9 @@ type OptionsCommon = {
     includeExtra?: boolean;
     presentationStyle?: 'currentContext' | 'fullScreen' | 'pageSheet' | 'formSheet' | 'popover' | 'overFullScreen' | 'overCurrentContext';
 };
-
+type ImageLibraryOptions = OptionsCommon & {
+    selectionLimit?: number;
+}
 type CameraOptions = OptionsCommon & {
     durationLimit?: number;
     saveToPhotos?: boolean;
@@ -41,4 +43,4 @@ type AndroidVideoOptions = 'low' | 'high';
 type IOSVideoOptions = 'low' | 'medium' | 'high';
 type ErrorCode = 'camera_unavailable' | 'permission' | 'others';
 
-export type {CameraOptions, Callback, ErrorCode, ImagePickerResponse, Asset};
+export type {CameraOptions, Callback, ErrorCode, ImagePickerResponse, Asset, ImageLibraryOptions};
