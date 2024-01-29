@@ -4,9 +4,8 @@ import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
