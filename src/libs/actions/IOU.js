@@ -3617,14 +3617,20 @@ function resetMoneyRequestCategory() {
 }
 
 /*
+ * @param {String} reportTags
  * @param {String} tag
+ * @param {Number} tagIndex
  */
-function setMoneyRequestTag(tag) {
-    Onyx.merge(ONYXKEYS.IOU, {tag});
+function setMoneyRequestTag(reportTags, tag, tagIndex) {
+    Onyx.merge(ONYXKEYS.IOU, {tag: IOUUtils.insertTagIntoReportTagsSting(reportTags, tag, tagIndex)});
 }
 
-function resetMoneyRequestTag() {
-    Onyx.merge(ONYXKEYS.IOU, {tag: ''});
+/*
+ * @param {String} reportTags
+ * @param {Number} tagIndex
+ */
+function resetMoneyRequestTag(reportTags, tagIndex) {
+    Onyx.merge(ONYXKEYS.IOU, {tag: IOUUtils.insertTagIntoReportTagsSting(reportTags, '', tagIndex)});
 }
 
 /**

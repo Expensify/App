@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TagPicker from '@components/TagPicker';
@@ -13,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,20 +54,20 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');
-
-    // Fetches the first tag list of the policy
-    const tagListKey = _.first(_.keys(policyTags));
-    const policyTagListName = PolicyUtils.getTagListName(policyTags, 0) || translate('common.tag');
+    const tagIndex = Number(lodashGet(route, 'params.tagIndex', undefined));
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const transactionTag = TransactionUtils.getTag(iou);
+    const tag = TransactionUtils.getTag(iou, tagIndex);
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
     };
 
     const updateTag = (selectedTag) => {
-        if (selectedTag.searchText === iou.tag) {
-            IOU.resetMoneyRequestTag();
+        if (tag === selectedTag.searchText) {
+            IOU.resetMoneyRequestTag(transactionTag, tagIndex);
         } else {
-            IOU.setMoneyRequestTag(selectedTag.searchText);
+            IOU.setMoneyRequestTag(transactionTag, selectedTag.searchText, tagIndex);
         }
         navigateBack();
     };
@@ -87,8 +87,9 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
                     <TagPicker
                         policyID={report.policyID}
-                        tag={tagListKey}
-                        selectedTag={iou.tag}
+                        tag={policyTagListName}
+                        tagIndex={tagIndex}
+                        selectedTag={tag}
                         insets={insets}
                         onSubmit={updateTag}
                     />

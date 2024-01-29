@@ -33,6 +33,9 @@ const propTypes = {
 
             /** reportActionID of the split action */
             reportActionID: PropTypes.string,
+
+            /** The index of a tag list */
+            tagIndex: PropTypes.string,
         }),
     }).isRequired,
 
@@ -54,6 +57,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportID = lodashGet(route, ['params', 'reportID'], '');
     const reportActionID = lodashGet(route, ['params', 'reportActionID'], '');
+    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
     const {
         amount: transactionAmount,
@@ -148,6 +152,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         return (
             <EditRequestTagPage
                 defaultTag={transactionTag}
+                tagIndex={tagIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
