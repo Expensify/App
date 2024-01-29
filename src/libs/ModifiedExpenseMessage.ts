@@ -102,8 +102,6 @@ function getForReportAction(reportAction: OnyxEntry<ReportAction>): string {
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
     const policyID = ReportUtils.getReportPolicyID(reportAction?.reportID) ?? '';
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagListName = PolicyUtils.getTagListName(policyTags, 0) || Localize.translateLocal('common.tag');
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -188,16 +186,31 @@ function getForReportAction(reportAction: OnyxEntry<ReportAction>): string {
 
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        buildMessageFragmentForValue(
-            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.tag ?? ''),
-            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.oldTag ?? ''),
-            policyTagListName,
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-            policyTagListName === Localize.translateLocal('common.tag'),
-        );
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+        const transactionTag = reportActionOriginalMessage?.tag ?? '';
+        const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
+        const splittedTag = transactionTag.split(CONST.COLON);
+        const splittedOldTag = oldTransactionTag.split(CONST.COLON);
+
+        Object.keys(policyTags).forEach((policyTagKey, index) => {
+            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || Localize.translateLocal('common.tag');
+
+            const newTag = splittedTag[index] ?? '';
+            const oldTag = splittedOldTag[index] ?? '';
+
+            if (newTag !== oldTag) {
+                buildMessageFragmentForValue(
+                    PolicyUtils.getCleanedTagName(newTag),
+                    PolicyUtils.getCleanedTagName(oldTag),
+                    policyTagListName,
+                    true,
+                    setFragments,
+                    removalFragments,
+                    changeFragments,
+                    policyTagListName === Localize.translateLocal('common.tag'),
+                );
+            }
+        });
     }
 
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
