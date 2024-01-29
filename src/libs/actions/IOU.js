@@ -641,6 +641,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} currency
  * @param {String} created
  * @param {String} merchant
+ * @param {Number} [moneyRequestReportID]
  * @param {Number} [payeeAccountID]
  * @param {String} [payeeEmail]
  * @param {Object} [receipt]
@@ -3463,7 +3464,7 @@ function cancelPayment(expenseReport, chatReport) {
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -expenseReport.total, expenseReport.currency,);
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
-    const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
+    const approvalMode = policy.approvalMode || CONST.POLICY.APPROVAL_MODE.BASIC;
     let stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
     let statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED
     if (!isFree) {
