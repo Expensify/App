@@ -606,7 +606,6 @@ const CONST = {
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
-                    JOIN_ROOM: 'JOINROOM',
                 },
             },
             THREAD_DISABLED: ['CREATED'],
@@ -790,6 +789,7 @@ const CONST = {
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
+        UPDATE_REQUIRED: 426,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -820,6 +820,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
         DUPLICATE_RECORD: 'A record already exists with this ID',
+
+        // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
+        UPDATE_REQUIRED: 'Upgrade Required',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
