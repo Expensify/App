@@ -19,7 +19,6 @@ exclude: [README.md, TEMPLATE.md, vendor]
 plugins:
   - jekyll-seo-tag
   - jekyll-redirect-from
-  - jekyll-tabs
 
 
 whitelist:
