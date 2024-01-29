@@ -1,0 +1,37 @@
+diff --git a/node_modules/@react-navigation/native-stack/src/types.tsx b/node_modules/@react-navigation/native-stack/src/types.tsx
+index 206fb0b..7104b93 100644
+--- a/node_modules/@react-navigation/native-stack/src/types.tsx
++++ b/node_modules/@react-navigation/native-stack/src/types.tsx
+@@ -490,6 +490,12 @@ export type NativeStackNavigationOptions = {
+    * Only supported on iOS and Android.
+    */
+   freezeOnBlur?: boolean;
++  /**
++   * Whether the keyboard should hide when swiping to the previous screen. Defaults to `false`.
++   *
++   * Only supported on iOS
++   */
++  hideKeyboardOnSwipe?: boolean;
+ };
+ 
+ export type NativeStackNavigatorProps = DefaultNavigatorOptions<
+diff --git a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
+index a005c43..dc22c63 100644
+--- a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
++++ b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
+@@ -161,6 +161,7 @@ const SceneView = ({
+     statusBarTranslucent,
+     statusBarColor,
+     freezeOnBlur,
++    hideKeyboardOnSwipe,
+   } = options;
+ 
+   let {
+@@ -289,6 +290,7 @@ const SceneView = ({
+       onNativeDismissCancelled={onNativeDismissCancelled}
+       // this prop is available since rn-screens 3.16
+       freezeOnBlur={freezeOnBlur}
++      hideKeyboardOnSwipe={hideKeyboardOnSwipe}
+     >
+       <NavigationContext.Provider value={navigation}>
+         <NavigationRouteContext.Provider value={route}>
