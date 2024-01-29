@@ -11,7 +11,6 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
-import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +31,8 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import PropTypes from './moneyRequestPreviewPropTypes';
+import PropTypes from './MoneyRequestPreview/moneyRequestPreviewPropTypes';
+import ReportActionItemImages from './ReportActionItemImages';
 
 export default function MoneyRequestPreview(props) {
     const theme = useTheme();

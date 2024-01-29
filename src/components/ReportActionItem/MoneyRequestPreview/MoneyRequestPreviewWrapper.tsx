@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
-import MoneyRequestPreview from './MoneyRequestPreview';
+import MoneyRequestPreview from '.';
 import type {MoneyRequestPreviewOnyxProps, MoneyRequestPreviewProps} from './moneyRequestPreviewProps';
 
 // We should not render the component if there is no iouReport and it's not a split.
@@ -32,7 +32,7 @@ export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>(
         key: ONYXKEYS.SESSION,
     },
     transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action as ReportAction) ? action?.originalMessage?.IOUTransactionID : 0 ?? 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? action?.originalMessage?.IOUTransactionID : 0 ?? 0}`,
     },
     walletTerms: {
         key: ONYXKEYS.WALLET_TERMS,
