@@ -3,10 +3,12 @@ import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
 function SignInHeroImage(props) {
     const styles = useThemeStyles();
+    const {isMediumScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     let imageSize;
     if (shouldUseNarrowLayout) {
@@ -14,7 +16,7 @@ function SignInHeroImage(props) {
             height: variables.signInHeroImageMobileHeight,
             width: variables.signInHeroImageMobileWidth,
         };
-    } else if (props.isMediumScreenWidth) {
+    } else if (isMediumScreenWidth) {
         imageSize = {
             height: variables.signInHeroImageTabletHeight,
             width: variables.signInHeroImageTabletWidth,
