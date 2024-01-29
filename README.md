@@ -436,7 +436,7 @@ Updated rules for managing all types of chats (add/remove people)
         | :---: | :---:  |  :---: 
         | **Invite** | ✅ |  ✅ 
         | **Remove** | ✅ |  ✅   
-        | **Leave**  | ❌ |  ❌  
+        | **Leave**  | ✅ |  ✅  
         | **Can be removed**  | ✅ | ✅
 
     4. #### Workspace chats
