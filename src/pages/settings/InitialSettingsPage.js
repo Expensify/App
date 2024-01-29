@@ -27,6 +27,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {translatableTextPropTypes} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -99,7 +100,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 

@@ -35,7 +35,7 @@ const propTypes = {
             validatedDate: PropTypes.string,
 
             /** Field-specific server side errors keyed by microtime */
-            errorFields: translatableTextPropTypes,
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
         }),
     ),
 
