@@ -1145,10 +1145,11 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
 }
 
 /**
- * Checks if there is one enabled tag at least
+ * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagLists: PolicyTagList[]) {
     const policyTagValueList = policyTagLists.map(({tags}) => Object.values(tags)).flat();
+
     return hasEnabledOptions(policyTagValueList);
 }
 
