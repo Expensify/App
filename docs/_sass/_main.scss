@@ -347,6 +347,44 @@ button {
         padding-bottom: 20px;
     }
 
+    .tab {
+        display: flex;
+        padding: 0;
+        list-style: none;
+        margin: 0;
+    }
+
+    .tab > li {
+        padding: 10px 12px;
+    }
+
+    .tab-content {
+        margin: 0;
+    }
+
+    .tab-content > li {
+        display: none;
+    }
+
+    .tab-content > li.active {
+        display: block;
+    }
+
+    .tab > * > a {
+        color: $color-product-dark-800;
+
+    }
+
+    .tab > * {
+        border-bottom: 2px solid $color-borders;
+        transition: color .1s ease-in-out;
+    }
+
+    .tab > .active {
+        border-color: $color-green400;
+        color: $color-product-dark-900;
+    }
+
     h1 {
         &.title {
             font-size: 2.25em;
