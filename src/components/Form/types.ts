@@ -40,6 +40,9 @@ type BaseInputProps = {
     isFocused?: boolean;
     measureLayout?: (ref: unknown, callback: MeasureLayoutOnSuccessCallback) => void;
     focus?: () => void;
+    label?: string;
+    minDate?: Date;
+    maxDate?: Date;
 };
 
 type InputWrapperProps<TInput extends ValidInputs> = Omit<BaseInputProps, 'ref'> &

@@ -1,7 +1,6 @@
 import {subYears} from 'date-fns';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,51 +8,39 @@ import InputWrapper from '@components/Form/InputWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-const propTypes = {
-    /* Onyx Props */
-
+type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        dob: PropTypes.string,
-    }),
-
-    ...withLocalizePropTypes,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
+type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 
-const defaultProps = {
-    privatePersonalDetails: {
-        dob: '',
-    },
-};
-
-function DateOfBirthPage({translate, privatePersonalDetails}) {
+function DateOfBirthPage({privatePersonalDetails = {dob: ''}}: DateOfBirthPageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
-    const isLoadingPersonalDetails = lodashGet(privatePersonalDetails, 'isLoading', true);
+    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     /**
-     * @param {Object} values
-     * @param {String} values.dob - date of birth
-     * @returns {Object} - An object containing the errors for each inputID
+     * @returns An object containing the errors for each inputID
      */
-    const validate = useCallback((values) => {
+    const validate = useCallback((values: PrivatePersonalDetails) => {
         const requiredFields = ['dob'];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+        const dateError = ValidationUtils.getAgeRequirementError(values.dob ?? '', minimumAge, maximumAge);
 
         if (values.dob && dateError) {
             errors.dob = dateError;
@@ -86,7 +73,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                         InputComponent={DatePicker}
                         inputID="dob"
                         label={translate('common.date')}
-                        defaultValue={privatePersonalDetails.dob || ''}
+                        defaultValue={privatePersonalDetails?.dob ?? ''}
                         minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                         maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                     />
@@ -96,15 +83,10 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
     );
 }
 
-DateOfBirthPage.propTypes = propTypes;
-DateOfBirthPage.defaultProps = defaultProps;
 DateOfBirthPage.displayName = 'DateOfBirthPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-)(DateOfBirthPage);
+export default withOnyx<DateOfBirthPageProps, DateOfBirthPageOnyxProps>({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+})(DateOfBirthPage);

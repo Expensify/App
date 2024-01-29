@@ -58,6 +58,7 @@ type SettingsNavigatorParamList = {
         country: string;
     };
     [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: {
+        backTo?: string;
         country: string;
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: undefined;
