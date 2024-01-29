@@ -210,22 +210,29 @@ window.addEventListener('DOMContentLoaded', () => {
         buttonCloseSidebar.addEventListener('click', closeSidebar);
     }
 
-    const expensifyClassic = document.getElementById('platform-expensify-classic');
-    const newExpensify = document.getElementById('platform-new-expensify');
+    const expensifyClassicTab = document.getElementById('platform-tab-expensify-classic');
+    const newExpensifyTab = document.getElementById('platform-tab-new-expensify');
     
     const expensifyClassicContent = document.getElementById('expensify-classic');
     const newExpensifyContent = document.getElementById('new-expensify');
 
-    let defaultPlatform;
+    let contentSelector;
     if (expensifyClassicContent) {
-        defaultPlatform = '#expensify-classic';
+        contentSelector = '#expensify-classic';
     } else if(newExpensifyContent) {
-        defaultPlatform = '#new-expensify';
+        contentSelector = '#new-expensify';
     } else {
-        defaultPlatform = '.article-toc-content';
+        contentSelector = '.article-toc-content';
     }
 
-    expensifyClassic?.addEventListener('click', (e) => {
+    if (window.tocbot) {
+        window.tocbot.init({
+            ...tocbotOptions,
+            contentSelector,
+        });
+    }
+
+    expensifyClassicTab?.addEventListener('click', () => {
         expensifyClassic.classList.add('active');
         expensifyClassicContent.classList.remove('hidden');
     
@@ -237,7 +244,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    newExpensify?.addEventListener('click', (e) => {
+    newExpensifyTab?.addEventListener('click', () => {
         newExpensify.classList.add('active');
         newExpensifyContent.classList.remove('hidden');
     
@@ -249,13 +256,6 @@ window.addEventListener('DOMContentLoaded', () => {
             contentSelector: '#new-expensify'
         });
     });
-
-    if (window.tocbot) {
-        window.tocbot.init({
-            ...tocbotOptions,
-            contentSelector: defaultPlatform,
-        });
-    }
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
