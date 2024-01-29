@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MoneyRequestPreviewContent from './MoneyRequestPreview/MoneyRequestPreviewContent';
+import MoneyRequestPreview from './MoneyRequestPreview';
 
 type MoneyRequestActionOnyxProps = {
     /** Chat report associated with iouReport */
@@ -121,7 +121,7 @@ function MoneyRequestAction({
     return isDeletedParentAction || isReversedTransaction ? (
         <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
     ) : (
-        <MoneyRequestPreviewContent
+        <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
