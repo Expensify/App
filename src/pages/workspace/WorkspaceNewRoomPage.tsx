@@ -8,6 +8,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -31,17 +32,9 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account, Form, Policy, Report as ReportType, Session} from '@src/types/onyx';
+import type {Account, NewRoomForm, Policy, Report as ReportType, Session} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type FormValues = {
-    welcomeMessage: string;
-    roomName: string;
-    policyID: string | null;
-    writeCapability: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
-    visibility: ValueOf<typeof CONST.REPORT.VISIBILITY>;
-};
 
 type WorkspaceNewRoomPageOnyxProps = {
     /** The list of policies the user has access to. */
@@ -51,7 +44,7 @@ type WorkspaceNewRoomPageOnyxProps = {
     reports: OnyxCollection<ReportType>;
 
     /** Form state for NEW_ROOM_FORM */
-    formState: OnyxEntry<Form>;
+    formState: OnyxEntry<NewRoomForm>;
 
     /** Session details for the user */
     session: OnyxEntry<Session>;
@@ -68,23 +61,23 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
-    const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    const wasLoading = usePrevious(props.formState.isLoading);
+    const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
+    const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const wasLoading = usePrevious(formState?.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
 
     const workspaceOptions = useMemo(
         () =>
-            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
+            PolicyUtils.getActivePolicies(policies)?.map((policy) => ({
                 label: policy.name,
                 key: policy.id,
                 value: policy.id,
-            })),
-        [props.policies],
+            })) ?? [],
+        [policies],
     );
-    const [policyID, setPolicyID] = useState(() => {
-        if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
-            return props.activePolicyID;
+    const [policyID, setPolicyID] = useState<string>(() => {
+        if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
+            return activePolicyID;
         }
         return '';
     });
@@ -100,9 +93,9 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     /**
      * @param values - form input values passed by the Form component
      */
-    const submit = (values: FormValues) => {
+    const submit = (values: OnyxFormValuesFields<'newRoomForm'>) => {
         const participants = [session?.accountID ?? 0];
-        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage ?? '');
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -128,17 +121,17 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
     useEffect(() => {
         if (policyID) {
-            if (!_.some(workspaceOptions, (opt) => opt.value === policyID)) {
+            if (!workspaceOptions.some((opt) => opt.value === policyID)) {
                 setPolicyID('');
             }
             return;
         }
-        if (_.some(workspaceOptions, (opt) => opt.value === props.activePolicyID)) {
-            setPolicyID(props.activePolicyID);
+        if (!!activePolicyID && workspaceOptions.some((opt) => opt.value === activePolicyID)) {
+            setPolicyID(activePolicyID);
         } else {
             setPolicyID('');
         }
-    }, [props.activePolicyID, policyID, workspaceOptions]);
+    }, [activePolicyID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (!(((wasLoading && !formState?.isLoading) || (isOffline && formState?.isLoading)) && isEmptyObject(formState?.errorFields))) {
@@ -161,7 +154,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      * @returns an object containing validation errors, if any were found during validation
      */
     const validate = useCallback(
-        (values: FormValues): OnyxCommon.Errors => {
+        (values: OnyxFormValuesFields<'newRoomForm'>): OnyxCommon.Errors => {
             const errors: OnyxCommon.Errors = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -250,7 +243,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                         // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                         keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                     >
-                        {/** @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
                         <FormProvider
                             formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                             submitButtonText={translate('newRoomPage.createRoom')}
@@ -261,23 +253,22 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                         >
                             <View style={styles.mb5}>
                                 <InputWrapper
-                                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                                     InputComponent={RoomNameInput}
                                     ref={inputCallbackRef}
                                     inputID="roomName"
                                     isFocused={isFocused}
+                                    // @ts-expect-error TODO: Remove this once RoomNameInput (https://github.com/Expensify/App/issues/25090) is migrated to TypeScript.
                                     shouldDelayFocus
                                     autoFocus
                                 />
                             </View>
                             <View style={styles.mb5}>
                                 <InputWrapper
-                                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                                     InputComponent={TextInput}
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"
@@ -286,36 +277,36 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                             </View>
                             <View style={[styles.mhn5]}>
                                 <InputWrapper
-                                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                                     InputComponent={ValuePicker}
                                     inputID="policyID"
+                                    // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                     label={translate('workspace.common.workspace')}
                                     items={workspaceOptions}
                                     value={policyID}
-                                    onValueChange={setPolicyID}
+                                    onValueChange={(value) => setPolicyID(value as typeof policyID)}
                                 />
                             </View>
                             {isPolicyAdmin && (
                                 <View style={styles.mhn5}>
                                     <InputWrapper
-                                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                                         InputComponent={ValuePicker}
                                         inputID="writeCapability"
+                                        // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                         label={translate('writeCapabilityPage.label')}
                                         items={writeCapabilityOptions}
                                         value={writeCapability}
-                                        onValueChange={setWriteCapability}
+                                        onValueChange={(value) => setWriteCapability(value as typeof writeCapability)}
                                     />
                                 </View>
                             )}
                             <View style={[styles.mb1, styles.mhn5]}>
                                 <InputWrapper
-                                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                                     InputComponent={ValuePicker}
                                     inputID="visibility"
+                                    // @ts-expect-error TODO: Remove this once ValuePicker (https://github.com/Expensify/App/issues/31965) is migrated to TypeScript.
                                     label={translate('newRoomPage.visibility')}
                                     items={visibilityOptions}
-                                    onValueChange={setVisibility}
+                                    onValueChange={(value) => setVisibility(value as typeof visibility)}
                                     value={visibility}
                                     furtherDetails={visibilityDescription}
                                     shouldShowTooltips={false}
