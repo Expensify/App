@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { DismissedReferralBanners } from '@src/types/onyx/Account';
+import type {DismissedReferralBanners} from '@src/types/onyx/Account';
 
 type SearchPageFooterOnyxProps = {
     dismissedReferralBanners: DismissedReferralBanners;
