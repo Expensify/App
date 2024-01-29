@@ -206,6 +206,9 @@ function WorkspaceInitialPage(props) {
                 onSelected: () => setIsDeleteModalOpen(true),
             },
         ];
+        // Menu options to navigate to the chat report of #admins and #announce room.
+        // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
+        // In such cases, let us use the available chat report ids from the policy.
         if (adminsRoom || policy.chatReportIDAdmins) {
             items.push({
                 icon: Expensicons.Hashtag,
