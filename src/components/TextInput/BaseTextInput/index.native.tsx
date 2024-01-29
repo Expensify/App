@@ -426,6 +426,9 @@ function BaseTextInput(
                         styles.visibilityHidden,
                     ]}
                     onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                            return;
+                        }
                         setTextInputWidth(e.nativeEvent.layout.width);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
