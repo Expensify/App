@@ -58,7 +58,7 @@
     "setup-https": "mkcert -install && mkcert -cert-file config/webpack/certificate.pem -key-file config/webpack/key.pem dev.new.expensify.com localhost 127.0.0.1"
   },
   "dependencies": {
-    "@dotlottie/react-player": "^1.6.3",
+    "@dotlottie/react-player": "^1.6.15",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
     "@formatjs/intl-listformat": "^7.2.2",
