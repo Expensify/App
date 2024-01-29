@@ -93,7 +93,7 @@ function WorkspacePageWithSections({
     const isLoading = reimbursementAccount?.isLoading ?? true;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID ?? '';
     const policyName = policy?.name;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = children(hasVBA, policyID, isUsingECard);
