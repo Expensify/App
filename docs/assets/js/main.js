@@ -172,6 +172,9 @@ const tocbotOptions = {
     // Where to grab the headings to build the table of contents.
     contentSelector: '',
 
+    ignoreSelector: '.tab-content',
+    ignoreHiddenElements: true,
+
     // Disable the collapsible functionality of the library by
     // setting the maximum number of heading levels (6)
     collapseDepth: 6,
