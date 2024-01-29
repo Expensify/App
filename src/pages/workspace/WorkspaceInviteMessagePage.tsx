@@ -11,6 +11,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -28,8 +29,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
+import type {InvitedEmailsToAccountIDsDraft, PersonalDetailsList} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -40,10 +41,10 @@ type WorkspaceInviteMessagePageOnyxProps = {
     allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<Record<string, number>>;
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDsDraft | undefined>;
 
     /** Updated workspace invite message */
-    workspaceInviteMessageDraft: OnyxEntry<string>;
+    workspaceInviteMessageDraft: OnyxEntry<string | undefined>;
 };
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
@@ -124,7 +125,6 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID))}
                 />
-                {/* @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
@@ -149,14 +149,11 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <MultipleAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
-                            // TODO: Remove assertion once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-                            icons={
-                                OptionsListUtils.getAvatarsForAccountIDs(
-                                    Object.values(invitedEmailsToAccountIDsDraft ?? {}),
-                                    allPersonalDetails ?? {},
-                                    invitedEmailsToAccountIDsDraft ?? {},
-                                ) as Icon[]
-                            }
+                            icons={OptionsListUtils.getAvatarsForAccountIDs(
+                                Object.values(invitedEmailsToAccountIDsDraft ?? {}),
+                                allPersonalDetails ?? {},
+                                invitedEmailsToAccountIDsDraft ?? {},
+                            )}
                             shouldStackHorizontally
                             shouldDisplayAvatarsInRows
                             secondAvatarStyle={[styles.secondAvatarInline]}
@@ -167,7 +164,6 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                     </View>
                     <View style={[styles.mb3]}>
                         <InputWrapper
-                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID="welcomeMessage"
@@ -183,7 +179,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                                 setWelcomeNote(text);
                                 debouncedSaveDraft(text);
                             }}
-                            ref={(element) => {
+                            ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;
                                 }

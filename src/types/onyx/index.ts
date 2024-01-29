@@ -15,6 +15,7 @@ import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type IntroSelected from './IntroSelected';
+import type InvitedEmailsToAccountIDsDraft from './InvitedEmailsToAccountIDsDraft';
 import type IOU from './IOU';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
@@ -150,5 +151,6 @@ export type {
     NewRoomForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
+    InvitedEmailsToAccountIDsDraft,
     PrivateNotesForm,
 };
