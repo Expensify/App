@@ -14,20 +14,7 @@ import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {
-    Beta,
-    Login,
-    PersonalDetails,
-    PersonalDetailsList,
-    Policy,
-    PolicyReportField,
-    Report,
-    ReportAction,
-    ReportMetadata,
-    Session,
-    Transaction,
-    TransactionViolation,
-} from '@src/types/onyx';
+import type {Beta, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
@@ -451,12 +438,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
-});
-
-let loginList: OnyxEntry<Login>;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (value) => (loginList = value),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -4210,9 +4191,8 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return true;
     }
 
-    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
-    // Still, we only want policy owners and admins to be able to modify the name.
-    return !Object.keys(loginList ?? {}).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+    // If there is a linked workspace, that means the user is a member of the workspace the report is in and is allowed to rename.
+    return false;
 }
 
 /**

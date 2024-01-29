@@ -1,9 +1,8 @@
 import {createRef} from 'react';
 import type {MutableRefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {TransferMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
