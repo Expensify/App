@@ -193,8 +193,8 @@ function ScreenWrapper(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isInputFocus = useIsInputFocus(shouldAwareViewportScroll);
-    const isAwareViewportScroll = shouldAwareViewportScroll && isInputFocus && Browser.isMobile() && !!maxHeight;
+    const isInputFocus = useIsInputFocus(shouldAwareViewportScroll && Browser.isMobileSafari());
+    const isAwareViewportScroll = shouldEnableMaxHeight && isInputFocus;
 
     return (
         <SafeAreaConsumer>
