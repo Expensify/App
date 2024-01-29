@@ -34,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyRole = {
     /** The role of current user */
-    role: string;
+    role: Task.PolicyValue | undefined;
 };
 
 type TaskPreviewOnyxProps = {
@@ -94,7 +94,7 @@ function TaskPreview({
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport ?? {}) ?? action?.childManagerAccountID ?? '';
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? '';
     const assigneeLogin = personalDetails[taskAssigneeAccountID]?.login ?? '';
     const assigneeDisplayName = personalDetails[taskAssigneeAccountID]?.displayName ?? '';
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
@@ -124,12 +124,12 @@ function TaskPreview({
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(taskReport ?? {}, currentUserPersonalDetails.accountID, rootParentReportpolicy?.role ?? '')}
+                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, rootParentReportpolicy?.role)}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(taskReport ?? {});
+                                Task.reopenTask(taskReport);
                             } else {
-                                Task.completeTask(taskReport ?? {});
+                                Task.completeTask(taskReport);
                             }
                         })}
                         accessibilityLabel={translate('task.task')}
@@ -154,7 +154,7 @@ export default withCurrentUserPersonalDetails(
         },
         rootParentReportpolicy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '0'}`,
-            selector: (policy: Policy | null) => ({role: policy?.role ?? ''}),
+            selector: (policy: Policy | null) => ({role: policy?.role}),
         },
     })(TaskPreview),
 );

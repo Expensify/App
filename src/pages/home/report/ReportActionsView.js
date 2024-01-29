@@ -87,8 +87,7 @@ function ReportActionsView(props) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
-    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-
+    const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), [props.reportActions]);
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
 

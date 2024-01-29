@@ -38,6 +38,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -345,7 +346,8 @@ function ReportActionItem(props) {
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
-                    chatReportID={props.report.reportID}
+                    // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
+                    chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
@@ -368,6 +370,7 @@ function ReportActionItem(props) {
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
+                    transactionViolations={props.transactionViolations}
                 />
             );
         } else if (
@@ -439,7 +442,10 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, props.report.ownerAccountID));
+            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
+
+            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
@@ -716,12 +722,14 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportActionID={props.action.reportActionID}
+                            anchor={popoverAnchorRef}
                             originalReportID={originalReportID}
                             isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             displayAsGroup={props.displayAsGroup}
                             isVisible={hovered && _.isUndefined(props.draftMessage) && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
+                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !_.isUndefined(props.draftMessage))}>
                             <OfflineWithFeedback
