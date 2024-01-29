@@ -3716,25 +3716,21 @@ function getIOUReportID(iou, route) {
 }
 
 /**
- * @param {Object} transaction
+ * @param {String} transactionID
  * @param {String} comment
  * @param {Boolean} isDraft
  * @param {String} iouType
  * @param {String} reportID
  */
-function setMoneyRequestDescription_temporaryForRefactor(transaction, comment, isDraft, iouType, reportID) {
-    // Only update comment if it has changed
-    if (comment.trim() === lodashGet(transaction, 'comment.comment', '')) {
-        return;
-    }
+function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment, isDraft, iouType, reportID) {
     if (isDraft) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {comment: {comment}});
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment}});
     } else {
         if (iouType === CONST.IOU.TYPE.REQUEST) {
-            updateMoneyRequestDescription(transaction.transactionID, reportID, comment);
+            updateMoneyRequestDescription(transactionID, reportID, comment);
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
-            setDraftSplitTransaction(transaction.transactionID, {comment});
+            setDraftSplitTransaction(transactionID, {comment});
         }
     }
 }

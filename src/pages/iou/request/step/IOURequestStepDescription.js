@@ -71,7 +71,10 @@ function IOURequestStepDescription({
      */
     const updateComment = (value) => {
         const newComment = value.moneyRequestComment.trim();
-        IOU.setMoneyRequestDescription_temporaryForRefactor(transaction, newComment, isDraft, iouType, reportID);
+        // Only update comment if it has changed
+        if (newComment !== lodashGet(transaction, 'comment.comment', '')) {
+            IOU.setMoneyRequestDescription_temporaryForRefactor(transaction.transactionID, newComment, isDraft, iouType, reportID);
+        }
         navigateBack();
     };
 
