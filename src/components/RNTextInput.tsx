@@ -1,8 +1,9 @@
-import type {ForwardedRef} from 'react';
+import type {Component, ForwardedRef} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {TextInputProps} from 'react-native';
 import {TextInput} from 'react-native';
+import type {AnimatedProps} from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import type {InputElement} from '@libs/ComposerFocusManager';
@@ -27,7 +28,7 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTex
             keyboardAppearance={theme.colorScheme}
             ref={(refHandle) => {
                 if (refHandle) {
-                    (inputRef.current as AnimatedTextInputRef) = refHandle;
+                    (inputRef.current as Component<AnimatedProps<TextInputProps>>) = refHandle;
                 }
                 if (typeof ref !== 'function') {
                     return;
