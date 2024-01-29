@@ -1,7 +1,6 @@
 import React from 'react';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -39,6 +38,5 @@ function SignInHeroImage(props) {
 }
 
 SignInHeroImage.displayName = 'SignInHeroImage';
-SignInHeroImage.propTypes = propTypes;
 
 export default SignInHeroImage;
