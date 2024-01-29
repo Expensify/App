@@ -56,7 +56,7 @@ type ReportActionItemFragmentProps = {
     /** The pending action for the report action */
     pendingAction?: OnyxCommon.PendingAction;
 
-    moderationDecision?: DecisionName
+    moderationDecision?: DecisionName;
 };
 
 function ReportActionItemFragment({
@@ -73,7 +73,7 @@ function ReportActionItemFragment({
     isApprovedOrSubmittedReportAction = false,
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
-    moderationDecision
+    moderationDecision,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
