@@ -439,6 +439,14 @@ Updated rules for managing all types of chats (add/remove people)
         | **Leave**  | ❌ |  ❌  
         | **Can be removed**  | ✅ | ✅
 
+    4. #### Workspace chats
+        |   |  Creator(Admin) | Member  
+        | :---: | :---:  |  :---:  
+        | **Invite** | ❌ |  ❌ 
+        | **Remove** | ❌ |  ❌   
+        | **Leave**  | ❌ |  ❌  
+        | **Can be removed**  | ❌ | ❌
+
 3. ### Domain chat
     |   |  Member
     | :---: | :---:  
