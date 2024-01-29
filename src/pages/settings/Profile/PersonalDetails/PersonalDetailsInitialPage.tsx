@@ -1,72 +1,52 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-const propTypes = {
-    /* Onyx Props */
-
+type PersonalDetailsInitialPageOnyxProps = {
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-        dob: PropTypes.string,
-
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
-
-    ...withLocalizePropTypes,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
-const defaultProps = {
-    privatePersonalDetails: {
+type PersonalDetailsInitialPageProps = PersonalDetailsInitialPageOnyxProps;
+
+function PersonalDetailsInitialPage({
+    privatePersonalDetails = {
         legalFirstName: '',
         legalLastName: '',
         dob: '',
         address: {
             street: '',
-            street2: '',
             city: '',
             state: '',
             zip: '',
             country: '',
         },
     },
-};
-
-function PersonalDetailsInitialPage(props) {
+}: PersonalDetailsInitialPageProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     usePrivatePersonalDetails();
-    const privateDetails = props.privatePersonalDetails || {};
-    const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
-    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
+    const legalName = `${privatePersonalDetails?.legalFirstName ?? ''} ${privatePersonalDetails?.legalLastName ?? ''}`.trim();
+    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     return (
         <ScreenWrapper testID={PersonalDetailsInitialPage.displayName}>
             <HeaderWithBackButton
-                title={props.translate('privatePersonalDetails.personalDetails')}
+                title={translate('privatePersonalDetails.personalDetails')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             {isLoadingPersonalDetails ? (
@@ -75,24 +55,24 @@ function PersonalDetailsInitialPage(props) {
                 <ScrollView>
                     <View style={styles.flex1}>
                         <View style={[styles.ph5, styles.mb5]}>
-                            <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
+                            <Text>{translate('privatePersonalDetails.privateDataMessage')}</Text>
                         </View>
                         <MenuItemWithTopDescription
                             title={legalName}
-                            description={props.translate('privatePersonalDetails.legalName')}
+                            description={translate('privatePersonalDetails.legalName')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
                         />
                         <MenuItemWithTopDescription
-                            title={privateDetails.dob || ''}
-                            description={props.translate('common.dob')}
+                            title={privatePersonalDetails?.dob ?? ''}
+                            description={translate('common.dob')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
-                            titleStyle={[styles.flex1]}
+                            titleStyle={styles.flex1}
                         />
                         <MenuItemWithTopDescription
-                            title={PersonalDetailsUtils.getFormattedAddress(props.privatePersonalDetails)}
-                            description={props.translate('privatePersonalDetails.address')}
+                            title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails)}
+                            description={translate('privatePersonalDetails.address')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                         />
@@ -103,16 +83,10 @@ function PersonalDetailsInitialPage(props) {
     );
 }
 
-PersonalDetailsInitialPage.propTypes = propTypes;
-PersonalDetailsInitialPage.defaultProps = defaultProps;
 PersonalDetailsInitialPage.displayName = 'PersonalDetailsInitialPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-    withNetwork(),
-)(PersonalDetailsInitialPage);
+export default withOnyx<PersonalDetailsInitialPageProps, PersonalDetailsInitialPageOnyxProps>({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+})(PersonalDetailsInitialPage);

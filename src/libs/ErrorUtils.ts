@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Error, ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -54,7 +54,7 @@ type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Error {
     const errors = onyxData.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -70,7 +70,7 @@ type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
 
-function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
+function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -82,7 +82,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     return {[key]: errorsForField[key]};
 }
 
-function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, string> {
+function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -94,14 +94,12 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     return {[key]: errorsForField[key]};
 }
 
-type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
-
 /**
  * Method used to generate error message for given inputID
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inputID?: string, message?: TKey) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string, message?: TKey) {
     if (!message || !inputID) {
         return;
     }

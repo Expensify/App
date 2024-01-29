@@ -1,76 +1,71 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
-    /* Onyx Props */
-
+type LegalNamePageOnyxProps = {
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-    }),
-
-    ...withLocalizePropTypes,
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 };
 
-const defaultProps = {
-    privatePersonalDetails: {
-        legalFirstName: '',
-        legalLastName: '',
-    },
+type LegalNamePageProps = LegalNamePageOnyxProps;
+
+const updateLegalName = (values: PrivatePersonalDetails) => {
+    PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
 };
 
-const updateLegalName = (values) => {
-    PersonalDetails.updateLegalName(values.legalFirstName.trim(), values.legalLastName.trim());
-};
-
-function LegalNamePage(props) {
+function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastName: ''}}: LegalNamePageProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     usePrivatePersonalDetails();
-    const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
-    const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
-    const isLoadingPersonalDetails = lodashGet(props.privatePersonalDetails, 'isLoading', true);
+    const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
+    const legalLastName = privatePersonalDetails?.legalLastName ?? '';
+    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
-    const validate = useCallback((values) => {
-        const errors = {};
+    const validate = useCallback((values: PrivatePersonalDetails) => {
+        const errors: Errors = {};
 
-        if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+        if (!ValidationUtils.isValidLegalName(values.legalFirstName ?? '')) {
             ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (_.isEmpty(values.legalFirstName)) {
+        } else if (values.legalFirstName === '') {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
-        if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
+        if ((values.legalFirstName?.length ?? 0) > CONST.LEGAL_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', [
+                'common.error.characterLimitExceedCounter',
+                {length: values.legalFirstName?.length, limit: CONST.LEGAL_NAME.MAX_LENGTH},
+            ] as unknown as TranslationPaths);
         }
 
-        if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+        if (!ValidationUtils.isValidLegalName(values.legalLastName ?? '')) {
             ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-        } else if (_.isEmpty(values.legalLastName)) {
+        } else if (values.legalLastName === '') {
             errors.legalLastName = 'common.error.fieldRequired';
         }
-        if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
+        if ((values.legalLastName?.length ?? 0) > CONST.LEGAL_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', [
+                'common.error.characterLimitExceedCounter',
+                {length: values.legalLastName?.length, limit: CONST.LEGAL_NAME.MAX_LENGTH},
+            ] as unknown as TranslationPaths);
         }
 
         return errors;
@@ -83,7 +78,7 @@ function LegalNamePage(props) {
             testID={LegalNamePage.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('privatePersonalDetails.legalName')}
+                title={translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
             {isLoadingPersonalDetails ? (
@@ -94,7 +89,7 @@ function LegalNamePage(props) {
                     formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                     validate={validate}
                     onSubmit={updateLegalName}
-                    submitButtonText={props.translate('common.save')}
+                    submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
                     <View style={[styles.mb4]}>
@@ -102,8 +97,8 @@ function LegalNamePage(props) {
                             InputComponent={TextInput}
                             inputID="legalFirstName"
                             name="lfname"
-                            label={props.translate('privatePersonalDetails.legalFirstName')}
-                            aria-label={props.translate('privatePersonalDetails.legalFirstName')}
+                            label={translate('privatePersonalDetails.legalFirstName')}
+                            aria-label={translate('privatePersonalDetails.legalFirstName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalFirstName}
                             maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
@@ -115,8 +110,8 @@ function LegalNamePage(props) {
                             InputComponent={TextInput}
                             inputID="legalLastName"
                             name="llname"
-                            label={props.translate('privatePersonalDetails.legalLastName')}
-                            aria-label={props.translate('privatePersonalDetails.legalLastName')}
+                            label={translate('privatePersonalDetails.legalLastName')}
+                            aria-label={translate('privatePersonalDetails.legalLastName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalLastName}
                             maxLength={CONST.LEGAL_NAME.MAX_LENGTH + CONST.SEARCH_MAX_LENGTH}
@@ -129,15 +124,10 @@ function LegalNamePage(props) {
     );
 }
 
-LegalNamePage.propTypes = propTypes;
-LegalNamePage.defaultProps = defaultProps;
 LegalNamePage.displayName = 'LegalNamePage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-)(LegalNamePage);
+export default withOnyx<LegalNamePageProps, LegalNamePageOnyxProps>({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+})(LegalNamePage);

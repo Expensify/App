@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
@@ -36,7 +37,7 @@ function DateOfBirthPage({privatePersonalDetails = {dob: ''}}: DateOfBirthPagePr
      */
     const validate = useCallback((values: PrivatePersonalDetails) => {
         const requiredFields = ['dob'];
-        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+        const errors = ValidationUtils.getFieldRequiredErrors(values as Errors, requiredFields);
 
         const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
         const maximumAge = CONST.DATE_BIRTH.MAX_AGE;

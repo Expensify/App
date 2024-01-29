@@ -73,7 +73,7 @@ function isValidPastDate(date: string | Date): boolean {
 /**
  * Used to validate a value that is "required".
  */
-function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
+function isRequiredFulfilled(value: string | boolean | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
         return !StringUtils.isEmptyString(value);
     }
@@ -174,7 +174,7 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string | Array<string | Record<string, string>> {
+function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string | [string, Record<string, string>] {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
