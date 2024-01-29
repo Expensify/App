@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {truncate} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -12,6 +13,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
 import refPropTypes from '@components/refPropTypes';
+import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -47,6 +49,9 @@ const propTypes = {
 
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
+
+    /** The ID of the current report */
+    reportID: PropTypes.string.isRequired,
 
     /** Callback for the preview pressed */
     onPreviewPressed: PropTypes.func,
@@ -132,6 +137,7 @@ function MoneyRequestPreview(props) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const parser = new ExpensiMark();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
@@ -185,7 +191,7 @@ function MoneyRequestPreview(props) {
     };
 
     const showContextMenu = (event) => {
-        showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
+        showContextMenuForReport(event, props.contextMenuAnchor, props.reportID, props.action, props.checkIfContextMenuActive);
     };
 
     const getPreviewHeaderText = () => {
@@ -222,14 +228,14 @@ function MoneyRequestPreview(props) {
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : translate('common.tbd');
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency) : translate('common.tbd');
         }
 
         if (isScanning) {
             return translate('iou.receiptScanning');
         }
 
-        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
             return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
@@ -328,7 +334,8 @@ function MoneyRequestPreview(props) {
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
+                                    {shouldShowDescription && <RenderHTML html={parser.replace(merchantOrDescription)} />}
+                                    {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>

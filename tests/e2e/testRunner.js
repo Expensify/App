@@ -335,7 +335,9 @@ const runTests = async () => {
             await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting main app');
-            await launchApp('android', config.MAIN_APP_PACKAGE);
+            await launchApp('android', config.MAIN_APP_PACKAGE, config.ACTIVITY_PATH, {
+                mockNetwork: true,
+            });
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {
@@ -359,7 +361,9 @@ const runTests = async () => {
             await killApp('android', config.MAIN_APP_PACKAGE);
 
             Logger.log('Starting delta app');
-            await launchApp('android', config.DELTA_APP_PACKAGE);
+            await launchApp('android', config.DELTA_APP_PACKAGE, config.ACTIVITY_PATH, {
+                mockNetwork: true,
+            });
 
             // Wait for a test to finish by waiting on its done call to the http server
             try {

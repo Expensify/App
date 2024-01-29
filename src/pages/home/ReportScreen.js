@@ -11,6 +11,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
@@ -34,6 +35,7 @@ import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,8 +67,11 @@ const propTypes = {
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
 
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    /** All the report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report's parentReportAction */
+    parentReportAction: PropTypes.shape(reportActionPropTypes),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -103,7 +108,8 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: [],
+    reportActions: {},
+    parentReportAction: {},
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -143,6 +149,7 @@ function ReportScreen({
     report,
     reportMetadata,
     reportActions,
+    parentReportAction,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -180,18 +187,11 @@ function ReportScreen({
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
-
-    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
-
+    const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS_NUM.CLOSED;
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
-
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
-
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
-
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
-
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
@@ -234,7 +234,6 @@ function ReportScreen({
                 policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
-                parentReportAction={parentReportAction}
             />
         );
     }
@@ -287,14 +286,52 @@ function ReportScreen({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
+    const allPersonalDetails = usePersonalDetails();
+
+    /**
+     * @param {String} text
+     */
+    const handleCreateTask = useCallback(
+        (text) => {
+            /**
+             * Matching task rule by group
+             * Group 1: Start task rule with []
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 3: Title is remaining characters
+             */
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+
+            const match = text.match(taskRegex);
+            if (!match) {
+                return false;
+            }
+            const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
+            if (!title) {
+                return false;
+            }
+            const email = match[1] ? match[1].trim() : undefined;
+            let assignee = {};
+            if (email) {
+                assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+            }
+            Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+            return true;
+        },
+        [allPersonalDetails, report.policyID, route],
+    );
+
     /**
      * @param {String} text
      */
     const onSubmitComment = useCallback(
         (text) => {
+            const isTaskCreated = handleCreateTask(text);
+            if (isTaskCreated) {
+                return;
+            }
             Report.addComment(getReportID(route), text);
         },
-        [route],
+        [route, handleCreateTask],
     );
 
     // Clear notifications for the current report when it's opened and re-focused
@@ -346,8 +383,8 @@ function ReportScreen({
             (prevOnyxReportID &&
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
-                prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
+                prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+                (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
             ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && _.isEmpty(report))
         ) {
             Navigation.dismissModal();
@@ -356,6 +393,11 @@ function ReportScreen({
                 Navigation.goBack(ROUTES.HOME, false, true);
             }
             if (prevReport.parentReportID) {
+                // Prevent navigation to the Money Request Report if it is pending deletion.
+                const parentReport = ReportUtils.getReport(prevReport.parentReportID);
+                if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
                 return;
             }
@@ -568,6 +610,17 @@ export default compose(
             userLeavingStatus: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
+            },
+            parentReportAction: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions, props) => {
+                    const parentReportActionID = lodashGet(props, 'report.parentReportActionID');
+                    if (!parentReportActionID) {
+                        return {};
+                    }
+                    return lodashGet(parentReportActions, parentReportActionID);
+                },
+                canEvict: false,
             },
         },
         true,

@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
@@ -17,9 +17,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Performance from '@libs/Performance';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
@@ -68,7 +70,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
 
         InteractionManager.runAfterInteractions(() => {
@@ -123,6 +124,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             return;
         }
 
+        // Capture metric for opening the search page
+        Timing.start(CONST.TIMING.OPEN_SEARCH);
+        Performance.markStart(CONST.TIMING.OPEN_SEARCH);
+
         Navigation.navigate(ROUTES.SEARCH);
     }, [isCreateMenuOpen]);
 
@@ -149,8 +154,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const contentContainerStyles = useMemo(() => [styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}], [insets]);
 
     return (
         <View style={[styles.flex1, styles.h100]}>
@@ -189,11 +192,12 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
-                    contentContainerStyles={contentContainerStyles}
+                    contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
                     data={optionListItems}
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
+                    onFirstItemRendered={App.setSidebarLoaded}
                 />
                 {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.highlightBG]}>
