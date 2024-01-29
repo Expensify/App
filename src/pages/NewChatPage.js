@@ -198,7 +198,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             false,
             {},
             [],
-            true
+            true,
         );
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
