@@ -71,7 +71,7 @@ project.ext.envConfigFiles = [
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -98,8 +98,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001043000
-        versionName "1.4.30-0"
+        versionCode 1001043202
+        versionName "1.4.32-2"
     }
 
     flavorDimensions "default"
@@ -152,8 +152,9 @@ android {
         }
         release {
             productFlavors.production.signingConfig signingConfigs.release
+            shrinkResources enableProguardInReleaseBuilds
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
             signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
