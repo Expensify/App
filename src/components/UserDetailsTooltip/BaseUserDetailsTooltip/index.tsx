@@ -40,7 +40,9 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     let subtitle = userLogin.trim() && LocalePhoneNumber.formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
-        subtitle = '';
+        if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
+            subtitle = '';
+        }
     }
     const renderTooltipContent = useCallback(
         () => (
