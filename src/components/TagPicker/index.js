@@ -20,7 +20,7 @@ function TagPicker({selectedTag, tag, tagIndex, policyTags, policyRecentlyUsedTa
 
     const policyRecentlyUsedTagsList = lodashGet(policyRecentlyUsedTags, tag, []);
     const policyTagList = PolicyUtils.getTagList(policyTags, tagIndex);
-    const policyTagsCount = _.size(_.filter(policyTagList.tags, (policyTag) => policyTag.enabled));
+    const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList);
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;

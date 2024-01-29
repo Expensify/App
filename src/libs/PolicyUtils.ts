@@ -203,6 +203,13 @@ function getCleanedTagName(tag: string) {
     return tag?.replace(/\\{1,2}:/g, ':');
 }
 
+/**
+ * Gets a count of enabled tags of a policy
+ */
+function getCountOfEnabledTagsOfList(policyTagList: PolicyTagList) {
+    return Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled).length;
+}
+
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
@@ -230,6 +237,7 @@ export {
     getTagListName,
     getTagList,
     getCleanedTagName,
+    getCountOfEnabledTagsOfList,
     isPendingDeletePolicy,
     isPolicyMember,
     isPaidGroupPolicy,
