@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, ReportAction} from '@src/types/onyx';
@@ -95,12 +96,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportAction: ReportAction): string {
-    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
+    const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
+    const policyID = ReportUtils.getReportPolicyID(reportID) ?? '';
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
 
@@ -118,7 +119,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency);
+        const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
+        const oldAmount = oldAmountValue > 0 ? CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
 
         const currency = reportActionOriginalMessage?.currency ?? '';
         const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -187,8 +189,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.tag ?? '',
-            reportActionOriginalMessage?.oldTag ?? '',
+            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.tag ?? ''),
+            PolicyUtils.getCleanedTagName(reportActionOriginalMessage?.oldTag ?? ''),
             policyTagListName,
             true,
             setFragments,

@@ -4,6 +4,8 @@ import {attachmentViewDefaultProps, attachmentViewPropTypes} from '@components/A
 const attachmentViewImagePropTypes = {
     ...attachmentViewPropTypes,
 
+    url: PropTypes.string.isRequired,
+
     loadComplete: PropTypes.bool.isRequired,
 
     isImage: PropTypes.bool.isRequired,

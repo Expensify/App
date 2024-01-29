@@ -185,10 +185,6 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CONFIRMATION]: {
-        iouType: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.CURRENCY]: {
         iouType: string;
         reportID: string;
@@ -323,7 +319,9 @@ type SignInNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.REFERRAL_DETAILS]: undefined;
+    [SCREENS.REFERRAL_DETAILS]: {
+        contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
+    };
 };
 
 type ProcessMoneyRequestHoldNavigatorParamList = {
@@ -331,14 +329,7 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.VIEW]: {
-        reportID: string;
-        accountID: string;
-    };
-    [SCREENS.PRIVATE_NOTES.LIST]: {
-        reportID: string;
-        accountID: string;
-    };
+    [SCREENS.PRIVATE_NOTES.LIST]: undefined;
     [SCREENS.PRIVATE_NOTES.EDIT]: {
         reportID: string;
         accountID: string;
@@ -415,6 +406,15 @@ type AuthScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
         source: string;
+    };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;

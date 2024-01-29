@@ -52,11 +52,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-    const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(moneyRequestReport, policy);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicy(moneyRequestReport);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = isPaidGroupPolicy
@@ -65,8 +66,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
@@ -75,12 +76,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
+    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
