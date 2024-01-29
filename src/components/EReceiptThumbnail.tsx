@@ -28,6 +28,7 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     borderRadius?: number;
     fileExtension?: string;
     isThumbnail?: boolean;
+    useStaticIconLayout?: boolean;
 };
 
 const backgroundImages = {
@@ -39,7 +40,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnail = false}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnail = false, useStaticIconLayout = false}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -69,11 +70,11 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
     let receiptIconHeight: number = variables.eReceiptIconHeight;
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
 
-    if (isSmall) {
+    if (isSmall && !useStaticIconLayout) {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
-    } else if (isMedium) {
+    } else if (isMedium || useStaticIconLayout) {
         receiptIconWidth = variables.eReceiptIconWidthMedium;
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
@@ -86,10 +87,10 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {},
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint ? styles.justifyContentCenter : {},
+                useStaticIconLayout || (containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
                 borderRadius ? {borderRadius} : {},
             ]}
-            onLayout={onContainerLayout}
+            onLayout={useStaticIconLayout ? undefined : onContainerLayout}
         >
             <Image
                 source={backgroundImage}

@@ -29,6 +29,7 @@ function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumbnailIma
                     borderRadius={style?.borderRadius}
                     fileExtension={fileExtension}
                     isThumbnail
+                    useStaticIconLayout
                 />
             </View>
         );
