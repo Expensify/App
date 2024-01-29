@@ -134,6 +134,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
                     style={styles.flex1}
                 >
                     <CarouselItem
+                        // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
                         item={item}
                         isSingleItem={items.length === 1}
                         index={index}
