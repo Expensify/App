@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
@@ -58,7 +59,7 @@ function BaseTextInput(
         inputID,
         ...inputProps
     }: BaseTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -435,8 +436,9 @@ function BaseTextInput(
              */}
             {(!!autoGrow || autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // https://github.com/Expensify/App/issues/8158
-                // https://github.com/Expensify/App/issues/26628
+                // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
+                // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
+                // Reference: https://github.com/Expensify/App/issues/34921
                 <Text
                     style={[
                         inputStyle,
@@ -445,8 +447,11 @@ function BaseTextInput(
                         styles.visibilityHidden,
                     ]}
                     onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                            return;
+                        }
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari()) {
+                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
