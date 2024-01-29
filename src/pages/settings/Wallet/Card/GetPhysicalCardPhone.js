@@ -1,13 +1,13 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import FormUtils from '@libs/FormUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,7 +42,6 @@ function GetPhysicalCardPhone({
         params: {domain},
     },
 }) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const onValidate = (values) => {
@@ -66,14 +65,14 @@ function GetPhysicalCardPhone({
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
         >
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 inputID="phoneNumber"
                 name="phoneNumber"
                 label={translate('getPhysicalCard.phoneNumber')}
                 aria-label={translate('getPhysicalCard.phoneNumber')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 defaultValue={phoneNumber}
-                containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
         </BaseGetPhysicalCard>

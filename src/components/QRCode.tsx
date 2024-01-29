@@ -1,13 +1,13 @@
-import type {Ref} from 'react';
 import React from 'react';
 import type {ImageSourcePropType} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
+import type {Svg} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 
-type LogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
+type QRCodeLogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
-type LogoMarginRatio = typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
+type QRCodeLogoMarginRatio = typeof CONST.QR.DEFAULT_LOGO_MARGIN_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO;
 
 type QRCodeProps = {
     /** The QR code URL */
@@ -20,10 +20,10 @@ type QRCodeProps = {
     logo?: ImageSourcePropType;
 
     /** The size ratio of logo to QR code */
-    logoRatio?: LogoRatio;
+    logoRatio?: QRCodeLogoRatio;
 
     /** The size ratio of margin around logo to QR code */
-    logoMarginRatio?: LogoMarginRatio;
+    logoMarginRatio?: QRCodeLogoMarginRatio;
 
     /** The QRCode size */
     size?: number;
@@ -38,7 +38,7 @@ type QRCodeProps = {
      * Function to retrieve the internal component ref and be able to call it's
      * methods
      */
-    getRef?: (ref: Ref<SVGElement>) => Ref<SVGElement>;
+    getRef?: (ref: Svg) => Svg;
 };
 
 function QRCode({url, logo, getRef, size = 120, color, backgroundColor, logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO, logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}: QRCodeProps) {
@@ -62,3 +62,4 @@ function QRCode({url, logo, getRef, size = 120, color, backgroundColor, logoRati
 QRCode.displayName = 'QRCode';
 
 export default QRCode;
+export type {QRCodeLogoMarginRatio, QRCodeLogoRatio};

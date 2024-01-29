@@ -13,6 +13,13 @@ type Note = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type Participant = {
+    hidden: boolean;
+    role?: 'admin' | 'member';
+};
+
+type Participants = Record<number, Participant>;
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -83,14 +90,11 @@ type Report = {
     /** ID of the chat report */
     chatReportID?: string;
 
-    /** The state of the report */
-    state?: ValueOf<typeof CONST.REPORT.STATE>;
-
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
     /** The status of the current report */
-    statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Which user role is capable of posting messages on the report */
     writeCapability?: WriteCapability;
@@ -119,10 +123,14 @@ type Report = {
     welcomeMessage?: string;
     lastActorAccountID?: number;
     ownerAccountID?: number;
+    ownerEmail?: string;
+    participants?: Participants;
     participantAccountIDs?: number[];
     visibleChatMemberAccountIDs?: number[];
     total?: number;
     currency?: string;
+    errors?: OnyxCommon.Errors;
+    managerEmail?: string;
     parentReportActionIDs?: number[];
     errorFields?: OnyxCommon.ErrorFields;
 
@@ -155,8 +163,11 @@ type Report = {
     isHidden?: boolean;
     isChatRoom?: boolean;
     participantsList?: PersonalDetails[];
+    text?: string;
+    updateReportInLHN?: boolean;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
+    selected?: boolean;
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, string>;
@@ -164,4 +175,4 @@ type Report = {
 
 export default Report;
 
-export type {NotificationPreference, WriteCapability};
+export type {NotificationPreference, WriteCapability, Note};

@@ -22,7 +22,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [isZoomedOut, setIsZoomedOut] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [activeSource, setActiveSource] = useState(source);
 
@@ -87,18 +86,20 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [autoHideArrows, page, updatePage],
     );
 
-    const handleScaleChange = useCallback(
-        (newScale) => {
-            const newIsZoomedOut = newScale === 1;
-
-            if (isZoomedOut === newIsZoomedOut) {
+    /**
+     * Toggles the arrows visibility
+     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
+     */
+    const toggleArrows = useCallback(
+        (showArrows) => {
+            if (showArrows === undefined) {
+                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
                 return;
             }
 
-            setIsZoomedOut(newIsZoomedOut);
-            setShouldShowArrows(newIsZoomedOut);
+            setShouldShowArrows(showArrows);
         },
-        [isZoomedOut, setShouldShowArrows],
+        [setShouldShowArrows],
     );
 
     return (
@@ -129,16 +130,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             <AttachmentCarouselPager
                                 items={attachments}
                                 initialPage={page}
-                                scrollEnabled={isZoomedOut}
                                 activeSource={activeSource}
-                                onTap={() => {
-                                    if (!isZoomedOut) {
-                                        return;
-                                    }
-                                    setShouldShowArrows(!shouldShowArrows);
-                                }}
+                                onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onScaleChanged={handleScaleChange}
                                 ref={pagerRef}
                             />
                         </>

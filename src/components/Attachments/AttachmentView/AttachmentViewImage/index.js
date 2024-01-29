@@ -12,13 +12,12 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, loadComplete, onPress, onError, isImage, onScaleChanged, translate}) {
+function AttachmentViewImage({url, file, isAuthTokenRequired, isFocused, loadComplete, onPress, onError, isImage, translate}) {
     const styles = useThemeStyles();
     const children = (
         <ImageView
-            onScaleChanged={onScaleChanged}
             onError={onError}
-            url={source}
+            url={url}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
             isFocused={isFocused}

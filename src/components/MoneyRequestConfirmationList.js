@@ -36,6 +36,7 @@ import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -604,7 +605,7 @@ function MoneyRequestConfirmationList(props) {
                     <ConfirmedRoute transaction={props.transaction} />
                 </View>
             )}
-            {(receiptImage || receiptThumbnail) && (
+            {receiptImage || receiptThumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptThumbnail || receiptImage}}
@@ -613,6 +614,25 @@ function MoneyRequestConfirmationList(props) {
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                 />
+            ) : (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(props.policy) &&
+                !props.isDistanceRequest &&
+                props.iouType === CONST.IOU.TYPE.REQUEST && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    CONST.IOU.ACTION.CREATE,
+                                    props.iouType,
+                                    transaction.transactionID,
+                                    props.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                    />
+                )
             )}
             {props.shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
@@ -657,7 +677,7 @@ function MoneyRequestConfirmationList(props) {
             />
             {!shouldShowAllFields && (
                 <ShowMoreButton
-                    containerStyle={styles.mt1}
+                    containerStyle={[styles.mt1, styles.mb2]}
                     onPress={toggleShouldExpandFields}
                 />
             )}
@@ -738,7 +758,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={props.iouTag}
+                            title={PolicyUtils.getCleanedTagName(props.iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() => {

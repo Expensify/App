@@ -5,9 +5,12 @@ import {
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
+    endOfMonth,
     endOfWeek,
     format,
     formatDistanceToNow,
+    getDate,
+    getDay,
     getDayOfYear,
     isAfter,
     isBefore,
@@ -69,6 +72,12 @@ Onyx.connect({
             automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
         };
     },
+});
+
+let networkTimeSkew = 0;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
 /**
@@ -357,6 +366,16 @@ function getMicroseconds(): number {
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString().replace('T', ' ').replace('Z', '');
+}
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(): string {
+    if (networkTimeSkew > 0) {
+        return getDBTime(new Date().valueOf() + networkTimeSkew);
+    }
+    return getDBTime();
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -714,6 +733,25 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     };
 }
 
+/**
+ * Returns the last business day of given date month
+ *
+ * param {Date} inputDate
+ * returns {number}
+ */
+function getLastBusinessDayOfMonth(inputDate: Date): number {
+    let currentDate = endOfMonth(inputDate);
+    const dayOfWeek = getDay(currentDate);
+
+    if (dayOfWeek === 0) {
+        currentDate = subDays(currentDate, 2);
+    } else if (dayOfWeek === 6) {
+        currentDate = subDays(currentDate, 1);
+    }
+
+    return getDate(currentDate);
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -728,6 +766,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
@@ -757,6 +796,7 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
+    getLastBusinessDayOfMonth,
 };
 
 export default DateUtils;

@@ -3,7 +3,6 @@ import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
-import CONST from '../../src/CONST';
 import variables from '../../src/styles/variables';
 
 jest.mock('../../src/components/Icon/Expensicons');
@@ -93,8 +92,6 @@ function SelectionListWrapper(args) {
     );
 }
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 test('[SelectionList] should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);
 });
@@ -104,7 +101,7 @@ test('[SelectionList] should press a list item', () => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
-    measurePerformance(<SelectionListWrapper />, {scenario, runs});
+    measurePerformance(<SelectionListWrapper />, {scenario});
 });
 
 test('[SelectionList] should render multiple selection and select 3 items', () => {
@@ -114,7 +111,7 @@ test('[SelectionList] should render multiple selection and select 3 items', () =
         fireEvent.press(screen.getByText('Item 3'));
     };
 
-    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
 
 test('[SelectionList] should scroll and select a few items', () => {
@@ -138,10 +135,12 @@ test('[SelectionList] should scroll and select a few items', () => {
 
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
+        // see https://github.com/callstack/react-native-testing-library/issues/1540
+        fireEvent(screen.getByTestId('selection-list'), 'onContentSizeChange', eventData.nativeEvent.contentSize.width, eventData.nativeEvent.contentSize.height);
         fireEvent.scroll(screen.getByTestId('selection-list'), eventData);
         fireEvent.press(screen.getByText('Item 7'));
         fireEvent.press(screen.getByText('Item 15'));
     };
 
-    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
 });
