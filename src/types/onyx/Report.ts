@@ -13,6 +13,13 @@ type Note = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type Participant = {
+    hidden: boolean;
+    role?: 'admin' | 'member';
+};
+
+type Participants = Record<number, Participant>;
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -120,6 +127,7 @@ type Report = {
     lastActorAccountID?: number;
     ownerAccountID?: number;
     ownerEmail?: string;
+    participants?: Participants;
     participantAccountIDs?: number[];
     visibleChatMemberAccountIDs?: number[];
     total?: number;

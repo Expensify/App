@@ -10,6 +10,7 @@ import * as API from '@libs/API';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -357,6 +358,29 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source ?? '', filename: filename ?? ''});
 }
 
+/**
+ * Return the object to update hasOutstandingChildRequest
+ * @param {Object} [policy]
+ * @param {Boolean} needsToBeManuallySubmitted
+ * @returns {Object}
+ */
+function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
+    if (!needsToBeManuallySubmitted) {
+        return {
+            hasOutstandingChildRequest: false,
+        };
+    }
+
+    if (PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    // We don't need to update hasOutstandingChildRequest in this case
+    return {};
+}
+
 /** Builds the Onyx data for a money request */
 function buildOnyxDataForMoneyRequest(
     chatReport: OnyxEntry<OnyxTypes.Report>,
@@ -374,9 +398,10 @@ function buildOnyxDataForMoneyRequest(
     policy?: OnyxTypes.Policy | EmptyObject,
     policyTags?: OnyxTypes.PolicyTags,
     policyCategories?: OnyxTypes.PolicyCategories,
-    hasOutstandingChildRequest = false,
+    needsToBeManuallySubmitted = true,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
+    const outstandingChildRequest = getOutstandingChildRequest(needsToBeManuallySubmitted, policy);
     const optimisticData: OnyxUpdate[] = [];
 
     if (chatReport) {
@@ -389,7 +414,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                hasOutstandingChildRequest,
+                ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         });
@@ -554,6 +579,7 @@ function buildOnyxDataForMoneyRequest(
                 iouReportID: chatReport?.iouReportID,
                 lastReadTime: chatReport?.lastReadTime,
                 pendingFields: null,
+                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -712,7 +738,7 @@ function getMoneyRequestInformation(
     let iouReport = isNewIOUReport ? null : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
     // Check if the Scheduled Submit is enabled in case of expense report
-    let needsToBeManuallySubmitted = false;
+    let needsToBeManuallySubmitted = true;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
         isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
@@ -833,10 +859,6 @@ function getMoneyRequestInformation(
           }
         : {};
 
-    // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
-    // so the employee has to submit to their manager manually.
-    const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
-
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
@@ -854,7 +876,7 @@ function getMoneyRequestInformation(
         policy,
         policyTags,
         policyCategories,
-        hasOutstandingChildRequest,
+        needsToBeManuallySubmitted,
     );
 
     return {
@@ -1868,6 +1890,9 @@ function startSplitBill(
         CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         receiptObject,
         filename,
+        undefined,
+        category,
+        tag,
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
@@ -2702,7 +2727,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     if (updatedReportPreviewAction?.message?.[0]) {
         updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = messageText;
+        updatedReportPreviewAction.message[0].html = shouldDeleteIOUReport ? '' : messageText;
     }
 
     if (updatedReportPreviewAction && reportPreviewAction?.childMoneyRequestCount && reportPreviewAction?.childMoneyRequestCount > 0) {
@@ -3727,6 +3752,32 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
     return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
+/**
+ * @param {String} receiptFilename
+ * @param {String} receiptPath
+ * @param {Function} onSuccess
+ * @param {String} requestType
+ * @param {String} iouType
+ * @param {String} transactionID
+ * @param {String} reportID
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    const onFailure = () => {
+        setMoneyRequestReceipt(transactionID, '', '', true);
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            return;
+        }
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
+    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3786,4 +3837,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    navigateToStartStepIfScanFileCannotBeRead,
 };
