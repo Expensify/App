@@ -8,17 +8,8 @@
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-<<<<<<< HEAD
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-=======
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
-	<key>CFBundleDisplayName</key>
-	<string>$(PRODUCT_NAME)</string>
->>>>>>> e8d6e15 (Merge pull request #35336 from Expensify/francois-add-missing-CFBundleExecutable)
 	<key>CFBundleShortVersionString</key>
 	<string>1.4.33</string>
 	<key>CFBundleVersion</key>
