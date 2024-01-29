@@ -63,10 +63,10 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
 WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 
 export default compose(
+    withReportOrNotFound(),
     withOnyx<WriteCapabilityPageProps, WriteCapabilityPageOnyxProps>({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
-    withReportOrNotFound(),
 )(WriteCapabilityPage);
