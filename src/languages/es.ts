@@ -2488,7 +2488,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocket: 'Por cuenta propia',
+        outOfPocket: 'Gastos por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {

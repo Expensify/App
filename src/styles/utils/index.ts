@@ -1431,6 +1431,21 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return containerStyles;
     },
 
+    /**
+     * Returns a style that sets the maximum height of the composer based on the number of lines and whether the composer is full size or not.
+     */
+    getComposerMaxHeightStyle: (maxLines: number | undefined, isComposerFullSize: boolean): TextStyle => {
+        if (isComposerFullSize || maxLines == null) {
+            return {};
+        }
+
+        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+
+        return {
+            maxHeight: maxLines * composerLineHeight,
+        };
+    },
+
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
 });
 
