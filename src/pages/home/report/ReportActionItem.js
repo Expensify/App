@@ -408,6 +408,7 @@ function ReportActionItem(props) {
                     // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
                     chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
+                    reportID={props.report.reportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}

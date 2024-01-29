@@ -34,9 +34,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionText(reportAction: OnyxEntry<ReportAction>): string {
+function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     const message = reportAction?.message?.at(-1) ?? null;
     return message?.html ?? '';
+}
+
+/** Gets the text version of the message in an action */
+function getActionText(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
 }
 
 /** Sets the HTML string to Clipboard */
@@ -164,7 +169,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             );
         },
         onPress: (closePopover, {reportAction}) => {
-            const html = getActionText(reportAction);
+            const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
             const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
@@ -222,7 +227,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             const editAction = () => {
                 if (!draftMessage) {
-                    Report.saveReportActionDraft(reportID, reportAction, getActionText(reportAction));
+                    Report.saveReportActionDraft(reportID, reportAction, getActionHtml(reportAction));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);
                 }
@@ -377,7 +382,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
-            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionText(reportAction);
+            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction?.actionName) : getActionHtml(reportAction);
+            const messageText = getActionText(reportAction);
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -398,11 +404,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
-                } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
-                    const submittedMessage = reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '');
-                    Clipboard.setString(submittedMessage ?? '');
                 } else if (content) {
                     setClipboardMessage(content);
+                } else if (messageText) {
+                    Clipboard.setString(messageText);
                 }
             }
 
