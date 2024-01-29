@@ -17,7 +17,7 @@ if (newExpensifyContent) {
     tab.id = 'platform-tab-new-expensify';
 
     if (!expensifyClassicContent) {
-        tab.classList.add('active');
+        tab.classList.add('active'); 
     }
     platformTabs.appendChild(tab);
 }
