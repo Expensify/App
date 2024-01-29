@@ -46,7 +46,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         onConfirm,
         headerContent,
         footerContent,
-        showScrollIndicator = false,
+        showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
