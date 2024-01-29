@@ -69,7 +69,6 @@ const defaultProps = {
     reports: {},
     betas: [],
     dismissedReferralBanners: {},
-    isSearchingForReports: false,
     didScreenTransitionEnd: false,
 };
 
@@ -82,7 +81,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
-    isSearchingForReports,
     dismissedReferralBanners,
     didScreenTransitionEnd,
 }) {

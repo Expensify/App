@@ -857,7 +857,7 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
         },
     ];
     API.write(
-        'DismissReferralBanner',
+        WRITE_COMMANDS.DISMISS_REFERRAL_BANNER,
         {type},
         {
             optimisticData,
