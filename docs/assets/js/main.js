@@ -232,6 +232,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // eslint-disable-line es/no-optional-chaining
     expensifyClassicTab?.addEventListener('click', () => {
         expensifyClassicTab.classList.add('active');
         expensifyClassicContent.classList.remove('hidden');
@@ -244,13 +245,13 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // eslint-disable-line es/no-optional-chaining
     newExpensifyTab?.addEventListener('click', () => {
         newExpensifyTab.classList.add('active');
         newExpensifyContent.classList.remove('hidden');
     
         expensifyClassicTab.classList.remove('active');
         expensifyClassicContent.classList.add('hidden');
-        active = '#new-expensify';
         window.tocbot.refresh({
             ...tocbotOptions,
             contentSelector: '#new-expensify'
