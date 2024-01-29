@@ -3461,14 +3461,14 @@ function submitReport(expenseReport) {
  * @param {Object} chatReport
  */
 function cancelPayment(expenseReport, chatReport) {
-    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -expenseReport.total, expenseReport.currency,);
+    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -expenseReport.total, expenseReport.currency);
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
     const approvalMode = policy.approvalMode || CONST.POLICY.APPROVAL_MODE.BASIC;
     let stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
-    let statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED
+    let statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
     if (!isFree) {
-        stateNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED: CONST.REPORT.STATE_NUM.APPROVED;
+        stateNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
     }
     const optimisticData = [
