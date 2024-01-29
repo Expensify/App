@@ -102,7 +102,7 @@ function saveFocusState(id: ModalId, businessType: BusinessType = CONST.MODAL.BU
         });
     }
 
-    if (container instanceof HTMLElement && container?.contains(input)) {
+    if (container && ('contains' in container) && container.contains(input)) {
         return;
     }
     focusMap.set(id, {input, businessType});
