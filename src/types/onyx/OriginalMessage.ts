@@ -284,4 +284,5 @@ export type {
     OriginalMessageAddComment,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
+    DecisionName
 };
