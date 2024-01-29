@@ -166,11 +166,11 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
-    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
-    const shouldShowTag = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagList)), [isPolicyExpenseChat, policyTagList, transactionTag]);
+    const shouldShowTag = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
@@ -346,7 +346,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag &&
-                    _.map(policyTagList, ({name}, index) => (
+                    _.map(policyTagLists, ({name}, index) => (
                         <OfflineWithFeedback
                             key={name}
                             pendingAction={lodashGet(transaction, 'pendingFields.tag') || lodashGet(transaction, 'pendingAction')}
