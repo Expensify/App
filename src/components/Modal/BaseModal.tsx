@@ -60,7 +60,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            Modal.willAlertModalBecomeVisible(false, isPopover);
+            Modal.willAlertModalBecomeVisible(false);
             if (shouldSetModalVisibility) {
                 Modal.setModalVisibility(false);
             }
@@ -72,14 +72,14 @@ function BaseModal(
                 ComposerFocusManager.setReadyToFocus();
             }
         },
-        [shouldSetModalVisibility, onModalHide, fullscreen, isPopover],
+        [shouldSetModalVisibility, onModalHide, fullscreen],
     );
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
-            Modal.willAlertModalBecomeVisible(true, isPopover);
+            Modal.willAlertModalBecomeVisible(true, isPopover || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             removeOnCloseListener = Modal.setCloseModal(onClose);
         }
@@ -90,7 +90,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, isPopover]);
+    }, [isVisible, wasVisible, onClose, isPopover, type]);
 
     useEffect(
         () => () => {
