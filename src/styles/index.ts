@@ -32,7 +32,6 @@ import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
-import statusEmojiStyles from './utils/statusEmojiStyles';
 import textDecorationLine from './utils/textDecorationLine';
 import textUnderline from './utils/textUnderline';
 import userSelect from './utils/userSelect';
@@ -3917,10 +3916,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiStatusLHN: {
-            fontSize: 22,
+            fontSize: 9,
         },
-
-        statusEmojiStyles,
 
         sidebarStatusAvatarContainer: {
             height: 40,
