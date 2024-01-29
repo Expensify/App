@@ -5,6 +5,7 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
@@ -13,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.BILLS | typeof SCREENS.WORKSPACE.INVOICES>;
+type PolicyRoute = RouteProp<SettingsNavigatorParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
