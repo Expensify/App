@@ -6,11 +6,29 @@ description: Streamline expense management effortlessly with the Expensify mobil
 <div id="expensify-classic" markdown="1">
 # Overview
 The Expensify mobile app is the ultimate expense management solution that makes it effortless to track and submit your receipts and expenses. Use the app to snap a picture of your receipts, categorize and submit expenses, and even review and approve expense reports.
+
+{% tabs platforms %}
+
+{% tab platforms iOS %}
+
 # How to install the Expensify app
 To get started with Expensify on your mobile device, you need to download the app:
-1. Visit the App Store (iOS) or Google Play Store (Android).
+1. Visit the App Store.
 2. Search for "Expensify" and select the official Expensify app.
 3. Tap "Download" or "Install."
+{% endtab %}
+
+{% tab platforms Android %}
+
+# How to install the Expensify app
+To get started with Expensify on your mobile device, you need to download the app:
+1. Visit the Google Play Store.
+2. Search for "Expensify" and select the official Expensify app.
+3. Tap "Download" or "Install."
+{% endtab %}
+
+{% endtabs %}
+
 
 Once the app is installed, open it and log in with your Expensify credentials. If you don't have an Expensify account, you can create one during the sign-up process.
 # How to enable on push notifications
