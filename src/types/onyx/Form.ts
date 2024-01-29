@@ -30,6 +30,10 @@ type DisplayNameForm = Form<{
     lastName: string;
 }>;
 
+type NewContactMethodForm = Form<{
+    phoneOrEmail: string;
+}>;
+
 type NewRoomForm = Form<{
     roomName?: string;
     welcomeMessage?: string;
@@ -56,4 +60,4 @@ type PrivateNotesForm = Form<{
 
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
+export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewContactMethodForm, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
