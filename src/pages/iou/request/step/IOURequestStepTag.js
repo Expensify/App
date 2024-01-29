@@ -51,10 +51,10 @@ function IOURequestStepTag({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const tagIndex = +rawTagIndex;
-    const reportTags = TransactionUtils.getTag(transaction);
-    const tag = TransactionUtils.getTag(transaction, tagIndex);
+    const tagIndex = Number(rawTagIndex);
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const transactionTag = TransactionUtils.getTag(transaction);
+    const tag = TransactionUtils.getTag(transaction, tagIndex);
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -66,9 +66,9 @@ function IOURequestStepTag({
      */
     const updateTag = (selectedTag) => {
         if (tag === selectedTag.searchText) {
-            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, tagIndex);
+            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID, transactionTag, tagIndex);
         } else {
-            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, reportTags, selectedTag.searchText, tagIndex);
+            IOU.setMoneyRequestTag_temporaryForRefactor(transactionID, transactionTag, selectedTag.searchText, tagIndex);
         }
         navigateBack();
     };
