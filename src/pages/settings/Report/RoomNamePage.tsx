@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
