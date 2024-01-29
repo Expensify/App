@@ -155,7 +155,7 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
-            showUserDetails(action.delegateAccountID ? action.delegateAccountID : String(actorAccountID));
+            showUserDetails(action.delegateAccountID ? String(action.delegateAccountID) : String(actorAccountID));
         }
     }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
 
@@ -238,8 +238,8 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action.reportActionID}-${index}`}
-                                    accountID={actorAccountID}
-                                    fragment={fragment}
+                                    accountID={actorAccountID ?? 0}
+                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}

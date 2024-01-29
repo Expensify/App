@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -71,10 +72,15 @@ function RoomInvitePage(props) {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const navigation = useNavigation();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'visibleChatMemberAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS],
+        () =>
+            _.map([...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'visibleChatMemberAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], (participant) =>
+                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
+            ),
         [props.report],
     );
 
@@ -95,9 +101,25 @@ function RoomInvitePage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [props.personalDetails, props.betas, searchTerm, excludedUsers]);
 
-    const getSections = () => {
-        const sections = [];
+    useEffect(() => {
+        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return () => {
+            unsubscribeTransitionEnd();
+        };
+        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const sections = useMemo(() => {
+        const sectionsArr = [];
         let indexOffset = 0;
+
+        if (!didScreenTransitionEnd) {
+            return [];
+        }
 
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
@@ -112,7 +134,7 @@ function RoomInvitePage(props) {
             });
         }
 
-        sections.push({
+        sectionsArr.push({
             title: undefined,
             data: filterSelectedOptions,
             shouldShow: true,
@@ -126,7 +148,7 @@ function RoomInvitePage(props) {
         const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
         const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
-        sections.push({
+        sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !_.isEmpty(personalDetailsFormatted),
@@ -135,7 +157,7 @@ function RoomInvitePage(props) {
         indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
-            sections.push({
+            sectionsArr.push({
                 title: undefined,
                 data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
                 shouldShow: true,
@@ -143,8 +165,8 @@ function RoomInvitePage(props) {
             });
         }
 
-        return sections;
-    };
+        return sectionsArr;
+    }, [personalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
 
     const toggleOption = useCallback(
         (option) => {
@@ -198,7 +220,12 @@ function RoomInvitePage(props) {
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
+        if (
+            !userToInvite &&
+            excludedUsers.includes(
+                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+            )
+        ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
@@ -208,49 +235,43 @@ function RoomInvitePage(props) {
             shouldEnableMaxHeight
             testID={RoomInvitePage.displayName}
         >
-            {({didScreenTransitionEnd}) => {
-                const sections = didScreenTransitionEnd ? getSections() : [];
-
-                return (
-                    <FullPageNotFoundView
-                        shouldShow={_.isEmpty(props.report)}
-                        subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
-                        onBackButtonPress={() => Navigation.goBack(backRoute)}
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.invite.invitePeople')}
-                            subtitle={reportName}
-                            onBackButtonPress={() => {
-                                Navigation.goBack(backRoute);
-                            }}
-                        />
-                        <SelectionList
-                            canSelectMultiple
-                            sections={sections}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
-                            onSelectRow={toggleOption}
-                            onConfirm={inviteUsers}
-                            showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
-                        />
-                        <View style={[styles.flexShrink0]}>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!selectedOptions.length}
-                                buttonText={translate('common.invite')}
-                                onSubmit={inviteUsers}
-                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                enabledWhenOffline
-                                disablePressOnEnter
-                                isAlertVisible={false}
-                            />
-                        </View>
-                    </FullPageNotFoundView>
-                );
-            }}
+            <FullPageNotFoundView
+                shouldShow={_.isEmpty(props.report)}
+                subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
+                onBackButtonPress={() => Navigation.goBack(backRoute)}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.invite.invitePeople')}
+                    subtitle={reportName}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(backRoute);
+                    }}
+                />
+                <SelectionList
+                    canSelectMultiple
+                    sections={sections}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    headerMessage={headerMessage}
+                    onSelectRow={toggleOption}
+                    onConfirm={inviteUsers}
+                    showScrollIndicator
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                />
+                <View style={[styles.flexShrink0]}>
+                    <FormAlertWithSubmitButton
+                        isDisabled={!selectedOptions.length}
+                        buttonText={translate('common.invite')}
+                        onSubmit={inviteUsers}
+                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                        enabledWhenOffline
+                        disablePressOnEnter
+                        isAlertVisible={false}
+                    />
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
