@@ -1,8 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import Alert from '@components/Alert';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
@@ -56,12 +55,11 @@ function TroubleshootingPage() {
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
 
-    const clearOnyx = () => {
+    const clearOnyx = useCallback(() => {
         Onyx.clear(keysToPreserve).then(() => {
-            Alert(translate('initialSettingsPage.troubleshooting.dataWiped'), translate('initialSettingsPage.troubleshooting.dataWipedDescription'));
             App.openApp();
         });
-    };
+    }, []);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: BaseMenuItem[] = [
@@ -83,7 +81,7 @@ function TroubleshootingPage() {
             icon: item.icon,
             onPress: item.action,
         }));
-    }, [translate]);
+    }, [clearOnyx, translate]);
 
     return (
         <IllustratedHeaderPageLayout
