@@ -1534,20 +1534,18 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID: string, reportTags: str
         return {};
     }
 
-    const splittedReportTags = reportTags.split(CONST.COLON);
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyTagKeys = Object.keys(policyTags);
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
-    const newOptimisticPolicyRecentlyUsedTags: Record<string, string[]> = {};
+    const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    splittedReportTags.forEach((tag, index) => {
+    reportTags.split(CONST.COLON).forEach((tag, index) => {
         if (!tag) {
             return;
         }
 
         const tagListKey = policyTagKeys[index];
-        const prevRecentlyUsedTags = policyRecentlyUsedTags[tagListKey] ?? [];
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = lodashUnion([tag], prevRecentlyUsedTags);
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = lodashUnion([tag], policyRecentlyUsedTags[tagListKey] ?? []);
     });
 
     return newOptimisticPolicyRecentlyUsedTags;
