@@ -42,7 +42,7 @@ const propTypes = {
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
 
-            // TODO: Comment
+            /** The index of a tag list */
             tagIndex: PropTypes.string,
         }),
     }).isRequired,
@@ -81,13 +81,12 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
         comment: transactionDescription,
         merchant: transactionMerchant,
         category: transactionCategory,
-        tag: reportTags,
+        tag: transactionTag,
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
-    const rawTagIndex = lodashGet(route, ['params', 'tagIndex'], undefined);
-    const tagIndex = +rawTagIndex;
+    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
     const tag = TransactionUtils.getTag(transaction, tagIndex);
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
@@ -100,7 +99,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && (reportTags || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, reportTags]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -169,10 +168,10 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
                 // In case the same tag has been selected, reset the tag.
                 updatedTag = '';
             }
-            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, IOUUtils.insertTagIntoReportTagsSting(reportTags, updatedTag, tagIndex));
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, IOUUtils.insertTagIntoReportTagsSting(transactionTag, updatedTag, tagIndex));
             Navigation.dismissModal();
         },
-        [tag, reportTags, tagIndex, transaction.transactionID, report.reportID],
+        [tag, transactionTag, tagIndex, transaction.transactionID, report.reportID],
     );
 
     const saveCategory = useCallback(
