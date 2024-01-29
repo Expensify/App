@@ -531,7 +531,10 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionOrID: Transaction | string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasViolation(transactionOrID: Transaction | OnyxEntry<Transaction> | string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    if (!transactionOrID) {
+        return false;
+    }
     const transactionID = typeof transactionOrID === 'string' ? transactionOrID : transactionOrID.transactionID;
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
 }

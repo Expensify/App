@@ -85,8 +85,9 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const hasViolations = transaction && TransactionUtils.hasViolation(transaction, transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(transaction, transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
@@ -213,7 +214,7 @@ function MoneyRequestPreviewContent({
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
                                     {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {!isSettled && hasFieldErrors && (
+                                {!isSettled && shouldShowRBR && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
