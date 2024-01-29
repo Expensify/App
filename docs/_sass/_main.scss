@@ -354,6 +354,9 @@ button {
     }
 
     .article {
+        .hidden {
+            display: none;
+        }
         img {
             display: block;
             margin: 20px auto;
@@ -843,49 +846,31 @@ button {
     }
 }
 
+.title-platform-tabs {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    h1 {
+        padding: 0;
+    }
+}
 
-.tab {
+#platform-tabs {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    margin-left: -20px;
-    padding: 0;
-    list-style: none;
-    // position: relative;
-}
-
-.tab > * {
-    flex: none;
-    position: relative;
-}
-
-.tab > * > a {
-    display: block;
-    color: #AFBBB0;
-    font-size: 13px;
     text-align: center;
     font-weight: 700;
+    font-size: 13px;
 }
 
-.tab > .active > a {
-    color:#fff;
-    background-color: #1A3D32;
-}
-
-.tab > li > a {
-    text-decoration: none;
+#platform-tabs > * {
     cursor: pointer;
     border-radius: 20px;
     padding: 10px 20px;
 }
 
-.tab-content {
-    padding: 0;
-}
-
-.tab-content > li {
-    display: none;
-}
-.tab-content > li.active {
-    display: block;
+#platform-tabs > .active {
+    color:#fff;
+    background-color: #1A3D32;
 }

@@ -2,6 +2,8 @@
 title: Deposit Accounts - USD
 description: How to add a deposit account to receive payments for yourself or your business (US)
 ---
+<div id="new-expensify" markdown="1">
+
 # Overview  
 
 There are two types of deposit-only accounts:  
@@ -75,3 +77,4 @@ There are a few reasons a reimbursement may be unsuccessful. The first step is t
 If you aren’t sure, please reach out to Concierge and we can assist!
 
 {% include faq-end.md %}
+</div>

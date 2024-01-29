@@ -165,6 +165,37 @@ window.addEventListener('load', () => {
     insertElementAfter(searchInput, searchLabel);
 });
 
+const tocbotOptions = {
+    // Where to render the table of contents.
+    tocSelector: '.article-toc',
+
+    // Where to grab the headings to build the table of contents.
+    contentSelector: '',
+
+    // Disable the collapsible functionality of the library by
+    // setting the maximum number of heading levels (6)
+    collapseDepth: 6,
+    headingSelector: 'h1, h2, h3, summary',
+
+    // Main class to add to lists.
+    listClass: 'lhn-items',
+
+    // Main class to add to links.
+    linkClass: 'link',
+
+    // Class to add to active links,
+    // the link corresponding to the top most heading on the page.
+    activeLinkClass: 'selected-article',
+
+    // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
+    headingsOffset: 80,
+    scrollSmoothOffset: -80,
+    scrollSmooth: true,
+
+    // If there is a fixed article scroll container, set to calculate titles' offset
+    scrollContainer: 'content-area',
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
 
@@ -179,36 +210,50 @@ window.addEventListener('DOMContentLoaded', () => {
         buttonCloseSidebar.addEventListener('click', closeSidebar);
     }
 
+    const expensifyClassic = document.getElementById('platform-expensify-classic');
+    const newExpensify = document.getElementById('platform-new-expensify');
+    
+    const expensifyClassicContent = document.getElementById('expensify-classic');
+    const newExpensifyContent = document.getElementById('new-expensify');
+
+    let defaultPlatform;
+    if (expensifyClassicContent) {
+        defaultPlatform = '#expensify-classic';
+    } else if(newExpensifyContent) {
+        defaultPlatform = '#new-expensify';
+    } else {
+        defaultPlatform = '.article-toc-content';
+    }
+
+    expensifyClassic?.addEventListener('click', (e) => {
+        expensifyClassic.classList.add('active');
+        expensifyClassicContent.classList.remove('hidden');
+    
+        newExpensify.classList.remove('active');
+        newExpensifyContent.classList.add('hidden');
+        window.tocbot.refresh({
+            ...tocbotOptions,
+            contentSelector: '#expensify-classic'
+        });
+    });
+
+    newExpensify?.addEventListener('click', (e) => {
+        newExpensify.classList.add('active');
+        newExpensifyContent.classList.remove('hidden');
+    
+        expensifyClassic.classList.remove('active');
+        expensifyClassicContent.classList.add('hidden');
+        active = '#new-expensify';
+        window.tocbot.refresh({
+            ...tocbotOptions,
+            contentSelector: '#new-expensify'
+        });
+    });
+
     if (window.tocbot) {
         window.tocbot.init({
-            // Where to render the table of contents.
-            tocSelector: '.article-toc',
-
-            // Where to grab the headings to build the table of contents.
-            contentSelector: '.article-toc-content',
-
-            // Disable the collapsible functionality of the library by
-            // setting the maximum number of heading levels (6)
-            collapseDepth: 6,
-            headingSelector: 'h1, h2, h3, summary',
-
-            // Main class to add to lists.
-            listClass: 'lhn-items',
-
-            // Main class to add to links.
-            linkClass: 'link',
-
-            // Class to add to active links,
-            // the link corresponding to the top most heading on the page.
-            activeLinkClass: 'selected-article',
-
-            // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-            headingsOffset: 80,
-            scrollSmoothOffset: -80,
-            scrollSmooth: true,
-
-            // If there is a fixed article scroll container, set to calculate titles' offset
-            scrollContainer: 'content-area',
+            ...tocbotOptions,
+            contentSelector: defaultPlatform,
         });
     }
 
