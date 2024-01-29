@@ -54,6 +54,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         methodID: null,
         selectedPaymentMethodType: null,
     });
+
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -556,6 +557,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                 }}
                 onItemSelected={(method) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
+                shouldShowPersonalBankAccountOption
             />
         </>
     );

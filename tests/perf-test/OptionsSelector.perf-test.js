@@ -3,7 +3,6 @@ import React from 'react';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import OptionsSelector from '@src/components/OptionsSelector';
-import CONST from '@src/CONST';
 import variables from '@src/styles/variables';
 
 jest.mock('../../src/components/withLocalize', () => (Component) => {
@@ -65,8 +64,6 @@ function OptionsSelectorWrapper(args) {
     );
 }
 
-const runs = CONST.PERFORMANCE_TESTS.RUNS;
-
 test('[OptionsSelector] should render text input with interactions', () => {
     const scenario = (screen) => {
         const textInput = screen.getByTestId('options-selector-input');
@@ -75,16 +72,16 @@ test('[OptionsSelector] should render text input with interactions', () => {
         fireEvent.changeText(textInput, 'test3');
     };
 
-    measurePerformance(<OptionsSelectorWrapper />, {scenario, runs});
+    measurePerformance(<OptionsSelectorWrapper />, {scenario});
 });
 
 test('[OptionsSelector] should render 1 section', () => {
-    measurePerformance(<OptionsSelectorWrapper />, {runs});
+    measurePerformance(<OptionsSelectorWrapper />);
 });
 
-test('[OptionsSelector] should render mutliple sections', () => {
+test('[OptionsSelector] should render multiple sections', () => {
     const sections = generateSections(mutlipleSectionsConfig);
-    measurePerformance(<OptionsSelectorWrapper sections={sections} />, {runs});
+    measurePerformance(<OptionsSelectorWrapper sections={sections} />);
 });
 
 test('[OptionsSelector] should press a list items', () => {
@@ -94,7 +91,7 @@ test('[OptionsSelector] should press a list items', () => {
         fireEvent.press(screen.getByText('Item 10'));
     };
 
-    measurePerformance(<OptionsSelectorWrapper />, {scenario, runs});
+    measurePerformance(<OptionsSelectorWrapper />, {scenario});
 });
 
 test('[OptionsSelector] should scroll and press few items', () => {
@@ -126,5 +123,5 @@ test('[OptionsSelector] should scroll and press few items', () => {
         fireEvent.press(screen.getByText('Item 200'));
     };
 
-    measurePerformance(<OptionsSelectorWrapper sections={sections} />, {scenario, runs});
+    measurePerformance(<OptionsSelectorWrapper sections={sections} />, {scenario});
 });

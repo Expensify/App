@@ -143,6 +143,7 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
+    const userInactiveSince = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -343,7 +344,8 @@ function ReportActionsList({
     const initialNumToRender = useMemo(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
+        const itemsToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        return itemsToRender > 0 ? itemsToRender : undefined;
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight]);
 
     /**
@@ -386,7 +388,7 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
-    useEffect(() => {
+    const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
@@ -404,7 +406,48 @@ function ReportActionsList({
         if (!markerFound) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.lastReadTime, report.reportID, messageManuallyMarkedUnread, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, shouldDisplayNewMarker, currentUnreadMarker, report.reportID]);
+
+    useEffect(() => {
+        calculateUnreadMarker();
+    }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
+
+    const onVisibilityChange = useCallback(() => {
+        if (!Visibility.isVisible()) {
+            userInactiveSince.current = DateUtils.getDBTime();
+            return;
+        }
+        // In case the user read new messages (after being inactive) with other device we should
+        // show marker based on report.lastReadTime
+        const newMessageTimeReference = userInactiveSince.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
+        if (
+            scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
+            !(
+                sortedVisibleReportActions &&
+                _.some(
+                    sortedVisibleReportActions,
+                    (reportAction) =>
+                        newMessageTimeReference < reportAction.created &&
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
+                )
+            )
+        ) {
+            return;
+        }
+
+        Report.readNewestAction(report.reportID, false);
+        userActiveSince.current = DateUtils.getDBTime();
+        lastReadTimeRef.current = newMessageTimeReference;
+        setCurrentUnreadMarker(null);
+        cacheUnreadMarkers.delete(report.reportID);
+        calculateUnreadMarker();
+    }, [calculateUnreadMarker, report, sortedVisibleReportActions]);
+
+    useEffect(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(onVisibilityChange);
+
+        return unsubscribeVisibilityListener;
+    }, [onVisibilityChange]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}) => (
