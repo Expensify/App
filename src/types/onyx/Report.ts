@@ -20,6 +20,11 @@ type Participant = {
 
 type Participants = Record<number, Participant>;
 
+type PendingAccount = {
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction | null;
+};
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -171,8 +176,10 @@ type Report = {
 
     /** If the report contains reportFields, save the field id and its value */
     reportFields?: Record<string, string>;
+
+    pendingAccounts?: Record<string, PendingAccount>;
 };
 
 export default Report;
 
-export type {NotificationPreference, WriteCapability, Note};
+export type {NotificationPreference, WriteCapability, Note, PendingAccount};

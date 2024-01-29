@@ -173,6 +173,7 @@ function RoomMembersPage(props) {
 
     const getMemberOptions = () => {
         let result = [];
+        const pendingAccounts = props.report.pendingAccounts;
 
         _.each(props.report.visibleChatMemberAccountIDs, (accountID) => {
             const details = personalDetails[accountID];
@@ -220,9 +221,9 @@ function RoomMembersPage(props) {
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
+                pendingAction: _.get(pendingAccounts, [accountID, 'pendingAction']),
             });
         });
-
         result = _.sortBy(result, (value) => value.text.toLowerCase());
 
         return result;

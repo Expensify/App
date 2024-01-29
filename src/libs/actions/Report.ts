@@ -7,6 +7,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {NullishDeep} from 'react-native-onyx/lib/types';
 import type {PartialDeep, ValueOf} from 'type-fest';
+import * as _ from 'underscore';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -65,8 +66,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, PendingAccount, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2145,6 +2147,18 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
 
+    const optimisticPendingAccounts: Record<string, PendingAccount> = {};
+    const successPendingAccounts: Record<string, PendingAccount> = {};
+    const failurePendingAccounts: Record<string, PendingAccount> = {};
+
+    inviteeAccountIDs.forEach((accountID) => {
+        optimisticPendingAccounts[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        successPendingAccounts[accountID] = {pendingAction: null};
+        failurePendingAccounts[accountID] = {
+            errors: ErrorUtils.getMicroSecondOnyxError('report.people.error.genericAdd'),
+        };
+    });
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2152,12 +2166,22 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
+                pendingAccounts: optimisticPendingAccounts,
             },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
-    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.finallyData;
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingAccounts: successPendingAccounts,
+            },
+        },
+        ...newPersonalDetailsOnyxData.finallyData,
+    ];
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2166,6 +2190,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                pendingAccounts: failurePendingAccounts,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -2183,16 +2208,24 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
 
-    const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-    const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const optimisticPendingAccounts: Record<string, PendingAccount> = {};
+    const successPendingAccounts: Record<string, PendingAccount> = {};
+    const failurePendingAccounts: Record<string, PendingAccount> = {};
+
+    targetAccountIDs.forEach((accountID) => {
+        optimisticPendingAccounts[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        successPendingAccounts[accountID] = {pendingAction: null};
+        failurePendingAccounts[accountID] = {
+            errors: ErrorUtils.getMicroSecondOnyxError('report.people.error.genericRemove'),
+        };
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingAccounts: optimisticPendingAccounts,
             },
         },
     ];
@@ -2203,7 +2236,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participantAccountIDs: report?.participantAccountIDs,
-                visibleChatMemberAccountIDs: report?.visibleChatMemberAccountIDs,
+                pendingAccounts: failurePendingAccounts,
             },
         },
     ];
@@ -2215,8 +2248,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
+                pendingAccounts: successPendingAccounts,
             },
         },
     ];
