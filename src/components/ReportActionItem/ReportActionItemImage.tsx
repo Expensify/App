@@ -93,7 +93,6 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                             // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                             ({show}) => (
                                 <PressableWithoutFocus
-                                    // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                                     style={[styles.noOutline, styles.w100, styles.h100]}
                                     onPress={show}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}

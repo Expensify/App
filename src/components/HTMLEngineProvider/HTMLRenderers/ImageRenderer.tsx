@@ -16,9 +16,7 @@ import ROUTES from '@src/ROUTES';
 import type {User} from '@src/types/onyx';
 
 type ImageRendererWithOnyxProps = {
-    /**
-     * Current user
-     */
+    /** Current user */
     // Following line is disabled because the onyx prop is only being used on the memo HOC
     // eslint-disable-next-line react/no-unused-prop-types
     user: OnyxEntry<User>;
