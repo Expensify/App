@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
@@ -6,10 +5,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-
-const propTypes = {
-    ...windowDimensionsPropTypes,
-};
 
 function SignInHeroImage(props) {
     const styles = useThemeStyles();
@@ -45,6 +40,5 @@ function SignInHeroImage(props) {
 
 SignInHeroImage.displayName = 'SignInHeroImage';
 SignInHeroImage.propTypes = propTypes;
-SignInHeroImage.defaultProps = defaultProps;
 
-export default withWindowDimensions(SignInHeroImage);
+export default SignInHeroImage;
