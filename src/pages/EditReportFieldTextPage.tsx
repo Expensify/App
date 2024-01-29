@@ -37,7 +37,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
 
     const validate = useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
-            const errors: Errors = {};    
+            const errors: Errors = {};
             if (isRequired && values[fieldID].toString().trim() === '') {
                 errors[fieldID] = 'common.error.fieldRequired';
             }
@@ -50,7 +50,9 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {inputRef.current?.focus()}}
+            onEntryTransitionEnd={() => {
+                inputRef.current?.focus();
+            }}
             testID={EditReportFieldTextPage.displayName}
         >
             <HeaderWithBackButton title={fieldName} />

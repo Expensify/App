@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type EditReportFieldDatePageProps = {
     /** Value of the policy report field */
@@ -36,7 +37,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
 
     const validate = useCallback(
         (value: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
-            const errors: Record<string, string> = {};
+            const errors: Errors = {};
             if (isRequired && value[fieldID].toString().trim() === '') {
                 errors[fieldID] = 'common.error.fieldRequired';
             }
@@ -49,7 +50,9 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {inputRef.current?.focus()}}
+            onEntryTransitionEnd={() => {
+                inputRef.current?.focus();
+            }}
             testID={EditReportFieldDatePage.displayName}
         >
             <HeaderWithBackButton title={fieldName} />
