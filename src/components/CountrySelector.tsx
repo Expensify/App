@@ -1,4 +1,5 @@
-import React, {forwardRef, useEffect} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -24,12 +25,21 @@ type CountrySelectorProps = {
     inputID: string;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange, ...rest}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
+
+    const didOpenContrySelector = useRef(false);
+    const isFocus = useIsFocused();
+    useEffect(() => {
+        if (isFocus && didOpenContrySelector.current) {
+            didOpenContrySelector.current = false;
+            rest.onBlur && rest.onBlur();
+        }
+    }, [isFocus, rest]);
 
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to country name
@@ -47,6 +57,8 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange}: Co
                 description={translate('common.country')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRouteWithoutParams();
+                    rest.onPress && rest.onPress();
+                    didOpenContrySelector.current = true;
                     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
                 }}
             />
