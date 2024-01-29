@@ -18,6 +18,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
@@ -217,6 +218,9 @@ function Composer(
 
             const TEXT_HTML = 'text/html';
 
+            const clipboardDataHtml = event.clipboardData?.getData(TEXT_HTML) ?? '';
+            const clipboardDataTypesHtml = event.clipboardData?.types.includes(TEXT_HTML) ?? false;
+
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
@@ -224,9 +228,43 @@ function Composer(
                 return;
             }
 
+            // If paste contains base64 image
+            if (clipboardDataHtml?.includes(CONST.IMAGE_BASE64_MATCH)) {
+                const domparser = new DOMParser();
+                const pastedHTML = clipboardDataHtml;
+                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
+
+                if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                    const src = embeddedImages[0].src;
+                    const file = FileUtils.base64ToFile(src, 'image.png');
+                    onPasteFile(file);
+                    return;
+                }
+            }
+
+            // If paste contains image from Google Workspaces ex: Sheets, Docs, Slide, etc
+            if (clipboardDataHtml?.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
+                const domparser = new DOMParser();
+                const pastedHTML = clipboardDataHtml;
+                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+
+                if (embeddedImages.length > 0 && embeddedImages[0]?.src) {
+                    const src = embeddedImages[0].src;
+                    if (src.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
+                        fetch(src)
+                            .then((response) => response.blob())
+                            .then((blob) => {
+                                const file = new File([blob], 'image.jpg', {type: 'image/jpeg'});
+                                onPasteFile(file);
+                            });
+                        return;
+                    }
+                }
+            }
+
             // If paste contains HTML
-            if (event.clipboardData?.types.includes(TEXT_HTML)) {
-                const pastedHTML = event.clipboardData?.getData(TEXT_HTML);
+            if (clipboardDataTypesHtml) {
+                const pastedHTML = clipboardDataHtml;
 
                 const domparser = new DOMParser();
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
