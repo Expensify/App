@@ -20,4 +20,3 @@ Bank accounts are easy to delete! Simply click the red **Delete** button in the 
 
 You can complete this process on a computer or on the mobile app.
 
-
