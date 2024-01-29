@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
-function SignInHeroImage(props) {
+function SignInHeroImage() {
     const styles = useThemeStyles();
     const {isMediumScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
