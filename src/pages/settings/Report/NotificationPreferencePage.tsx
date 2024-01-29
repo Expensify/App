@@ -3,30 +3,29 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
-import useLocalize from "@hooks/useLocalize";
 import type {Report} from '@src/types/onyx';
 
 type NotificationPreferencePageProps = WithReportOrNotFoundProps & {
     report: Report;
-}
+};
 
-function NotificationPreferencePage({report}:NotificationPreferencePageProps) {
-    const {translate} = useLocalize()
+function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
+    const {translate} = useLocalize();
     const shouldDisableNotificationPreferences = ReportUtils.isArchivedRoom(report);
-    const notificationPreferenceOptions =
-        Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE).filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
+    const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
+        .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({
             value: preference,
             text: translate(`notificationPreferencesPage.notificationPreferences.${preference}`),
             keyForList: preference,
             isSelected: preference === report.notificationPreference,
-        })
-    );
+        }));
 
     return (
         <ScreenWrapper
@@ -40,9 +39,7 @@ function NotificationPreferencePage({report}:NotificationPreferencePageProps) {
                 />
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
-                    onSelectRow={(option) =>
-                        ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
-                    }
+                    onSelectRow={(option) => ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)}
                     initiallyFocusedOptionKey={Object.values(notificationPreferenceOptions ?? {}).find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>

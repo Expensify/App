@@ -22,16 +22,15 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
-
 type ReportSettingsPageProps = WithReportOrNotFoundProps & {
-    report: Report
-}
+    report: Report;
+};
 
 function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find( (policy) => policy && policy.id === report.policyID), [policies, report.policyID]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report.policyID), [policies, report.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
@@ -87,7 +86,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                         {roomNameLabel}
                                     </Text>
                                     <DisplayNames
-                                        fullTitle={reportName ?? ""}
+                                        fullTitle={reportName ?? ''}
                                         tooltipEnabled
                                         numberOfLines={1}
                                         textStyles={[styles.optionAlternateText, styles.pre]}

@@ -5,6 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -13,22 +14,21 @@ import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useLocalize from "@hooks/useLocalize";
-import type {Policy, Report} from "@src/types/onyx";
+import type {Policy, Report} from '@src/types/onyx';
 
 type WriteCapabilityPageOnyxProps = {
     /** The policy object for the current route */
-    policy:  OnyxEntry<Policy>;
+    policy: OnyxEntry<Policy>;
 };
 
-type WriteCapabilityPageProps = WriteCapabilityPageOnyxProps & WithReportOrNotFoundProps & {
-    /** The report for which we are setting write capability */
-    report: Report,
-};
-
+type WriteCapabilityPageProps = WriteCapabilityPageOnyxProps &
+    WithReportOrNotFoundProps & {
+        /** The report for which we are setting write capability */
+        report: Report;
+    };
 
 function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
-    const {translate} = useLocalize()
+    const {translate} = useLocalize();
     const writeCapabilityOptions = Object.values(CONST.REPORT.WRITE_CAPABILITIES).map((value) => ({
         value,
         text: translate(`writeCapabilityPage.writeCapability.${value}`),

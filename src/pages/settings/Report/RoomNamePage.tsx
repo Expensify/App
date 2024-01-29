@@ -6,9 +6,12 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,32 +23,30 @@ import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useLocalize from "@hooks/useLocalize";
-import type {Policy, Report} from "@src/types/onyx";
-import type {OnyxFormValuesFields} from "@components/Form/types";
-import type {AnimatedTextInputRef} from "@components/RNTextInput";
+import type {Policy, Report} from '@src/types/onyx';
 
 type RoomNamePageOnyxProps = {
     /** All reports shared with the user */
-    reports: OnyxCollection<Report>,
+    reports: OnyxCollection<Report>;
 
     /** Policy of the report for which the name is being edited */
-    policy: OnyxEntry<Policy>
-}
-
-type RoomNamePageProps = RoomNamePageOnyxProps & WithReportOrNotFoundProps & {
-    /** The room report for which the name is being edited */
-    report: Report
+    policy: OnyxEntry<Policy>;
 };
 
-function RoomNamePage({ report, policy, reports }: RoomNamePageProps) {
+type RoomNamePageProps = RoomNamePageOnyxProps &
+    WithReportOrNotFoundProps & {
+        /** The room report for which the name is being edited */
+        report: Report;
+    };
+
+function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
-    const {translate} = useLocalize()
+    const {translate} = useLocalize();
 
     const validate = useCallback(
-        (values:  OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
+        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
             const errors = {};
 
             // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
@@ -116,5 +117,5 @@ export default withReportOrNotFound()(
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
-    })(RoomNamePage)
+    })(RoomNamePage),
 );

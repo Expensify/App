@@ -151,5 +151,5 @@ export type {
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PrivateNotesForm,
-    RoomNameForm
+    RoomNameForm,
 };
