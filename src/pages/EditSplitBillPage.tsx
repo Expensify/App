@@ -1,15 +1,17 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import EditRequestAmountPage from './EditRequestAmountPage';
@@ -35,9 +37,7 @@ type EditSplitBillOnyxProps = {
     draftTransaction: OnyxEntry<Transaction>;
 };
 
-type EditSplitBillProps = EditSplitBillOnyxProps & {
-    route: RouteProp<{params: {field: string; reportID: string; reportActionID: string}}>;
-};
+type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
     const fieldToEdit = route.params.field;
