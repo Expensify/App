@@ -1,7 +1,21 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PushNotification from '..';
+
+export default function subscribePushNotification(notificationID: OnyxEntry<string>) {
+    if (notificationID) {
+        PushNotification.register(notificationID);
+
+        // Prevent issue where report linking fails after users switch accounts without closing the app
+        PushNotification.init();
+        subscribeToReportCommentPushNotifications();
+    } else {
+        PushNotification.deregister();
+        PushNotification.clearNotifications();
+    }
+}
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
@@ -12,15 +26,6 @@ import PushNotification from '..';
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-
-            // Prevent issue where report linking fails after users switch accounts without closing the app
-            PushNotification.init();
-            subscribeToReportCommentPushNotifications();
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
+        subscribePushNotification(notificationID);
     },
 });
