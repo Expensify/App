@@ -29,13 +29,14 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {MoneyRequestPreviewProps} from './moneyRequestPreviewProps';
+import type {MoneyRequestPreviewProps} from './types';
 
 function MoneyRequestPreviewContent({
     iouReport,
@@ -55,6 +56,7 @@ function MoneyRequestPreviewContent({
     shouldShowPendingConversionMessage = false,
     isHovered = false,
     isWhisper = false,
+    transactionViolations,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -62,10 +64,6 @@ function MoneyRequestPreviewContent({
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const parser = new ExpensiMark();
-
-    if (isEmptyObject(iouReport) && !isBillSplit) {
-        return null;
-    }
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -87,6 +85,7 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const hasViolations = transaction && TransactionUtils.hasViolation(transaction, transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
@@ -140,7 +139,14 @@ function MoneyRequestPreviewContent({
         }
 
         let message = translate('iou.cash');
-        if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
+        if (hasViolations && transaction) {
+            const violations = TransactionUtils.getTransactionViolations(transaction, transactionViolations);
+            if (violations?.[0]) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violations?.[0], translate);
+                const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
+                message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
+            }
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;

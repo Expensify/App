@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MoneyRequestPreviewContent from './MoneyRequestPreviewContent';
-import type {MoneyRequestPreviewOnyxProps, MoneyRequestPreviewProps} from './moneyRequestPreviewProps';
+import type {MoneyRequestPreviewOnyxProps, MoneyRequestPreviewProps} from './types';
 
 // We should not render the component if there is no iouReport and it's not a split.
 // Moved outside of the component scope to allow for easier use of hooks in the main component.
