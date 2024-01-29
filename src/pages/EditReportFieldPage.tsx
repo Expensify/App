@@ -2,6 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -62,8 +63,8 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
 
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
-    const handleReportFieldChange = (form: Record<string, string>) => {
-        const value = form[reportField.fieldID] || '';
+    const handleReportFieldChange = (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
+        const value = form[reportField.fieldID].toString() || '';
         if (isReportFieldTitle) {
             ReportActions.updatePolicyReportName(report.reportID, value);
         } else {
