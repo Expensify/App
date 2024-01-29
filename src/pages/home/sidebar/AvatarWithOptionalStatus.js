@@ -50,9 +50,8 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
             >
                 <Tooltip text={translate('statusPage.status')}>
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {/* <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.statusEmojiStyles]}> */}
                         <Text
-                            style={[{fontSize: 9}, styles.statusEmojiStyles]}
+                            style={styles.emojiStatusLHN}
                             numberOfLines={1}
                         >
                             {emojiStatus}
