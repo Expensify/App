@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {measureHeightOfSuggestioContainer} from '@libs/SuggestionUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type {AutoCompleteSuggestionsProps} from './types';
-import { measureHeightOfSuggestioContainer } from '@libs/SuggestionUtils';
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -48,9 +48,10 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
         measureParentContainer((x, y, w, h) => {
             const currenBottom = y < suggestionContainerHeight ? windowHeight - y - suggestionContainerHeight - h : windowHeight - y;
             setShouldBelowContainer(y < suggestionContainerHeight);
-            setContainerState({left: x, bottom: currenBottom, width: w})
+            setContainerState({left: x, bottom: currenBottom, width: w});
         });
-    }, [measureParentContainer, windowHeight, windowWidth]);
+    }, [measureParentContainer, windowHeight, windowWidth, suggestionContainerHeight]);
+
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
             // eslint-disable-next-line react/jsx-props-no-spreading

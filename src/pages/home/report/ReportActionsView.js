@@ -11,6 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
+import * as SuggestionsAction from '@libs/actions/SuggestionsAction';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -255,6 +256,7 @@ function ReportActionsView(props) {
             <ReportActionsList
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
+                onScroll={SuggestionsAction.updateShouldShowSuggestionMenuToFalse}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}

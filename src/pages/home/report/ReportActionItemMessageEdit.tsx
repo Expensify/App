@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, NativeModules, View, findNodeHandle} from 'react-native';
+import {findNodeHandle, InteractionManager, Keyboard, NativeModules, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -20,6 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SuggestionsAction from '@libs/actions/SuggestionsAction';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -38,10 +39,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
-import type { SuggestionsRef } from './ReportActionCompose/types';
+import { PortalHost } from '@gorhom/portal';
 
 const {RNTextInputReset} = NativeModules;
-
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -126,7 +126,6 @@ function ReportActionItemMessageEdit(
     const isFocusedRef = useRef<boolean>(false);
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
-    const suggestionsRef = useRef<SuggestionsRef>();
     const containerRef = useRef<View>(null);
 
     useEffect(() => {
@@ -182,7 +181,7 @@ function ReportActionItemMessageEdit(
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
         if (isMobileSafari) {
-            setDraft((prevDraft) => {
+            setDraft((prevDraft: string) => {
                 setSelection({
                     start: prevDraft.length,
                     end: prevDraft.length,
@@ -257,9 +256,7 @@ function ReportActionItemMessageEdit(
             if (emojis?.length > 0) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis?.length > 0) {
-                    if (suggestionsRef.current) {
-                        suggestionsRef.current.resetSuggestions();
-                    }
+                    SuggestionsAction.resetSuggestions();
                     insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -361,8 +358,8 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            if (suggestionsRef.current) {
-                suggestionsRef.current.triggerHotkeyActions(e);
+            if (SuggestionsAction.triggerHotkeyActions(e)) {
+                return;
             }
 
             if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
@@ -408,8 +405,6 @@ function ReportActionItemMessageEdit(
         validateCommentMaxLength(draft);
     }, [draft, validateCommentMaxLength]);
 
-
-
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
@@ -423,6 +418,7 @@ function ReportActionItemMessageEdit(
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
+                    <PortalHost name="suggestions" />
                     <View style={[styles.justifyContentEnd, styles.mb1]}>
                         <Tooltip text={translate('common.cancel')}>
                             <PressableWithFeedback
@@ -485,16 +481,14 @@ function ReportActionItemMessageEdit(
                             }}
                             selection={selection}
                             onSelectionChange={(e) => {
-                                if (suggestionsRef.current) {
-                                    suggestionsRef.current.onSelectionChange(e)
-                                }
-                                setSelection(e.nativeEvent.selection)
+                                SuggestionsAction.onSelectionChange(e);
+                                setSelection(e.nativeEvent.selection);
                             }}
                             setValue={setDraft}
                             setSelection={setSelection}
                             isComposerFocused={!!textInputRef.current && textInputRef.current.isFocused()}
                             resetKeyboardInput={resetKeyboardInput}
-                            suggestionsRef={suggestionsRef}
+                            suggestionsRef={SuggestionsAction.suggestionsRef}
                             updateDraft={updateDraft}
                             measureParentContainer={measureContainer}
                         />

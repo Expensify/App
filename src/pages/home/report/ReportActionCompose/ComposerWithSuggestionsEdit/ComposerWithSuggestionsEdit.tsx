@@ -1,25 +1,26 @@
-import type { ComposerProps } from "@components/Composer/types";
-import Composer from "@components/Composer";
-import type { Dispatch, ForwardedRef, MutableRefObject, SetStateAction} from 'react';
-import React, { useState } from 'react';
-import type { AnimatedProps } from "react-native-reanimated";
-import type {TextInputProps} from "react-native";
+import type {Dispatch, ForwardedRef, RefObject, SetStateAction} from 'react';
+import React, {useState} from 'react';
+import type {TextInputProps} from 'react-native';
+import type {AnimatedProps} from 'react-native-reanimated';
+import Composer from '@components/Composer';
+import type {ComposerProps} from '@components/Composer/types';
+import type {SuggestionsRef} from '@libs/actions/SuggestionsAction';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import type { SuggestionsRef } from "@pages/home/report/ReportActionCompose/types";
 
 type ComposerWithSuggestionsEditProps = {
-    setValue: Dispatch<SetStateAction<string>>,
-    setSelection: Dispatch<SetStateAction<{
-        start: number,
-        end: number,
-    }>>,
-    resetKeyboardInput: () => void,
-    isComposerFocused: boolean,
-    suggestionsRef: MutableRefObject<SuggestionsRef | undefined>,
-    updateDraft: (newValue: string) => void,
-    measureParentContainer: (callback: () => void) => void
-}
-
+    setValue: Dispatch<SetStateAction<string>>;
+    setSelection: Dispatch<
+        SetStateAction<{
+            start: number;
+            end: number;
+        }>
+    >;
+    resetKeyboardInput: () => void;
+    isComposerFocused: boolean;
+    suggestionsRef: RefObject<SuggestionsRef>;
+    updateDraft: (newValue: string) => void;
+    measureParentContainer: (callback: () => void) => void;
+};
 
 function ComposerWithSuggestionsEdit(
     {
@@ -42,7 +43,7 @@ function ComposerWithSuggestionsEdit(
         suggestionsRef,
         updateDraft,
         measureParentContainer,
-        id = undefined
+        id = undefined,
     }: ComposerWithSuggestionsEditProps & ComposerProps,
     ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
 ) {
@@ -88,7 +89,7 @@ function ComposerWithSuggestionsEdit(
                 resetKeyboardInput={resetKeyboardInput}
             />
         </>
-    )
+    );
 }
 
 export default React.forwardRef(ComposerWithSuggestionsEdit);

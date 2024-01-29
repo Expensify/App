@@ -31,13 +31,11 @@ const measureHeightOfSuggestioContainer = (numRows: number, isSuggestionPickerLa
         } else {
             suggestionHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
         }
+    } else if (numRows > 2) {
+        // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
+        suggestionHeight = CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     } else {
-        if (numRows > 2) {
-            // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
-            suggestionHeight = CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
-        } else {
-            suggestionHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
-        }
+        suggestionHeight = numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     }
     return suggestionHeight + borderAndPadding;
 };

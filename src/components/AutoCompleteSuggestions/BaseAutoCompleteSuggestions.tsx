@@ -39,7 +39,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         suggestions,
         isSuggestionPickerLarge,
         keyExtractor,
-        shouldBelowParentContainer = false
+        shouldBelowParentContainer = false,
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
