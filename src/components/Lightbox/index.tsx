@@ -43,6 +43,10 @@ type LightboxProps = {
 function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
 
+    /** React hooks must be used in the render function of the component at top-level and unconditionally.
+     * Therefore, in order to provide a default value for "isPagerScrolling" if the "AttachmentCarouselPagerContext" is not available,
+     * we need to create a shared value that can be used in the render function.
+     * */
     const isPagerScrollingFallback = useSharedValue(false);
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
@@ -77,6 +81,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             page: foundPage,
         };
     }, [attachmentCarouselPagerContext, isPagerScrollingFallback, uri]);
+
+    /** Whether the Lightbox is used within an attachmnet carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
     const isActive = page === activePage;
 
@@ -179,7 +185,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         }
     }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
-    const handleScalChange = useCallback(
+    const handleScaleChange = useCallback(
         (scale: number) => {
             onScaleChangedProp?.(scale);
             onScaleChangedContext?.(scale);
@@ -204,7 +210,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 pagerRef={pagerRef}
                                 shouldDisableTransformationGestures={isPagerScrolling}
                                 onTap={onTap}
-                                onScaleChanged={handleScalChange}
+                                onScaleChanged={handleScaleChange}
                             >
                                 <Image
                                     source={{uri}}
