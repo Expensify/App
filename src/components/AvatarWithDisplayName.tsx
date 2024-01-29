@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -36,7 +36,7 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
@@ -63,7 +63,7 @@ function AvatarWithDisplayName({
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;

@@ -111,10 +111,6 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isSubmittedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
-}
-
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
@@ -834,7 +830,6 @@ export {
     isDeletedParentAction,
     isMessageDeleted,
     isModifiedExpenseAction,
-    isSubmittedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,

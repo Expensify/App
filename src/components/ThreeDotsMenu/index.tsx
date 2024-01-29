@@ -81,7 +81,7 @@ function ThreeDotsMenu({
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
-    const buttonRef = useRef(null);
+    const buttonRef = useRef<HTMLDivElement | null>(null);
     const {translate} = useLocalize();
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
 
@@ -110,6 +110,7 @@ function ThreeDotsMenu({
                                 hidePopoverMenu();
                                 return;
                             }
+                            buttonRef.current?.blur();
                             showPopoverMenu();
                             if (onIconPress) {
                                 onIconPress();
