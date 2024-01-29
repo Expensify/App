@@ -780,7 +780,7 @@ export default {
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
-            troubleshooting: 'Troubleshooting',
+            troubleshooting: 'Troubleshoot',
         },
         appDownloadLinks: {
             android: {
@@ -798,8 +798,6 @@ export default {
             viewConsole: 'View console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
             submitBug: 'submit a bug',
-            dataWiped: 'Data wiped',
-            dataWipedDescription: 'All data has been wiped. In case of any issues, open the app again.',
         },
         goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
