@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.BILLS | typeof SCREENS.WORKSPACE.INVOICES>;
+type PolicyRoute = RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.BILLS | typeof SCREENS.WORKSPACE.INVOICES | typeof SCREENS.WORKSPACE.MEMBERS>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
