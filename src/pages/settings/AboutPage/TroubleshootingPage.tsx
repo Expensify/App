@@ -68,11 +68,6 @@ function TroubleshootingPage() {
                 icon: Expensicons.RotateLeft,
                 action: clearOnyx,
             },
-            {
-                translationKey: 'initialSettingsPage.troubleshooting.viewConsole',
-                icon: Expensicons.Gear,
-                action: () => {},
-            },
         ];
 
         return baseMenuItems.map((item) => ({
