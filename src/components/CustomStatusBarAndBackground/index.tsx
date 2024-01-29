@@ -120,7 +120,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         return () => navigationRef.removeListener('state', listener);
     }, [isDisabled, theme.appBG, updateStatusBarStyle]);
 
-    // Update the global background (on web) everytime the theme changes.
+    // Update the global background (on web) and status bar style when the theme changes
     // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
     useEffect(() => {
         if (isDisabled) {
