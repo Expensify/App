@@ -293,15 +293,13 @@ function ReportActionItem(props) {
     );
 
     useEffect(() => {
-        if (props.index !== 0) {
+        if (props.index !== 0 || !ReportActionsUtils.isActionableMentionWhisper(props.action)) {
             return;
         }
 
-        if (ReportActionsUtils.isActionableMentionWhisper(props.action) && prevActionResolution === lodashGet(props.action, 'originalMessage.resolution', null)) {
-            return;
+        if (prevActionResolution !== lodashGet(props.action, 'originalMessage.resolution', null)) {
+            reportScrollManager.scrollToIndex(props.index);
         }
-
-        reportScrollManager.scrollToIndex(props.index);
     }, [props.index, props.action, prevActionResolution, reportScrollManager]);
 
     const toggleReaction = useCallback(
