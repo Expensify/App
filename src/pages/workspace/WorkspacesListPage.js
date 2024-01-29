@@ -181,6 +181,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 workspaceType={item.type}
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         )}
                     </PressableWithoutFeedback>

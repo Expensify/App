@@ -1,13 +1,15 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+
+type CheckingMethod = () => boolean;
 
 let allReports: OnyxCollection<Report>;
 
@@ -27,13 +29,22 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let allPolicyMembers: OnyxCollection<PolicyMember>;
+let allPolicyMembers: OnyxCollection<PolicyMembers>;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     waitForCollectionCallback: true,
     callback: (val) => {
         allPolicyMembers = val;
+    },
+});
+
+let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    callback: (val) => {
+        reimbursementAccount = val;
     },
 });
 
@@ -60,6 +71,40 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD.GBR : undefined;
 };
 
+function hasGlobalWorkspaceError(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
+
+    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
+    const errorCheckingMethods: CheckingMethod[] = [
+        () => Object.values(cleanPolicies).some(hasPolicyError),
+        () => Object.values(cleanPolicies).some(hasCustomUnitsError),
+        () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
+        () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
+    ];
+
+    return errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
+}
+
+function hasWorkspaceRedBrickRoad(policy: Policy) {
+    const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+
+    return hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+}
+
+function checkIfWorkspaceHasError(policyID?: string) {
+    // TODO: Handle reimbursmentAccount error
+    if (!policyID) {
+        return hasGlobalWorkspaceError(allPolicies, allPolicyMembers);
+    }
+    const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
+
+    if (!policy) {
+        return false;
+    }
+
+    return hasWorkspaceRedBrickRoad(policy);
+}
+
 /**
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
@@ -72,11 +117,13 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
 
     const cleanPolicies = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => !!policy));
-    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(allPolicyMembers ?? {}).filter(([, policyMembers]) => !!policyMembers));
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     Object.values(cleanPolicies).forEach((policy) => {
-        if (policy && (hasPolicyError(policy) || hasCustomUnitsError(policy) || hasPolicyMemberError(cleanAllPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]))) {
+        if (!policy) {
+            return;
+        }
+
+        if (hasWorkspaceRedBrickRoad(policy)) {
             workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD.RBR;
         }
     });
@@ -128,5 +175,5 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
     return workspacesUnreadStatuses;
 }
 
-export {getBrickRoadForPolicy, getWorkspacesBrickRoads, getWorkspacesUnreadStatuses};
+export {getBrickRoadForPolicy, getWorkspacesBrickRoads, getWorkspacesUnreadStatuses, hasGlobalWorkspaceError, checkIfWorkspaceHasError, hasWorkspaceRedBrickRoad};
 export type {BrickRoad};

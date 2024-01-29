@@ -1380,6 +1380,19 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
+        bottomTabStatusIndicator: {
+            borderColor: theme.sidebar,
+            backgroundColor: theme.danger,
+            borderRadius: 8,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -10,
+            top: -10,
+            height: 16,
+            width: 16,
+            zIndex: 10,
+        },
+
         floatingActionButton: {
             backgroundColor: theme.success,
             height: variables.componentSizeLarge,

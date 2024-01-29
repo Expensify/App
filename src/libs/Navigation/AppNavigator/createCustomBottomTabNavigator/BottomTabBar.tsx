@@ -14,6 +14,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
+import {checkIfWorkspaceHasError} from '@libs/WorkspacesUtils';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -32,6 +33,8 @@ function BottomTabBar() {
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
+
+    const showWorkspaceRedBrickRoad = checkIfWorkspaceHasError(activeWorkspaceID) && currentTabName === SCREENS.HOME;
 
     return (
         <View style={styles.bottomTabBarContainer}>
@@ -66,12 +69,19 @@ function BottomTabBar() {
                     wrapperStyle={styles.flexGrow1}
                     style={styles.bottomTabBarItem}
                 >
-                    <Icon
-                        src={Expensicons.Wrench}
-                        fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
-                        width={variables.iconBottomBar}
-                        height={variables.iconBottomBar}
-                    />
+                    <View>
+                        <Icon
+                            src={Expensicons.Wrench}
+                            fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                        {showWorkspaceRedBrickRoad && (
+                            <View
+                                style={styles.bottomTabStatusIndicator}
+                            />
+                        )}
+                    </View>
                 </PressableWithFeedback>
             </Tooltip>
             <PurposeForUsingExpensifyModal />
