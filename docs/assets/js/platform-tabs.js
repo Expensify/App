@@ -1,6 +1,3 @@
-const expensifyClassic = document.getElementById('platform-tab-expensify-classic');
-const newExpensify = document.getElementById('platform-tab-new-expensify');
-
 const expensifyClassicContent = document.getElementById('expensify-classic');
 const newExpensifyContent = document.getElementById('new-expensify');
 
