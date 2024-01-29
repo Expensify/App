@@ -1,11 +1,9 @@
 import lodashCompact from 'lodash/compact';
-import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -16,20 +14,40 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './attachmentPickerPropTypes';
-import launchCamera from './launchCamera';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {TranslationPaths} from '@src/languages/types';
+import launchCamera from './launchCamera/launchCamera';
+import type {CameraOptions, Asset, ImagePickerResponse, Callback} from './launchCamera/types';
+import type BaseAttachmentPickerProps from './types';
 
-const propTypes = {
-    ...basePropTypes,
-
+type AttachmentPickerProps = BaseAttachmentPickerProps & {
     /** If this value is true, then we exclude Camera option. */
-    shouldHideCameraOption: PropTypes.bool,
+    shouldHideCameraOption?: boolean;
 };
 
-const defaultProps = {
-    ...baseDefaultProps,
-    shouldHideCameraOption: false,
+type DocumentPickerResponse = {
+    uri: string;
+    name: string | null;
+    copyError?: string;
+    fileCopyUri: string | null;
+    type: string | null;
+    size: number | null;
 };
+
+type Item = {
+    icon: IconAsset;
+    textTranslationKey: string;
+    pickAttachment: () => void;
+};
+
+type FileResult = {
+    name: string;
+    type: string | null;
+    width: number;
+    height: number;
+    uri: string;
+    size: number;
+}
 
 /**
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
@@ -44,10 +62,8 @@ const imagePickerOptions = {
 
 /**
  * Return imagePickerOptions based on the type
- * @param {String} type
- * @returns {Object}
  */
-const getImagePickerOptions = (type) => {
+const getImagePickerOptions = (type: string): CameraOptions => {
     // mediaType property is one of the ImagePicker configuration to restrict types'
     const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
     return {
@@ -67,19 +83,16 @@ const documentPickerOptions = {
 /**
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
- *
- * @param {Object} fileData
- * @return {Promise}
  */
-const getDataForUpload = (fileData) => {
+const getDataForUpload = (fileData: ImagePickerResponse & DocumentPickerResponse): Promise<FileResult> => {
     const fileName = fileData.fileName || fileData.name || 'chat_attachment';
-    const fileResult = {
+    const fileResult: FileResult = {
         name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
-        uri: fileData.fileCopyUri || fileData.uri,
-        size: fileData.fileSize || fileData.size,
+        uri: fileData.fileCopyUri ?? fileData.uri,
+        size: fileData.fileSize ?? fileData.size,
     };
 
     if (fileResult.size) {
@@ -97,16 +110,14 @@ const getDataForUpload = (fileData) => {
  * returns a "show attachment picker" method that takes
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
- * @param {propTypes} props
- * @returns {JSX.Element}
  */
-function AttachmentPicker({type, children, shouldHideCameraOption}) {
+function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, shouldHideCameraOption = false}: AttachmentPickerProps): React.JSX.Element {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
 
-    const completeAttachmentSelection = useRef();
-    const onModalHide = useRef();
-    const onCanceled = useRef();
+    const completeAttachmentSelection = useRef<(data: ImagePickerResponse & DocumentPickerResponse) => void>(() => {});
+    const onModalHide = useRef<() => void>(() => {});
+    const onCanceled = useRef<() => void>(() => {});
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -115,19 +126,18 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
      * A generic handling when we don't know the exact reason for an error
      */
     const showGeneralAlert = useCallback(() => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment')); 
     }, [translate]);
 
     /**
      * Common image picker handling
      *
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
-     * @returns {Promise<ImagePickerResponse>}
      */
     const showImagePicker = useCallback(
-        (imagePickerFunc) =>
+        (imagePickerFunc: (options: CameraOptions, callback: Callback) => {}): Promise<ImagePickerResponse | Asset[] | void> =>
             new Promise((resolve, reject) => {
-                imagePickerFunc(getImagePickerOptions(type), (response) => {
+                imagePickerFunc(getImagePickerOptions(type), (response: ImagePickerResponse) => {
                     if (response.didCancel) {
                         // When the user cancelled resolve with no attachment
                         return resolve();
@@ -154,10 +164,10 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      *
-     * @returns {Promise<DocumentPickerResponse[]>}
+     * @returns {Promise<DocumentPickerResponse[] | void>}
      */
     const showDocumentPicker = useCallback(
-        () =>
+        (): Promise<DocumentPickerResponse[] | void> =>
             RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
@@ -169,7 +179,8 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
         [showGeneralAlert],
     );
 
-    const menuItemData = useMemo(() => {
+    // convert this into type and use it solve others
+    const menuItemData: Item[] = useMemo(() => {
         const data = lodashCompact([
             !shouldHideCameraOption && {
                 icon: Expensicons.Camera,
@@ -203,10 +214,10 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     /**
      * Opens the attachment modal
      *
-     * @param {function} onPickedHandler A callback that will be called with the selected attachment
-     * @param {function} onCanceledHandler A callback that will be called without a selected attachment
+     * @param onPickedHandler A callback that will be called with the selected attachment
+     * @param onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler, onCanceledHandler = () => {}) => {
+    const open = (onPickedHandler: () => void, onCanceledHandler: () => void = () => {}) => {
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
         setIsVisible(true);
@@ -222,18 +233,18 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
-     *
-     * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
-     * @returns {Promise}
      */
     const pickAttachment = useCallback(
-        (attachments = []) => {
+        (attachments: Array<DocumentPickerResponse & ImagePickerResponse> = []): Promise<void> => {
             if (attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
             }
 
-            const fileData = _.first(attachments);
+            // TODO: Convert ot slice
+            const fileData = attachments[0];
+
+            // TODO: return if fileData empty
 
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
@@ -259,7 +270,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
      * @param {Function} item.pickAttachment
      */
     const selectItem = useCallback(
-        (item) => {
+        (item: Item) => {
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () =>
@@ -294,10 +305,8 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
 
     /**
      * Call the `children` renderProp with the interface defined in propTypes
-     *
-     * @returns {React.ReactNode}
      */
-    const renderChildren = () =>
+    const renderChildren = (): React.ReactNode =>
         children({
             openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
         });
@@ -314,11 +323,11 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 onModalHide={onModalHide.current}
             >
                 <View style={!isSmallScreenWidth && styles.createMenuContainer}>
-                    {_.map(menuItemData, (item, menuIndex) => (
+                    {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}
                             icon={item.icon}
-                            title={translate(item.textTranslationKey)}
+                            title={translate(item.textTranslationKey as TranslationPaths)}
                             onPress={() => selectItem(item)}
                             focused={focusedIndex === menuIndex}
                         />
@@ -330,8 +339,6 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
     );
 }
 
-AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.defaultProps = defaultProps;
 AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;
