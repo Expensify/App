@@ -15,7 +15,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -109,10 +108,6 @@ function InitialSettingsPage(props) {
 
     const toggleSignoutConfirmModal = (value) => {
         setShouldShowSignoutConfirmModal(value);
-    };
-
-    const openProfileSettings = () => {
-        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
     };
 
     const signOut = useCallback(
