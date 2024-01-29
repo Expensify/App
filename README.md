@@ -412,7 +412,7 @@ Updated rules for managing all types of chats (add/remove people)
         | :---: | :---:  |  :---: | :---: | :---: 
         | **Invite** | ✅ |  ❌ |  ✅ | ❌
         | **Remove** | ✅ |  ❌ |  ✅ | ❌
-        | **Leave**  | ❌ |  ❌ |  ❌ | ❌
+        | **Leave**  | ❌ |  ✅ |  ❌ | ✅
         | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
 
     2. #### Workspace #announce room
@@ -440,12 +440,12 @@ Updated rules for managing all types of chats (add/remove people)
         | **Can be removed**  | ✅ | ✅
 
     4. #### Workspace chats
-        |   |  Creator(Admin) | Member  
-        | :---: | :---:  |  :---:  
-        | **Invite** | ❌ |  ❌ 
-        | **Remove** | ❌ |  ❌   
-        | **Leave**  | ❌ |  ❌  
-        | **Can be removed**  | ❌ | ❌
+        |   |  Admin | Member(default) | Member(invited)  
+        | :---: | :---:  |  :---:  |  :---:
+        | **Invite** | ✅ |  ✅ | ❌
+        | **Remove** | ✅ |  ✅ | ❌  
+        | **Leave**  | ❌ |  ❌  | ✅
+        | **Can be removed**  | ❌ | ❌ | ✅
 
 3. ### Domain chat
     |   |  Member
