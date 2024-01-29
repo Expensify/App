@@ -30,6 +30,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, BankAccountList, CardList, FundList} from '@src/types/onyx';
+import {BankIcon} from '@src/types/onyx/Bank';
+import {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -97,13 +99,17 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
 };
 
 type PaymentMethodItem = PaymentMethod & {
+    key?: string;
+    title?: string;
+    description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-};
+    errors?: Errors;
+} & BankIcon;
 
 function dismissError(item: PaymentMethod) {
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
@@ -200,7 +206,10 @@ function PaymentMethodList({
                     canDismissError: isExpensifyCard,
                     errors: card.errors,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    brickRoadIndicator: card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL ? 'error' : null,
+                    brickRoadIndicator:
+                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : undefined,
                     ...icon,
                 };
             });
@@ -298,7 +307,7 @@ function PaymentMethodList({
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
                 <FlashList
                     estimatedItemSize={variables.optionRowHeight}
-                    data={filteredPaymentMethods as PaymentMethodItem[]}
+                    data={filteredPaymentMethods}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}

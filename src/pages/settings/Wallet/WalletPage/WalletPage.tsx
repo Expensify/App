@@ -73,6 +73,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         methodID: '',
         selectedPaymentMethodType: '',
     });
+
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -243,9 +244,9 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? null, null, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID ?? 0, 0, previousPaymentMethod, currentPaymentMethod);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID ?? null, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(0, paymentMethod.selectedPaymentMethod.fundID ?? 0, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
         paymentMethod.methodID,
