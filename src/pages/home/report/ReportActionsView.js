@@ -25,6 +25,7 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsList from './ReportActionsList';
@@ -84,7 +85,6 @@ const defaultProps = {
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
 const SPACER = 16;
-const PAGINATION_SIZE = 15;
 
 let listIDCount = Math.round(Math.random() * 100);
 
@@ -138,7 +138,8 @@ const usePaginatedReportActionList = (linkedID, allReportActions, fetchNewerRepo
         if (isFirstLinkedActionRender.current) {
             return allReportActions.slice(index, allReportActions.length);
         }
-        const newStartIndex = index >= PAGINATION_SIZE ? index - PAGINATION_SIZE : 0;
+        const paginationSize = getInitialPaginationSize(allReportActions.length - index);
+        const newStartIndex = index >= paginationSize ? index - paginationSize : 0;
         return newStartIndex ? allReportActions.slice(newStartIndex, allReportActions.length) : allReportActions;
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-hooks/exhaustive-deps

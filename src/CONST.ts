@@ -3164,6 +3164,9 @@ const CONST = {
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    MOBILE_PAGINATION_SIZE: 15,
+    WEB_PAGINATION_SIZE: 50
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
