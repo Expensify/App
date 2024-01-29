@@ -167,11 +167,10 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const policyTagValueList = useMemo(() => _.flatten(_.map(policyTagList, ({tags}) => _.values(tags))), [policyTagList]);
 
     // Flags for showing categories and tags
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagValueList)));
+    const shouldShowTag = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagList)), [isPolicyExpenseChat, policyTagList, transactionTag]);
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
