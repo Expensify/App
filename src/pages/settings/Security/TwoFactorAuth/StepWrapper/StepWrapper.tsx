@@ -6,18 +6,17 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import StepWrapperPropTypes from './StepWrapperPropTypes';
+import type StepWrapperPropTypes from './StepWrapperPropTypes';
 
 function StepWrapper({
     title = '',
-    stepCounter = null,
+    stepCounter,
     onBackButtonPress = () => TwoFactorAuthActions.quitAndNavigateBack(),
     children = null,
     shouldEnableKeyboardAvoidingView = true,
     onEntryTransitionEnd,
-}) {
+}: StepWrapperPropTypes) {
     const styles = useThemeStyles();
-    const shouldShowStepCounter = Boolean(stepCounter);
 
     const {animationDirection} = useAnimatedStepContext();
 
@@ -34,7 +33,6 @@ function StepWrapper({
             >
                 <HeaderWithBackButton
                     title={title}
-                    shouldShowStepCounter={shouldShowStepCounter}
                     stepCounter={stepCounter}
                     onBackButtonPress={onBackButtonPress}
                 />
@@ -44,7 +42,6 @@ function StepWrapper({
     );
 }
 
-StepWrapper.propTypes = StepWrapperPropTypes;
 StepWrapper.displayName = 'StepWrapper';
 
 export default StepWrapper;
