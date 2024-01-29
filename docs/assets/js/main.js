@@ -233,10 +233,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     expensifyClassicTab?.addEventListener('click', () => {
-        expensifyClassic.classList.add('active');
+        expensifyClassicTab.classList.add('active');
         expensifyClassicContent.classList.remove('hidden');
     
-        newExpensify.classList.remove('active');
+        newExpensifyTab.classList.remove('active');
         newExpensifyContent.classList.add('hidden');
         window.tocbot.refresh({
             ...tocbotOptions,
@@ -245,10 +245,10 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     newExpensifyTab?.addEventListener('click', () => {
-        newExpensify.classList.add('active');
+        newExpensifyTab.classList.add('active');
         newExpensifyContent.classList.remove('hidden');
     
-        expensifyClassic.classList.remove('active');
+        expensifyClassicTab.classList.remove('active');
         expensifyClassicContent.classList.add('hidden');
         active = '#new-expensify';
         window.tocbot.refresh({
