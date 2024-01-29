@@ -647,6 +647,7 @@ function getMoneyRequestInformation(
     currency,
     created,
     merchant,
+    moneyRequestReportID = 0,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     receipt = undefined,
@@ -683,8 +684,8 @@ function getMoneyRequestInformation(
     }
 
     // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
-    const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport);
-    let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
+    const isNewIOUReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
+    let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID || chatReport.iouReportID}`];
 
     // Check if the Scheduled Submit is enabled in case of expense report
     let needsToBeManuallySubmitted = false;
@@ -870,6 +871,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : 0;
 
     const optimisticReceipt = {
         source: ReceiptGeneric,
@@ -883,6 +885,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
         currency,
         created,
         merchant,
+        moneyRequestReportID,
         userAccountID,
         currentUserEmail,
         optimisticReceipt,
@@ -1275,6 +1278,7 @@ function requestMoney(
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : 0;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
         getMoneyRequestInformation(
             currentChatReport,
@@ -1284,6 +1288,7 @@ function requestMoney(
             currency,
             created,
             merchant,
+            moneyRequestReportID,
             payeeAccountID,
             payeeEmail,
             receipt,
