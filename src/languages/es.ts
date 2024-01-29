@@ -290,6 +290,7 @@ export default {
         showing: 'Mostrando',
         of: 'de',
         default: 'Predeterminado',
+        update: 'Actualizar',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -767,6 +768,11 @@ export default {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Actualización requerida',
+        pleaseInstall: 'Por favor, actualiza a la última versión de Nuevo Expensify',
+        toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -2487,7 +2493,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocket: 'Por cuenta propia',
+        outOfPocket: 'Gastos por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
