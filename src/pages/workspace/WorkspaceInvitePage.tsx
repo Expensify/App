@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo, useState} from 'react';
+import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,6 +11,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {Section} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +19,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {MemberForList} from '@libs/OptionsListUtils';
+import type {MemberForList} from '@libs/OptionsListUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -159,8 +161,8 @@ function WorkspaceInvitePage({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetailsProp, policyMembers, betas, searchTerm, excludedUsers]);
 
-    const sections = useMemo(() => {
-        const sectionsArr = [];
+    const sections: Array<SectionListData<SelectedOption, Section<SelectedOption>>> = useMemo(() => {
+        const sectionsArr: Array<SectionListData<SelectedOption, Section<SelectedOption>>> = [];
         let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
@@ -218,7 +220,7 @@ function WorkspaceInvitePage({
         return sectionsArr;
     }, [personalDetails, searchTerm, selectedOptions, usersToInvite, translate, didScreenTransitionEnd]);
 
-    const toggleOption = (option: OptionData) => {
+    const toggleOption = (option: SelectedOption) => {
         Policy.clearErrors(route.params.policyID);
 
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);

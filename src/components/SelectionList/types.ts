@@ -34,28 +34,28 @@ type CommonListItemProps<TItem> = {
 
 type User = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** User accountID */
-    accountID?: number;
+    accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
-    rightElement?: ReactElement;
+    rightElement?: ReactElement | null;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
@@ -85,19 +85,19 @@ type UserListItemProps = CommonListItemProps<User> & {
 
 type RadioItem = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** Represents the index of the section it came from  */
     sectionIndex?: number;
@@ -129,6 +129,9 @@ type Section<TItem extends User | RadioItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean;
+
+    /** Whether this section should be shown or not */
+    shouldShow?: boolean;
 };
 
 type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {

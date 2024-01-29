@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
+import type {ReactElement} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -109,7 +110,7 @@ type MemberForList = {
     isDisabled: boolean | null;
     accountID?: number | null;
     login: string | null;
-    rightElement: React.ReactNode | null;
+    rightElement: ReactElement | null;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
 };
@@ -1810,7 +1811,9 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
+function formatMemberForList(member: ReportUtils.OptionData, config?: ReportUtils.OptionData | EmptyObject): MemberForList;
+function formatMemberForList(member: null | undefined, config?: ReportUtils.OptionData | EmptyObject): undefined;
+function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
     if (!member) {
         return undefined;
     }
