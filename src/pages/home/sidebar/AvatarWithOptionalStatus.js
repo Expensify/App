@@ -49,14 +49,12 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
                 style={[styles.sidebarStatusAvatar]}
             >
                 <Tooltip text={translate('statusPage.status')}>
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Text
-                            style={styles.emojiStatusLHN}
-                            numberOfLines={1}
-                        >
-                            {emojiStatus}
-                        </Text>
-                    </View>
+                    <Text
+                        style={styles.emojiStatusLHN}
+                        numberOfLines={1}
+                    >
+                        {emojiStatus}
+                    </Text>
                 </Tooltip>
             </PressableWithoutFeedback>
         </View>
