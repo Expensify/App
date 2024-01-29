@@ -10,7 +10,7 @@ type AttachmentCarouselItemMeta = {
 };
 
 type AttachmentCarouselPagerContextValue = {
-    itemsMeta: AttachmentCarouselItemMeta[];
+    pagerItems: AttachmentCarouselItemMeta[];
     activePage: number;
     pagerRef: ForwardedRef<PagerView>;
     isPagerScrolling: SharedValue<boolean>;

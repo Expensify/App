@@ -57,7 +57,10 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
         activePage.value = initialPage;
     }, [activePage, initialPage]);
 
-    const itemsMeta = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageState})), [activePageState, items]);
+    /**
+     * The pager uses the source index and current active state to render the pages.
+     */
+    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageState})), [activePageState, items]);
 
     /**
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
@@ -97,7 +100,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
 
     const contextValue = useMemo(
         () => ({
-            itemsMeta,
+            pagerItems,
             activePage: activePageState,
             isPagerScrolling,
             isScrollEnabled,
@@ -105,7 +108,7 @@ function AttachmentCarouselPager({items, activeSource, initialPage, onPageSelect
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
         }),
-        [itemsMeta, activePageState, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
+        [pagerItems, activePageState, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange],
     );
 
     const animatedProps = useAnimatedProps(() => ({
