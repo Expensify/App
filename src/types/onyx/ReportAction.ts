@@ -63,6 +63,9 @@ type Message = {
     /** Amount of an expense */
     amount?: number;
 
+    /** Currency of an expense */
+    currency?: string;
+
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };
