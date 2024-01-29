@@ -263,7 +263,6 @@ function WorkspaceSwitcherPage({policies}) {
                         textIconLeft={MagnifyingGlass}
                         // It has to be set to null or -1 to avoid focus on any element at the beggining
                         initiallyFocusedOptionKey={null}
-                        shouldUseStyleForChildren={false}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
