@@ -957,16 +957,7 @@ function readNewestAction(reportID: string) {
         lastReadTime,
     };
 
-<<<<<<< HEAD
     API.write('ReadNewestAction', parameters, {optimisticData});
-
-    if (!shouldEmitEvent) {
-        return;
-    }
-
-=======
-    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
->>>>>>> b2e1e21 (Merge pull request #35308 from Expensify/vit-revert34537)
     DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
 }
 
