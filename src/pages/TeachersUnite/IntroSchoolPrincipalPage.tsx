@@ -48,7 +48,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
      */
     const validate = useCallback(
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
-            const errors: Errors = {};
+            const errors: Partial<Record<keyof OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>, string>> = {};
 
             if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');

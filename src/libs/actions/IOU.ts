@@ -349,7 +349,7 @@ function resetMoneyRequestInfo(id = '') {
 function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true): Errors | ErrorFields {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
-        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source ?? '', filename: filename ?? ''});
+        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''});
 }
 
 /** Return the object to update hasOutstandingChildRequest */
