@@ -41,7 +41,8 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
 
-        // We need to ensure we only clear the subtitle only when icon is of type workspace
+        // We need to clear the subtitle for the workspaces otherwise user's email will be shown as subtitle
+        // Also we need to clear only when icon is of type `Workspace`
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
             subtitle = '';
         }
