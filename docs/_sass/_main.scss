@@ -853,6 +853,11 @@ button {
     h1 {
         padding: 0;
     }
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        flex-direction: column;
+        gap: 20px;
+    }
 }
 
 #platform-tabs {
