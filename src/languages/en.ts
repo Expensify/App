@@ -583,7 +583,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        receiptScanning: 'Receipt scan in progress…',
+        receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
@@ -1288,8 +1288,8 @@ export default {
             dob: 'Please select a valid date of birth',
             age: 'Must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
-            firstName: 'Please enter valid first name',
-            lastName: 'Please enter valid last name',
+            firstName: 'Please enter a valid first name',
+            lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
@@ -2000,7 +2000,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out of pocket',
+        outOfPocket: 'Out-of-pocket spend',
         companySpend: 'Company spend',
     },
     distance: {
