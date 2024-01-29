@@ -62,6 +62,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Option to show the loading page while the API is calling */
         shouldShowLoading?: boolean;
 
+        /** Should show the back button. It is used when in RHP. */
+        shouldShowBackButton?: boolean;
+
         shouldShowOfflineIndicatorInWideScreen?: boolean;
 
         /** Policy values needed in the component */
@@ -87,6 +90,7 @@ function WorkspacePageWithSections({
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
+    shouldShowBackButton = false,
     user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
@@ -142,7 +146,7 @@ function WorkspacePageWithSections({
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (
