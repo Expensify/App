@@ -10,7 +10,7 @@ type Style = {height: number; borderRadius: number; margin: number};
 type ReceiptImageProps = {
     transactionID?: string;
     isThumbnail?: boolean;
-    shouldUseThumnailImage?: boolean;
+    shouldUseThumbnailImage?: boolean;
     isEReceipt?: boolean;
     source?: string;
     isAuthTokenRequired?: boolean;
@@ -18,7 +18,7 @@ type ReceiptImageProps = {
     fileExtension?: string;
 };
 
-function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImage = false, isEReceipt = false, source, isAuthTokenRequired, style, fileExtension}: ReceiptImageProps) {
+function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumbnailImage = false, isEReceipt = false, source, isAuthTokenRequired, style, fileExtension}: ReceiptImageProps) {
     const styles = useThemeStyles();
 
     if (isEReceipt || isThumbnail) {
@@ -34,7 +34,7 @@ function ReceiptImage({transactionID, isThumbnail = false, shouldUseThumnailImag
         );
     }
 
-    if (shouldUseThumnailImage) {
+    if (shouldUseThumbnailImage) {
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}

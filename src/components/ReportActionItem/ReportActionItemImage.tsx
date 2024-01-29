@@ -66,7 +66,7 @@ function ReportActionItemImage({
     if (isEReceipt) {
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID};
     } else if ((thumbnail ?? isThumbnail) && !isLocalFile && !Str.isPDF(imageSource)) {
-        propsObj = thumbnailSource ? {shouldUseThumnailImage: true, source: thumbnailSource} : {isThumbnail: true, fileExtension, transactionID: transaction?.transactionID};
+        propsObj = thumbnailSource ? {shouldUseThumbnailImage: true, source: thumbnailSource} : {isThumbnail: true, fileExtension, transactionID: transaction?.transactionID};
     } else {
         propsObj = {isThumbnail, fileExtension, transactionID: transaction?.transactionID, source: thumbnail ?? image};
     }
