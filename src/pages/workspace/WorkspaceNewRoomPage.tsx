@@ -68,11 +68,26 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [visibility, setVisibility] = useState<FormValues['visibility']>(CONST.REPORT.VISIBILITY.RESTRICTED);
-    const [policyID, setPolicyID] = useState<FormValues['policyID']>(activePolicyID);
-    const [writeCapability, setWriteCapability] = useState<FormValues['writeCapability']>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    const wasLoading = usePrevious(!!formState?.isLoading);
+    const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
+    const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
+
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
+                label: policy.name,
+                key: policy.id,
+                value: policy.id,
+            })),
+        [props.policies],
+    );
+    const [policyID, setPolicyID] = useState(() => {
+        if (_.some(workspaceOptions, (option) => option.value === props.activePolicyID)) {
+            return props.activePolicyID;
+        }
+        return '';
+    });
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
             return false;
@@ -113,10 +128,17 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
     useEffect(() => {
         if (policyID) {
+            if (!_.some(workspaceOptions, (opt) => opt.value === policyID)) {
+                setPolicyID('');
+            }
             return;
         }
-        setPolicyID(activePolicyID);
-    }, [activePolicyID, policyID]);
+        if (_.some(workspaceOptions, (opt) => opt.value === props.activePolicyID)) {
+            setPolicyID(props.activePolicyID);
+        } else {
+            setPolicyID('');
+        }
+    }, [props.activePolicyID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (!(((wasLoading && !formState?.isLoading) || (isOffline && formState?.isLoading)) && isEmptyObject(formState?.errorFields))) {
@@ -163,16 +185,6 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             return errors;
         },
         [reports],
-    );
-
-    const workspaceOptions = useMemo(
-        () =>
-            PolicyUtils.getActivePolicies(policies)?.map((policy) => ({
-                label: policy.name,
-                key: policy.id,
-                value: policy.id,
-            })) ?? [],
-        [policies],
     );
 
     const writeCapabilityOptions = useMemo(
