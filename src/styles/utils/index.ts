@@ -1444,6 +1444,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return containerStyles;
     },
 
+    getUpdateRequiredViewStyles: (isSmallScreenWidth: boolean): ViewStyle[] => [
+        {
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...(isSmallScreenWidth ? {} : styles.pb40),
+        },
+    ],
+
     /**
      * Returns a style that sets the maximum height of the composer based on the number of lines and whether the composer is full size or not.
      */
