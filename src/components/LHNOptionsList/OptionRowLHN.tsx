@@ -52,8 +52,13 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         return null;
     }
 
-    const isHidden = optionItem?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    if (isHidden && !isFocused && !optionItem?.isPinned) {
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+
+    const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+
+    const shouldOverrideHidden = hasBrickError || isFocused || optionItem.isPinned;
+    if (isHidden && !shouldOverrideHidden) {
         return null;
     }
 
@@ -74,8 +79,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
