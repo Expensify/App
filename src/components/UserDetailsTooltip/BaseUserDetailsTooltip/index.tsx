@@ -40,6 +40,8 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     let subtitle = userLogin.trim() && LocalePhoneNumber.formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
+
+        // We need to ensure we only clear the subtitle only when icon is of type workspace
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
             subtitle = '';
         }
