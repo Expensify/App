@@ -34,6 +34,9 @@ const imagePropTypes = {
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
     }),
+
+    /** Whether we should show the top of the image */
+    objectPositionTop: PropTypes.string
 };
 
 const defaultProps = {
@@ -43,6 +46,7 @@ const defaultProps = {
     },
     isAuthTokenRequired: false,
     resizeMode: RESIZE_MODES.cover,
+    objectPositionTop: false,
     onLoadStart: () => {},
     onLoadEnd: () => {},
     onLoad: () => {},
