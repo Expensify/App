@@ -13,7 +13,6 @@ function KeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
     );
 }
 
-
 KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 
 export default KeyboardAvoidingView;
