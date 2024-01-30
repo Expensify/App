@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
