@@ -2,7 +2,7 @@
 
 This directory contains the scripts and configuration files for running the
 performance regression tests. These tests are called E2E tests because they
-run the app on a real device (physical or emulated).
+run the actual app on a real device (physical or emulated).
 
 ![Example of a e2e test run](https://raw.githubusercontent.com/hannojg/expensify-app/5f945c25e2a0650753f47f3f541b984f4d114f6d/e2e/example.gif)
 
@@ -115,6 +115,18 @@ Submitting test results doesn't automatically finish the test. This enables you 
 from one test (e.g. measuring multiple things at the same time).
 
 To finish a test call `E2EClient.submitTestDone()`.
+
+## Network calls
+
+Network calls can add a variance to the test results. To mitigate this in the past we used to provide mocks for the API
+calls. However, this is not a realistic scenario, as we want to test the app in a realistic environment.
+
+Now we have a module called `NetworkInterceptor`. The interceptor will intercept all network calls and will
+cache the request and response. The next time the same request is made, it will return the cached response.
+
+When writing a test you usually don't need to care about this, as the interceptor is enabled by default.
+However, look out for "!!! Missed cache hit for url" logs when developing your test. This can indicate a bug
+with the NetworkInterceptor where a request should have been cached but wasn't (which would introduce variance in your test!).
 
 
 ## Android specifics
