@@ -1,4 +1,4 @@
-import {rand, randAggregation, randBoolean, randPastDate, randWord} from '@ngneat/falso';
+import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -17,6 +17,19 @@ const flattenActionNamesValues = (actionNames: any) => {
     return result;
 };
 
+const addZero = (value: number): string | number => (value < 10 ? `0${value}` : value);
+
+const getRandomDate = (): string => {
+    const randomTimestamp = Math.random() * new Date().getTime();
+    const randomDate = new Date(randomTimestamp);
+
+    const formattedDate = `${randomDate.getFullYear()}-${addZero(randomDate.getMonth() + 1)}-${addZero(randomDate.getDate())} ${addZero(randomDate.getHours())}:${addZero(
+        randomDate.getMinutes(),
+    )}:${addZero(randomDate.getSeconds())}.${randomDate.getMilliseconds()}`;
+
+    return formattedDate;
+};
+
 export default function createRandomReportAction(index: number): ReportAction {
     return {
         // we need to add any here because of the way we are generating random values
@@ -32,7 +45,7 @@ export default function createRandomReportAction(index: number): ReportAction {
                 text: randWord(),
             },
         ],
-        created: randPastDate().toISOString(),
+        created: getRandomDate(),
         message: [
             {
                 type: randWord(),
@@ -57,13 +70,13 @@ export default function createRandomReportAction(index: number): ReportAction {
         ],
         originalMessage: {
             html: randWord(),
-            type: rand(Object.values(CONST.IOU.REPORT_ACTION_TYPE)),
+            lastModified: getRandomDate(),
         },
         whisperedToAccountIDs: randAggregation(),
         avatar: randWord(),
         automatic: randBoolean(),
         shouldShow: randBoolean(),
-        lastModified: randPastDate().toISOString(),
+        lastModified: getRandomDate(),
         pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         delegateAccountID: index,
         errors: {},
