@@ -7,7 +7,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {NullishDeep} from 'react-native-onyx/lib/types';
 import type {PartialDeep, ValueOf} from 'type-fest';
-import * as _ from 'underscore';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -66,7 +65,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
-import {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, PendingAccount, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -2188,8 +2186,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report.participantAccountIDs,
-                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
                 pendingAccounts: failurePendingAccounts,
             },
         },
@@ -2207,6 +2203,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 /** Removes people from a room */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
+    const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
 
     const optimisticPendingAccounts: Record<string, PendingAccount> = {};
     const successPendingAccounts: Record<string, PendingAccount> = {};
@@ -2235,7 +2233,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report?.participantAccountIDs,
                 pendingAccounts: failurePendingAccounts,
             },
         },
@@ -2248,6 +2245,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                participantAccountIDs: participantAccountIDsAfterRemoval,
+                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                 pendingAccounts: successPendingAccounts,
             },
         },
@@ -2691,6 +2690,34 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+/**
+ * Removes an error after trying to delete a member
+ */
+function clearDeleteMemberError(reportID: string, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingAccounts: {
+            [accountID]: null,
+        },
+    });
+}
+
+/**
+ * Removes an error after trying to add a member
+ */
+function clearAddMemberError(reportID: string, accountID: number) {
+    const report = currentReportData?.[reportID];
+    const participantAccountIDs = report?.participantAccountIDs?.filter((id: number) => id !== accountID);
+    const visibleChatMemberAccountIDs = report?.visibleChatMemberAccountIDs?.filter((id: number) => id !== accountID);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingAccounts: {
+            [accountID]: null,
+        },
+        participantAccountIDs,
+        visibleChatMemberAccountIDs,
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -2758,4 +2785,6 @@ export {
     updateLastVisitTime,
     clearNewRoomFormError,
     resolveActionableMentionWhisper,
+    clearDeleteMemberError,
+    clearAddMemberError,
 };

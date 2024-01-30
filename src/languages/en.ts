@@ -1883,8 +1883,10 @@ export default {
         genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
         noActivityYet: 'No activity yet',
         people: {
-            genericAdd: 'There was a problem adding this room member.',
-            genericRemove: 'There was a problem removing that room member.',
+            error: {
+                genericAdd: 'There was a problem adding this room member.',
+                genericRemove: 'There was a problem removing that room member.',
+            },
         },
     },
     chronos: {

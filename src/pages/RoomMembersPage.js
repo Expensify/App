@@ -206,7 +206,6 @@ function RoomMembersPage(props) {
                     return;
                 }
             }
-
             result.push({
                 keyForList: String(accountID),
                 accountID: Number(accountID),
@@ -222,12 +221,29 @@ function RoomMembersPage(props) {
                     },
                 ],
                 pendingAction: _.get(pendingAccounts, [accountID, 'pendingAction']),
+                errors: _.get(pendingAccounts, [accountID, 'errors']),
             });
         });
         result = _.sortBy(result, (value) => value.text.toLowerCase());
 
         return result;
     };
+
+    /**
+     * Dismisses the errors on one item
+     *
+     * @param {Object} item
+     */
+    const dismissError = useCallback(
+        (item) => {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                Report.clearDeleteMemberError(props.report.reportID, item.accountID);
+            } else {
+                Report.clearAddMemberError(props.report.reportID, item.accountID);
+            }
+        },
+        [props.report.reportID],
+    );
 
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
     const data = getMemberOptions();
@@ -292,6 +308,7 @@ function RoomMembersPage(props) {
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                            onDismissError={dismissError}
                         />
                     </View>
                 </View>
