@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ComponentType} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,9 +13,12 @@ type DisplayNamesWithoutTooltipProps = {
 
     /** Number of lines before wrapping */
     numberOfLines?: number;
+
+    /** Additional component to render after the text */
+    AdditionalComponent?: ComponentType;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = ''}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', AdditionalComponent}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
@@ -22,6 +26,7 @@ function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTit
             numberOfLines={numberOfLines}
         >
             {fullTitle}
+            {AdditionalComponent && <AdditionalComponent />}
         </Text>
     );
 }

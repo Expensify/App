@@ -1,3 +1,4 @@
+import type {ComponentType} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {AvatarSource} from '@libs/UserUtils';
 
@@ -39,6 +40,9 @@ type DisplayNamesProps = {
 
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
+
+    /** Additional component to display after the display names */
+    AdditionalComponent?: ComponentType;
 };
 
 export default DisplayNamesProps;

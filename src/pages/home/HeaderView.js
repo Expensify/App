@@ -278,33 +278,23 @@ function HeaderView(props) {
                                         />
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
-                                        <View style={[styles.flex1, styles.flexRow, styles.gap1, styles.alignItemsBaseline]}>
-                                            <DisplayNames
-                                                fullTitle={title}
-                                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                                tooltipEnabled
-                                                numberOfLines={1}
-                                                textStyles={[styles.headerText, styles.pre]}
-                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
-                                            />
-                                            {!_.isEmpty(policyName) &&
-                                                !_.isEmpty(reportDescription) && ( // code for the policyName display
+                                        <DisplayNames
+                                            fullTitle={title}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={1}
+                                            textStyles={[styles.headerText, styles.pre]}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                            AdditionalComponent={() =>
+                                                !_.isEmpty(policyName) &&
+                                                !_.isEmpty(reportDescription) && (
                                                     <>
-                                                        <Text
-                                                            style={[styles.sidebarLinkText, styles.textLabelSupporting]}
-                                                            numberOfLines={1}
-                                                        >
-                                                            {translate('threads.in')}
-                                                        </Text>
-                                                        <Text
-                                                            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}
-                                                            numberOfLines={1}
-                                                        >
-                                                            {policyName}
-                                                        </Text>
+                                                        <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting]}>{translate('threads.in')}</Text>
+                                                        <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
                                                     </>
-                                                )}
-                                        </View>
+                                                )
+                                            }
+                                        />
                                         {!_.isEmpty(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
