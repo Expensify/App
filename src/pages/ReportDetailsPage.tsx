@@ -1,10 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import type {FC} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
@@ -33,13 +31,14 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
     translationKey: TranslationPaths;
-    icon: FC<SvgProps>;
+    icon: IconAsset;
     isAnonymousAction: boolean;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
@@ -161,7 +160,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
-        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants);
     }, [participants, personalDetails]);
 
