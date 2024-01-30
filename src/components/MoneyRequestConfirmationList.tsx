@@ -337,7 +337,7 @@ function MoneyRequestConfirmationList({
         let text;
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
-        } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
+        } else if (!!(receiptPath && isTypeRequest) || isDistanceRequestWithoutRoute) {
             text = translate('iou.request');
             if (iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: Number(formattedAmount)});
@@ -439,7 +439,7 @@ function MoneyRequestConfirmationList({
             translate,
             toLocaleDigit,
         );
-        IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID, distanceMerchant);
+        IOU.setMoneyRequestMerchant_temporaryForRefactor(transactionID ?? '', distanceMerchant);
     }, [hasRoute, distance, mileageRate?.unit, mileageRate?.rate, mileageRate?.currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
 
     const selectParticipant = useCallback(
@@ -633,7 +633,7 @@ function MoneyRequestConfirmationList({
                                     CONST.IOU.ACTION.CREATE,
                                     iouType,
                                     transaction?.transactionID ?? '',
-                                    reportID,
+                                    reportID ?? '',
                                     Navigation.getActiveRouteWithoutParams(),
                                 ),
                             )
@@ -652,7 +652,7 @@ function MoneyRequestConfirmationList({
                             return;
                         }
                         if (isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
+                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(iouType, reportID));
@@ -671,7 +671,7 @@ function MoneyRequestConfirmationList({
                 description={translate('common.description')}
                 onPress={() => {
                     if (isEditingSplitBill) {
-                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
+                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.DESCRIPTION));
                         return;
                     }
                     Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION.getRoute(iouType, reportID));
@@ -700,7 +700,7 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.DATE));
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.DATE));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_DATE.getRoute(iouType, reportID));
@@ -732,7 +732,7 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.MERCHANT));
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.MERCHANT));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_MERCHANT.getRoute(iouType, reportID));
@@ -755,7 +755,7 @@ function MoneyRequestConfirmationList({
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.CATEGORY));
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.CATEGORY));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(iouType, reportID));
@@ -775,7 +775,7 @@ function MoneyRequestConfirmationList({
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 if (isEditingSplitBill) {
-                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.TAG));
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID ?? '', reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.TAG));
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(iouType, reportID));
@@ -796,7 +796,7 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID ?? '', Navigation.getActiveRouteWithoutParams()),
                                 )
                             }
                             disabled={didConfirm}
@@ -813,7 +813,7 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID ?? '', Navigation.getActiveRouteWithoutParams()),
                                 )
                             }
                             disabled={didConfirm}
