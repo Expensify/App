@@ -5,7 +5,6 @@ import React, {useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AttachmentModal from '@components/AttachmentModal';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -101,7 +100,6 @@ function ProfilePage(props) {
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
-    const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
 
@@ -122,6 +120,9 @@ function ProfilePage(props) {
     const hasMinimumDetails = !_.isEmpty(details.avatar);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
+    // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
+    const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
+
     const statusEmojiCode = lodashGet(details, 'status.emojiCode', '');
     const statusText = lodashGet(details, 'status.text', '');
     const hasStatus = !!statusEmojiCode;
@@ -141,7 +142,7 @@ function ProfilePage(props) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(login) || shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={props.translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
@@ -150,32 +151,22 @@ function ProfilePage(props) {
                     {hasMinimumDetails && (
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
-                                <AttachmentModal
-                                    headerTitle={displayName}
-                                    source={UserUtils.getFullSizeAvatar(avatar, accountID)}
-                                    isAuthTokenRequired
-                                    originalFileName={originalFileName}
-                                    fallbackSource={fallbackIcon}
+                                <PressableWithoutFocus
+                                    style={[styles.noOutline]}
+                                    onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                    accessibilityLabel={props.translate('common.profile')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                 >
-                                    {({show}) => (
-                                        <PressableWithoutFocus
-                                            style={[styles.noOutline]}
-                                            onPress={show}
-                                            accessibilityLabel={props.translate('common.profile')}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                        >
-                                            <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
-                                                <Avatar
-                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                    imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(avatar, accountID)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
-                                                    fallbackIcon={fallbackIcon}
-                                                />
-                                            </OfflineWithFeedback>
-                                        </PressableWithoutFocus>
-                                    )}
-                                </AttachmentModal>
+                                    <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                        <Avatar
+                                            containerStyles={[styles.avatarLarge, styles.mb3]}
+                                            imageStyles={[styles.avatarLarge]}
+                                            source={UserUtils.getAvatar(avatar, accountID)}
+                                            size={CONST.AVATAR_SIZE.LARGE}
+                                            fallbackIcon={fallbackIcon}
+                                        />
+                                    </OfflineWithFeedback>
+                                </PressableWithoutFocus>
                                 {Boolean(displayName) && (
                                     <Text
                                         style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
