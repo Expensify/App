@@ -93,7 +93,7 @@ const workspaceFeatures = [
 /**
  * Dismisses the errors on one item
  */
-function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
@@ -114,10 +114,14 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [policyIDToDelete, setPolicyIDToDelete] = useState('');
-    const [policyNameToDelete, setPolicyNameToDelete] = useState('');
+    const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
 
     const confirmDeleteAndHideModal = () => {
+        if (!policyIDToDelete || !policyNameToDelete) {
+            return;
+        }
+
         Policy.deleteWorkspace(policyIDToDelete, [], policyNameToDelete);
         setIsDeleteModalOpen(false);
     };
