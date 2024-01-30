@@ -3,7 +3,7 @@ import {runOnJS, runOnUI, useSharedValue} from 'react-native-reanimated';
 import Log from '@libs/Log';
 
 // When you need to debug state machine change this to true
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 type Payload = Record<string, unknown>;
 type ActionWithPayload = {
@@ -82,7 +82,7 @@ function useWorkletStateMachine(stateMachine: StateMachine, initialState: State)
             return;
         }
 
-        runOnJS(Log.info)(`[StateMachine] ${message}`, false, params);
+        runOnJS(Log.client)(`[StateMachine] ${message}`, false, params);
     }, []);
 
     const transitionWorklet = useCallback((action: ActionWithPayload) => {

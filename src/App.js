@@ -1,11 +1,10 @@
 import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
-import {LogBox, Platform} from 'react-native';
+import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {KeyboardProvider} from 'react-native-keyboard-controller';
 import '../wdyr';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
@@ -13,6 +12,7 @@ import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackgro
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import KeyboardHandlerProvider from './components/KeyboardHandlerProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -71,17 +71,16 @@ function App() {
                     PickerStateProvider,
                     EnvironmentProvider,
                     CustomStatusBarAndBackgroundContextProvider,
+                    KeyboardHandlerProvider,
                     ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
                 ]}
             >
-                <KeyboardProvider enabled={Platform.OS === "ios"}>
-                    <CustomStatusBarAndBackground />
-                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                        <ColorSchemeWrapper>
-                            <Expensify />
-                        </ColorSchemeWrapper>
-                    </ErrorBoundary>
-                </KeyboardProvider>
+                <CustomStatusBarAndBackground />
+                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                    <ColorSchemeWrapper>
+                        <Expensify />
+                    </ColorSchemeWrapper>
+                </ErrorBoundary>
             </ComposeProviders>
         </GestureHandlerRootView>
     );

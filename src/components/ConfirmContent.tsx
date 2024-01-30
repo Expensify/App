@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
-import React, { useContext } from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import React, { useCallback, useContext } from 'react';
+import type {LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -92,7 +92,7 @@ function ConfirmContent({
     const theme = useTheme();
     const {isOffline} = useNetwork();
 
-    const onLayout = (event) => {
+    const onLayout = useCallback((event: LayoutChangeEvent) => {
         const {height} = event.nativeEvent.layout;
 
         actionSheetAwareScrollViewContext.transitionActionSheetState({
@@ -101,7 +101,7 @@ function ConfirmContent({
                 popoverHeight: height,
             },
         });
-    };
+    }, [actionSheetAwareScrollViewContext]);
 
     const isCentered = shouldCenterContent;
 
