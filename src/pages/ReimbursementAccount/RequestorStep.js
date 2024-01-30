@@ -143,7 +143,7 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                 shouldShowGetAssistanceButton
             />
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
                 onSubmit={submit}
