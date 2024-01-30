@@ -438,14 +438,14 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 
 /**
  */
-function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
+function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}, offset = 0): OnyxEntry<ReportAction> {
     const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
-    if (sortedReportActions.length === 0) {
-        return null;
+    if (sortedReportActions.length <= offset) {
+        return sortedReportActions[0] ?? null;
     }
-    return sortedReportActions[0];
+    return sortedReportActions[offset];
 }
 
 function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions = {}): LastVisibleMessage {
