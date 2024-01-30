@@ -526,7 +526,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
@@ -944,6 +944,22 @@ function getCategoryListSections(
         return categorySections;
     }
 
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const enabledAndSelectedCategories = sortedCategories.filter((category) => category.enabled || selectedOptionNames.includes(category.name));
+    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(enabledAndSelectedCategories),
+        });
+
+        return categorySections;
+    }
+
     if (selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
@@ -954,22 +970,6 @@ function getCategoryListSections(
         });
 
         indexOffset += selectedOptions.length;
-    }
-
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(filteredCategories),
-        });
-
-        return categorySections;
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
@@ -992,6 +992,8 @@ function getCategoryListSections(
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
+
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -1564,7 +1566,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login ?? ''))) {
+            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
