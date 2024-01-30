@@ -1,9 +1,9 @@
 type StepWrapperPropTypes = {
     /** Title of the Header */
-    title: string;
+    title?: string;
 
     /** Data to display a step counter in the header */
-    stepCounter: {
+    stepCounter?: {
         /** Current step */
         step: number;
         /** Total number of steps */
@@ -13,16 +13,16 @@ type StepWrapperPropTypes = {
     };
 
     /** Method to trigger when pressing back button of the header */
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
 
     /** Called when navigated Screen's transition is finished. It does not fire when user exits the page. */
-    onEntryTransitionEnd: () => void;
+    onEntryTransitionEnd?: () => void;
 
     /** Children components */
-    children: React.ReactNode;
+    children?: React.ReactNode;
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
-    shouldEnableKeyboardAvoidingView: boolean;
+    shouldEnableKeyboardAvoidingView?: boolean;
     
 }
 

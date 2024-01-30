@@ -17,8 +17,7 @@ function StepWrapper({
     onEntryTransitionEnd,
 }: StepWrapperPropTypes) {
     const styles = useThemeStyles();
-
-    const {animationDirection} = useAnimatedStepContext();
+    const { animationDirection } = useAnimatedStepContext();
 
     return (
         <ScreenWrapper
@@ -28,7 +27,7 @@ function StepWrapper({
         >
             <AnimatedStep
                 style={[styles.flex1]}
-                onAnimationEnd={onEntryTransitionEnd}
+                onAnimationEnd={onEntryTransitionEnd ?? (() => { })}
                 direction={animationDirection}
             >
                 <HeaderWithBackButton

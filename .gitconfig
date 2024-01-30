@@ -1,8 +1,0 @@
-[commit]
-    gpgsign = true
-[user]
-    email = rohansasne30@gmail.com
-    name = RohanSasne
-    signingkey = 68F57773BC199FB4
-[gpg]
-    program = gpg

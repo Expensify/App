@@ -1,29 +1,26 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type { RefObject } from 'react';
 import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 
-const propTypes = {
+type TwoFactorAuthFormProps = {
     /**
      * A ref to forward to the Pressable
      */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-};
+    innerRef: RefObject<HTMLFormElement>;
+     
+}
 
-const defaultProps = {
-    innerRef: () => {},
-};
-
-function TwoFactorAuthForm(props) {
+function TwoFactorAuthForm({ 
+    innerRef
+ }: TwoFactorAuthFormProps) {
     return (
         <BaseTwoFactorAuthForm
-            ref={props.innerRef}
+            ref={innerRef}
             autoComplete="one-time-code"
         />
     );
 }
 
-TwoFactorAuthForm.propTypes = propTypes;
-TwoFactorAuthForm.defaultProps = defaultProps;
 TwoFactorAuthForm.displayName = 'TwoFactorAuthForm';
 
 export default TwoFactorAuthForm;
