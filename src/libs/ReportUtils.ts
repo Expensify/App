@@ -30,12 +30,11 @@ import type {
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import type {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -1606,7 +1605,7 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
 /**
  * Get the displayName for a single report participant.
  */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string | undefined {
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true): string {
     if (!accountID) {
         return '';
     }
@@ -2912,7 +2911,7 @@ function buildOptimisticIOUReportAction(
     comment: string,
     participants: Participant[],
     transactionID: string,
-    paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>,
+    paymentType: PaymentMethodType,
     iouReportID = '',
     isSettlingUp = false,
     isSendMoneyFlow = false,
