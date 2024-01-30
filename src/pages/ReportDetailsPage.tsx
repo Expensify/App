@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {FC} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
@@ -19,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -27,6 +29,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,11 +53,7 @@ type ReportDetailsPageOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
 };
-type ReportDetailsPageProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-} & ReportDetailsPageOnyxProps &
-    WithReportOrNotFoundProps;
+type ReportDetailsPageProps = ReportDetailsPageOnyxProps & WithReportOrNotFoundProps & StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
 
 function ReportDetailsPage({policies, report, session, personalDetails}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
@@ -89,12 +88,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
-        const items = [];
+        const items: ReportDetailsPageMenuItem[] = [];
 
         if (!isGroupDMChat) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
-                translationKey: 'common.shareCode' as const,
+                translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
@@ -111,7 +110,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
-                translationKey: 'common.members' as const,
+                translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: participants.length,
                 isAnonymousAction: false,
@@ -126,7 +125,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !report?.parentReportID) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
-                translationKey: 'common.invite' as const,
+                translationKey: 'common.invite',
                 icon: Expensicons.Users,
                 isAnonymousAction: false,
                 action: () => {
@@ -137,7 +136,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         items.push({
             key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-            translationKey: 'common.settings' as const,
+            translationKey: 'common.settings',
             icon: Expensicons.Gear,
             isAnonymousAction: false,
             action: () => {
@@ -149,7 +148,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
-                translationKey: 'privateNotes.title' as const,
+                translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
                 action: () => ReportUtils.navigateToPrivateNotes(report, session),
