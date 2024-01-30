@@ -96,7 +96,7 @@ type Policy = {
         enabled: boolean;
     };
 
-    /** Whether the scheduled submit is enabled */
+    /** Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
