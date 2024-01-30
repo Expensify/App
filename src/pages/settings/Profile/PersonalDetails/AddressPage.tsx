@@ -64,7 +64,6 @@ function AddressPage({privatePersonalDetails = {address: {street: '', city: '', 
     }, [address]);
 
     const handleAddressChange = useCallback((value: string, key: keyof Address) => {
-        // TODO check if there is key zipPostCode
         if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
             return;
         }
