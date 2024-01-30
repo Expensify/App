@@ -375,7 +375,9 @@ type PublicScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
+        accountID?: number;
         error?: string;
+        supportAuthToken?: string;
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         exitTo?: Routes;
