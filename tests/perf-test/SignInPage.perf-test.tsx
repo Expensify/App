@@ -29,10 +29,6 @@ jest.mock('../../src/libs/Navigation/Navigation', () => {
     } as typeof Navigation;
 });
 
-const HYBRID_APP_ROUTES = {
-    MONEY_REQUEST_CREATE: '/request/new/scan',
-} as const;
-
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
