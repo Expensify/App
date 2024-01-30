@@ -24,16 +24,16 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps & {
+type WithReportOrNotFoundProps = OnyxProps & {
     route: RouteProp<{params: {reportID: string}}>;
 };
 
 export default function (
     shouldRequireReportID = true,
-): <TProps extends ComponentProps, TRef>(
+): <TProps extends WithReportOrNotFoundProps, TRef>(
     WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
 ) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof OnyxProps>> {
-    return function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+    return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const contentShown = React.useRef(false);
 
@@ -103,3 +103,4 @@ export default function (
         })(React.forwardRef(WithReportOrNotFound));
     };
 }
+export type {WithReportOrNotFoundProps};
