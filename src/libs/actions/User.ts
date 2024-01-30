@@ -1,7 +1,6 @@
 import {isBefore} from 'date-fns';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
