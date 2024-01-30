@@ -7,6 +7,8 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
+import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import getStateFromPath from './getStateFromPath';
@@ -14,6 +16,7 @@ import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
+import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './linkingConfig/getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from './linkingConfig/replacePathInNestedState';
@@ -125,7 +128,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     while ((current = root.getParent())) {
         root = current;
     }
-
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
@@ -164,8 +166,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         ) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath);
-            if (topmostBottomTabRoute && topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);
+            const isNewPolicyID =
+                (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
+            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
@@ -182,9 +186,19 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // If this action is navigating to the ModalNavigator and the last route on the root navigator is not already opened ModalNavigator then push
         } else if (isModalNavigator(action.payload.name) && !isTargetNavigatorOnTop) {
             if (isModalNavigator(topRouteName)) {
-                dismissModal('', navigation);
+                dismissModal(navigation);
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
+            // If this RHP has mandatory central pane and bottom tab screens defined we need to push them.
+            const {adaptedState, metainfo} = getAdaptedStateFromPath(path, linkingConfig.config);
+            if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isFullScreenNavigatorMandatory)) {
+                const diff = getPartialStateDiff(rootState, adaptedState as State<RootStackParamList>, metainfo);
+                const diffActions = getActionsFromPartialDiff(diff);
+                for (const diffAction of diffActions) {
+                    root.dispatch(diffAction);
+                }
+            }
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
             // If path contains a policyID, we should invoke the navigate function

@@ -340,10 +340,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        verticalAlignMiddle: {
-            verticalAlign: 'middle',
-        },
-
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -3208,7 +3204,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchInputStyle: {
-            color: colors.productDark800,
+            color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
         },
@@ -4275,6 +4271,19 @@ const styles = (theme: ThemeColors) =>
         },
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+
+        updateAnimation: {
+            width: variables.updateAnimationW,
+            height: variables.updateAnimationH,
+        },
+
+        updateRequiredViewHeader: {
+            height: variables.updateViewHeaderHeight,
+        },
+
+        updateRequiredViewTextContainer: {
+            width: variables.updateTextViewContainerWidth,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

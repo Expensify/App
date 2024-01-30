@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -51,13 +53,6 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
         },
     ];
 
-    type ReferTeachersUniteVolunteerParams = {
-        reportID: string;
-        firstName: string;
-        lastName: string;
-        partnerUserID: string;
-    };
-
     const parameters: ReferTeachersUniteVolunteerParams = {
         reportID: publicRoomReportID,
         firstName,
@@ -65,8 +60,8 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
         partnerUserID,
     };
 
-    API.write('ReferTeachersUniteVolunteer', parameters, {optimisticData});
-    Navigation.dismissModal(publicRoomReportID);
+    API.write(WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER, parameters, {optimisticData});
+    Navigation.dismissModalWithReportID(publicRoomReportID);
 }
 
 /**
@@ -177,14 +172,6 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
         },
     ];
 
-    type AddSchoolPrincipalParams = {
-        firstName: string;
-        lastName: string;
-        partnerUserID: string;
-        policyID: string;
-        reportCreationData: string;
-    };
-
     const parameters: AddSchoolPrincipalParams = {
         firstName,
         lastName,
@@ -193,8 +180,8 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
         reportCreationData: JSON.stringify(reportCreationData),
     };
 
-    API.write('AddSchoolPrincipal', parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(expenseChatReportID);
+    API.write(WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL, parameters, {optimisticData, successData, failureData});
+    Navigation.dismissModalWithReportID(expenseChatReportID);
 }
 
 export default {referTeachersUniteVolunteer, addSchoolPrincipal};

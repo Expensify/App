@@ -212,6 +212,7 @@ function WorkspaceInitialPage(props) {
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
                                     focused={activeRoute && activeRoute.startsWith(item.routeName)}
+                                    hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />
                             ))}

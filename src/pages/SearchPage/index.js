@@ -123,7 +123,7 @@ function SearchPage({betas, reports}) {
 
         if (option.reportID) {
             setSearchValue('');
-            Navigation.dismissModal(option.reportID);
+            Navigation.dismissModalWithReportID(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }

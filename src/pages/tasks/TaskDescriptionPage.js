@@ -60,14 +60,14 @@ function TaskDescriptionPage(props) {
                 Task.editTask(props.report, {description: values.description});
             }
 
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModalWithReportID(props.report.reportID);
         },
         [props],
     );
 
     if (!ReportUtils.isTaskReport(props.report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModalWithReportID(props.report.reportID);
         });
     }
     const inputRef = useRef(null);

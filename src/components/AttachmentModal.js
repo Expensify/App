@@ -256,7 +256,7 @@ function AttachmentModal(props) {
     const deleteAndCloseModal = useCallback(() => {
         IOU.detachReceipt(props.transaction.transactionID, props.report.reportID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.dismissModal(props.report.reportID);
+        Navigation.dismissModalWithReportID(props.report.reportID);
     }, [props.transaction, props.report]);
 
     /**
@@ -501,7 +501,6 @@ function AttachmentModal(props) {
                                 report={props.report}
                                 onNavigate={onNavigate}
                                 source={props.source}
-                                onClose={closeModal}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />

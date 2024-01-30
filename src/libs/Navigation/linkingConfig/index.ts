@@ -7,7 +7,13 @@ import customGetPathFromState from './customGetPathFromState';
 import getAdaptedStateFromPath from './getAdaptedStateFromPath';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    getStateFromPath: getAdaptedStateFromPath,
+    getStateFromPath: (...args) => {
+        const {adaptedState} = getAdaptedStateFromPath(...args);
+
+        // ResultState | undefined is the type this function expect.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return adaptedState;
+    },
     getPathFromState: customGetPathFromState,
     prefixes: [
         'app://-/',

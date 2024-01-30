@@ -2,6 +2,18 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {
+    OpenPublicProfilePageParams,
+    UpdateAutomaticTimezoneParams,
+    UpdateDateOfBirthParams,
+    UpdateDisplayNameParams,
+    UpdateHomeAddressParams,
+    UpdateLegalNameParams,
+    UpdatePronounsParams,
+    UpdateSelectedTimezoneParams,
+    UpdateUserAvatarParams,
+} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -107,13 +119,9 @@ function getCountryISO(countryName: string): string {
 
 function updatePronouns(pronouns: string) {
     if (currentUserAccountID) {
-        type UpdatePronounsParams = {
-            pronouns: string;
-        };
-
         const parameters: UpdatePronounsParams = {pronouns};
 
-        API.write('UpdatePronouns', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -133,14 +141,9 @@ function updatePronouns(pronouns: string) {
 
 function updateDisplayName(firstName: string, lastName: string) {
     if (currentUserAccountID) {
-        type UpdateDisplayNameParams = {
-            firstName: string;
-            lastName: string;
-        };
-
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
-        API.write('UpdateDisplayName', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -164,14 +167,9 @@ function updateDisplayName(firstName: string, lastName: string) {
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
-    type UpdateLegalNameParams = {
-        legalFirstName: string;
-        legalLastName: string;
-    };
-
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
 
-    API.write('UpdateLegalName', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -191,13 +189,9 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
  * @param dob - date of birth
  */
 function updateDateOfBirth({dob}: DateOfBirthForm) {
-    type UpdateDateOfBirthParams = {
-        dob?: string;
-    };
-
     const parameters: UpdateDateOfBirthParams = {dob};
 
-    API.write('UpdateDateOfBirth', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -213,16 +207,6 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
 }
 
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
-    type UpdateHomeAddressParams = {
-        homeAddressStreet: string;
-        addressStreet2: string;
-        homeAddressCity: string;
-        addressState: string;
-        addressZipCode: string;
-        addressCountry: string;
-        addressStateLong?: string;
-    };
-
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -238,7 +222,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
         parameters.addressStateLong = state;
     }
 
-    API.write('UpdateHomeAddress', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -272,15 +256,12 @@ function updateAutomaticTimezone(timezone: Timezone) {
         return;
     }
 
-    type UpdateAutomaticTimezoneParams = {
-        timezone: string;
-    };
     const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
         timezone: JSON.stringify(formatedTimezone),
     };
 
-    API.write('UpdateAutomaticTimezone', parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -304,16 +285,12 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
         selected: selectedTimezone,
     };
 
-    type UpdateSelectedTimezoneParams = {
-        timezone: string;
-    };
-
     const parameters: UpdateSelectedTimezoneParams = {
         timezone: JSON.stringify(timezone),
     };
 
     if (currentUserAccountID) {
-        API.write('UpdateSelectedTimezone', parameters, {
+        API.write(WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE, parameters, {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -365,11 +342,7 @@ function openPersonalDetailsPage() {
         },
     ];
 
-    type OpenPersonalDetailsPageParams = Record<string, never>;
-
-    const parameters: OpenPersonalDetailsPageParams = {};
-
-    API.read('OpenPersonalDetailsPage', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS_PAGE, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -414,13 +387,9 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    type OpenPublicProfilePageParams = {
-        accountID: number;
-    };
-
     const parameters: OpenPublicProfilePageParams = {accountID};
 
-    API.read('OpenPublicProfilePage', parameters, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -481,13 +450,9 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
         },
     ];
 
-    type UpdateUserAvatarParams = {
-        file: File | CustomRNImageManipulatorResult;
-    };
-
     const parameters: UpdateUserAvatarParams = {file};
 
-    API.write('UpdateUserAvatar', parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_USER_AVATAR, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -526,11 +491,7 @@ function deleteAvatar() {
         },
     ];
 
-    type DeleteUserAvatarParams = Record<string, never>;
-
-    const parameters: DeleteUserAvatarParams = {};
-
-    API.write('DeleteUserAvatar', parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
 }
 
 /**

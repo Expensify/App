@@ -65,7 +65,7 @@ function FormAlertWithSubmitButton({
     enabledWhenOffline = false,
     disablePressOnEnter = false,
     isSubmitActionDangerous = false,
-    footerContent = null,
+    footerContent,
     buttonStyles,
     buttonText,
     isAlertVisible,

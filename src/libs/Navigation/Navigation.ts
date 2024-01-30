@@ -2,12 +2,16 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
+import {getReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import originalDismissModal from './dismissModal';
+import originalDismissModalWithReport from './dismissModalWithReport';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -47,8 +51,17 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 // Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
-const dismissModal = (targetReportId = '', ref = navigationRef) => originalDismissModal(targetReportId, ref);
+const dismissModal = (ref = navigationRef) => originalDismissModal(ref);
 
+// Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
+// This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
+// Then we can pass the report as a param without getting it from the Onyx.
+const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
+
+const dismissModalWithReportID = (reportID: string, ref = navigationRef) => {
+    const report = getReport(reportID);
+    originalDismissModalWithReport({reportID, ...report}, ref);
+};
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
     if ('routes' in stateOrRoute && stateOrRoute.routes) {
@@ -188,7 +201,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     }
 
     const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState())?.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
-    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
@@ -323,6 +336,8 @@ export default {
     navigate,
     setParams,
     dismissModal,
+    dismissModalWithReport,
+    dismissModalWithReportID,
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,

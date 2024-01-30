@@ -28,8 +28,8 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Account ID of the workspace's owner */
     ownerAccountID?: number;
 
-    /** Type of workspace. Type personal is not valid in this context so it's omitted */
-    workspaceType: typeof CONST.POLICY.TYPE.FREE | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM;
+    /** Type of workspace */
+    workspaceType?: ValueOf<typeof CONST.POLICY.TYPE>;
 
     /** Icon to show next to the workspace name */
     workspaceIcon?: AvatarSource;
