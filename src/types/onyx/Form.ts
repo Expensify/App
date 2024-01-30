@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 type FormValueType = string | boolean | Date;
@@ -54,6 +56,26 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type ExitSurveyReasonForm = Form<{
+    [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+}>;
+
+type ExitSurveyResponseForm = Form<{
+    [CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: string;
+}>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
+export type {
+    AddDebitCardForm,
+    DateOfBirthForm,
+    PrivateNotesForm,
+    DisplayNameForm,
+    FormValueType,
+    NewRoomForm,
+    BaseForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    ExitSurveyReasonForm,
+    ExitSurveyResponseForm,
+};
