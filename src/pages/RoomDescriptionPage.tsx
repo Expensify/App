@@ -6,6 +6,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
@@ -61,6 +63,14 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
+    const limitCharacters = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>) => {
+        const errors: Errors = {};
+        if (String(values.reportDescription).length > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+            errors['reportDescription'] = translate('common.error.characterLimit', {limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH});
+        }
+        return errors;
+    };
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -78,6 +88,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     onSubmit={submitForm}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    validate={limitCharacters}
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
                     <View style={[styles.mb6]}>

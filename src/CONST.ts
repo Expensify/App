@@ -99,6 +99,10 @@ const CONST = {
         MAX_LENGTH: 40,
     },
 
+    REPORT_DESCRIPTION: {
+        MAX_LENGTH: 1024,
+    },
+
     PULL_REQUEST_NUMBER,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
