@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction.routes ?? {};
     const waypoints = transaction.comment?.waypoints ?? {};
-    const coordinates = route.geometry?.coordinates ?? [];
+    const coordinates = route?.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
 

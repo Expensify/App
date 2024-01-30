@@ -13,6 +13,9 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     REPORT: 'Report',
+    PROFILE_AVATAR: 'ProfileAvatar',
+    WORKSPACE_AVATAR: 'WorkspaceAvatar',
+    REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
@@ -180,7 +183,6 @@ const SCREENS = {
     },
 
     PRIVATE_NOTES: {
-        VIEW: 'PrivateNotes_View',
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
     },
@@ -208,6 +210,7 @@ const SCREENS = {
     EDIT_REQUEST: {
         ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
+        REPORT_FIELD: 'EditRequest_ReportField',
     },
 
     NEW_CHAT: {

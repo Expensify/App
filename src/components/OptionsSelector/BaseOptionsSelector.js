@@ -7,12 +7,9 @@ import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ShowMoreButton from '@components/ShowMoreButton';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
@@ -21,10 +18,8 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import compose from '@libs/compose';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -80,8 +75,12 @@ class BaseOptionsSelector extends Component {
         this.incrementPage = this.incrementPage.bind(this);
         this.sliceSections = this.sliceSections.bind(this);
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
+        this.handleFocusIn = this.handleFocusIn.bind(this);
+        this.handleFocusOut = this.handleFocusOut.bind(this);
         this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
+        this.accessibilityRoles = _.values(CONST.ROLE);
+        this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
@@ -92,15 +91,18 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: false,
+            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
+            disableEnterShortCut: false,
             value: '',
         };
     }
 
     componentDidMount() {
-        this.subscribeToKeyboardShortcut();
+        this.subscribeToEnterShortcut();
+        this.subscribeToCtrlEnterShortcut();
+        this.subscribeActiveElement();
 
         if (this.props.isFocused && this.props.autoFocus && this.textInput) {
             this.focusTimeout = setTimeout(() => {
@@ -112,9 +114,18 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
+            if (this.state.disableEnterShortCut) {
+                this.unsubscribeEnter();
+            } else {
+                this.subscribeToEnterShortcut();
+            }
+        }
+
         if (prevProps.isFocused !== this.props.isFocused) {
             if (this.props.isFocused) {
-                this.subscribeToKeyboardShortcut();
+                this.subscribeToEnterShortcut();
+                this.subscribeToCtrlEnterShortcut();
             } else {
                 this.unSubscribeFromKeyboardShortcut();
             }
@@ -123,7 +134,7 @@ class BaseOptionsSelector extends Component {
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
+        if (this.isWebOrDesktop && !prevProps.isFocused && this.props.isFocused && this.props.autoFocus && this.textInput) {
             setTimeout(() => {
                 this.textInput.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -259,7 +270,36 @@ class BaseOptionsSelector extends Component {
         this.setState((prevState) => ({shouldShowReferralModal: !prevState.shouldShowReferralModal}));
     }
 
-    subscribeToKeyboardShortcut() {
+    handleFocusIn() {
+        const activeElement = document.activeElement;
+        this.setState({
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
+        });
+    }
+
+    handleFocusOut() {
+        this.setState({
+            disableEnterShortCut: false,
+        });
+    }
+
+    subscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.addEventListener('focusin', this.handleFocusIn);
+        document.addEventListener('focusout', this.handleFocusOut);
+    }
+
+    unSubscribeActiveElement() {
+        if (!this.isWebOrDesktop) {
+            return;
+        }
+        document.removeEventListener('focusin', this.handleFocusIn);
+        document.removeEventListener('focusout', this.handleFocusOut);
+    }
+
+    subscribeToEnterShortcut() {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
@@ -269,7 +309,9 @@ class BaseOptionsSelector extends Component {
             true,
             () => !this.state.allOptions[this.state.focusedIndex],
         );
+    }
 
+    subscribeToCtrlEnterShortcut() {
         const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
@@ -391,17 +433,7 @@ class BaseOptionsSelector extends Component {
             return;
         }
 
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(this.state.sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
-            }
-        }
-
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        this.list.scrollToLocation({sectionIndex, itemIndex, animated});
     }
 
     /**
@@ -618,41 +650,12 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && (
+                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
-                            }}
-                            style={[
-                                this.props.themeStyles.p5,
-                                this.props.themeStyles.w100,
-                                this.props.themeStyles.br2,
-                                this.props.themeStyles.highlightBG,
-                                this.props.themeStyles.flexRow,
-                                this.props.themeStyles.justifyContentBetween,
-                                this.props.themeStyles.alignItemsCenter,
-                                {gap: 10},
-                            ]}
-                            accessibilityLabel="referral"
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        >
-                            <Text>
-                                {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText1`)}
-                                <Text
-                                    color={this.props.theme.success}
-                                    style={this.props.themeStyles.textStrong}
-                                >
-                                    {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
-                                </Text>
-                            </Text>
-                            <Icon
-                                src={Info}
-                                height={20}
-                                width={20}
-                                fill={this.props.theme.icon}
-                            />
-                        </PressableWithoutFeedback>
+                        <ReferralProgramCTA
+                            referralContentType={this.props.referralContentType}
+                            onCloseButtonPress={this.handleReferralModal}
+                        />
                     </View>
                 )}
 
