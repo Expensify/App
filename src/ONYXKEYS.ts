@@ -545,15 +545,10 @@ type OnyxValues = {
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM_DRAFT]: OnyxTypes.Form | undefined;
-    [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: OnyxTypes.Form & {
-        [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
-    };
+    [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: OnyxTypes.ExitSurveyReasonForm;
     [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: OnyxTypes.Form & {
-        [CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: string;
-    };
-    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: OnyxTypes.ExitSurveyResponseForm;
+    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: OnyxTypes.ExitSurveyResponseForm;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
