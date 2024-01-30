@@ -23,6 +23,7 @@ type ChangeExpensifyLoginLinkProps = ChangeExpensifyLoginLinkOnyxProps & {
 function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLinkProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
             {!isEmptyObject(credentials?.login) && <Text style={styles.mr1}>{translate('loginForm.notYou', {user: credentials?.login ? formatPhoneNumber(credentials.login) : ''})}</Text>}
