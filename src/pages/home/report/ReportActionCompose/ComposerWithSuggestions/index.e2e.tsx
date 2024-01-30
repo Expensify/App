@@ -19,7 +19,8 @@ function IncrementRenderCount() {
 function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef | null>) {
     // Eventually Auto focus on e2e tests
     useEffect(() => {
-        if ((E2EClient.getCurrentActiveTestConfig()?.reportScreen?.autoFocus ?? false) === false) {
+        const testConfig = E2EClient.getCurrentActiveTestConfig();
+        if (testConfig?.reportScreen && typeof testConfig.reportScreen !== 'string' && (testConfig?.reportScreen.autoFocus ?? false) === false) {
             return;
         }
 

@@ -20,7 +20,7 @@ type NetworkCacheMap = Record<
 
 type TestConfig = {
     name: string;
-    [key: string]: string;
+    [key: string]: string | {autoFocus: boolean};
 };
 
 export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig};

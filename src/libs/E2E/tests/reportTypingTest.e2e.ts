@@ -1,3 +1,4 @@
+import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
@@ -16,7 +17,7 @@ const test = (config: TestConfig) => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for typing');
 
-    const reportID = getConfigValueOrThrow('reportID', config);
+    const reportID = getConfigValueOrThrow('reportID', config as NativeConfig);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
