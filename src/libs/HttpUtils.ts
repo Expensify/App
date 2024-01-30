@@ -6,6 +6,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import * as NetworkActions from './actions/Network';
+import * as UpdateRequired from './actions/UpdateRequired';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from './API/types';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 
@@ -29,7 +31,7 @@ let cancellationController = new AbortController();
 /**
  * The API commands that require the skew calculation
  */
-const addSkewList = ['OpenReport', 'ReconnectApp', 'OpenApp'];
+const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, READ_COMMANDS.OPEN_APP];
 
 /**
  * Regex to get API command from the command
@@ -127,6 +129,10 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     )}. Check the APIWriteCommands class in Web-Expensify`;
                     alert('Too many auth writes', message);
                 }
+            }
+            if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+                // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
+                UpdateRequired.alertUser();
             }
             return response as Promise<Response>;
         });
