@@ -168,6 +168,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}: Se
             includeSafeAreaPaddingBottom={false}
             testID={SearchPage.displayName}
             onEntryTransitionEnd={updateOptions}
+            navigation={navigation}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
