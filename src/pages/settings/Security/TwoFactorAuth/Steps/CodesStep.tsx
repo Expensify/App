@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
+import type { Route } from '@src/ROUTES';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,23 +18,29 @@ import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type TwoFactorAuthOnyxProps from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type { TranslationPaths } from '@src/languages/types';
 
-function CodesStep({account = defaultAccount, backTo}) {
+type CodesStepProps = TwoFactorAuthOnyxProps & {
+    /** The route to go back to when the user cancels */
+    backTo: Route | undefined;
+}
+
+function CodesStep({ account, backTo }: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const { translate } = useLocalize();
+    const { isExtraSmallScreenWidth, isSmallScreenWidth } = useWindowDimensions();
     const [error, setError] = useState('');
 
-    const {setStep} = useTwoFactorAuthContext();
+    const { setStep } = useTwoFactorAuthContext();
 
     useEffect(() => {
-        if (account.requiresTwoFactorAuth || account.recoveryCodes) {
+        if (account?.requiresTwoFactorAuth ?? account?.recoveryCodes) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
@@ -62,23 +68,25 @@ function CodesStep({account = defaultAccount, backTo}) {
                     <View style={styles.mv3}>
                         <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
-                        {account.isLoading ? (
+                    <View style={styles.twoFactorAuthCodesBox({ isExtraSmallScreenWidth, isSmallScreenWidth })}>
+                        {account?.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={theme.spinner} />
                             </View>
                         ) : (
                             <>
                                 <View style={styles.twoFactorAuthCodesContainer}>
-                                    {Boolean(account.recoveryCodes) &&
-                                        _.map(account.recoveryCodes.split(', '), (code) => (
+                                    {Boolean(account?.recoveryCodes) &&
+                                        (account?.recoveryCodes?.split(', ') ?? []).map((code) => (
                                             <Text
                                                 style={styles.twoFactorAuthCode}
                                                 key={code}
                                             >
                                                 {code}
                                             </Text>
-                                        ))}
+                                        ))
+                                    }
+
                                 </View>
                                 <View style={styles.twoFactorAuthCodesButtonsContainer}>
                                     <PressableWithDelayToggle
@@ -87,24 +95,30 @@ function CodesStep({account = defaultAccount, backTo}) {
                                         icon={Expensicons.Copy}
                                         inline={false}
                                         onPress={() => {
-                                            Clipboard.setString(account.recoveryCodes);
+                                            Clipboard.setString(account?.recoveryCodes ?? '');
                                             setError('');
                                             TwoFactorAuthActions.setCodesAreCopied();
                                         }}
                                         styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                         textStyles={[styles.buttonMediumText]}
+                                        accessible={false}
+                                        tooltipText=''
+                                        tooltipTextChecked=''
                                     />
                                     <PressableWithDelayToggle
                                         text={translate('common.download')}
                                         icon={Expensicons.Download}
                                         onPress={() => {
-                                            localFileDownload('two-factor-auth-codes', account.recoveryCodes);
+                                            localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
                                             setError('');
                                             TwoFactorAuthActions.setCodesAreCopied();
                                         }}
                                         inline={false}
                                         styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                         textStyles={[styles.buttonMediumText]}
+                                        accessible={false}
+                                        tooltipText=''
+                                        tooltipTextChecked=''
                                     />
                                 </View>
                             </>
@@ -112,10 +126,10 @@ function CodesStep({account = defaultAccount, backTo}) {
                     </View>
                 </Section>
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {!_.isEmpty(error) && (
+                    {!error && (
                         <FormHelpMessage
                             isError
-                            message={translate(error)}
+                            message={translate(error as TranslationPaths)}
                             style={[styles.mb3]}
                         />
                     )}
@@ -123,7 +137,7 @@ function CodesStep({account = defaultAccount, backTo}) {
                         success
                         text={translate('common.next')}
                         onPress={() => {
-                            if (!account.codesAreCopied) {
+                            if (!account?.codesAreCopied) {
                                 setError('twoFactorAuth.errorStepCodes');
                                 return;
                             }
@@ -136,10 +150,9 @@ function CodesStep({account = defaultAccount, backTo}) {
     );
 }
 
-CodesStep.propTypes = TwoFactorAuthPropTypes;
 CodesStep.displayName = 'CodesStep';
 
-// eslint-disable-next-line rulesdir/onyx-props-must-have-default
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
+export default withOnyx<CodesStepProps, TwoFactorAuthOnyxProps>({
+    account: { key: ONYXKEYS.ACCOUNT },
+    session: { key: ONYXKEYS.SESSION },
 })(CodesStep);
