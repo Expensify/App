@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BaseListItem from './BaseListItem';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, RadioItem, Section, SectionListDataType, User} from './types';
 
@@ -42,10 +43,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         onScrollBeginDrag,
         headerMessage = '',
         confirmButtonText = '',
-        onConfirm = () => {},
+        onConfirm,
         headerContent,
         footerContent,
-        showScrollIndicator = false,
+        showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
@@ -95,7 +96,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            section.data.forEach((item, optionIndex) => {
+            section.data?.forEach((item, optionIndex) => {
                 // Add item to the general flattened array
                 allOptions.push({
                     ...item,
@@ -163,20 +164,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                 return;
             }
 
-            const itemIndex = item.index;
-            const sectionIndex = item.sectionIndex;
+            const itemIndex = item.index ?? -1;
+            const sectionIndex = item.sectionIndex ?? -1;
 
-            // Note: react-native's SectionList automatically strips out any empty sections.
-            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-            let adjustedSectionIndex = sectionIndex;
-            for (let i = 0; i < sectionIndex; i++) {
-                if (sections[i].data) {
-                    adjustedSectionIndex--;
-                }
-            }
-
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
         },
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -272,7 +263,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     };
 
     const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
-        if (!section.title || !section.data) {
+        if (!section.title || isEmptyObject(section.data)) {
             return null;
         }
 
@@ -362,6 +353,11 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
 
+        // scroll is unnecessary if multiple options cannot be selected
+        if (!canSelectMultiple) {
+            return;
+        }
+
         // set the focus on the first item when the sections list is changed
         if (sections.length > 0) {
             updateAndScrollToFocusedIndex(0);
@@ -378,10 +374,10 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm ?? selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && !!onConfirm && isFocused,
+        isActive: !disableKeyboardShortcuts && isFocused,
     });
 
     return (
@@ -465,7 +461,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item: TItem) => item.keyForList}
+                                    keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"

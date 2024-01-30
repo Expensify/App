@@ -22,17 +22,21 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentView from './Attachments/AttachmentView';
+import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
+import * as Illustrations from './Icon/Illustrations';
 import sourcePropTypes from './Image/sourcePropTypes';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
@@ -61,6 +65,9 @@ const propTypes = {
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
+    /** Trigger when we explicity click close button in ProfileAttachment modal */
+    onModalClose: PropTypes.func,
+
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange: PropTypes.func,
 
@@ -84,6 +91,12 @@ const propTypes = {
 
     /** The transaction associated with the receipt attachment, if any */
     transaction: transactionPropTypes,
+
+    /** The data is loading or not */
+    isLoading: PropTypes.bool,
+
+    /** Should display not found page or not */
+    shouldShowNotFoundPage: PropTypes.bool,
 
     ...withLocalizePropTypes,
 
@@ -114,6 +127,9 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
+    onModalClose: () => {},
+    isLoading: false,
+    shouldShowNotFoundPage: false,
     isReceiptAttachment: false,
     canEditReceipt: false,
 };
@@ -352,7 +368,13 @@ function AttachmentModal(props) {
      */
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
-    }, []);
+
+        if (typeof props.onModalClose === 'function') {
+            props.onModalClose();
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.onModalClose]);
 
     /**
      *  open the modal
@@ -458,21 +480,35 @@ function AttachmentModal(props) {
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
-                        shouldOverlay
+                        shouldOverlayDots
                     />
                     <View style={styles.imageModalImageCenterContainer}>
+                        {props.isLoading && <FullScreenLoadingIndicator />}
+                        {props.shouldShowNotFoundPage && !props.isLoading && (
+                            <BlockingView
+                                icon={Illustrations.ToddBehindCloud}
+                                iconWidth={variables.modalTopIconWidth}
+                                iconHeight={variables.modalTopIconHeight}
+                                title={translate('notFound.notHere')}
+                                subtitle={translate('notFound.pageNotFound')}
+                                linkKey="notFound.goBackHome"
+                                shouldShowLink
+                                onLinkPress={() => Navigation.dismissModal()}
+                            />
+                        )}
                         {!_.isEmpty(props.report) && !props.isReceiptAttachment ? (
                             <AttachmentCarousel
                                 report={props.report}
                                 onNavigate={onNavigate}
                                 source={props.source}
-                                onClose={closeModal}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
                         ) : (
                             Boolean(sourceForAttachmentView) &&
-                            shouldLoadAttachment && (
+                            shouldLoadAttachment &&
+                            !props.isLoading &&
+                            !props.shouldShowNotFoundPage && (
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}
                                     source={sourceForAttachmentView}
