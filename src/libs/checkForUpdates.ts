@@ -16,4 +16,4 @@ function checkForUpdates(platformSpecificUpdater: PlatformSpecificUpdater) {
     }, UPDATE_INTERVAL);
 }
 
-module.exports = checkForUpdates;
+export default checkForUpdates;
