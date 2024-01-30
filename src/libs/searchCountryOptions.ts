@@ -22,7 +22,7 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
     if (!trimmedSearchValue) {
         return [];
     }
-
+    console.log(trimmedSearchValue)
     const filteredData = countriesData.filter((country) => country.searchValue.includes(trimmedSearchValue));
 
     const halfSorted = filteredData.sort((a, b) => {
@@ -42,17 +42,17 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
     });
 
     let fullSorted;
-
-    if (trimmedSearchValue !== searchValue.toLowerCase()) {
+    let unsanitizedSearchValue = searchValue.toLowerCase().trim();
+    if (trimmedSearchValue !== unsanitizedSearchValue) {
         // Diacritic detected, prioritize diacritic matches
         // We search for diacritic matches by using the unsanitized country name and search term
         fullSorted = halfSorted.sort((a, b) => {
             const unsanitizedCountryNameA = a.text.toLowerCase();
             const unsanitizedCountryNameB = b.text.toLowerCase();
-            if (unsanitizedCountryNameA.includes(searchValue.toLowerCase())) {
+            if (unsanitizedCountryNameA.includes(unsanitizedSearchValue)) {
                 return -1;
             }
-            if (unsanitizedCountryNameB.includes(searchValue.toLowerCase())) {
+            if (unsanitizedCountryNameB.includes(unsanitizedSearchValue)) {
                 return 1;
             }
             return 0;
