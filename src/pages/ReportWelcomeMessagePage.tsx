@@ -1,64 +1,58 @@
 import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import type {ReportWelcomeMessageNavigatorParamList} from '@navigation/types';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import reportPropTypes from './reportPropTypes';
-import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
 
-const propTypes = {
-    ...withLocalizePropTypes,
-    ...policyPropTypes,
-
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
-
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** Report ID passed via route r/:reportID/welcomeMessage */
-            reportID: PropTypes.string,
-        }),
-    }).isRequired,
+type ReportWelcomeMessagePageOnyxProps = {
+    /** The policy object for the current route */
+    policy: OnyxEntry<Policy>;
 };
 
-const defaultProps = {
-    ...policyDefaultProps,
-};
+type ReportWelcomeMessagePageProps = ReportWelcomeMessagePageOnyxProps &
+    WithReportOrNotFoundProps &
+    StackScreenProps<ReportWelcomeMessageNavigatorParamList, typeof SCREENS.REPORT_WELCOME_MESSAGE_ROOT>;
 
-function ReportWelcomeMessagePage(props) {
+function ReportWelcomeMessagePage({report, policy}: ReportWelcomeMessagePageProps) {
     const styles = useThemeStyles();
-    const parser = new ExpensiMark();
-    const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(props.report.welcomeMessage));
-    const welcomeMessageInputRef = useRef(null);
-    const focusTimeoutRef = useRef(null);
+    const {translate} = useLocalize();
 
-    const handleWelcomeMessageChange = useCallback((value) => {
+    const parser = new ExpensiMark();
+    const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(report?.welcomeMessage ?? ''));
+    const welcomeMessageInputRef = useRef<AnimatedTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleWelcomeMessageChange = useCallback((value: string) => {
         setWelcomeMessage(value);
     }, []);
 
     const submitForm = useCallback(() => {
-        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
-    }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
+        Report.updateWelcomeMessage(report?.reportID ?? '', report?.welcomeMessage ?? '', welcomeMessage.trim());
+    }, [report?.reportID, report?.welcomeMessage, welcomeMessage]);
 
     useFocusEffect(
         useCallback(() => {
@@ -82,33 +76,33 @@ function ReportWelcomeMessagePage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={ReportWelcomeMessagePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableWelcomeMessage(props.report, props.policy)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableWelcomeMessage(report, policy)}>
                 <HeaderWithBackButton
-                    title={props.translate('welcomeMessagePage.welcomeMessage')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
+                    title={translate('welcomeMessagePage.welcomeMessage')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
-                    submitButtonText={props.translate('common.save')}
+                    submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
+                    <Text style={[styles.mb5]}>{translate('welcomeMessagePage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID="welcomeMessage"
-                            label={props.translate('welcomeMessagePage.welcomeMessage')}
-                            accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
+                            label={translate('welcomeMessagePage.welcomeMessage')}
+                            accessibilityLabel={translate('welcomeMessagePage.welcomeMessage')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={(el) => {
-                                if (!el) {
+                            ref={(element: AnimatedTextInputRef) => {
+                                if (!element) {
                                     return;
                                 }
-                                welcomeMessageInputRef.current = el;
+                                welcomeMessageInputRef.current = element;
                                 updateMultilineInputRange(welcomeMessageInputRef.current);
                             }}
                             value={welcomeMessage}
@@ -124,15 +118,11 @@ function ReportWelcomeMessagePage(props) {
 }
 
 ReportWelcomeMessagePage.displayName = 'ReportWelcomeMessagePage';
-ReportWelcomeMessagePage.propTypes = propTypes;
-ReportWelcomeMessagePage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withReportOrNotFound(),
-    withOnyx({
+export default withReportOrNotFound()(
+    withOnyx<ReportWelcomeMessagePageProps, ReportWelcomeMessagePageOnyxProps>({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
         },
-    }),
-)(ReportWelcomeMessagePage);
+    })(ReportWelcomeMessagePage),
+);
