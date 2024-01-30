@@ -31,7 +31,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {email = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
+    const {email = '', accountID  = 0, supportAuthToken = '', shortLivedAuthToken = '', shortLivedToken = '', exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -41,6 +41,11 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         if (token && !account?.isLoading) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             Session.signInWithShortLivedAuthToken(email, token);
+            return;
+        }
+
+        if (!account?.isLoading && accountID && supportAuthToken) {
+            Session.setSupportAuthToken(supportAuthToken, email, accountID);
             return;
         }
 
