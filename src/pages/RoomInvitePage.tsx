@@ -1,5 +1,8 @@
+import {useNavigation} from '@react-navigation/native';
+import type {StackNavigationProp} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -8,11 +11,13 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {Section} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -40,9 +45,17 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS], [report]);
+    const excludedUsers = useMemo(
+        () =>
+            [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
+                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
+            ),
+        [report],
+    );
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
@@ -66,9 +79,25 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers]);
 
-    const getSections = () => {
-        const sections = [];
+    useEffect(() => {
+        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
+            setDidScreenTransitionEnd(true);
+        });
+
+        return () => {
+            unsubscribeTransitionEnd();
+        };
+        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const sections = useMemo(() => {
+        const sectionsArr: Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>> = [];
         let indexOffset = 0;
+
+        if (!didScreenTransitionEnd) {
+            return [];
+        }
 
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
@@ -84,7 +113,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         }
         const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => OptionsListUtils.formatMemberForList(selectedOption));
 
-        sections.push({
+        sectionsArr.push({
             title: undefined,
             data: filterSelectedOptionsFormatted,
             indexOffset,
@@ -97,7 +126,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
-        sections.push({
+        sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             indexOffset,
@@ -105,15 +134,15 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
-            sections.push({
+            sectionsArr.push({
                 title: undefined,
                 data: [OptionsListUtils.formatMemberForList(userToInvite)],
                 indexOffset,
             });
         }
 
-        return sections;
-    };
+        return sectionsArr;
+    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -173,49 +202,43 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
             shouldEnableMaxHeight
             testID={RoomInvitePage.displayName}
         >
-            {({didScreenTransitionEnd}) => {
-                const sections = didScreenTransitionEnd ? getSections() : [];
-
-                return (
-                    <FullPageNotFoundView
-                        shouldShow={!!report}
-                        subtitleKey={report ? undefined : 'roomMembersPage.notAuthorized'}
-                        onBackButtonPress={() => Navigation.goBack(backRoute)}
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.invite.invitePeople')}
-                            subtitle={reportName}
-                            onBackButtonPress={() => {
-                                Navigation.goBack(backRoute);
-                            }}
-                        />
-                        <SelectionList
-                            canSelectMultiple
-                            sections={sections}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
-                            onSelectRow={toggleOption}
-                            onConfirm={inviteUsers}
-                            showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
-                        />
-                        <View style={[styles.flexShrink0]}>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!selectedOptions.length}
-                                buttonText={translate('common.invite')}
-                                onSubmit={inviteUsers}
-                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                enabledWhenOffline
-                                disablePressOnEnter
-                                isAlertVisible={false}
-                            />
-                        </View>
-                    </FullPageNotFoundView>
-                );
-            }}
+            <FullPageNotFoundView
+                shouldShow={!!report}
+                subtitleKey={report ? undefined : 'roomMembersPage.notAuthorized'}
+                onBackButtonPress={() => Navigation.goBack(backRoute)}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.invite.invitePeople')}
+                    subtitle={reportName}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(backRoute);
+                    }}
+                />
+                <SelectionList
+                    canSelectMultiple
+                    sections={sections}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    headerMessage={headerMessage}
+                    onSelectRow={toggleOption}
+                    onConfirm={inviteUsers}
+                    showScrollIndicator
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                />
+                <View style={[styles.flexShrink0]}>
+                    <FormAlertWithSubmitButton
+                        isDisabled={!selectedOptions.length}
+                        buttonText={translate('common.invite')}
+                        onSubmit={inviteUsers}
+                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                        enabledWhenOffline
+                        disablePressOnEnter
+                        isAlertVisible={false}
+                    />
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

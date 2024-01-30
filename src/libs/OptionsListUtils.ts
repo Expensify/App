@@ -1826,7 +1826,7 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         login: member.login ?? '',
         icons: member.icons,
         pendingAction: member.pendingAction,
-        reportId: member.reportID,
+        reportID: member.reportID,
     };
 }
 
