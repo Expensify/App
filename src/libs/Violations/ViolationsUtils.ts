@@ -106,7 +106,7 @@ const ViolationsUtils = {
             surcharge = 0,
             invoiceMarkup = 0,
             maxAge = 0,
-            tagName = 'etiqueta',
+            tagName,
             taxName,
         } = violation.data ?? {};
 

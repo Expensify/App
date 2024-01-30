@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,7 +34,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ReceiptError, ReceiptErrors, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewTransactionOnyxProps = {
@@ -198,6 +199,31 @@ function MoneyRequestView({
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
+    const errors: Errors | null = useMemo(() => {
+        if (!transaction) {
+            return null;
+        }
+
+        const transactionErrors = transaction.errors;
+
+        if (transactionErrors) {
+            const errorKeys = Object.keys(transactionErrors) as Array<keyof typeof transaction.errors>;
+
+            if (typeof transactionErrors[errorKeys[0]] === 'string') {
+                // transactionErrors is of type "Errors"
+                return transactionErrors as Errors;
+            }
+            // transactionErrors is of type "ReceiptErrors"
+            return errorKeys.reduce((acc, key) => {
+                const receiptError: ReceiptError = (transactionErrors as ReceiptErrors)[key];
+                acc[key] = receiptError.error ?? '';
+                return acc;
+            }, {} as Errors);
+        }
+
+        return null;
+    }, [transaction]);
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
@@ -205,9 +231,12 @@ function MoneyRequestView({
                 {hasReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction.errors}
+                        errors={errors}
                         errorRowStyles={[styles.ml4]}
                         onClose={() => {
+                            if (!transaction) {
+                                return;
+                            }
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >

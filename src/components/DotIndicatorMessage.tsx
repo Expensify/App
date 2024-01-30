@@ -7,13 +7,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
+import type {MaybePhraseKey} from '@libs/Localize';
 import CONST from '@src/CONST';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
-
-type ReceiptError = {error?: string; source: string; filename: string};
 
 type DotIndicatorMessageProps = {
     /**
@@ -23,7 +23,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, Localize.MaybePhraseKey>;
+    messages: Record<string, Localize.MaybePhraseKey | ReceiptError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -36,11 +36,17 @@ type DotIndicatorMessageProps = {
 };
 
 /** Check if the error includes a receipt. */
-function isReceiptError(message: string | ReceiptError): message is ReceiptError {
+function isReceiptError(message: unknown): message is ReceiptError {
     if (typeof message === 'string') {
         return false;
     }
-    return (message?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
+    if (Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length === 0) {
+        return false;
+    }
+    return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
 }
 
 function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndicatorMessageProps) {
@@ -53,12 +59,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
     }
 
     // Fetch the keys, sort them, and map through each key to get the corresponding message
-    const sortedMessages = Object.keys(messages)
+    const sortedMessages: Array<MaybePhraseKey | ReceiptError> = Object.keys(messages)
         .sort()
         .map((key) => messages[key]);
 
     // Removing duplicates using Set and transforming the result into an array
-    const uniqueMessages = [...new Set(sortedMessages)].map((message) => Localize.translateIfPhraseKey(message));
+    const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => (isReceiptError(message) ? message : Localize.translateIfPhraseKey(message)));
 
     const isErrorMessage = type === 'error';
 

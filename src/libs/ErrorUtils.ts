@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
@@ -119,4 +120,22 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+function removeErrorsWithNullMessage(errors: Errors | ReceiptErrors | null | undefined) {
+    if (!errors) {
+        return errors;
+    }
+    const nonNullEntries = Object.entries(errors).filter(([, message]) => message !== null);
+
+    return Object.fromEntries(nonNullEntries);
+}
+
+export {
+    getAuthenticateErrorMessage,
+    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorObject,
+    getLatestErrorMessage,
+    getLatestErrorField,
+    getEarliestErrorField,
+    addErrorMessage,
+    removeErrorsWithNullMessage,
+};
