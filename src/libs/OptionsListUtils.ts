@@ -16,7 +16,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -104,12 +103,12 @@ type GetOptionsConfig = {
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
-    accountID?: number | null;
-    login: string | null;
+    isDisabled: boolean;
+    accountID?: number;
+    login: string;
     rightElement: ReactElement | null;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
@@ -1811,14 +1810,14 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config?: ReportUtils.OptionData | EmptyObject): MemberForList;
-function formatMemberForList(member: null | undefined, config?: ReportUtils.OptionData | EmptyObject): undefined;
-function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList;
+function formatMemberForList(member: null | undefined): undefined;
+function formatMemberForList(member: ReportUtils.OptionData | null | undefined): MemberForList | undefined {
     if (!member) {
         return undefined;
     }
 
-    const accountID = member.accountID;
+    const accountID = member.accountID ?? undefined;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1834,7 +1833,6 @@ function formatMemberForList(member: ReportUtils.OptionData | null | undefined, 
         rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
     };
 }
 

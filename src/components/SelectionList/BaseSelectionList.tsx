@@ -300,14 +300,14 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             <BaseListItem
                 item={item}
                 isFocused={isItemFocused}
-                isDisabled={!!isDisabled}
+                isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList ?? undefined}
+                keyForList={item.keyForList}
             />
         );
     };
@@ -471,7 +471,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item) => item.keyForList ?? ''}
+                                    keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"

@@ -36,7 +36,7 @@ import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type SelectedOption = Partial<MemberForList>;
+type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
 type WorkspaceInvitePageOnyxProps = {
     /** All of the personal details for everyone */
@@ -63,7 +63,7 @@ function WorkspaceInvitePage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -105,12 +105,12 @@ function WorkspaceInvitePage({
     useEffect(() => {
         const newUsersToInviteDict: Record<number, OptionData> = {};
         const newPersonalDetailsDict: Record<number, OptionData> = {};
-        const newSelectedOptionsDict: Record<number, SelectedOption> = {};
+        const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetailsProp, betas ?? [], searchTerm, excludedUsers, true);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
-        const detailsMap: Record<string, MemberForList | undefined> = {};
+        const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
                 return;
@@ -119,7 +119,7 @@ function WorkspaceInvitePage({
             detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail);
         });
 
-        const newSelectedOptions: SelectedOption[] = [];
+        const newSelectedOptions: MemberForList[] = [];
         Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
             if (!(login in detailsMap)) {
                 return;
@@ -161,8 +161,8 @@ function WorkspaceInvitePage({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetailsProp, policyMembers, betas, searchTerm, excludedUsers]);
 
-    const sections: Array<SectionListData<SelectedOption, Section<SelectedOption>>> = useMemo(() => {
-        const sectionsArr: Array<SectionListData<SelectedOption, Section<SelectedOption>>> = [];
+    const sections: MembersSection[] = useMemo(() => {
+        const sectionsArr: MembersSection[] = [];
         let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
@@ -220,12 +220,12 @@ function WorkspaceInvitePage({
         return sectionsArr;
     }, [personalDetails, searchTerm, selectedOptions, usersToInvite, translate, didScreenTransitionEnd]);
 
-    const toggleOption = (option: SelectedOption) => {
+    const toggleOption = (option: MemberForList) => {
         Policy.clearErrors(route.params.policyID);
 
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-        let newSelectedOptions: SelectedOption[];
+        let newSelectedOptions: MemberForList[];
         if (isOptionInList) {
             newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
         } else {

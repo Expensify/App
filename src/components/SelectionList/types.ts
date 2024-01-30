@@ -34,25 +34,25 @@ type CommonListItemProps<TItem> = {
 
 type User = {
     /** Text to display */
-    text?: string;
+    text: string;
 
     /** Alternate text to display */
-    alternateText?: string | null;
+    alternateText?: string;
 
     /** Key used internally by React */
-    keyForList?: string | null;
+    keyForList: string;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean | null;
+    isDisabled?: boolean;
 
     /** User accountID */
-    accountID?: number | null;
+    accountID?: number;
 
     /** User login */
-    login?: string | null;
+    login?: string;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactElement | null;
@@ -85,19 +85,19 @@ type UserListItemProps = CommonListItemProps<User> & {
 
 type RadioItem = {
     /** Text to display */
-    text?: string;
+    text: string;
 
     /** Alternate text to display */
-    alternateText?: string | null;
+    alternateText?: string;
 
     /** Key used internally by React */
-    keyForList?: string | null;
+    keyForList: string;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean | null;
+    isDisabled?: boolean;
 
     /** Represents the index of the section it came from  */
     sectionIndex?: number;
