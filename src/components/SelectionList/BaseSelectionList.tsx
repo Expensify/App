@@ -58,6 +58,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        isLoadingNewOptions = false,
     }: BaseSelectionListProps<TItem>,
     inputRef: ForwardedRef<RNTextInput>,
 ) {
@@ -417,6 +418,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
                                     spellCheck={false}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
+                                    isLoading={isLoadingNewOptions}
                                 />
                             </View>
                         )}
