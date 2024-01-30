@@ -41,6 +41,10 @@ function Image(props) {
             onLoad({nativeEvent: {width, height}});
 
             if (props.objectPositionTop) {
+                if (width > height) {
+                    setAspectRatio(1);
+                    return;
+                }
                 setAspectRatio(height ? width / height : 'auto');
             }
         });
