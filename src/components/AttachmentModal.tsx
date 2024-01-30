@@ -515,7 +515,6 @@ function AttachmentModal({
                                 report={report}
                                 onNavigate={onNavigate}
                                 source={source}
-                                onClose={closeModal}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
