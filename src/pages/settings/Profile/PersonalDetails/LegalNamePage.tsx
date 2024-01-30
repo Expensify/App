@@ -16,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -49,11 +48,11 @@ function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastN
         } else if (values.legalFirstName === '') {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
+        if (ValidationUtils.doesContainReservedWord(values.legalFirstName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES as unknown as string[])) {
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
+        }
         if ((values.legalFirstName?.length ?? 0) > CONST.LEGAL_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalFirstName', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.legalFirstName?.length, limit: CONST.LEGAL_NAME.MAX_LENGTH},
-            ] as unknown as TranslationPaths);
+            ErrorUtils.addErrorMessage(errors, 'legalFirstName', ['common.error.characterLimitExceedCounter', {length: values.legalFirstName?.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
         }
 
         if (!ValidationUtils.isValidLegalName(values.legalLastName ?? '')) {
@@ -61,11 +60,11 @@ function LegalNamePage({privatePersonalDetails = {legalFirstName: '', legalLastN
         } else if (values.legalLastName === '') {
             errors.legalLastName = 'common.error.fieldRequired';
         }
+        if (ValidationUtils.doesContainReservedWord(values.legalLastName ?? '', CONST.DISPLAY_NAME.RESERVED_NAMES as unknown as string[])) {
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
+        }
         if ((values.legalLastName?.length ?? 0) > CONST.LEGAL_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'legalLastName', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.legalLastName?.length, limit: CONST.LEGAL_NAME.MAX_LENGTH},
-            ] as unknown as TranslationPaths);
+            ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName?.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
         }
 
         return errors;
