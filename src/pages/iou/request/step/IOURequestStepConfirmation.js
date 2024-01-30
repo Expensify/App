@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -160,7 +161,7 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const requestMoney = useCallback(
-        (selectedParticipants, trimmedComment, receiptObj) => {
+        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -180,6 +181,7 @@ function IOURequestStepConfirmation({
                 policy,
                 policyTags,
                 policyCategories,
+                gpsPoints,
             );
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
@@ -265,7 +267,25 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile) {
-                requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                getCurrentPosition(
+                    (successData) => {
+                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                            lat: successData.coords.latitude,
+                            long: successData.coords.longitude,
+                        });
+                    },
+                    () => {
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        requestMoney(selectedParticipants, trimmedComment, receiptFile);
+                    },
+                    {
+                        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                        maximumAge: 1000 * 60 * 60,
+
+                        // 15 seconds, don't way too long because the server can always fall back to using the IP address
+                        timeout: 15000,
+                    },
+                );
                 return;
             }
 

@@ -1289,6 +1289,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
  * @param {Object} [policy]
  * @param {Object} [policyTags]
  * @param {Object} [policyCategories]
+ * @param {Object} [gpsPoints]
  */
 function requestMoney(
     report,
@@ -1309,6 +1310,7 @@ function requestMoney(
     policy = undefined,
     policyTags = undefined,
     policyCategories = undefined,
+    gpsPoints = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1360,6 +1362,9 @@ function requestMoney(
             taxCode,
             taxAmount,
             billable,
+
+            // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+            gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         },
         onyxData,
     );
