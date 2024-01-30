@@ -237,6 +237,9 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.WORKSPACE.SETTINGS]: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
                             },
+                            [SCREENS.WORKSPACE.ACCOUNTING]: {
+                                path: ROUTES.WORKSPACE_ACCOUNTING.route,
+                            },
                             [SCREENS.WORKSPACE.CURRENCY]: {
                                 path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
                             },

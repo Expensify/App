@@ -11,5 +11,8 @@ Onyx.connect({
  * Add encryptedAuthToken to this attachment URL
  */
 export default function (url: string) {
+    if (url.includes('?')) {
+        return `${url}&encryptedAuthToken=${encodeURIComponent(encryptedAuthToken)}`;
+    }
     return `${url}?encryptedAuthToken=${encodeURIComponent(encryptedAuthToken)}`;
 }

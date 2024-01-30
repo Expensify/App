@@ -1530,6 +1530,7 @@ export default {
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración',
+            accounting: 'Accounting',
             reimburse: 'Reembolsos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',

@@ -1508,6 +1508,7 @@ export default {
             edit: 'Edit workspace',
             delete: 'Delete workspace',
             settings: 'Settings',
+            accounting: 'Accounting',
             reimburse: 'Reimbursements',
             bills: 'Bills',
             invoices: 'Invoices',

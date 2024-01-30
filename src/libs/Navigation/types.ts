@@ -88,6 +88,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
     [SCREENS.WORKSPACE.SETTINGS]: undefined;
+    [SCREENS.WORKSPACE.ACCOUNTING]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.CARD]: {
         policyID: string;
