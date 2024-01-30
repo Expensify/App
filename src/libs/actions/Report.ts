@@ -38,7 +38,7 @@ import type {
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
     UpdateReportWriteCapabilityParams,
-    UpdateWelcomeMessageParams,
+    UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
@@ -1486,9 +1486,9 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         },
     ];
 
-    const parameters: UpdateWelcomeMessageParams = {reportID, description: parsedDescription};
+    const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription};
 
-    API.write(WRITE_COMMANDS.UPDATE_WELCOME_MESSAGE, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData});
     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 }
 
