@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, Text as RNText, View} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
-import type {ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
+import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
 type Location = {
     x: number;
@@ -67,7 +67,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
-    const contextMenuAnchorRef = useRef<View | RNText | null>(null);
+    const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
     const contextMenuTargetNode = useRef<HTMLElement | null>(null);
 
     const onPopoverShow = useRef(() => {});

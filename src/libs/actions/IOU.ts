@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
+import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -793,7 +794,7 @@ function getMoneyRequestInformation(
     // to remind me to do this.
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-        optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction);
+        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -906,6 +907,7 @@ function createDistanceRequest(
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
 
     const optimisticReceipt: Receipt = {
         source: ReceiptGeneric as ReceiptSource,
@@ -917,7 +919,7 @@ function createDistanceRequest(
         comment,
         amount,
         currency,
-        created,
+        currentCreated,
         merchant,
         optimisticReceipt,
         undefined,
@@ -941,7 +943,7 @@ function createDistanceRequest(
         createdIOUReportActionID,
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
         waypoints: JSON.stringify(validWaypoints),
-        created,
+        created: currentCreated,
         category,
         tag,
         billable,
@@ -1261,6 +1263,7 @@ function requestMoney(
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
+    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
         getMoneyRequestInformation(
             currentChatReport,
@@ -1268,7 +1271,7 @@ function requestMoney(
             comment,
             amount,
             currency,
-            created,
+            currentCreated,
             merchant,
             receipt,
             undefined,
@@ -1289,7 +1292,7 @@ function requestMoney(
         amount,
         currency,
         comment,
-        created,
+        created: currentCreated,
         merchant,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
