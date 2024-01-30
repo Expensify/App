@@ -76,10 +76,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         return isManager && !isDraft && !isApproved && !isSettled;
     }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldShowSubmitButton = useMemo(
-        () => isDraft && reimbursableSpend !== 0,
-        [isDraft, reimbursableSpend],
-    );
+    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;

@@ -155,10 +155,7 @@ function ReportPreview({
             scanningReceipts: numberOfScanningReceipts,
         });
 
-    const shouldShowSubmitButton = useMemo(
-        () => isDraftExpenseReport && reimbursableSpend !== 0,
-        [isDraftExpenseReport, reimbursableSpend],
-    );
+    const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
