@@ -59,4 +59,15 @@ type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm, PersonalBankAccountForm};
+export type {
+    AddDebitCardForm,
+    DateOfBirthForm,
+    PrivateNotesForm,
+    DisplayNameForm,
+    FormValueType,
+    NewRoomForm,
+    BaseForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    PersonalBankAccountForm,
+};
