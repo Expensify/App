@@ -36,7 +36,7 @@ const imagePropTypes = {
     }),
 
     /** Whether we should show the top of the image */
-    objectPositionTop: PropTypes.string
+    objectPositionTop: PropTypes.string,
 };
 
 const defaultProps = {
