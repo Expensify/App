@@ -1517,10 +1517,10 @@ function updateReportName(reportID: string, value: string, previousValue: string
         reportName: value,
     };
 
-    API.write('RenameReport', parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
-function updatePolicyReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
+function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const recentlyUsedValues = allRecentlyUsedReportFields?.[reportField.fieldID] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
@@ -1596,7 +1596,7 @@ function updatePolicyReportField(reportID: string, reportField: PolicyReportFiel
         reportFields: JSON.stringify({[reportField.fieldID]: {fieldID: reportField.fieldID, value: reportField.value, type: reportField.type, name: reportField.name}}),
     };
 
-    API.write('Report_SetFields', parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
 function updateWelcomeMessage(reportID: string, previousValue: string, newValue: string) {
@@ -2858,7 +2858,7 @@ export {
     getDraftPrivateNote,
     updateLastVisitTime,
     clearNewRoomFormError,
-    updatePolicyReportField,
+    updateReportField,
     updateReportName,
     resolveActionableMentionWhisper,
 };

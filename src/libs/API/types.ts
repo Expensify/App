@@ -113,7 +113,7 @@ const WRITE_COMMANDS = {
     COMPLETE_TASK: 'CompleteTask',
     COMPLETE_ENGAGEMENT_MODAL: 'CompleteEngagementModal',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
-    SET_POLICY_REPORT_FIELD: 'Report_SetFields',
+    SET_REPORT_FIELD: 'Report_SetFields',
     SET_REPORT_NAME: 'RenameReport',
 } as const;
 
@@ -225,7 +225,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL]: Parameters.CompleteEngagementModalParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
-    [WRITE_COMMANDS.SET_POLICY_REPORT_FIELD]: Parameters.SetPolicyReportFieldParams;
+    [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
 };
 

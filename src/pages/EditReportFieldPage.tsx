@@ -68,7 +68,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
         } else {
-            ReportActions.updatePolicyReportField(report.reportID, {...reportField, value}, reportField);
+            ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
         }
 
         Navigation.dismissModal(report?.reportID);
