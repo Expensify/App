@@ -1,23 +1,22 @@
 import {useMemo, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
-import type {EdgeInsets} from "react-native-safe-area-context";
-import OptionsSelector from './OptionsSelector';
+import OptionsSelector from '@components/OptionsSelector';
 
 type TagPickerOnyxProps = {
     /** Collection of tags attached to a policy */
-    policyTags: OnyxCollection<PolicyTags>;
+    policyTags: OnyxEntry<PolicyTags>;
 
     /** List of recently used tags */
-    policyRecentlyUsedTags: OnyxCollection<RecentlyUsedTags>;
+    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
 };
 
 type TagPickerProps = TagPickerOnyxProps & {
@@ -51,8 +50,8 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyTagList = PolicyUtils.getTagList(policyTags, tag);
-    const policyTagsCount = Object.values(policyTagList).filter((policyTag) => policyTag.enabled).length;
+    const policyTagList = policyTags?.[tag]?.tags;
+    const policyTagsCount = Object.values(policyTagList ?? {}).filter((policyTag) => policyTag.enabled).length;
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
@@ -73,12 +72,11 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
 
     const enabledTags = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {
-            return policyTagList;
+            return Object.values(policyTagList ?? {});
         }
         const selectedNames = selectedOptions.map((s) => s.name);
-        const tags = [...selectedOptions, ...Object.values(policyTagList).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
 
-        return tags;
+        return [...selectedOptions, ...Object.values(policyTagList ?? {}).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     //
@@ -95,7 +93,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections?.[0]?.data?.length ?? 0) > 0, searchValue);
 
-    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
     const selectedOptionKey = sections[0]?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
 
     return (
@@ -126,9 +123,9 @@ TagPicker.displayName = 'TagPicker';
 
 export default withOnyx<TagPickerProps, TagPickerOnyxProps>({
     policyTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}` as typeof ONYXKEYS.COLLECTION.POLICY_TAGS,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
     policyRecentlyUsedTags: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}` as typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
     },
 })(TagPicker);
