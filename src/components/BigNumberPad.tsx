@@ -31,7 +31,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
-    const [timer, setTimer] = useState<NodeJS.Timer | null>(null);
+    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**

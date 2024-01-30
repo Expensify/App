@@ -5,8 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
+import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type {Comment, PendingFieldsCollection, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -144,11 +143,12 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function isMerchantMissing(transaction: Transaction) {
+    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    }
     const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
-    const isModifiedMerchantEmpty = !transaction.modifiedMerchant || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === '';
-
-    return isMerchantEmpty && isModifiedMerchantEmpty;
+    return isMerchantEmpty;
 }
 
 /**
