@@ -25,6 +25,8 @@ jest.mock('../../src/libs/Navigation/Navigation', () => {
         navigationRef: {
             addListener: () => jest.fn(),
             removeListener: () => jest.fn(),
+            isReady: () => jest.fn(),
+            getCurrentRoute: () => jest.fn(),
         },
     } as typeof Navigation;
 });
