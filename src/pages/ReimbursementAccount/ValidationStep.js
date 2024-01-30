@@ -18,11 +18,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -146,7 +146,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
             )}
             {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                 <FormProvider
-                    formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
@@ -201,7 +201,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         <Text>{translate('validationStep.letsChatText')}</Text>
                         <Button
                             text={translate('validationStep.letsChatCTA')}
-                            onPress={Report.navigateToConciergeChat}
+                            onPress={() => Report.navigateToConciergeChat(false, true)}
                             icon={Expensicons.ChatBubble}
                             style={[styles.mt4]}
                             iconStyles={[styles.buttonCTAIcon]}

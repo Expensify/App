@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import useThemeStyles from '@styles/useThemeStyles';
+import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
 type Choice = {
@@ -20,7 +21,7 @@ function RadioButtons({items, onPress}: RadioButtonsProps) {
     const [checkedValue, setCheckedValue] = useState('');
 
     return (
-        <>
+        <View style={styles.mb3}>
             {items.map((item) => (
                 <RadioButtonWithLabel
                     key={item.value}
@@ -33,7 +34,7 @@ function RadioButtons({items, onPress}: RadioButtonsProps) {
                     label={item.label}
                 />
             ))}
-        </>
+        </View>
     );
 }
 

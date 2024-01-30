@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as HeaderUtils from '@libs/HeaderUtils';
@@ -13,7 +14,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -100,7 +100,16 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             threeDotsMenuItems.push({
                 icon: Expensicons.Receipt,
                 text: translate('receipt.addReceipt'),
-                onSelected: () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT)),
+                onSelected: () =>
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.REQUEST,
+                            transaction.transactionID,
+                            report.reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                        ),
+                    ),
             });
         }
         threeDotsMenuItems.push({

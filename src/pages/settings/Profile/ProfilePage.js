@@ -13,11 +13,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import userPropTypes from '@pages/settings/userPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -127,6 +127,7 @@ function ProfilePage(props) {
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
                     onErrorClose={PersonalDetails.clearAvatarErrors}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                     previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
                     originalFileName={currentUserDetails.originalFileName}
                     headerTitle={props.translate('profilePage.profileAvatar')}

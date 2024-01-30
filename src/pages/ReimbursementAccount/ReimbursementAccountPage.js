@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
@@ -20,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import withPolicy from '@pages/workspace/withPolicy';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -159,7 +159,7 @@ function getRouteForCurrentStep(currentStep) {
 }
 
 function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingApp, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
-    /**  
+    /**
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         user left off. This view will refer to the achData as the single source of truth to determine which route to
         display. We can also specify a specific route to navigate to via route params when the component first
@@ -235,7 +235,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams(route));
     }
 
-    /** 
+    /**
         When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx
         or could be partially loaded such that `reimbursementAccount.achData.currentStep` is unavailable.
         Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
@@ -315,6 +315,11 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                    BankAccounts.hideBankAccountErrors();
+                }
+
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
@@ -335,7 +340,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     );
 
     const continueFunction = () => {
-        setShouldShowContinueSetupButton(false);
+        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+        });
         fetchData(true);
     };
 
@@ -397,18 +404,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     };
 
-    if (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy)) {
-        return (
-            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
-                />
-            </ScreenWrapper>
-        );
-    }
-
     const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
@@ -424,6 +419,18 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 isSubmittingVerificationsData={isSubmittingVerificationsData}
                 onBackButtonPress={goBack}
             />
+        );
+    }
+
+    if (!isLoading && (_.isEmpty(policy) || !PolicyUtils.isPolicyAdmin(policy))) {
+        return (
+            <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                <FullPageNotFoundView
+                    shouldShow
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
+                />
+            </ScreenWrapper>
         );
     }
 
@@ -551,7 +558,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

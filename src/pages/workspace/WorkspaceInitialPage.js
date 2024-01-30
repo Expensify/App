@@ -18,6 +18,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -26,7 +27,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
@@ -65,6 +65,15 @@ function openEditor(policyID) {
 function dismissError(policyID) {
     Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
+}
+
+/**
+ * Whether the policy report should be archived when we delete the policy.
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function shouldArchiveReport(report) {
+    return ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report);
 }
 
 function WorkspaceInitialPage(props) {
@@ -111,7 +120,7 @@ function WorkspaceInitialPage(props) {
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        Policy.deleteWorkspace(policyID, policyReports, policy.name);
+        Policy.deleteWorkspace(policyID, _.filter(policyReports, shouldArchiveReport), policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
         Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
@@ -206,22 +215,25 @@ function WorkspaceInitialPage(props) {
                 onSelected: () => setIsDeleteModalOpen(true),
             },
         ];
-        if (adminsRoom) {
+        // Menu options to navigate to the chat report of #admins and #announce room.
+        // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
+        // In such cases, let us use the available chat report ids from the policy.
+        if (adminsRoom || policy.chatReportIDAdmins) {
             items.push({
                 icon: Expensicons.Hashtag,
                 text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                onSelected: () => Navigation.dismissModal(adminsRoom.reportID),
+                onSelected: () => Navigation.dismissModal(adminsRoom ? adminsRoom.reportID : policy.chatReportIDAdmins.toString()),
             });
         }
-        if (announceRoom) {
+        if (announceRoom || policy.chatReportIDAnnounce) {
             items.push({
                 icon: Expensicons.Hashtag,
                 text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                onSelected: () => Navigation.dismissModal(announceRoom.reportID),
+                onSelected: () => Navigation.dismissModal(announceRoom ? announceRoom.reportID : policy.chatReportIDAnnounce.toString()),
             });
         }
         return items;
-    }, [adminsRoom, announceRoom, translate]);
+    }, [adminsRoom, announceRoom, translate, policy]);
 
     const prevPolicy = usePrevious(policy);
 

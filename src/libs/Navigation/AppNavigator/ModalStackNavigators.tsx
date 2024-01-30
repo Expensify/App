@@ -1,6 +1,8 @@
-import {ParamListBase} from '@react-navigation/routers';
-import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
+import type {ParamListBase} from '@react-navigation/routers';
+import type {StackNavigationOptions} from '@react-navigation/stack';
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -28,7 +30,6 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
 
@@ -73,9 +74,12 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
+    [SCREENS.MONEY_REQUEST.START]: () => require('../../../pages/iou/request/IOURequestRedirectToStartPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CREATE]: () => require('../../../pages/iou/request/IOURequestStartPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require('../../../pages/iou/request/step/IOURequestStepConfirmation').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepAmount').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require('../../../pages/iou/request/step/IOURequestStepTaxRatePage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require('../../../pages/iou/request/step/IOURequestStepCategory').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require('../../../pages/iou/request/step/IOURequestStepDate').default as React.ComponentType,
@@ -99,8 +103,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../pages/iou/MoneyRequestWaypointPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.DISTANCE]: () => require('../../../pages/iou/NewDistanceRequestPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../pages/EditRequestReceiptPage').default as React.ComponentType,
 });
@@ -197,8 +200,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
-    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
@@ -219,7 +221,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS]: () => require('../../../pages/settings/Profile/CustomStatus/StatusPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.STATUS_SET]: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.SETTINGS]: () => require('../../../pages/workspace/WorkspaceSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default as React.ComponentType,
@@ -262,10 +266,10 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../pages/EditRequestPage').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
+    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require('../../../pages/EditReportFieldPage').default as React.ComponentType,
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({
-    [SCREENS.PRIVATE_NOTES.VIEW]: () => require('../../../pages/PrivateNotes/PrivateNotesViewPage').default as React.ComponentType,
     [SCREENS.PRIVATE_NOTES.LIST]: () => require('../../../pages/PrivateNotes/PrivateNotesListPage').default as React.ComponentType,
     [SCREENS.PRIVATE_NOTES.EDIT]: () => require('../../../pages/PrivateNotes/PrivateNotesEditPage').default as React.ComponentType,
 });
@@ -276,6 +280,10 @@ const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParam
 
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+});
+
+const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
 });
 
 export {
@@ -304,4 +312,5 @@ export {
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
     ReferralModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
 };

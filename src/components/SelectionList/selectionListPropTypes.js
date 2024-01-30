@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import CONST from '@src/CONST';
 
 const commonListItemPropTypes = {
@@ -21,7 +22,7 @@ const commonListItemPropTypes = {
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple: PropTypes.bool,
 
-    /** Callback to fire when the item is pressed */
+    /** Callback to fire when the item is selected */
     onSelectRow: PropTypes.func.isRequired,
 
     /** Callback to fire when an error is dismissed */
@@ -60,7 +61,7 @@ const userListItemPropTypes = {
         /** Icons for the user (can be multiple if it's a Workspace) */
         icons: PropTypes.arrayOf(
             PropTypes.shape({
-                source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+                source: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]).isRequired,
                 name: PropTypes.string,
                 type: PropTypes.string,
             }),
@@ -189,8 +190,14 @@ const propTypes = {
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
+    /** Whether to show the toolip text */
+    shouldShowTooltips: PropTypes.bool,
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
+
+    /** Right hand side component to display in the list item. Function has list item passed as the param */
+    rightHandSideComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};

@@ -16,12 +16,12 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,7 @@ function ReportDetailsPage(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
+    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 
@@ -197,7 +197,10 @@ function ReportDetailsPage(props) {
                                     size={CONST.AVATAR_SIZE.LARGE}
                                 />
                             ) : (
-                                <RoomHeaderAvatars icons={icons} />
+                                <RoomHeaderAvatars
+                                    icons={icons}
+                                    reportID={props.report.reportID}
+                                />
                             )}
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>

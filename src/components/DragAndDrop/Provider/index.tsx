@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import useDragAndDrop from '@hooks/useDragAndDrop';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {DragAndDropContextParams, DragAndDropProviderProps, SetOnDropHandlerCallback} from './types';
 
 const DragAndDropContext = React.createContext<DragAndDropContextParams>({});

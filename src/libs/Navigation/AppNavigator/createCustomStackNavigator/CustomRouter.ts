@@ -1,6 +1,7 @@
-import {NavigationState, PartialState, RouterConfigOptions, StackNavigationState, StackRouter} from '@react-navigation/native';
-import {ParamListBase} from '@react-navigation/routers';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import type {NavigationState, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import {StackRouter} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
@@ -21,6 +22,17 @@ const getTopMostReportIDFromRHP = (state: State): string => {
     }
 
     const topmostRoute = state.routes.at(-1);
+
+    // In the case of money requests, send money and split bill,
+    // we want to ignore the associated report and fall back to the default navigation behavior
+    if (
+        topmostRoute?.params &&
+        'iouType' in topmostRoute.params &&
+        typeof topmostRoute.params.iouType === 'string' &&
+        (topmostRoute.params.iouType === CONST.IOU.TYPE.REQUEST || topmostRoute.params.iouType === CONST.IOU.TYPE.SEND || topmostRoute.params.iouType === CONST.IOU.TYPE.SPLIT)
+    ) {
+        return '';
+    }
 
     if (topmostRoute?.state) {
         return getTopMostReportIDFromRHP(topmostRoute.state);
@@ -64,9 +76,8 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getRehydratedState(partialState: StackNavigationState<ParamListBase>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            const isSmallScreenWidth = getIsSmallScreenWidth();
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !isSmallScreenWidth) {
+            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
 
                 // eslint-disable-next-line no-param-reassign

@@ -11,9 +11,9 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,7 +87,7 @@ function BankAccountManualStep(props) {
                 onBackButtonPress={props.onBackButtonPress}
             />
             <FormProvider
-                formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 onSubmit={submit}
                 validate={validate}
                 submitButtonText={translate('common.continue')}
