@@ -878,6 +878,6 @@ button {
 }
 
 #platform-tabs > .active {
-    color:#fff;
-    background-color: #1A3D32;
+    color: $color-text;
+    background-color: $color-button-background;
 }
