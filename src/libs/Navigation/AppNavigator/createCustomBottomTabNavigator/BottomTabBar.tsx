@@ -14,7 +14,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
-import {checkIfWorkspaceHasError} from '@libs/WorkspacesUtils';
+import {checkIfWorkspaceSettingsTabHasRBR, getChatTabBrickRoad} from '@libs/WorkspacesUtils';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -34,7 +34,9 @@ function BottomTabBar() {
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    const showWorkspaceRedBrickRoad = checkIfWorkspaceHasError(activeWorkspaceID) && currentTabName === SCREENS.HOME;
+    const showWorkspaceRedBrickRoad = checkIfWorkspaceSettingsTabHasRBR(activeWorkspaceID) && currentTabName === SCREENS.HOME;
+
+    const chatTabBrickRoad = currentTabName !== SCREENS.HOME ? getChatTabBrickRoad(activeWorkspaceID) : undefined;
 
     return (
         <View style={styles.bottomTabBarContainer}>
@@ -48,12 +50,17 @@ function BottomTabBar() {
                     wrapperStyle={styles.flexGrow1}
                     style={styles.bottomTabBarItem}
                 >
-                    <Icon
-                        src={Expensicons.ChatBubble}
-                        fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
-                        width={variables.iconBottomBar}
-                        height={variables.iconBottomBar}
-                    />
+                    <View>
+                        <Icon
+                            src={Expensicons.ChatBubble}
+                            fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                        {chatTabBrickRoad && (
+                            <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                        )}
+                    </View>
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabBarFloatingActionButton />
@@ -76,11 +83,7 @@ function BottomTabBar() {
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {showWorkspaceRedBrickRoad && (
-                            <View
-                                style={styles.bottomTabStatusIndicator}
-                            />
-                        )}
+                        {showWorkspaceRedBrickRoad && <View style={styles.bottomTabStatusIndicator(theme.danger)} />}
                     </View>
                 </PressableWithFeedback>
             </Tooltip>

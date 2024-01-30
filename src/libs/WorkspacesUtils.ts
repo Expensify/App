@@ -71,7 +71,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD.GBR : undefined;
 };
 
-function hasGlobalWorkspaceError(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
 
     const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
@@ -85,16 +85,52 @@ function hasGlobalWorkspaceError(policies: OnyxCollection<Policy>, policyMembers
     return errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
 }
 
-function hasWorkspaceRedBrickRoad(policy: Policy) {
+function hasWorkspaceSettingsRBR(policy: Policy) {
     const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
 
-    return hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
 }
 
-function checkIfWorkspaceHasError(policyID?: string) {
-    // TODO: Handle reimbursmentAccount error
+function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+    if (!allReports) {
+        return undefined;
+    }
+
+    let brickRoad: BrickRoad | undefined;
+
+    Object.keys(allReports).forEach((report) => {
+        if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            return;
+        }
+
+        if (policyID && policyID !== allReports?.[report]?.policyID) {
+            return;
+        }
+
+        const policyReport = allReports ? allReports[report] : null;
+
+        if (!policyReport) {
+            return;
+        }
+
+        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
+
+        if (workspaceBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            brickRoad = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            return;
+        }
+
+        if (!brickRoad && workspaceBrickRoad) {
+            brickRoad = workspaceBrickRoad;
+        }
+    });
+
+    return brickRoad;
+}
+
+function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
     if (!policyID) {
-        return hasGlobalWorkspaceError(allPolicies, allPolicyMembers);
+        return hasGlobalWorkspaceSettingsRBR(allPolicies, allPolicyMembers);
     }
     const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
 
@@ -102,7 +138,7 @@ function checkIfWorkspaceHasError(policyID?: string) {
         return false;
     }
 
-    return hasWorkspaceRedBrickRoad(policy);
+    return hasWorkspaceSettingsRBR(policy);
 }
 
 /**
@@ -123,7 +159,7 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
             return;
         }
 
-        if (hasWorkspaceRedBrickRoad(policy)) {
+        if (hasWorkspaceSettingsRBR(policy)) {
             workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD.RBR;
         }
     });
@@ -131,7 +167,7 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
     Object.keys(allReports).forEach((report) => {
         const policyID = allReports?.[report]?.policyID ?? CONST.POLICY.EMPTY;
         const policyReport = allReports ? allReports[report] : null;
-        if (!policyID || !policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
+        if (!policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
             return;
         }
         const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
@@ -175,5 +211,13 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
     return workspacesUnreadStatuses;
 }
 
-export {getBrickRoadForPolicy, getWorkspacesBrickRoads, getWorkspacesUnreadStatuses, hasGlobalWorkspaceError, checkIfWorkspaceHasError, hasWorkspaceRedBrickRoad};
+export {
+    getBrickRoadForPolicy,
+    getWorkspacesBrickRoads,
+    getWorkspacesUnreadStatuses,
+    hasGlobalWorkspaceSettingsRBR,
+    checkIfWorkspaceSettingsTabHasRBR,
+    hasWorkspaceSettingsRBR,
+    getChatTabBrickRoad,
+};
 export type {BrickRoad};

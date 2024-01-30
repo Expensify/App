@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasGlobalWorkspaceError} from '@libs/WorkspacesUtils';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -47,7 +47,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                     })();
                 },
                 focused: !isSmallScreenWidth,
-                brickRoadIndicator: hasGlobalWorkspaceError(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.subscriptions',
