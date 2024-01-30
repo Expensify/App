@@ -2,14 +2,15 @@ import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
-import OptionsSelector from '@components/OptionsSelector';
 
 type TagPickerOnyxProps = {
     /** Collection of tags attached to a policy */
@@ -50,8 +51,8 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyTagList = policyTags?.[tag]?.tags;
-    const policyTagsCount = Object.values(policyTagList ?? {}).filter((policyTag) => policyTag.enabled).length;
+    const policyTagList = PolicyUtils.getTagList(policyTags, tag);
+    const policyTagsCount = Object.values(policyTagList).filter((policyTag) => policyTag.enabled).length;
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTagsCountBelowThreshold;
@@ -72,11 +73,11 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
 
     const enabledTags = useMemo(() => {
         if (!shouldShowDisabledAndSelectedOption) {
-            return Object.values(policyTagList ?? {});
+            return policyTagList;
         }
         const selectedNames = selectedOptions.map((s) => s.name);
 
-        return [...selectedOptions, ...Object.values(policyTagList ?? {}).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return [...selectedOptions, ...Object.values(policyTagList).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     //
