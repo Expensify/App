@@ -1,4 +1,4 @@
-declare module 'react-native-onyx/lib/storage/__mocks__' {
+declare module 'react-native-onyx/dist/storage/__mocks__' {
     const mockStorage: {
         idbKeyvalSet: jest.MockedFunction<() => Promise<unknown>>;
         setItem: jest.MockedFunction<() => Promise<unknown>>;
