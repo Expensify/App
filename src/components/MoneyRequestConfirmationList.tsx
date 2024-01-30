@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {PaymentType} from '@src/types/onyx/OriginalMessage';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {MileageRate} from '@src/types/onyx/Policy';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -36,6 +36,7 @@ import FormHelpMessage from './FormHelpMessage';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
+import ReceiptEmptyState from './ReceiptEmptyState';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -78,7 +79,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
         onConfirm?: (selectedParticipants: Participant[]) => void;
 
         /** Callback to parent modal to send money */
-        onSendMoney?: (paymentMethod: PaymentType) => void;
+        onSendMoney?: (paymentMethod: PaymentMethodType) => void;
 
         /** Callback to inform a participant is selected */
         onSelectParticipant?: (option: Participant) => void;
@@ -232,7 +233,7 @@ function MoneyRequestConfirmationList({
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
 
     // A flag for showing the categories field
-    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategories = isPolicyExpenseChat && (iouCategory || OptionsListUtils.hasEnabledOptions(policyCategories ?? {}));
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -249,7 +250,7 @@ function MoneyRequestConfirmationList({
     const policyTagList = policyTag?.tags ?? {};
     const policyTagListName = policyTag?.name ?? translate('common.tag');
     // A flag for showing the tags field
-    const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledOptions(Object.values(policyTagList)));
+    const shouldShowTags = isPolicyExpenseChat && (iouTag || OptionsListUtils.hasEnabledOptions(policyTagList));
 
     // A flag for showing tax fields - tax rate and tax amount
     const shouldShowTax = isPolicyExpenseChat && policy?.isTaxTrackingEnabled;
@@ -322,8 +323,7 @@ function MoneyRequestConfirmationList({
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 calculatedIouAmount > 0 ? CurrencyUtils.convertToDisplayString(calculatedIouAmount, iouCurrencyCode) : '',
-                // TODO: Remove the assertion once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-            ) as Participant[];
+            );
         },
         [iouAmount, iouCurrencyCode],
     );
@@ -467,7 +467,7 @@ function MoneyRequestConfirmationList({
     };
 
     const confirm = useCallback(
-        (paymentMethod: PaymentType) => {
+        (paymentMethod: PaymentMethodType) => {
             if (selectedParticipantsMemo.length === 0) {
                 return;
             }
@@ -552,7 +552,7 @@ function MoneyRequestConfirmationList({
                 pressOnEnter
                 isDisabled={shouldDisableButton}
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                onPress={(_, value) => confirm(value as PaymentType)}
+                onPress={(_, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
             />
@@ -612,7 +612,7 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {(receiptData.image || receiptData.thumbnail) && (
+            {receiptData.image || receiptData.thumbnail ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: receiptData.thumbnail ?? receiptData.image}}
@@ -621,6 +621,25 @@ function MoneyRequestConfirmationList({
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!!receiptData.thumbnail}
                 />
+            ) : (
+                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                PolicyUtils.isPaidGroupPolicy(policy) &&
+                !isDistanceRequest &&
+                iouType === CONST.IOU.TYPE.REQUEST && (
+                    <ReceiptEmptyState
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    CONST.IOU.ACTION.CREATE,
+                                    iouType,
+                                    transaction?.transactionID ?? '',
+                                    reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                    />
+                )
             )}
             {shouldShowSmartScanFields && (
                 <MenuItemWithTopDescription
@@ -751,7 +770,7 @@ function MoneyRequestConfirmationList({
                     {shouldShowTags && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouTag}
+                            title={PolicyUtils.getCleanedTagName(iouTag)}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
                             onPress={() => {

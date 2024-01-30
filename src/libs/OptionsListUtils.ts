@@ -10,7 +10,20 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTags,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
@@ -768,7 +781,7 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTags): boolean {
     return Object.values(options).some((option) => option.enabled);
 }
 
@@ -1699,7 +1712,7 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | EmptyObject, amountText: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
