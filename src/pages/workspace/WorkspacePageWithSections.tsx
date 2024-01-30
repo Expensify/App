@@ -67,6 +67,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         shouldShowOfflineIndicatorInWideScreen?: boolean;
 
+        /** Whether to show this page to non admin policy members */
+        shouldShowNonAdmin?: boolean;
+
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
     };
@@ -94,12 +97,12 @@ function WorkspacePageWithSections({
     user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
+    shouldShowNonAdmin = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
     const isLoading = reimbursementAccount?.isLoading ?? true;
-    const isOverview = route.name;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const policyID = route.params.policyID;
@@ -124,9 +127,8 @@ function WorkspacePageWithSections({
             return true;
         }
 
-        // TODO - check is the value of isOveriew is correct
-        return !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !isOverview;
-    }, [isOverview, policy]);
+        return (!PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || PolicyUtils.isPendingDeletePolicy(policy);
+    }, [shouldShowNonAdmin, policy]);
 
     return (
         <ScreenWrapper
