@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,28 +11,27 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {UserWallet} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ActivateStep from './ActivateStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import FailedKYC from './FailedKYC';
 // Steps
 import OnfidoStep from './OnfidoStep';
 import TermsStep from './TermsStep';
-import userWalletPropTypes from './userWalletPropTypes';
 
-const propTypes = {
+type EnablePaymentsPageOnyxProps = {
     /** The user's wallet */
-    userWallet: userWalletPropTypes,
+    userWallet: OnyxEntry<UserWallet>;
 };
 
-const defaultProps = {
-    userWallet: {},
-};
+type EnablePaymentsPageProps = EnablePaymentsPageOnyxProps & {};
 
-function EnablePaymentsPage({userWallet}) {
+function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const {isPendingOnfidoResult, hasFailedOnfido} = userWallet;
+    const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
 
     useEffect(() => {
         if (isOffline) {
@@ -47,18 +46,18 @@ function EnablePaymentsPage({userWallet}) {
         Wallet.openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
-    if (_.isEmpty(userWallet)) {
+    if (isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;
     }
 
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicator={userWallet.currentStep !== CONST.WALLET.STEP.ONFIDO}
+            shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom={false}
             testID={EnablePaymentsPage.displayName}
         >
             {() => {
-                if (userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
+                if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
                     return (
                         <>
                             <HeaderWithBackButton
@@ -70,7 +69,7 @@ function EnablePaymentsPage({userWallet}) {
                     );
                 }
 
-                const currentStep = userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                const currentStep = userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
                 switch (currentStep) {
                     case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
@@ -91,10 +90,8 @@ function EnablePaymentsPage({userWallet}) {
 }
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';
-EnablePaymentsPage.propTypes = propTypes;
-EnablePaymentsPage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<EnablePaymentsPageProps, EnablePaymentsPageOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
 
