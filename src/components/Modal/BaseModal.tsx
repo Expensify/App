@@ -2,6 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,6 +48,7 @@ function BaseModal(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -163,7 +165,7 @@ function BaseModal(
         safeAreaPaddingRight,
         shouldAddBottomSafeAreaMargin,
         shouldAddTopSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding,
+        shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
         modalContainerStyleMarginTop: modalContainerStyle.marginTop,
         modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -177,7 +179,7 @@ function BaseModal(
             onBackdropPress={handleBackdropPress}
             // Note: Escape key on web/desktop will trigger onBackButtonPress callback
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={onClose}
+            onBackButtonPress={Modal.closeTop}
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
