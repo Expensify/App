@@ -52,8 +52,16 @@ const ViolationsUtils = {
         }
 
         if (policyRequiresTags) {
-            const selectedTags = transaction.tag.split(CONST.COLON);
+            const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
             const policyTagKeys = Object.keys(policyTags);
+
+            if (policyTagKeys.length === 0) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                    type: 'violation',
+                    userMessage: '',
+                });
+            }
 
             policyTagKeys.forEach((key, index) => {
                 const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.data?.tagName === key);
