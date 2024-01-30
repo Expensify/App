@@ -52,7 +52,7 @@ type SearchPageSectionItem = {
 
 type SearchPageSectionList = SearchPageSectionItem[];
 
-function SearchPage({betas, personalDetails, reports, isSearchingForReports}: SearchPageProps) {
+function SearchPage({betas, personalDetails, reports, isSearchingForReports, navigation}: SearchPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<SearchOptions>({
         recentReports: [],
