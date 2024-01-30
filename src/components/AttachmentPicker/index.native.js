@@ -65,12 +65,12 @@ const getImagePickerOptions = (type) => {
 const getDocumentPickerOptions = (type) => {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
         return {
-            type: [RNDocumentPicker.types.allFiles],
+            type: [RNDocumentPicker.types.images],
             copyTo: 'cachesDirectory',
         };
     }
     return {
-        type: [RNDocumentPicker.types.images],
+        type: [RNDocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',
     };
 };
