@@ -14,12 +14,16 @@ type CountryData = {
  * @returns An array of countries/states sorted based on the search query
  */
 function searchCountryOptions(searchValue: string, countriesData: CountryData[]): CountryData[] {
+    if (!searchValue) {
+        return countriesData;
+    }
+    
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (!trimmedSearchValue) {
         return [];
     }
 
-    const filteredData = countriesData.filter((country) => StringUtils.sanitizeString(country.searchValue).includes(trimmedSearchValue));
+    const filteredData = countriesData.filter((country) => country.searchValue.includes(trimmedSearchValue));
 
     const halfSorted = filteredData.sort((a, b) => {
         // Prioritize matches at the beginning of the string

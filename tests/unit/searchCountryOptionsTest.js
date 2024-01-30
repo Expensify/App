@@ -96,6 +96,57 @@ describe('searchCountryOptions', () => {
         const actual = searchCountryOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
+    test('when the search term contains diacritics the country names that exactly match should be prioritized, test case #2', () => {
+        const searchValue = 'é';
+        const countriesData = [
+            {
+                value: 'BE',
+                keyForList: 'BE',
+                text: 'Belgium',
+                isSelected: false,
+                searchValue: 'bebelgium',
+            },
+            {
+                value: 'US',
+                keyForList: 'US',
+                text: 'United States',
+                isSelected: false,
+                searchValue: 'usunitedstates',
+            },
+            {
+                value: 'BL',
+                keyForList: 'BL',
+                text: 'Saint Barthélemy',
+                isSelected: false,
+                searchValue: 'blsaintbarthelemy',
+            },
+        ];
+        const expected = [
+            {
+                value: 'BL',
+                keyForList: 'BL',
+                text: 'Saint Barthélemy',
+                isSelected: false,
+                searchValue: 'blsaintbarthelemy',
+            },
+            {
+                value: 'BE',
+                keyForList: 'BE',
+                text: 'Belgium',
+                isSelected: false,
+                searchValue: 'bebelgium',
+            },
+            {
+                value: 'US',
+                keyForList: 'US',
+                text: 'United States',
+                isSelected: false,
+                searchValue: 'usunitedstates',
+            },
+        ];
+        const actual = searchCountryOptions(searchValue, countriesData);
+        expect(actual).toEqual(expected);
+    });
     test('when the search term contains no diacritics, countries with diacritics should still be searched by their sanitized names', () => {
         const searchValue = 'al';
         const countriesData = [
@@ -190,5 +241,41 @@ describe('searchCountryOptions', () => {
         ];
         const actual = searchCountryOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
-    }); 
+    });
+    test('when the search term is empty, all countries should be returned', () => {
+        const searchValue = '';
+        const countriesData = [
+            {
+                value: 'BB',
+                keyForList: 'BB',
+                text: 'Barbados',
+                isSelected: false,
+                searchValue: 'bbbarbados',
+            },
+            {
+                value: 'BY',
+                keyForList: 'BY',
+                text: 'Belarus',
+                isSelected: false,
+                searchValue: 'bybelarus',
+            },
+            {
+                value: 'BE',
+                keyForList: 'BE',
+                text: 'Belgium',
+                isSelected: false,
+                searchValue: 'bebelgium',
+            },
+            {
+                value: 'AG',
+                keyForList: 'AG',
+                text: 'Antigua and Barbuda',
+                isSelected: false,
+                searchValue: 'agantiguaandbarbuda',
+            },
+        ];
+        const expected = countriesData;
+        const actual = searchCountryOptions(searchValue, countriesData);
+        expect(actual).toEqual(expected);
+    });
 });
