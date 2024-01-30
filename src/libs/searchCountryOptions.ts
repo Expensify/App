@@ -17,12 +17,11 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
     if (!searchValue) {
         return countriesData;
     }
-    
+
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
     if (!trimmedSearchValue) {
         return [];
     }
-    console.log(trimmedSearchValue)
     const filteredData = countriesData.filter((country) => country.searchValue.includes(trimmedSearchValue));
 
     const halfSorted = filteredData.sort((a, b) => {
