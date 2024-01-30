@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,4 +51,4 @@ function RadioButtons({items, onPress, errorText}: RadioButtonsProps) {
 RadioButtons.displayName = 'RadioButtons';
 
 export type {Choice};
-export default RadioButtons;
+export default forwardRef(RadioButtons);
