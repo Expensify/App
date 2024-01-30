@@ -79,9 +79,8 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                     onButtonPress={() => exitFlow(true)}
                 />
             ) : (
-                // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 <FormProvider
-                    formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
                     submitButtonText={translate('common.saveAndContinue')}
                     scrollContextEnabled
