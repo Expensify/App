@@ -20,7 +20,7 @@ type HeaderPageLayoutProps = ChildrenProps &
         backgroundColor?: string;
 
         /** TestID to apply to the whole section container */
-        testID?: string;
+        testID: string;
 
         /** A fixed footer to display at the bottom of the page. */
         footer?: ReactNode;
@@ -76,7 +76,7 @@ function HeaderPageLayout({
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
-            testID={testID || HeaderPageLayout.displayName}
+            testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
         >
             {({safeAreaPaddingBottomStyle}) => (

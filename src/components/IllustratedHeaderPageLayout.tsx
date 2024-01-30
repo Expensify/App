@@ -18,7 +18,7 @@ type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
     overlayContent?: () => ReactNode;
 
     /** TestID to apply to the whole section container */
-    testID?: string;
+    testID: string;
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, testID, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
