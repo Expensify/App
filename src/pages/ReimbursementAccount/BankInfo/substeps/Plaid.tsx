@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData, ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type PlaidOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -28,26 +29,23 @@ type PlaidOnyxProps = {
 
 type PlaidProps = PlaidOnyxProps & SubStepProps;
 
-type ValuesType = {
-    selectedPlaidAccountID: string;
-};
-
 const BANK_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
+
+const validate = (values: ReimbursementAccountDraftValues): Errors => {
+    const errorFields: Errors = {};
+
+    if (!values.selectedPlaidAccountID) {
+        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
+    }
+
+    return errorFields;
+};
 
 function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
-
-    const validate = useCallback((values: ValuesType): Errors => {
-        const errorFields: Errors = {};
-        if (!values.selectedPlaidAccountID) {
-            errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
-        }
-
-        return errorFields;
-    }, []);
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -88,6 +86,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             style={[styles.mh5, styles.flexGrow1]}
         >
             <InputWrapper
+                // @ts-expect-error TODO: Remove this once AddPlaidBankAccount (https://github.com/Expensify/App/issues/25119) is migrated to TypeScript
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID: string) => {

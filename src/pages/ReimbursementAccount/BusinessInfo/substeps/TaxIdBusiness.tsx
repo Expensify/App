@@ -13,8 +13,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type TaxIdBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -26,7 +26,7 @@ type TaxIdBusinessProps = TaxIdBusinessOnyxProps & SubStepProps;
 const COMPANY_TAX_ID_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 
-const validate = (values: FormValues): OnyxCommon.Errors => {
+const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {

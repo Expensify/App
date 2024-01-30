@@ -12,7 +12,7 @@ import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountFormDraft} from '@src/types/onyx';
-import type {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {BeneficialOwnerDraftData, ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const BENEFICIAL_OWNER_INFO_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -44,7 +44,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
         zipCode: reimbursementAccountDraft?.[inputKeys.zipCode] ?? '',
     };
 
-    const validate = (values: FormValues) => {
+    const validate = (values: ReimbursementAccountDraftValues) => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
         if (values[inputKeys.street] && !ValidationUtils.isValidAddress(values[inputKeys.street])) {

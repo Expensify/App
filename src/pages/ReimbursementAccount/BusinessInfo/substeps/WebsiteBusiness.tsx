@@ -15,8 +15,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, Session, User} from '@src/types/onyx';
-import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type WebsiteBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -34,7 +34,7 @@ type WebsiteBusinessProps = WebsiteBusinessOnyxProps & SubStepProps;
 const COMPANY_WEBSITE_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
-const validate = (values: FormValues): OnyxCommon.Errors => {
+const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.website && !ValidationUtils.isValidWebsite(values.website)) {

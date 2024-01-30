@@ -13,10 +13,10 @@ type BusinessTypePickerProps = {
     errorText?: string;
 
     /** Business type to display */
-    value: string;
+    value?: string;
 
     /** Callback to call when the input changes */
-    onInputChange: (value: string) => void;
+    onInputChange?: (value: string) => void;
 
     /** Label to display on field */
     label: string;
@@ -25,10 +25,10 @@ type BusinessTypePickerProps = {
     wrapperStyle: StyleProp<ViewStyle>;
 
     /**  Callback to call when the picker modal is dismissed */
-    onBlur: () => void;
+    onBlur?: () => void;
 };
 
-function BusinessTypePicker({errorText = '', value, wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
+function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -39,14 +39,14 @@ function BusinessTypePicker({errorText = '', value, wrapperStyle, onInputChange,
     };
 
     const hidePickerModal = (shouldBlur = true) => {
-        if (shouldBlur) {
+        if (onBlur && shouldBlur) {
             onBlur();
         }
         setIsPickerVisible(false);
     };
 
     const updateBusinessTypeInput = (businessTypeItem: BusinessTypeItemType) => {
-        if (businessTypeItem.value !== value) {
+        if (onInputChange && businessTypeItem.value !== value) {
             onInputChange(businessTypeItem.value);
         }
         // If the user selects any business type, call the hidePickerModal function with shouldBlur = false

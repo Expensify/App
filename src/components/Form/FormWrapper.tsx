@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {View} from 'react-native';
 import {Keyboard, ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -25,9 +25,6 @@ type FormWrapperOnyxProps = {
 type FormWrapperProps = ChildrenProps &
     FormWrapperOnyxProps &
     FormProps & {
-        /** Submit button styles */
-        submitButtonStyles?: StyleProp<ViewStyle>;
-
         /** Server side errors keyed by microtime */
         errors: Errors;
 

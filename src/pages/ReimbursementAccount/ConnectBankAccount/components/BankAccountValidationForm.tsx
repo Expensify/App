@@ -12,7 +12,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type {FormValues} from '@src/types/onyx/Form';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 import Enable2FACard from './Enable2FACard';
 
 type BankAccountValidationFormProps = {
@@ -23,10 +23,10 @@ type BankAccountValidationFormProps = {
     requiresTwoFactorAuth: boolean;
 };
 
-const getAmountValues = (values: FormValues): Record<string, string> => ({
-    amount1: values?.amount1,
-    amount2: values?.amount2,
-    amount3: values?.amount3,
+const getAmountValues = (values: ReimbursementAccountDraftValues): Record<string, string> => ({
+    amount1: values?.amount1 ?? '',
+    amount2: values?.amount2 ?? '',
+    amount3: values?.amount3 ?? '',
 });
 
 const filterInput = (amount: string) => {
@@ -43,7 +43,7 @@ const filterInput = (amount: string) => {
     return value;
 };
 
-const validate = (values: FormValues) => {
+const validate = (values: ReimbursementAccountDraftValues) => {
     const errors: Record<string, string> = {};
     const amountValues = getAmountValues(values);
 
@@ -65,10 +65,10 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const submit = useCallback(
-        (values: FormValues) => {
-            const amount1 = filterInput(values.amount1);
-            const amount2 = filterInput(values.amount2);
-            const amount3 = filterInput(values.amount3);
+        (values: ReimbursementAccountDraftValues) => {
+            const amount1 = filterInput(values.amount1 ?? '');
+            const amount2 = filterInput(values.amount2 ?? '');
+            const amount3 = filterInput(values.amount3 ?? '');
 
             const validateCode = [amount1, amount2, amount3].join(',');
 

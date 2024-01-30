@@ -1,6 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
+import type {OnfidoData} from './ReimbursementAccountDraft';
 
-type FormValueType = string | boolean | Date;
+type FormValueType = string | boolean | Date | OnfidoData | string[] | number;
 
 type BaseForm = {
     /** Controls the loading state of the form */

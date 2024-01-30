@@ -12,8 +12,8 @@ import AddressForm from '@pages/ReimbursementAccount/AddressForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type AddressBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -33,7 +33,7 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY.CITY, COMPANY_BUSINESS_INFO_KEY.STATE, COMPANY_BUSINESS_INFO_KEY.ZIP_CODE];
 
-const validate = (values: FormValues): OnyxCommon.Errors => {
+const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {

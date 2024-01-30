@@ -2,12 +2,12 @@ import {useCallback} from 'react';
 import * as FormActions from '@userActions/FormActions';
 import type {OnyxFormKeyWithoutDraft} from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FormValues} from '@src/types/onyx/Form';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {SubStepProps} from './useSubStep/types';
 
 type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'isEditing' | 'onNext'> & {
     formId?: OnyxFormKeyWithoutDraft;
-    fieldIds: Array<keyof FormValues>;
+    fieldIds: Array<keyof ReimbursementAccountDraftValues>;
 };
 
 export default function useReimbursementAccountStepFormSubmit({
@@ -17,7 +17,7 @@ export default function useReimbursementAccountStepFormSubmit({
     fieldIds,
 }: UseReimbursementAccountStepFormSubmitParams) {
     return useCallback(
-        (values: FormValues) => {
+        (values: ReimbursementAccountDraftValues) => {
             if (isEditing) {
                 const stepValues = fieldIds.reduce(
                     (acc, key) => ({

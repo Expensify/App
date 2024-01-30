@@ -13,8 +13,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
-import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type IncorporationStateBusinessOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -26,7 +26,7 @@ type IncorporationStateBusinessProps = IncorporationStateBusinessOnyxProps & Sub
 const COMPANY_INCORPORATION_STATE_KEY = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
 
-const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
 function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: IncorporationStateBusinessProps) {
     const {translate} = useLocalize();
@@ -46,12 +46,10 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh0, styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
             <InputWrapper
                 InputComponent={StatePicker}
-                fomrID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={COMPANY_INCORPORATION_STATE_KEY}
                 label={translate('businessInfoStep.incorporationState')}
                 defaultValue={defaultCompanyIncorporationState}

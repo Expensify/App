@@ -15,8 +15,8 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount, ReimbursementAccountFormDraft} from '@src/types/onyx';
-import type {FormValues} from '@src/types/onyx/Form';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type DateOfBirthOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -31,7 +31,7 @@ type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
 const PERSONAL_INFO_DOB_KEY = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
-const validate = (values: FormValues): OnyxCommon.Errors => {
+const validate = (values: ReimbursementAccountDraftValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.dob) {
@@ -70,9 +70,9 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
-            <InputWrapper
+            {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
+            <InputWrapper<unknown>
                 InputComponent={DatePicker}
-                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 inputID={PERSONAL_INFO_DOB_KEY}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}

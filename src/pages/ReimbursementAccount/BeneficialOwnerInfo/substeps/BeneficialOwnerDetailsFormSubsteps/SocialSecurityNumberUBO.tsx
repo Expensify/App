@@ -14,7 +14,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountFormDraft} from '@src/types/onyx';
-import type {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {BeneficialOwnerDraftData, ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -34,7 +34,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
     const defaultSsnLast4 = reimbursementAccountDraft?.[ssnLast4InputID] ?? '';
     const stepFields = [ssnLast4InputID];
 
-    const validate = (values: FormValues) => {
+    const validate = (values: ReimbursementAccountDraftValues) => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
         if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
             errors[ssnLast4InputID] = 'bankAccount.error.ssnLast4';

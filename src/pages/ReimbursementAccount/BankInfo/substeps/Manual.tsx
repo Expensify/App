@@ -13,6 +13,7 @@ import ExampleCheckImage from '@pages/ReimbursementAccount/ExampleCheck';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import type {ReimbursementAccountDraftValues} from '@src/types/onyx/ReimbursementAccountDraft';
 
 type ManualOnyxProps = {
     /** Reimbursement account from ONYX */
@@ -40,7 +41,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
      * @returns {Object}
      */
     const validate = useCallback(
-        (values: FormValues) => {
+        (values: ReimbursementAccountDraftValues) => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
             const routingNumber = values.routingNumber?.trim();
 
@@ -71,7 +72,6 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             validate={validate}
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
-            shouldSaveDraft
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('bankAccount.manuallyAdd')}</Text>
             <Text style={[styles.mb5, styles.textLabel]}>{translate('bankAccount.checkHelpLine')}</Text>
