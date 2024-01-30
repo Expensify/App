@@ -54,12 +54,6 @@ type Message = {
     /** ID of a task report */
     taskReportID?: string;
 
-    /** Reason of payment cancellation */
-    cancellationReason?: string;
-
-    /** ID of an expense report */
-    expenseReportID?: string;
-
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 };
@@ -181,7 +175,7 @@ type ReportActionBase = {
 
     /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;

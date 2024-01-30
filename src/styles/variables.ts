@@ -70,6 +70,7 @@ export default {
     iconSizeXXSmall: 8,
     iconSizeExtraSmall: 12,
     iconSizeSmall: 16,
+    iconSizeMedium: 18,
     iconSizeNormal: 20,
     iconSizeLarge: 24,
     iconSizeXLarge: 28,
@@ -197,4 +198,8 @@ export default {
     cardPreviewWidth: 235,
     cardNameWidth: 156,
     holdMenuIconSize: 64,
+    updateAnimationW: 390,
+    updateAnimationH: 240,
+    updateTextViewContainerWidth: 310,
+    updateViewHeaderHeight: 70,
 } as const;
