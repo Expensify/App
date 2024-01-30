@@ -62,6 +62,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Whether the modal should use focus trap */
     shouldEnableFocusTrap?: boolean;
+
+    /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+    shouldUseCustomBackdrop?: boolean;
 };
 
 export default BaseModalProps;
