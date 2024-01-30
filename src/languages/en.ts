@@ -301,6 +301,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -774,6 +775,11 @@ export default {
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
     },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
+    },
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
@@ -1136,7 +1142,7 @@ export default {
     },
     personalDetails: {
         error: {
-            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
@@ -1765,6 +1771,8 @@ export default {
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
+        deleteTask: 'Delete task',
+        deleteConfirmation: 'Are you sure that you want to delete this task?',
     },
     statementPage: {
         title: (year, monthName) => `${monthName} ${year} statement`,
