@@ -198,4 +198,8 @@ export default {
     cardPreviewWidth: 235,
     cardNameWidth: 156,
     holdMenuIconSize: 64,
+    updateAnimationW: 390,
+    updateAnimationH: 240,
+    updateTextViewContainerWidth: 310,
+    updateViewHeaderHeight: 70,
 } as const;
