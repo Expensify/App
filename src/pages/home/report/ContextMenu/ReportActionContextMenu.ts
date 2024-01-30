@@ -16,11 +16,13 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
+type ContextMenuAnchor = View | RNText | null | undefined;
+
 type ShowContextMenu = (
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: View | RNText | null,
+    contextMenuAnchor: ContextMenuAnchor,
     reportID?: string,
     reportActionID?: string,
     originalReportID?: string,
@@ -99,7 +101,7 @@ function showContextMenu(
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: View | RNText | null,
+    contextMenuAnchor: ContextMenuAnchor,
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
@@ -180,4 +182,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu};
+export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};
