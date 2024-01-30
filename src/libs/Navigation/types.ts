@@ -469,6 +469,7 @@ type FullScreenName = keyof SettingsCentralPaneNavigatorParamList;
 type switchPolicyIDParams = {
     policyID?: string;
     route?: Routes;
+    isPolicyAdmin?: boolean;
 };
 
 export type {

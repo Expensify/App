@@ -111,7 +111,7 @@ function WorkspaceSwitcherPage({policies}) {
     );
 
     const selectPolicy = useCallback((option) => {
-        const policyID = option.policyID;
+        const {policyID, isPolicyAdmin} = option;
 
         if (policyID) {
             setSelectedOption(option);
@@ -121,7 +121,7 @@ function WorkspaceSwitcherPage({policies}) {
         setActiveWorkspaceID(policyID);
         Navigation.goBack();
         if (policyID !== activeWorkspaceID) {
-            Navigation.navigateWithSwitchPolicyID({policyID});
+            Navigation.navigateWithSwitchPolicyID({policyID, isPolicyAdmin});
         }
     }, []);
 
@@ -147,6 +147,7 @@ function WorkspaceSwitcherPage({policies}) {
                     ],
                     boldStyle: hasUnreadData(policy.id),
                     keyForList: policy.id,
+                    isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
                 }))
                 .value(),
         [policies, getIndicatorTypeForPolicy, hasUnreadData],

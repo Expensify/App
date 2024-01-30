@@ -60,7 +60,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     };
 }
 
-export default function switchPolicyID(navigation: NavigationContainerRef<RootStackParamList> | null, {policyID, route}: switchPolicyIDParams) {
+export default function switchPolicyID(navigation: NavigationContainerRef<RootStackParamList> | null, {policyID, route, isPolicyAdmin = true}: switchPolicyIDParams) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -117,6 +117,11 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
                 delete params.policyID;
             } else {
                 params.policyID = policyID;
+            }
+
+            // We need to redirect non admin users to overview screen, when switching workspace.
+            if (!isPolicyAdmin && screen !== SCREENS.WORKSPACE.OVERVIEW) {
+                screen = SCREENS.WORKSPACE.OVERVIEW;
             }
 
             // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
