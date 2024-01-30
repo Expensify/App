@@ -76,19 +76,19 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        if (iouType === CONST.IOU.TYPE.REQUEST) {
-            IOU.setMoneyRequestDescription(transaction.transactionID, newComment, isDraft);
-            if (!isDraft) {
-                IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment);
-            }
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+        if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
+            IOU.setDraftSplitTransaction(transaction.transactionID, {newComment});
+            navigateBack();
+            return;
         }
-        if (iouType === CONST.IOU.TYPE.SPLIT) {
-            if (isDraft) {
-                IOU.setMoneyRequestDescription(transaction.transactionID, newComment, isDraft);
-            } else {
-                IOU.setDraftSplitTransaction(transaction.transactionID, {newComment});
-            }
+
+        IOU.setMoneyRequestDescription(transaction.transactionID, newComment, action === CONST.IOU.ACTION.CREATE);
+
+        if (action === CONST.IOU.ACTION.EDIT) {
+            IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment);
         }
+
         navigateBack();
     };
 
