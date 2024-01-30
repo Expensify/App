@@ -63,7 +63,7 @@ function LogOutPreviousUserPage(props) {
                 const email = lodashGet(props, 'route.params.email', '');
                 const supportAuthToken = lodashGet(props, 'route.params.supportAuthToken', '');
                 const accountID = lodashGet(props, 'route.params.accountID', 0);
-                Session.setSupportAuthToken(supportAuthToken, email, accountID);
+                Session.setSupportAuthToken(supportAuthToken, email, Number(accountID));
             }
         });
 

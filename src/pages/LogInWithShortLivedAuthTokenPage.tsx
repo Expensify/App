@@ -45,7 +45,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         }
 
         if (!account?.isLoading && accountID && supportAuthToken) {
-            Session.setSupportAuthToken(supportAuthToken, email, accountID);
+            Session.setSupportAuthToken(supportAuthToken, email, Number(accountID));
             return;
         }
 
