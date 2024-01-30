@@ -147,6 +147,9 @@ type Policy = {
 
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
+
+    /** The email of the reimburser set when reimbursement is direct */
+    reimburserEmail?: string;
 };
 
 export default Policy;
