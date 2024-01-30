@@ -20,6 +20,7 @@ import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -274,7 +275,8 @@ function IOURequestStepConfirmation({
                             long: successData.coords.longitude,
                         });
                     },
-                    () => {
+                    (errorData) => {
+                        Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         requestMoney(selectedParticipants, trimmedComment, receiptFile);
                     },
