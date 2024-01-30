@@ -1,25 +1,25 @@
 import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {UserWallet, WalletTerms} from '@src/types/onyx';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
-import useLocalize from '@hooks/useLocalize';
-import type {OnyxEntry} from 'react-native-onyx';
-import {WalletTerms, UserWallet} from '@src/types/onyx';
 
 type TermsStepOnyxProps = {
     /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: OnyxEntry<WalletTerms>;
-}
+};
 
 type TermsStepProps = TermsStepOnyxProps & {
     /** The user's wallet */
@@ -33,7 +33,7 @@ function TermsStep(props: TermsStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
 
-    const errorMessage = error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(props.walletTerms??{}) || '';
+    const errorMessage = error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(props.walletTerms ?? {}) || '';
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -99,7 +99,7 @@ function TermsStep(props: TermsStepProps) {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            reportID: props.walletTerms?.chatReportID??'',
+                            reportID: props.walletTerms?.chatReportID ?? '',
                         });
                     }}
                     message={errorMessage}

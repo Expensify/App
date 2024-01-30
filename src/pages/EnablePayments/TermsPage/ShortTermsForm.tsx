@@ -1,16 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
-import type {OnyxEntry} from 'react-native-onyx';
 import {UserWallet} from '@src/types/onyx';
 
 type ShortTermsFormProps = {
-        /** The user's wallet */
+    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 
@@ -22,7 +22,9 @@ function ShortTermsForm(props: ShortTermsFormProps) {
             <Text style={styles.mb5}>
                 {translate('termsStep.shortTermsForm.expensifyPaymentsAccount', {
                     walletProgram:
-                        props.userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
+                        props.userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID
+                            ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS
+                            : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
                 })}
             </Text>
 

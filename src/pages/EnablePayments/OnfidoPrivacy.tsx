@@ -1,7 +1,8 @@
 import lodashGet from 'lodash/get';
 import React, {useRef} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import _ from 'underscore';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -9,43 +10,41 @@ import FormScrollView from '@components/FormScrollView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
+import {WalletOnfido} from '@src/types/onyx';
 
-const propTypes = {
+const DEFAULT_WALLET_ONFIDO_DATA = {
+    applicantID: '',
+    sdkToken: '',
+    loading: false,
+    errors: {},
+    fixableErrors: [],
+    hasAcceptedPrivacyPolicy: false,
+};
+
+type OnfidoPrivacyOnyxProps = {
     /** Stores various information used to build the UI and call any APIs */
-    walletOnfidoData: walletOnfidoDataPropTypes,
-
-    ...withLocalizePropTypes,
+    walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
 
-const defaultProps = {
-    walletOnfidoData: {
-        applicantID: '',
-        sdkToken: '',
-        loading: false,
-        errors: {},
-        fixableErrors: [],
-        hasAcceptedPrivacyPolicy: false,
-    },
-};
+type OnfidoPrivacyProps = OnfidoPrivacyOnyxProps & {};
 
-function OnfidoPrivacy({walletOnfidoData, translate, form}) {
+function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
+    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData ?? {};
 
-    const formRef = useRef(null);
+    const formRef = useRef<ScrollView>(null);
 
     const openOnfidoFlow = () => {
         BankAccounts.openOnfidoFlow();
     };
 
-    let onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) || '';
+    let onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData ?? {}) || '';
     const onfidoFixableErrors = lodashGet(walletOnfidoData, 'fixableErrors', []);
     onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
@@ -70,7 +69,7 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
                             isAlertVisible={Boolean(onfidoError)}
                             onSubmit={openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
-                                form.scrollTo({y: 0, animated: true});
+                                formRef.current?.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
                             isLoading={isLoading}
@@ -85,18 +84,13 @@ function OnfidoPrivacy({walletOnfidoData, translate, form}) {
     );
 }
 
-OnfidoPrivacy.propTypes = propTypes;
-OnfidoPrivacy.defaultProps = defaultProps;
 OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        walletOnfidoData: {
-            key: ONYXKEYS.WALLET_ONFIDO,
+export default withOnyx<OnfidoPrivacyProps, OnfidoPrivacyOnyxProps>({
+    walletOnfidoData: {
+        key: ONYXKEYS.WALLET_ONFIDO,
 
-            // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-            initWithStoredValues: false,
-        },
-    }),
-)(OnfidoPrivacy);
+        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
+        initWithStoredValues: false,
+    },
+})(OnfidoPrivacy);

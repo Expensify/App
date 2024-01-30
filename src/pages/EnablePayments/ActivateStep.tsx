@@ -1,14 +1,14 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
+import useLocalize from '@hooks/useLocalize';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useLocalize from '@hooks/useLocalize';
-import type {OnyxEntry} from 'react-native-onyx';
-import {WalletTerms, UserWallet} from '@src/types/onyx';
+import {UserWallet, WalletTerms} from '@src/types/onyx';
 
 type ActivateStepOnyxProps = {
     /** Information about the user accepting the terms for payments */
@@ -20,10 +20,7 @@ type ActivateStepProps = ActivateStepOnyxProps & {
     userWallet: OnyxEntry<UserWallet>;
 };
 
-function ActivateStep({
-    userWallet,
-    walletTerms
-}: ActivateStepProps) {
+function ActivateStep({userWallet, walletTerms}: ActivateStepProps) {
     const {translate} = useLocalize();
     const isActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
 
