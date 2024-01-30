@@ -350,6 +350,7 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
@@ -873,7 +874,7 @@ button {
 #platform-tabs > * {
     cursor: pointer;
     border-radius: 20px;
-    padding: 10px 20px;
+    padding: 9px 20px;
 }
 
 #platform-tabs > .active {
