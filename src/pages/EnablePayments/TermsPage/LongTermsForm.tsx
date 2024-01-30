@@ -66,7 +66,7 @@ function LongTermsForm() {
     ];
 
     const getLongTermsSections = () =>
-        _.map(termsData, (section, index) => (
+        termsData.map((section, index) => (
             // eslint-disable-next-line react/no-array-index-key
             <View key={section.title + index}>
                 <View style={[styles.longTermsRow]}>
@@ -105,7 +105,6 @@ function LongTermsForm() {
             <View style={styles.flexRow}>
                 <Icon
                     fill={theme.icon}
-                    style={styles.flex1}
                     src={Expensicons.Printer}
                 />
                 <TextLink
