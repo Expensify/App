@@ -104,7 +104,12 @@ function WorkspacePageWithSections({
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
 
-    const goBack = () => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+    const goBack = () => {
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+
+        // Needed when workspace with given policyID does not exist
+        Navigation.navigateWithSwitchPolicyID({route: ROUTES.ALL_SETTINGS});
+    };
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
