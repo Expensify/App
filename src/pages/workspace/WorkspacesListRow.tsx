@@ -51,6 +51,10 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
+type BrickRoadIndicatorIconProps = {
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
+
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
@@ -64,7 +68,7 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
     }
 };
 
-function BrickRoadIndicatorIcon({brickRoadIndicator}: {brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) {
+function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
 
     return brickRoadIndicator ? (
