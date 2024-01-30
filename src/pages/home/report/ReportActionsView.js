@@ -186,7 +186,7 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions), [props.reportActions]);
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
-    const [isInitialLinkedView, setIsInitialLinkedView] = useState(false);
+    const [isInitialLinkedView, setIsInitialLinkedView] = useState(!!reportActionID);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
     const reportID = props.report.reportID;
     const isLoading = (!!reportActionID && props.isLoadingInitialReportActions) || !props.isReadyForCommentLinking;
@@ -430,14 +430,25 @@ function ReportActionsView({reportActions: allReportActions, ...props}) {
     const isTheFirstReportActionIsLinked = firstReportActionID === reportActionID;
 
     useEffect(() => {
+        let timerId;
+
         if (isTheFirstReportActionIsLinked) {
-            // this should be applied after we navigated to linked reportAction
-            InteractionManager.runAfterInteractions(() => {
-                setIsInitialLinkedView(true);
-            });
+            setIsInitialLinkedView(true);
         } else {
-            setIsInitialLinkedView(false);
+            // After navigating to the linked reportAction, apply this to correctly set
+            // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
+            InteractionManager.runAfterInteractions(() => {
+                // Using a short delay to ensure the view is updated after interactions
+                timerId = setTimeout(() => setIsInitialLinkedView(false), 10);
+            });
         }
+
+        return () => {
+            if (!timerId) {
+                return;
+            }
+            clearTimeout(timerId);
+        };
     }, [isTheFirstReportActionIsLinked]);
 
     // Comments have not loaded at all yet do nothing

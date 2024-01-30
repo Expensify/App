@@ -18,12 +18,11 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [activeSource, setActiveSource] = useState(source);
 
@@ -89,6 +88,22 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 
     /**
+     * Toggles the arrows visibility
+     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
+     */
+    const toggleArrows = useCallback(
+        (showArrows) => {
+            if (showArrows === undefined) {
+                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
+                return;
+            }
+
+            setShouldShowArrows(showArrows);
+        },
+        [setShouldShowArrows],
+    );
+
+    /**
      * Defines how a single attachment should be rendered
      * @param {{ reportActionID: String, isAuthTokenRequired: Boolean, source: String, file: { name: String }, hasBeenFlagged: Boolean }} item
      * @returns {JSX.Element}
@@ -101,18 +116,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 index={index}
                 activeIndex={page}
                 isFocused={isActive && activeSource === item.source}
-                onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, page],
     );
 
     return (
-        <View
-            style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onMouseEnter={() => setShouldShowArrows(true)}
-            onMouseLeave={() => setShouldShowArrows(false)}
-        >
+        <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
             {page == null ? (
                 <FullScreenLoadingIndicator />
             ) : (
@@ -127,7 +137,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                     ) : (
                         <>
                             <CarouselButtons
-                                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
+                                shouldShowArrows={shouldShowArrows}
                                 page={page}
                                 attachments={attachments}
                                 onBack={() => cycleThroughAttachments(-1)}
@@ -140,14 +150,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 items={attachments}
                                 renderItem={renderItem}
                                 initialIndex={page}
+                                onRequestToggleArrows={toggleArrows}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                    setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                    if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                        setShouldShowArrows(true);
-                                    }
-                                }}
-                                onSwipeDown={onClose}
                                 ref={pagerRef}
                             />
                         </>
