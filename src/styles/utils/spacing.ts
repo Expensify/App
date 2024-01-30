@@ -55,6 +55,10 @@ export default {
         marginHorizontal: -20,
     },
 
+    mhn8: {
+        marginHorizontal: -32,
+    },
+
     mv0: {
         marginVertical: 0,
     },
