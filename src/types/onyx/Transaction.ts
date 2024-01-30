@@ -56,6 +56,10 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
+type ReceiptError = {error?: string; source: string; filename: string};
+
+type ReceiptErrors = Record<string, ReceiptError>;
+
 type TaxRateData = {
     name: string;
     value: string;
@@ -91,7 +95,7 @@ type Transaction = {
     currency: string;
 
     /** Any additional error message to show */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | ReceiptErrors;
 
     /** Server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'route'>;
@@ -202,4 +206,4 @@ type AdditionalTransactionChanges = {
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionChanges, TaxRate, ReceiptSource};
+export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, TransactionChanges, TaxRate, ReceiptSource};
