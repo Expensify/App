@@ -6,39 +6,34 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
-import userWalletPropTypes from './userWalletPropTypes';
-import walletTermsPropTypes from './walletTermsPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import type {OnyxEntry} from 'react-native-onyx';
+import {WalletTerms, UserWallet} from '@src/types/onyx';
 
-const propTypes = {
-    /** The user's wallet */
-    userWallet: userWalletPropTypes,
-
+type TermsStepOnyxProps = {
     /** Comes from Onyx. Information about the terms for the wallet */
-    walletTerms: walletTermsPropTypes,
+    walletTerms: OnyxEntry<WalletTerms>;
+}
 
-    ...withLocalizePropTypes,
+type TermsStepProps = TermsStepOnyxProps & {
+    /** The user's wallet */
+    userWallet: OnyxEntry<UserWallet>;
 };
 
-const defaultProps = {
-    userWallet: {},
-    walletTerms: {},
-};
-
-function TermsStep(props) {
+function TermsStep(props: TermsStepProps) {
     const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
+    const {translate} = useLocalize();
 
-    const errorMessage = error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(props.walletTerms) || '';
+    const errorMessage = error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(props.walletTerms??{}) || '';
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -59,7 +54,7 @@ function TermsStep(props) {
 
     return (
         <>
-            <HeaderWithBackButton title={props.translate('termsStep.headerTitle')} />
+            <HeaderWithBackButton title={translate('termsStep.headerTitle')} />
 
             <ScrollView
                 style={styles.flex1}
@@ -68,33 +63,33 @@ function TermsStep(props) {
                 <ShortTermsForm userWallet={props.userWallet} />
                 <LongTermsForm />
                 <CheckboxWithLabel
-                    accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}
+                    accessibilityLabel={translate('termsStep.haveReadAndAgree')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={() => (
                         <Text>
-                            {`${props.translate('termsStep.haveReadAndAgree')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
+                            {`${translate('termsStep.haveReadAndAgree')}`}
+                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
                         </Text>
                     )}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={props.translate('termsStep.agreeToThe')}
+                    accessibilityLabel={translate('termsStep.agreeToThe')}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={() => (
                         <Text>
-                            {`${props.translate('termsStep.agreeToThe')} `}
+                            {`${translate('termsStep.agreeToThe')} `}
 
-                            <TextLink href="https://use.expensify.com/privacy">{`${props.translate('common.privacy')} `}</TextLink>
+                            <TextLink href="https://use.expensify.com/privacy">{`${translate('common.privacy')} `}</TextLink>
 
-                            {`${props.translate('common.and')} `}
+                            {`${translate('common.and')} `}
 
-                            <TextLink href="https://use.expensify.com/walletagreement">{`${props.translate('termsStep.walletAgreement')}.`}</TextLink>
+                            <TextLink href="https://use.expensify.com/walletagreement">{`${translate('termsStep.walletAgreement')}.`}</TextLink>
                         </Text>
                     )}
                 />
                 <FormAlertWithSubmitButton
-                    buttonText={props.translate('termsStep.enablePayments')}
+                    buttonText={translate('termsStep.enablePayments')}
                     onSubmit={() => {
                         if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
                             setError(true);
@@ -104,12 +99,12 @@ function TermsStep(props) {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            reportID: props.walletTerms.chatReportID,
+                            reportID: props.walletTerms?.chatReportID??'',
                         });
                     }}
                     message={errorMessage}
                     isAlertVisible={error || Boolean(errorMessage)}
-                    isLoading={!!props.walletTerms.isLoading}
+                    isLoading={!!props.walletTerms?.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>
@@ -118,13 +113,9 @@ function TermsStep(props) {
 }
 
 TermsStep.displayName = 'TermsPage';
-TermsStep.propTypes = propTypes;
-TermsStep.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        walletTerms: {
-            key: ONYXKEYS.WALLET_TERMS,
-        },
-    }),
-)(TermsStep);
+
+export default withOnyx<TermsStepProps, TermsStepOnyxProps>({
+    walletTerms: {
+        key: ONYXKEYS.WALLET_TERMS,
+    },
+})(TermsStep);
