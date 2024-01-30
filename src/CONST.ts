@@ -92,7 +92,7 @@ const CONST = {
 
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
-        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+        RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
     LEGAL_NAME: {
