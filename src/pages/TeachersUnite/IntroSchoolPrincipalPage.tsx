@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {OnyxFormValuesFields} from '@components/Form/types';
@@ -50,14 +50,10 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
         (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
             const errors: Errors = {};
 
-            if (!ValidationUtils.isValidLegalName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.firstName) {
+            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
             }
-            if (!ValidationUtils.isValidLegalName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'privatePersonalDetails.error.hasInvalidCharacter');
-            } else if (!values.lastName) {
+            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
             }
             if (!values.partnerUserID) {
