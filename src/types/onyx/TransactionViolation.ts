@@ -30,7 +30,7 @@ type TransactionViolation = {
     };
 };
 
-type TransactionViolations = Record<string, TransactionViolation>;
+type TransactionViolations = TransactionViolation[];
 
 export type {TransactionViolation, ViolationName};
 export default TransactionViolations;

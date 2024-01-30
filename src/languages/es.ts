@@ -290,6 +290,7 @@ export default {
         showing: 'Mostrando',
         of: 'de',
         default: 'Predeterminado',
+        update: 'Actualizar',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -575,7 +576,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        receiptScanning: 'Escaneo de recibo en curso…',
+        receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
@@ -767,6 +768,11 @@ export default {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Actualización requerida',
+        pleaseInstall: 'Por favor, actualiza a la última versión de Nuevo Expensify',
+        toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -1789,6 +1795,8 @@ export default {
         markAsIncomplete: 'Marcar como incompleta',
         assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
         genericCreateTaskFailureMessage: 'Error inesperado al crear el tarea, por favor, inténtalo más tarde.',
+        deleteTask: 'Eliminar tarea',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     statementPage: {
         title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
@@ -2487,7 +2495,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'No activado',
-        outOfPocket: 'Por cuenta propia',
+        outOfPocket: 'Gastos por cuenta propia',
         companySpend: 'Gastos de empresa',
     },
     distance: {
