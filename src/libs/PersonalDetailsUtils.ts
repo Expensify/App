@@ -203,10 +203,6 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 
 /**
  * Creates a new displayName for a user based on passed personal details or login.
- *
- * @param login - user's login
- * @param passedPersonalDetails - details object with firstName and lastName
- * @returns - The effective display name
  */
 function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
@@ -229,11 +225,6 @@ function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDe
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
- *
- * @param login - user's login
- * @param displayName - user display name
- * @param firstName
- * @param lastName
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
