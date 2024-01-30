@@ -468,10 +468,10 @@ function ReportScreen({
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
-    const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
+    const actionListValues = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     return (
-        <ActionListContext.Provider value={actionListValue}>
+        <ActionListContext.Provider value={actionListValues}>
             <ReactionListContext.Provider value={reactionListRef}>
                 <ScreenWrapper
                     navigation={navigation}
