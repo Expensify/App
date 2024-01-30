@@ -1,5 +1,6 @@
 type OpenReportParams = {
     reportID: string;
+    reportActionID?: string;
     emailList?: string;
     accountIDList?: string;
     parentReportActionID?: string;
