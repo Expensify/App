@@ -205,7 +205,7 @@ function FormProvider(
     }));
 
     const registerInput = useCallback<RegisterInput>(
-        <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitEdit: boolean, inputProps: TInputProps): TInputProps => {
+        <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitForm: boolean, inputProps: TInputProps): TInputProps => {
             const newRef: MutableRefObject<BaseInputProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
@@ -222,24 +222,6 @@ function FormProvider(
                 inputValues[inputID] = inputProps.defaultValue ?? getInitialValueByType(inputProps.valueType);
             }
 
-            // If the input is a submit editing input, we need to set the onSubmitEditing prop
-            // to the submit function of the form
-            const onSubmitEditingObject = shouldSubmitEdit
-                ? {
-                        onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
-                            submit();
-                            if (!inputProps.onSubmitEditing) {
-                                return;
-                            }
-                            inputProps.onSubmitEditing(event);
-                        },
-                        returnKeyType: 'go',
-                    }
-                : {};
-
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const isMultiline = inputProps.multiline || inputProps.autoGrowHeight;
-
             const errorFields = formState?.errorFields?.[inputID] ?? {};
             const fieldErrorMessage =
                 Object.keys(errorFields)
@@ -251,9 +233,14 @@ function FormProvider(
 
             return {
                 ...inputProps,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                blurOnSubmit: (isMultiline && shouldSubmitEdit) || inputProps.blurOnSubmit,
-                ...onSubmitEditingObject,
+                ...(shouldSubmitForm && {
+                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                        submit();
+
+                        inputProps.onSubmitEditing?.(event);
+                    },
+                    returnKeyType: 'go',
+                }),
                 ref:
                     typeof inputRef === 'function'
                         ? (node: BaseInputProps) => {

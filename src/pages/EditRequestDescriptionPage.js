@@ -76,7 +76,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         }}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        inputAllowsSubmit
+                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>

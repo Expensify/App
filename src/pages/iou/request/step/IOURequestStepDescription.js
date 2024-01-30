@@ -106,7 +106,7 @@ function IOURequestStepDescription({
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         inputStyle={[styles.verticalAlignTop]}
-                        inputAllowsSubmit
+                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>

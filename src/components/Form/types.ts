@@ -51,11 +51,11 @@ type InputWrapperProps<TInput extends ValidInputs> = Omit<BaseInputProps, 'ref'>
         InputComponent: TInput;
         inputID: string;
 
-        /** Whether the input allows the form to be submitted when the user presses enter.
-        *  This is useful for inputs that are not multiline and don't have a submit button by default.
-        *  This property is ignored on mobile devices as they don't have a shift + enter key to create a newline.
-        */
-        inputAllowsSubmit?: boolean;
+        /**
+         * Should the containing form be submitted when this input is submitted itself?
+         * Currently, meaningful only for text inputs.
+         */
+        shouldSubmitForm?: boolean;
     };
 
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
@@ -96,7 +96,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     footerContent?: ReactNode;
 };
 
-type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitEdit: boolean, inputProps: TInputProps) => TInputProps;
+type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, shouldSubmitForm: boolean, inputProps: TInputProps) => TInputProps;
 
 type InputRefs = Record<string, MutableRefObject<BaseInputProps>>;
 

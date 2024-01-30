@@ -141,7 +141,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             }}
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputAllowsSubmit
+                            shouldSubmitForm
                         />
                     </View>
                 </FormProvider>

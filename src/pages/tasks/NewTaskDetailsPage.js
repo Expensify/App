@@ -110,7 +110,7 @@ function NewTaskDetailsPage(props) {
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
-                        inputAllowsSubmit
+                        shouldSubmitForm
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}

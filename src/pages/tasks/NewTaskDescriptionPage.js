@@ -78,7 +78,7 @@ function NewTaskDescriptionPage(props) {
                                 updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
-                            inputAllowsSubmit
+                            shouldSubmitForm
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
