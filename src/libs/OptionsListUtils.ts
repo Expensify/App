@@ -1810,9 +1810,9 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData): MemberForList;
-function formatMemberForList(member: null | undefined): undefined;
-function formatMemberForList(member: ReportUtils.OptionData | null | undefined): MemberForList | undefined {
+function formatMemberForList(member: ReportUtils.OptionData, config?: Partial<MemberForList>): MemberForList;
+function formatMemberForList(member: null | undefined, config?: Partial<MemberForList>): undefined;
+function formatMemberForList(member: ReportUtils.OptionData | null | undefined, config: Partial<MemberForList> = {}): MemberForList | undefined {
     if (!member) {
         return undefined;
     }
@@ -1833,6 +1833,7 @@ function formatMemberForList(member: ReportUtils.OptionData | null | undefined):
         rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
+        ...config,
     };
 }
 
