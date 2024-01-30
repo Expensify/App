@@ -1,7 +1,7 @@
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock';
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
-import storageMock from 'react-native-onyx/dist/storage/__mocks__';
+import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
 import 'setimmediate';
 import setupMockImages from './setupMockImages';
@@ -20,7 +20,7 @@ jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
 // Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
 // and we only want to mock the storage layer, not the whole Onyx module.
-jest.mock('react-native-onyx/dist/storage', () => storageMock);
+jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params) => {
