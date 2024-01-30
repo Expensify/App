@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- App Theme for Android versions 7.1 and below -->
-    <style name="AppTheme" parent="BaseAppTheme" />
+    <style name="AppTheme" parent="BaseAppTheme"/>
 
     <!-- Base application theme. Applied to all Android versions -->
     <style name="BaseAppTheme" parent="Theme.AppCompat.NoActionBar">
