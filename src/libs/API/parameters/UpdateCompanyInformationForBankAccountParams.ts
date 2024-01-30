@@ -2,7 +2,7 @@ import type {BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps} 
 
 type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
 
-type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {policyID: string};
+type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {bankAccountID: number; canUseNewVbbaFlow?: boolean};
 
 export default UpdateCompanyInformationForBankAccountParams;
 export type {BankAccountCompanyInformation};

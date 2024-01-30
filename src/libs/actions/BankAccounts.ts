@@ -7,13 +7,10 @@ import type {
     ConnectBankAccountWithPlaidParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
-    UpdateCompanyInformationForBankAccountParams,
     UpdatePersonalInformationForBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
-
-import type {BankAccountCompanyInformation} from '@libs/API/parameters/UpdateCompanyInformationForBankAccountParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, OnfidoData, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -45,8 +42,6 @@ export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTe
 type ReimbursementAccountStep = BankAccountStep | '';
 
 type ReimbursementAccountSubStep = BankAccountSubStep | '';
-
-type PlaidBankAccountToConnect = Omit<PlaidBankAccount, 'isSavings' | 'addressName' | 'mask'>;
 
 type BusinessAddress = {
     addressStreet?: string;
@@ -156,7 +151,7 @@ function addBusinessWebsiteForDraft(website: string) {
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount,  policyID: string) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountWithPlaidParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -360,7 +355,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  */
 function updateCompanyInformationForBankAccount(bankAccountID: number, params: CompanyStepProps) {
     API.write(
-        'UpdateCompanyInformationForBankAccount',
+        WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {
             ...params,
             bankAccountID,
@@ -375,7 +370,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: C
  */
 function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: BeneficialOwnersStepProps) {
     API.write(
-        'UpdateBeneficialOwnersForBankAccount',
+        WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT,
         {
             ...params,
             bankAccountID,
@@ -390,7 +385,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Ben
  */
 function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps) {
     API.write(
-        'AcceptACHContractForBankAccount',
+        WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT,
         {
             ...params,
             bankAccountID,
@@ -404,7 +399,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
  * Create the bank account with manually entered data.
  *
  */
-function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string,  policyID?: string) {
+function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string, policyID?: string) {
     const parameters: ConnectBankAccountManuallyParams = {
         bankAccountID,
         accountNumber,
