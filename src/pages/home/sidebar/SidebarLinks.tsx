@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -32,7 +31,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Modal} from '@src/types/onyx';
+import type PriorityMode from "@src/types/onyx/PriorityMode";
 import SignInOrAvatarWithOptionalStatus from './SignInOrAvatarWithOptionalStatus';
+
+type SidebarLinksOnyxProps = {
+    isLoading: OnyxEntry<boolean>;
+
+    priorityMode: OnyxEntry<PriorityMode>;
+}
 
 type SidebarLinksProps = {
     onLinkClick: () => void;
@@ -42,14 +48,10 @@ type SidebarLinksProps = {
 
     isCreateMenuOpen?: boolean;
 
-    optionListItems: string[] | null;
-
-    isLoading: OnyxEntry<boolean>;
-
-    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+    optionListItems: OnyxEntry<string[]>;
 
     isActiveReport: (reportID: string) => boolean;
-};
+} & SidebarLinksOnyxProps;
 
 function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport, isCreateMenuOpen}: SidebarLinksProps) {
     const theme = useTheme();
@@ -130,9 +132,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     /**
      * Show Report page with selected report id
-     *
-     * @param {Object} option
-     * @param {String} option.reportID
      */
     const showReportPage = useCallback(
         (option: OptionData) => {
@@ -141,7 +140,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            if (isCreateMenuOpen ?? (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ?? (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)) {
+            if (isCreateMenuOpen || (option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (isSmallScreenWidth && isActiveReport(option.reportID) && !reportActionID)) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));

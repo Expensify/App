@@ -4,43 +4,37 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
-import {withNetwork} from '@components/OnyxProvider';
-import withCurrentReportID from '@components/withCurrentReportID';
-import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Network, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportAction, ReportActions, TransactionViolation} from '@src/types/onyx';
+import useNetwork from "@hooks/useNetwork";
+import type PriorityMode from "@src/types/onyx/PriorityMode";
+import {useIsFocused} from "@react-navigation/native";
 import SidebarLinks from './SidebarLinks';
 
 type SidebarLinksDataOnyxProps = {
     /** List of reports */
     chatReports: OnyxCollection<Report>;
 
-    allReportActions: OnyxCollection<ReportAction[]>;
+    allReportActions: OnyxCollection<ReportAction>;
 
     isLoadingApp: OnyxEntry<boolean>;
 
-    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
+    priorityMode: OnyxEntry<PriorityMode>;
 
     betas: OnyxEntry<Beta[]>;
-
-    network: OnyxEntry<Network>;
 
     policies: OnyxCollection<Policy>;
 
     transactionViolations: OnyxCollection<TransactionViolation[]>;
 };
 
-type SidebarLinksDataBaseProps = {
-    isFocused?: boolean;
-
+type SidebarLinksDataProps = {
     insets?: EdgeInsets;
 
     currentReportID?: string;
@@ -49,7 +43,6 @@ type SidebarLinksDataBaseProps = {
 } & SidebarLinksDataOnyxProps;
 
 function SidebarLinksData({
-    isFocused,
     allReportActions,
     betas,
     chatReports,
@@ -59,12 +52,13 @@ function SidebarLinksData({
     onLinkClick,
     policies,
     priorityMode,
-    network,
     transactionViolations,
-}: SidebarLinksDataBaseProps) {
+}: SidebarLinksDataProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
+    const network = useNetwork();
+    const isFocused = useIsFocused();
 
     const reportIDsRef = useRef<string[] | null>(null);
     const isLoading = isLoadingApp;
@@ -166,7 +160,7 @@ const chatReportSelector = (report: OnyxEntry<Report>) =>
         isUnreadWithMention: ReportUtils.isUnreadWithMention(report),
     };
 
-const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) =>
+const reportActionsSelector = (reportActions: OnyxCollection<ReportActions>) =>
     reportActions &&
     Object.values(reportActions).map((reportAction) => {
         const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
@@ -185,51 +179,42 @@ const reportActionsSelector = (reportActions: OnyxEntry<ReportActions>) =>
         };
     });
 
-const policySelector = (policy: OnyxEntry<Policy>) =>
+const policySelector = (policy: OnyxCollection<Policy>) =>
     policy && {
         type: policy.type,
         name: policy.name,
         avatar: policy.avatar,
     };
 
-export default compose(
-    withCurrentReportID,
-    withNavigationFocus,
-    withNetwork(),
-    withOnyx({
-        chatReports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-            selector: chatReportSelector,
-            initialValue: {},
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-            selector: (s) => s,
-        },
-        priorityMode: {
-            key: ONYXKEYS.NVP_PRIORITY_MODE,
-            initialValue: CONST.PRIORITY_MODE.DEFAULT,
-            selector: (s) => s,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-            initialValue: [],
-            selector: (s) => s,
-        },
-        allReportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            selector: reportActionsSelector,
-            initialValue: {},
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policySelector,
-            initialValue: {},
-        },
-        transactionViolations: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-            initialValue: {},
-            selector: (s) => s,
-        },
-    }),
-)(SidebarLinksData);
+export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
+    chatReports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+        selector: chatReportSelector,
+        initialValue: {},
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+    priorityMode: {
+        key: ONYXKEYS.NVP_PRIORITY_MODE,
+        initialValue: CONST.PRIORITY_MODE.DEFAULT,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+        initialValue: [],
+    },
+    allReportActions: {
+        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        selector: reportActionsSelector,
+        initialValue: {},
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+        selector: policySelector,
+        initialValue: {},
+    },
+    transactionViolations: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        initialValue: {},
+    },
+})(SidebarLinksData);

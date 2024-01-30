@@ -83,22 +83,22 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
 };
 
 function ReportPreview({
-    iouReport,
-    session,
-    policy,
-    iouReportID,
-    policyID,
-    chatReportID,
-    chatReport,
-    action,
-    containerStyles,
-    contextMenuAnchor,
-    transactions,
-    transactionViolations,
-    isHovered = false,
-    isWhisper = false,
-    checkIfContextMenuActive = () => {},
-}: ReportPreviewProps) {
+                           iouReport,
+                           session,
+                           policy,
+                           iouReportID,
+                           policyID,
+                           chatReportID,
+                           chatReport,
+                           action,
+                           containerStyles,
+                           contextMenuAnchor,
+                           transactions,
+                           transactionViolations,
+                           isHovered = false,
+                           isWhisper = false,
+                           checkIfContextMenuActive = () => {},
+                       }: ReportPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -215,7 +215,7 @@ function ReportPreview({
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPaidGroupPolicy
         ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isCurrentUserManager)
+        isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
