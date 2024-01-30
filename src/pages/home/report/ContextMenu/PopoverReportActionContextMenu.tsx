@@ -67,7 +67,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
-    const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
+    const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
     const contextMenuTargetNode = useRef<HTMLElement | null>(null);
 
     const onPopoverShow = useRef(() => {});

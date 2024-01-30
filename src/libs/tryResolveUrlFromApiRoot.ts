@@ -19,7 +19,7 @@ const ORIGIN_PATTERN = new RegExp(`^(${ORIGINS_TO_REPLACE.join('|')})`);
  * - Unmatched URLs (non expensify) are returned with no modifications
  */
 function tryResolveUrlFromApiRoot(url: string): string;
-function tryResolveUrlFromApiRoot(url: ImageSourcePropType): ImageSourcePropType;
+function tryResolveUrlFromApiRoot(url: ImageSourcePropType): number;
 function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType): string | ImageSourcePropType;
 function tryResolveUrlFromApiRoot(url: string | ImageSourcePropType): string | ImageSourcePropType {
     // in native, when we import an image asset, it will have a number representation which can be used in `source` of Image
