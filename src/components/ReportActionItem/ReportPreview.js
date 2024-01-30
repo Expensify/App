@@ -158,6 +158,7 @@ function ReportPreview(props) {
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
     const policyType = lodashGet(props.policy, 'type');
     const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(props.iouReport, props.policy);
+    const isReimburser = lodashGet(props.session, 'email') === lodashGet(props.policy, 'reimburserEmail');
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -246,7 +247,7 @@ function ReportPreview(props) {
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isPaidGroupPolicy
         ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isCurrentUserManager)
+          isReimburser && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
