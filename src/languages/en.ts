@@ -25,7 +25,6 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    IncorrectZipFormatParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -1156,7 +1155,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: (params: IncorrectZipFormatParams) => `Incorrect zip code format.${params?.zipFormat ? ` Acceptable format: ${params?.zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
