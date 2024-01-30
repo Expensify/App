@@ -128,8 +128,6 @@ type ReportActionItemProps = {
     shouldHideThreadDividerLine?: boolean;
 
     linkedReportActionID?: string;
-
-    transactionViolations?: OnyxTypes.TransactionViolation[];
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -151,7 +149,6 @@ function ReportActionItem({
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
     policyReportFields,
-    transactionViolations,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -383,17 +380,15 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
-                    // @ts-expect-error TODO: Remove this once ReportPreview (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={report.reportID}
-                    policyID={report.policyID}
+                    policyID={report.policyID ?? ''}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef}
+                    contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
-                    transactionViolations={transactionViolations}
                 />
             );
         } else if (

@@ -82,7 +82,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const getContextMenuMeasuredLocation = useCallback(
         () =>
             new Promise<Location>((resolve) => {
-                if (contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
+                if (contextMenuAnchorRef.current && 'measureInWindow' in contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
                     contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
                 } else {
                     resolve({x: 0, y: 0});
