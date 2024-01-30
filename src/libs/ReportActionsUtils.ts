@@ -806,6 +806,9 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
+/**
+ * @private
+ */
 function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime: string) {
     if (!lastReadTime) {
         return Boolean(!isCreatedAction(reportAction));
@@ -815,7 +818,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
 }
 
 /**
- * Check whether the report action of the report is unread or not
+ * Check whether the current report action of the report is unread or not
  *
  */
 function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction, reportActions: ReportActions): boolean {

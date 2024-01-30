@@ -12,7 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, { OnyxCollectionKey } from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -4613,34 +4613,38 @@ function getAllAncestorReportActions(
     if (!report) {
         return [];
     }
-    const convertReports: OnyxCollection<Report> = {};
-    const convertReportActions: OnyxCollection<ReportActions> = {};
+    const convertedReports: OnyxCollection<Report> = {};
+    const convertedReportActions: OnyxCollection<ReportActions> = {};
     Object.values(reports ?? {}).forEach((itemReport) => {
         if (!itemReport) {
             return;
         }
-        convertReports[itemReport.reportID] = itemReport;
+        convertedReports[itemReport.reportID] = itemReport;
     });
     Object.keys(reportActions ?? {}).forEach((actionKey) => {
         if (!actionKey) {
             return;
         }
-        const reportID = CollectionUtils.extractCollectionItemID(actionKey as `reportActions_${string}`);
-        convertReportActions[reportID] = reportActions?.[actionKey] ?? null;
+        const reportID = CollectionUtils.extractCollectionItemID(actionKey as `${OnyxCollectionKey}${string}`);
+        convertedReportActions[reportID] = reportActions?.[actionKey] ?? null;
     });
     const allAncestors: Ancestor[] = [];
     let parentReportID = report.parentReportID;
     let parentReportActionID = report.parentReportActionID;
+
     // Store the child of parent report
     let currentReport = report;
     let currentUnread = shouldHideThreadDividerLine;
+
     while (parentReportID) {
-        const parentReport = convertReports?.[parentReportID];
-        const parentReportAction = convertReportActions?.[parentReportID]?.[parentReportActionID ?? ''] ?? null;
+        const parentReport = convertedReports?.[parentReportID];
+        const parentReportAction = convertedReportActions?.[parentReportID]?.[parentReportActionID ?? ''] ?? null;
+
         if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
             break;
         }
-        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction, convertReportActions?.[parentReportID] ?? {});
+        
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction, convertedReportActions?.[parentReportID] ?? {});
         allAncestors.push({
             report: currentReport,
             reportAction: parentReportAction,
