@@ -7,6 +7,7 @@ import _ from 'underscore';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -93,6 +94,7 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
+    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -142,7 +144,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
+                onSelected: () => setIsDeleteTaskConfirmModalVisible(true),
             });
         }
     }
@@ -221,7 +223,7 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
-    const isLoading = !props.report || !title;
+    const isLoading = !props.report || !props.report.reportID || !title;
 
     return (
         <View
@@ -360,11 +362,24 @@ function HeaderView(props) {
                                     )}
                                 </View>
                             </View>
+                            <ConfirmModal
+                                isVisible={isDeleteTaskConfirmModalVisible}
+                                onConfirm={() => {
+                                    setIsDeleteTaskConfirmModalVisible(false);
+                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
+                                }}
+                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
+                                title={translate('task.deleteTask')}
+                                prompt={translate('task.deleteConfirmation')}
+                                confirmText={translate('common.delete')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                            />
                         </>
                     )}
                 </View>
             </View>
-            {canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }
