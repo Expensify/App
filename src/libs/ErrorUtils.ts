@@ -99,7 +99,7 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string, message?: TKey) {
+function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string, message?: TKey | Localize.MaybePhraseKey) {
     if (!message || !inputID) {
         return;
     }
