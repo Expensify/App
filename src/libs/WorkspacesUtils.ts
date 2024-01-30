@@ -1,12 +1,15 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
+import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+
+type CheckingMethod = () => boolean;
 
 let allReports: OnyxCollection<Report>;
 
@@ -16,6 +19,33 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
+});
+
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
+let allPolicyMembers: OnyxCollection<PolicyMembers>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        allPolicyMembers = val;
+    },
+});
+
+let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    callback: (val) => {
+        reimbursementAccount = val;
+    },
 });
 
 /**
@@ -41,6 +71,76 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD.GBR : undefined;
 };
 
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
+
+    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
+    const errorCheckingMethods: CheckingMethod[] = [
+        () => Object.values(cleanPolicies).some(hasPolicyError),
+        () => Object.values(cleanPolicies).some(hasCustomUnitsError),
+        () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
+        () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
+    ];
+
+    return errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
+}
+
+function hasWorkspaceSettingsRBR(policy: Policy) {
+    const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+
+    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+}
+
+function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
+    if (!allReports) {
+        return undefined;
+    }
+
+    let brickRoad: BrickRoad | undefined;
+
+    Object.keys(allReports).forEach((report) => {
+        if (brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            return;
+        }
+
+        if (policyID && policyID !== allReports?.[report]?.policyID) {
+            return;
+        }
+
+        const policyReport = allReports ? allReports[report] : null;
+
+        if (!policyReport) {
+            return;
+        }
+
+        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
+
+        if (workspaceBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            brickRoad = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            return;
+        }
+
+        if (!brickRoad && workspaceBrickRoad) {
+            brickRoad = workspaceBrickRoad;
+        }
+    });
+
+    return brickRoad;
+}
+
+function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
+    if (!policyID) {
+        return hasGlobalWorkspaceSettingsRBR(allPolicies, allPolicyMembers);
+    }
+    const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
+
+    if (!policy) {
+        return false;
+    }
+
+    return hasWorkspaceSettingsRBR(policy);
+}
+
 /**
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
@@ -52,10 +152,22 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
 
+    const cleanPolicies = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => !!policy));
+
+    Object.values(cleanPolicies).forEach((policy) => {
+        if (!policy) {
+            return;
+        }
+
+        if (hasWorkspaceSettingsRBR(policy)) {
+            workspacesBrickRoadsMap[policy.id] = CONST.BRICK_ROAD.RBR;
+        }
+    });
+
     Object.keys(allReports).forEach((report) => {
-        const policyID = allReports?.[report]?.policyID;
+        const policyID = allReports?.[report]?.policyID ?? CONST.POLICY.EMPTY;
         const policyReport = allReports ? allReports[report] : null;
-        if (!policyID || !policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
+        if (!policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
             return;
         }
         const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
@@ -99,5 +211,13 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
     return workspacesUnreadStatuses;
 }
 
-export {getBrickRoadForPolicy, getWorkspacesBrickRoads, getWorkspacesUnreadStatuses};
+export {
+    getBrickRoadForPolicy,
+    getWorkspacesBrickRoads,
+    getWorkspacesUnreadStatuses,
+    hasGlobalWorkspaceSettingsRBR,
+    checkIfWorkspaceSettingsTabHasRBR,
+    hasWorkspaceSettingsRBR,
+    getChatTabBrickRoad,
+};
 export type {BrickRoad};

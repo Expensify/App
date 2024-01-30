@@ -1,5 +1,7 @@
 import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
@@ -9,12 +11,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesUtils';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy, PolicyMembers} from '@src/types/onyx';
 
-function AllSettingsScreen() {
+type AllSettingsScreenOnyxProps = {
+    policies: OnyxCollection<Policy>;
+    policyMembers: OnyxCollection<PolicyMembers>;
+};
+
+type AllSettingsScreenProps = AllSettingsScreenOnyxProps;
+
+function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
@@ -35,6 +47,7 @@ function AllSettingsScreen() {
                     })();
                 },
                 focused: !isSmallScreenWidth,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.subscriptions',
@@ -69,8 +82,9 @@ function AllSettingsScreen() {
             isPaneMenu: true,
             focused: item.focused,
             hoverAndPressStyle: styles.hoveredComponentBG,
+            brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate]);
+    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies, policyMembers]);
 
     return (
         <ScreenWrapper
@@ -102,4 +116,11 @@ function AllSettingsScreen() {
 
 AllSettingsScreen.displayName = 'AllSettingsScreen';
 
-export default AllSettingsScreen;
+export default withOnyx<AllSettingsScreenProps, AllSettingsScreenOnyxProps>({
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    policyMembers: {
+        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    },
+})(AllSettingsScreen);

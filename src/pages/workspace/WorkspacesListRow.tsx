@@ -4,6 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
@@ -11,6 +12,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -44,6 +46,13 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Additional styles applied to the row */
     rowStyles?: StyleProp<ViewStyle>;
+
+    /** The type of brick road indicator to show. */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
+
+type BrickRoadIndicatorIconProps = {
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -59,6 +68,17 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
     }
 };
 
+function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
+    const theme = useTheme();
+
+    return brickRoadIndicator ? (
+        <Icon
+            src={Expensicons.DotIndicator}
+            fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
+        />
+    ) : null;
+}
+
 function WorkspacesListRow({
     title,
     menuItems,
@@ -69,6 +89,7 @@ function WorkspacesListRow({
     currentUserPersonalDetails,
     layoutWidth = CONST.LAYOUT_WIDTH.NONE,
     rowStyles,
+    brickRoadIndicator,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,10 +138,13 @@ function WorkspacesListRow({
                     {title}
                 </Text>
                 {isNarrow && (
-                    <ThreeDotsMenu
-                        menuItems={menuItems}
-                        anchorPosition={{horizontal: 0, vertical: 0}}
-                    />
+                    <>
+                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                        <ThreeDotsMenu
+                            menuItems={menuItems}
+                            anchorPosition={{horizontal: 0, vertical: 0}}
+                        />
+                    </>
                 )}
             </View>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
@@ -170,24 +194,30 @@ function WorkspacesListRow({
                     </Text>
                 </View>
             </View>
+
             {isWide && (
-                <View ref={threeDotsMenuContainerRef}>
-                    <ThreeDotsMenu
-                        onIconPress={() => {
-                            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y + height,
+                <>
+                    <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                    </View>
+                    <View ref={threeDotsMenuContainerRef}>
+                        <ThreeDotsMenu
+                            onIconPress={() => {
+                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                    setThreeDotsMenuPosition({
+                                        horizontal: x + width,
+                                        vertical: y + height,
+                                    });
                                 });
-                            });
-                        }}
-                        menuItems={menuItems}
-                        anchorPosition={threeDotsMenuPosition}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                        iconStyles={[styles.mr2]}
-                        shouldOverlay
-                    />
-                </View>
+                            }}
+                            menuItems={menuItems}
+                            anchorPosition={threeDotsMenuPosition}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            iconStyles={[styles.mr2]}
+                            shouldOverlay
+                        />
+                    </View>
+                </>
             )}
         </View>
     );
