@@ -66,7 +66,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const limitCharacters = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>) => {
         const errors: Errors = {};
         if (String(values.reportDescription).length > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-            errors['reportDescription'] = translate('common.error.characterLimit', {limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH});
+            errors.reportDescription = translate('common.error.characterLimit', {limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH});
         }
         return errors;
     };
