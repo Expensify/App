@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -81,7 +82,7 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
                                 key={`menuItem-${reportField.fieldID}`}
                             >
                                 <MenuItemWithTopDescription
-                                    description={`${reportField.name.slice(0, 1).toUpperCase()}${reportField.name.slice(1)}`}
+                                    description={Str.UCFirst(reportField.name)}
                                     title={fieldValue}
                                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
                                     shouldShowRightIcon

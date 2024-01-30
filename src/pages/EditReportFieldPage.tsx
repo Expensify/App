@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -63,8 +64,8 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
 
     const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
 
-    const handleReportFieldChange = (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
-        const value = form[reportField.fieldID].toString() || '';
+    const handleReportFieldChange = (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
+        const value = form[reportField.fieldID] || '';
         if (isReportFieldTitle) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
         } else {
@@ -79,7 +80,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
     if (reportField.type === 'text' || isReportFieldTitle) {
         return (
             <EditReportFieldTextPage
-                fieldName={reportField.name}
+                fieldName={Str.UCFirst(reportField.name)}
                 fieldID={reportField.fieldID}
                 fieldValue={fieldValue}
                 isRequired={!reportField.deletable}
@@ -91,7 +92,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
     if (reportField.type === 'date') {
         return (
             <EditReportFieldDatePage
-                fieldName={reportField.name}
+                fieldName={Str.UCFirst(reportField.name)}
                 fieldID={reportField.fieldID}
                 fieldValue={fieldValue}
                 isRequired={!reportField.deletable}
@@ -105,7 +106,7 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
             <EditReportFieldDropdownPage
                 policyID={report.policyID ?? ''}
                 fieldID={reportField.fieldID}
-                fieldName={reportField.name}
+                fieldName={Str.UCFirst(reportField.name)}
                 fieldValue={fieldValue}
                 fieldOptions={reportField.values}
                 onSubmit={handleReportFieldChange}
