@@ -1,3 +1,4 @@
+import type {ParamListBase} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -23,7 +24,10 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 };
 
-type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps;
+type WithReportAndPrivateNotesOrNotFoundProps<
+    ParamList extends ParamListBase = Record<string, {reportID: string; accountID: string} | undefined>,
+    RouteName extends string = string,
+> = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps<ParamList, RouteName>;
 
 export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(pageTitle: TranslationPaths) {
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -33,7 +37,7 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
             const {translate} = useLocalize();
             const network = useNetwork();
             const {route, report, session, forwardedRef} = props;
-            const accountID = route.params.accountID;
+            const accountID = route.params?.accountID;
             const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(network.isOffline);
             const isReconnecting = prevIsOffline && !network.isOffline;
@@ -107,3 +111,5 @@ export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps
         )(WithReportAndPrivateNotesOrNotFoundWithRef);
     };
 }
+
+export type {WithReportAndPrivateNotesOrNotFoundProps};

@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {RouteProp} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -22,9 +23,10 @@ type WithReportOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
-    route: RouteProp<{params: {reportID: string; accountID: string}}>;
-};
+type WithReportOrNotFoundProps<
+    ParamList extends ParamListBase = Record<string, {reportID: string; accountID: string} | undefined>,
+    RouteName extends string = string,
+> = WithReportOrNotFoundOnyxProps & StackScreenProps<ParamList, RouteName>;
 
 export default function (
     shouldRequireReportID = true,
@@ -33,9 +35,9 @@ export default function (
 ) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> {
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-            const contentShown = React.useRef(false);
+            const contentShown = React.useRef<boolean>(false);
 
-            const isReportIdInRoute = props.route.params.reportID?.length;
+            const isReportIdInRoute = !!props.route.params?.reportID?.length;
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.report ?? {}).length || !props.report?.reportID);
@@ -75,7 +77,7 @@ export default function (
 
         return withOnyx<TProps & RefAttributes<TRef>, WithReportOrNotFoundOnyxProps>({
             report: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`,
             },
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
