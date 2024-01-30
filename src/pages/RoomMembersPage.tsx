@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {User} from '@components/SelectionList/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithLocalizeProps} from '@components/withLocalize';
@@ -26,7 +27,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -102,8 +102,8 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
      *
      */
     const toggleUser = useCallback(
-        (accountID: number, pendingAction: PendingAction) => {
-            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        ({accountID, pendingAction}: User) => {
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !accountID) {
                 return;
             }
 
@@ -121,14 +121,19 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
      * Add or remove all users passed from the selectedMembers list
      * @param memberList
      */
-    const toggleAllUsers = (memberList: any[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
-        const everyoneSelected = enabledAccounts.every((member) => selectedMembers.includes(member.keyForList));
+    const toggleAllUsers = (memberList: User[]) => {
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && member.accountID);
+        const everyoneSelected = enabledAccounts.every((member) => {
+            if (!member.accountID) {
+                return false;
+            }
+            return selectedMembers.includes(member.accountID);
+        });
 
         if (everyoneSelected) {
             setSelectedMembers([]);
         } else {
-            const everyAccountId = enabledAccounts.map((member) => Number(member.keyForList));
+            const everyAccountId = enabledAccounts.map((member) => member.accountID) as number[];
             setSelectedMembers(everyAccountId);
         }
     };
@@ -141,7 +146,7 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
     };
 
     const getMemberOptions = () => {
-        let result: any[] = [];
+        let result: User[] = [];
 
         report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
             const details = personalDetails[accountID];
@@ -182,17 +187,19 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details.login ? formatPhoneNumber(details.login) : '',
-                icons: [
-                    {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login,
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
+                icons: details.login
+                    ? [
+                          {
+                              source: UserUtils.getAvatar(details.avatar, accountID),
+                              name: details.login,
+                              type: CONST.ICON_TYPE_AVATAR,
+                          },
+                      ]
+                    : [],
             });
         });
 
-        result = result.sort((value) => value.text.toLowerCase());
+        result = result.sort((value1, value2) => value1.text.localeCompare(value2.text.toLowerCase()));
 
         return result;
     };
@@ -212,8 +219,8 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(report) || !isPolicyMember}
-                subtitleKey={_.isEmpty(report) ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={!report || !isPolicyMember}
+                subtitleKey={!report ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
                     if (!report) {
                         return;
@@ -260,7 +267,6 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
                     </View>
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
-                            // @ts-expect-error TODO: Remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript.
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={translate('optionsSelector.findMember')}
@@ -268,7 +274,7 @@ function RoomMembersPage({report, session, formatPhoneNumber, policies, translat
                             textInputValue={searchValue}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
-                            onSelectRow={(item) => toggleUser(item.keyForList)}
+                            onSelectRow={(item) => toggleUser(item)}
                             onSelectAll={() => toggleAllUsers(data)}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
