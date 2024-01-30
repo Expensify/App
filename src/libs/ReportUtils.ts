@@ -13,7 +13,7 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { OnyxCollectionKey } from '@src/ONYXKEYS';
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Beta, PersonalDetails, PersonalDetailsList, Policy, PolicyReportField, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -4644,7 +4644,7 @@ function getAllAncestorReportActions(
         if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
             break;
         }
-        
+
         const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction, convertedReportActions?.[parentReportID] ?? {});
         allAncestors.push({
             report: currentReport,
