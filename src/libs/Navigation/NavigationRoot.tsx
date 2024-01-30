@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
+import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -10,6 +10,7 @@ import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
 import getPolicyIdFromState from './getPolicyIdFromState';
 import linkingConfig from './linkingConfig';
@@ -41,7 +42,12 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     const currentPath = customGetPathFromState(state, linkingConfig.config);
-    updateLastVisitedPath(currentPath);
+
+    const focusedRoute = findFocusedRoute(state);
+
+    if (focusedRoute?.name !== SCREENS.NOT_FOUND) {
+        updateLastVisitedPath(currentPath);
+    }
 
     // Don't log the route transitions from OldDot because they contain authTokens
     if (currentPath.includes('/transition')) {
