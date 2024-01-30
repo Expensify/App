@@ -7,6 +7,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {TransactionChanges} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,19 +41,17 @@ type EditSplitBillOnyxProps = {
 type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
-    const fieldToEdit = route.params.field;
-    const reportID = route.params.reportID;
-    const reportActionID = route.params.reportActionID;
+    const {field: fieldToEdit, reportID, reportActionID} = route.params;
 
-    const draftTransactionDetails = ReportUtils.getTransactionDetails(draftTransaction);
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionAmount = draftTransactionDetails ? draftTransactionDetails.amount : transactionDetails?.amount;
-    const transactionCurrency = draftTransactionDetails ? draftTransactionDetails.currency : transactionDetails?.currency;
-    const transactionDescription = draftTransactionDetails ? draftTransactionDetails.comment : transactionDetails?.comment;
-    const transactionMerchant = draftTransactionDetails ? draftTransactionDetails.merchant : transactionDetails?.merchant;
-    const transactionCreated = draftTransactionDetails ? draftTransactionDetails.created : transactionDetails?.created;
-    const transactionCategory = draftTransactionDetails ? draftTransactionDetails.category : transactionDetails?.category;
-    const transactionTag = draftTransactionDetails ? draftTransactionDetails.tag : transactionDetails?.tag;
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        comment: transactionDescription,
+        merchant: transactionMerchant,
+        created: transactionCreated,
+        category: transactionCategory,
+        tag: transactionTag,
+    } = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
 
     const defaultCurrency = transactionCurrency;
 
@@ -60,8 +59,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    const setDraftSplitTransaction = (transactionChanges: Object) => {
+    const setDraftSplitTransaction = (transactionChanges: TransactionChanges) => {
         if (transaction) {
             IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
         }
