@@ -251,70 +251,76 @@ function ReportPreview({
                                 size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                             />
                         )}
-                        <View style={styles.reportPreviewBoxBody}>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
-                                </View>
-                                {!iouSettled && hasErrors && (
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={theme.danger}
+                        <View style={[styles.reportPreviewBoxBody]}>
+                            <View style={styles.reportPreviewTextButtonContainer}>
+                                <View style={styles.reportPreviewTextContainer}>
+                                        <View style={styles.flexRow}>
+                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
+                                            </View>
+                                            {!iouSettled && hasErrors && (
+                                                <Icon
+                                                    src={Expensicons.DotIndicator}
+                                                    fill={theme.danger}
+                                                />
+                                            )}
+                                        </View>
+                                    <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                        <View style={styles.flexRow}>
+                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                <Text style={[styles.textHeadline]}>{getDisplayAmount()}</Text>
+                                                {ReportUtils.isSettled(iouReportID) && (
+                                                    <View style={styles.defaultCheckmarkWrapper}>
+                                                        <Icon
+                                                            src={Expensicons.Checkmark}
+                                                            fill={theme.iconSuccessFill}
+                                                        />
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </View>
+                                        {!isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant)) && (
+                                            <View style={styles.flexRow}>
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                </View>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View> 
+                                {true && (
+                                    <SettlementButton
+                                        // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
+                                        currency={iouReport?.currency}
+                                        policyID={policyID}
+                                        chatReportID={chatReportID}
+                                        iouReport={iouReport}
+                                        onPress={(paymentType: PaymentMethodType) => chatReport && iouReport && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                        addBankAccountRoute={bankAccountRoute}
+                                        shouldHidePaymentOptions={!shouldShowPayButton}
+                                        shouldShowApproveButton={shouldShowApproveButton}
+                                        style={[]}
+                                        kycWallAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        paymentMethodDropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                    />
+                                )}
+                                {shouldShowSubmitButton && (
+                                    <Button
+                                        medium
+                                        success={isWaitingForSubmissionFromCurrentUser}
+                                        text={translate('common.submit')}
+                                        style={[]}
+                                        onPress={() => iouReport && IOU.submitReport(iouReport)}
                                     />
                                 )}
                             </View>
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                    {ReportUtils.isSettled(iouReportID) && (
-                                        <View style={styles.defaultCheckmarkWrapper}>
-                                            <Icon
-                                                src={Expensicons.Checkmark}
-                                                fill={theme.iconSuccessFill}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                            {!isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant)) && (
-                                <View style={styles.flexRow}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
-                                    </View>
-                                </View>
-                            )}
-                            {shouldShowSettlementButton && (
-                                <SettlementButton
-                                    // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
-                                    currency={iouReport?.currency}
-                                    policyID={policyID}
-                                    chatReportID={chatReportID}
-                                    iouReport={iouReport}
-                                    onPress={(paymentType: PaymentMethodType) => chatReport && iouReport && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
-                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldHidePaymentOptions={!shouldShowPayButton}
-                                    shouldShowApproveButton={shouldShowApproveButton}
-                                    style={[styles.mt3]}
-                                    kycWallAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                    paymentMethodDropdownAnchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                    }}
-                                />
-                            )}
-                            {shouldShowSubmitButton && (
-                                <Button
-                                    medium
-                                    success={isWaitingForSubmissionFromCurrentUser}
-                                    text={translate('common.submit')}
-                                    style={styles.mt3}
-                                    onPress={() => iouReport && IOU.submitReport(iouReport)}
-                                />
-                            )}
                         </View>
                     </View>
                 </PressableWithoutFeedback>

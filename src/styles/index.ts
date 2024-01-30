@@ -3822,6 +3822,19 @@ const styles = (theme: ThemeColors) =>
 
         reportPreviewBoxBody: {
             padding: 16,
+            marginTop: -4,
+        },
+
+        reportPreviewTextContainer: {
+            gap: 8,
+        },
+
+        reportPreviewAmountSubtitleContainer: {
+            gap: 4,
+        },
+
+        reportPreviewTextButtonContainer: {
+            gap: 16,
         },
 
         reportActionItemImages: {
