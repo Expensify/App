@@ -88,6 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.REQUEST && participants.length > 0 ? CONST.IOU.REQUEST_TYPE.SPLIT : iouRequestType;
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -126,6 +127,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // This functionality is being built here: https://github.com/Expensify/App/issues/23291
             iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
+            false,
+            {},
+            actionTypeForParticipants,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -173,7 +177,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, translate, actionTypeForParticipants]);
 
     /**
      * Adds a single participant to the request

@@ -105,6 +105,10 @@ function TaskAssigneeSelectorModal(props) {
             {},
             [],
             true,
+            false,
+            false,
+            {},
+            CONST.REPORT.TYPE.TASK,
         );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));

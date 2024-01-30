@@ -18,6 +18,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
+import * as Task from './actions/Task';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
@@ -99,6 +100,7 @@ type GetOptionsConfig = {
     includePolicyTaxRates?: boolean;
     policyTaxRates?: PolicyTaxRateWithDefault;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    actionTypeForParticipants?: string;
 };
 
 type MemberForList = {
@@ -550,6 +552,7 @@ function createOption(
     report: OnyxEntry<Report>,
     reportActions: ReportActions,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
+    isTaskActionTypeForParticipants = false,
 ): ReportUtils.OptionData {
     const result: ReportUtils.OptionData = {
         text: undefined,
@@ -595,7 +598,7 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
 
-    if (report) {
+    if (report && !isTaskActionTypeForParticipants) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -1323,8 +1326,14 @@ function getOptions(
         transactionViolations = {},
         includePolicyTaxRates,
         policyTaxRates,
+        actionTypeForParticipants = '',
     }: GetOptionsConfig,
 ): GetOptions {
+    const isMoneyRequestActionType =
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SPLIT;
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -1380,6 +1389,7 @@ function getOptions(
     }
 
     let recentReportOptions = [];
+    const recentReportOptionsByAction = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
@@ -1417,6 +1427,7 @@ function getOptions(
     orderedReports.reverse();
 
     const allReportOptions: ReportUtils.OptionData[] = [];
+    const isTaskActionTypeForParticipants = !includeTasks && actionTypeForParticipants === CONST.REPORT.TYPE.TASK;
     orderedReports.forEach((report) => {
         if (!report) {
             return;
@@ -1427,7 +1438,10 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.visibleChatMemberAccountIDs ?? [];
+        let accountIDs = report.visibleChatMemberAccountIDs ?? [];
+        if (isTaskReport && isTaskActionTypeForParticipants) {
+            accountIDs = report.ownerAccountID ? [report.ownerAccountID] : [];
+        }
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1442,7 +1456,7 @@ function getOptions(
             return;
         }
 
-        if (isTaskReport && !includeTasks) {
+        if (isTaskReport && !(includeTasks || isTaskActionTypeForParticipants)) {
             return;
         }
 
@@ -1468,10 +1482,17 @@ function getOptions(
         const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
 
         allReportOptions.push(
-            createOption(accountIDs, personalDetails, report, reportActions, {
-                showChatPreviewLine,
-                forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
-            }),
+            createOption(
+                accountIDs,
+                personalDetails,
+                report,
+                reportActions,
+                {
+                    showChatPreviewLine,
+                    forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
+                },
+                isTaskActionTypeForParticipants,
+            ),
         );
     });
     // We're only picking personal details that have logins set
@@ -1482,10 +1503,17 @@ function getOptions(
         ? {}
         : Object.fromEntries(Object.entries(personalDetails ?? {}).filter(([, detail]) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail));
     let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
-        createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
-            showChatPreviewLine,
-            forcePolicyNamePreview,
-        }),
+        createOption(
+            [personalDetail?.accountID ?? -1],
+            personalDetails,
+            reportMapForAccountIDs[personalDetail?.accountID ?? -1],
+            reportActions,
+            {
+                showChatPreviewLine,
+                forcePolicyNamePreview,
+            },
+            isTaskActionTypeForParticipants,
+        ),
     );
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -1494,7 +1522,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude: Option[] = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
+    let optionsToExclude: Option[] = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1507,13 +1535,16 @@ function getOptions(
         optionsToExclude.push({login});
     });
 
-    if (includeRecentReports) {
-        for (const reportOption of allReportOptions) {
-            // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-                break;
-            }
+    const optionsToExcludeByActions: Option[] = [];
+    optionsToExcludeByActions.push(...optionsToExclude);
 
+    if (includeRecentReports) {
+        let recentTransactions: Array<OnyxEntry<Transaction>> = [];
+        if (isMoneyRequestActionType) {
+            recentTransactions = TransactionUtils.getTransactionsByRequestType(actionTypeForParticipants);
+        }
+
+        for (const reportOption of allReportOptions) {
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
                 continue;
@@ -1524,15 +1555,6 @@ function getOptions(
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
             if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
-                continue;
-            }
-
-            // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (
-                !includeThreads &&
-                (!!reportOption.login || reportOption.reportID) &&
-                optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
-            ) {
                 continue;
             }
 
@@ -1552,15 +1574,60 @@ function getOptions(
                 }
             }
 
+            let isActionTypeOptionForParticipants = false;
+            if (actionTypeForParticipants === CONST.REPORT.TYPE.TASK && reportOption.isTaskReport) {
+                const taskReport = ReportUtils.getReport(reportOption.reportID);
+                if (!(!isEmptyObject(taskReport) && Task.getTaskAssigneeAccountID(taskReport) === currentUserAccountID)) {
+                    isActionTypeOptionForParticipants = true;
+                }
+            }
+
+            if (isMoneyRequestActionType && recentTransactions.some((transaction: OnyxEntry<Transaction>) => transaction?.reportID === String(reportOption.iouReportID))) {
+                isActionTypeOptionForParticipants = true;
+            }
+
+            if (isActionTypeOptionForParticipants && optionsToExcludeByActions.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)) {
+                continue;
+            }
+
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
-            recentReportOptions.push(reportOption);
+            if (isActionTypeOptionForParticipants) {
+                recentReportOptionsByAction.push(reportOption);
+                if (reportOption.login) {
+                    optionsToExcludeByActions.push({login: reportOption.login});
+                }
+                continue;
+            }
+
+            // Stop adding options to the recentReports by action array when we reach the maxRecentReportsToShow value
+            if (recentReportOptionsByAction.length > 0 && recentReportOptionsByAction.length === maxRecentReportsToShow) {
+                break;
+            }
+
+            // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
+            if (
+                !includeThreads &&
+                (!!reportOption.login || reportOption.reportID) &&
+                optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
+            ) {
+                continue;
+            }
+
+            // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
+            if (recentReportOptions.length < maxRecentReportsToShow) {
+                recentReportOptions.push(reportOption);
+            }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
                 optionsToExclude.push({login: reportOption.login});
             }
         }
+    }
+    if (recentReportOptionsByAction.length > 0) {
+        optionsToExclude = [...optionsToExcludeByActions];
+        recentReportOptions = [...recentReportOptionsByAction];
     }
 
     if (includePersonalDetails) {
@@ -1660,7 +1727,7 @@ function getOptions(
 
     return {
         personalDetails: personalDetailsOptions,
-        recentReports: recentReportOptions,
+        recentReports: recentReportOptionsByAction.length > 0 ? recentReportOptionsByAction : recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
         categoryOptions: [],
@@ -1750,6 +1817,7 @@ function getFilteredOptions(
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
     policyTaxRates: PolicyTaxRateWithDefault = {} as PolicyTaxRateWithDefault,
+    actionTypeForParticipants = '',
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1771,6 +1839,7 @@ function getFilteredOptions(
         includeSelectedOptions,
         includePolicyTaxRates,
         policyTaxRates,
+        actionTypeForParticipants,
     });
 }
 

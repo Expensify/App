@@ -57,6 +57,10 @@ function isScanRequest(transaction: Transaction): boolean {
     return Boolean(transaction?.receipt?.source);
 }
 
+function isSplitRequest(transaction: Transaction): boolean {
+    return Boolean(transaction?.comment?.source === CONST.IOU.TYPE.SPLIT);
+}
+
 function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
@@ -74,6 +78,20 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function getTransactionsByRequestType(iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>): Array<OnyxEntry<Transaction>> {
+    return Object.values(allTransactions ?? {})
+        .filter(
+            (transaction): transaction is Transaction =>
+                transaction != null && (iouRequestType === CONST.IOU.REQUEST_TYPE.SPLIT ? isSplitRequest(transaction) : getRequestType(transaction) === iouRequestType),
+        )
+        .sort((transactionA, transactionB) => {
+            const transactionATime = new Date(transactionA?.created);
+            const transactionBTime = new Date(transactionB?.created);
+            return transactionATime.valueOf() - transactionBTime.valueOf();
+        })
+        .reverse();
 }
 
 /**
@@ -561,6 +579,7 @@ export {
     getRequestType,
     isManualRequest,
     isScanRequest,
+    isSplitRequest,
     getAmount,
     getCurrency,
     getDistance,
@@ -596,4 +615,5 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    getTransactionsByRequestType,
 };

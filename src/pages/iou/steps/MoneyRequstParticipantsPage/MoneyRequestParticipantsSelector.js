@@ -116,6 +116,9 @@ function MoneyRequestParticipantsSelector({
             // This functionality is being built here: https://github.com/Expensify/App/issues/23291
             !isDistanceRequest,
             true,
+            false,
+            {},
+            CONST.IOU.REQUEST_TYPE.MANUAL,
         );
         return {
             recentReports: chatOptions.recentReports,
