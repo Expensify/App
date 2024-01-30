@@ -44,7 +44,6 @@ function IOURequestStepDescription({
     const {translate} = useLocalize();
     const inputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-    const isDraft = action === CONST.IOU.ACTION.CREATE;
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
