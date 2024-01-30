@@ -2,12 +2,12 @@ import React, {useCallback, useRef} from 'react';
 import PurposeForUsingExpensifyModal from '@components/PurposeForUsingExpensifyModal';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
+import type SidebarScreenProps from './types';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
-import sidebarPropTypes from './sidebarPropTypes';
 
-function SidebarScreen(props) {
-    const popoverModal = useRef(null);
+function SidebarScreen(props: SidebarScreenProps) {
+    const popoverModal = useRef<typeof FloatingActionButtonAndPopover | null>(null);
     const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
@@ -51,7 +51,6 @@ function SidebarScreen(props) {
     );
 }
 
-SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default SidebarScreen;

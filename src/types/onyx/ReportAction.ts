@@ -189,6 +189,9 @@ type ReportActionBase = {
     /** ReportID of the report action */
     reportID?: string;
 
+    /** ReportID of the parent report action */
+    parentReportActionID?: string;
+
     /** Metadata of the link */
     linkMetadata?: LinkMetadata[];
 

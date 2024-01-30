@@ -7,7 +7,7 @@ import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import sidebarPropTypes from './sidebarPropTypes';
+import type SidebarScreenProps from './types';
 
 /**
  * Function called when a pinned chat is selected.
@@ -17,7 +17,7 @@ const startTimer = () => {
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 };
 
-function BaseSidebarScreen(props) {
+function BaseSidebarScreen(props: SidebarScreenProps) {
     const styles = useThemeStyles();
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -47,7 +47,6 @@ function BaseSidebarScreen(props) {
     );
 }
 
-BaseSidebarScreen.propTypes = sidebarPropTypes;
 BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default BaseSidebarScreen;

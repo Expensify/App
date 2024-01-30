@@ -4,9 +4,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
-import sidebarPropTypes from './sidebarPropTypes';
+import type SidebarScreenProps from './types';
 
-function SidebarScreen(props) {
+function SidebarScreen(props: SidebarScreenProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     return (
         <FreezeWrapper keepVisible={!isSmallScreenWidth}>
@@ -21,7 +21,6 @@ function SidebarScreen(props) {
     );
 }
 
-SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default SidebarScreen;

@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {Role, StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import EnvironmentBadge from './EnvironmentBadge';
@@ -13,6 +13,9 @@ type HeaderProps = {
     /** Subtitle of the header */
     subtitle?: ReactNode;
 
+    /* Role of the header */
+    role?: Role;
+
     /** Should we show the environment badge (dev/stg)?  */
     shouldShowEnvironmentBadge?: boolean;
 
@@ -20,10 +23,13 @@ type HeaderProps = {
     textStyles?: StyleProp<TextStyle>;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+function Header({title = '', role, subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
     const styles = useThemeStyles();
     return (
-        <View style={[styles.flex1, styles.flexRow]}>
+        <View
+            role={role}
+            style={[styles.flex1, styles.flexRow]}
+        >
             <View style={styles.mw100}>
                 {typeof title === 'string'
                     ? Boolean(title) && (
