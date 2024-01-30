@@ -2588,6 +2588,8 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     if (transactionThreadID) {
         transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
     }
+    const secondToLastAction = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, {}, 1);
+    const secondToLastActionCreated = lodashGet(secondToLastAction, 'created');
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
@@ -2641,7 +2643,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     }
 
     updatedIOUReport.lastMessageText = iouReportLastMessageText;
-    updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+    updatedIOUReport.lastVisibleActionCreated = secondToLastActionCreated;
 
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
     const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
@@ -2650,6 +2652,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     });
     updatedReportPreviewAction.message[0].text = messageText;
     updatedReportPreviewAction.message[0].html = shouldDeleteIOUReport ? '' : messageText;
+    updatedReportPreviewAction.created = secondToLastActionCreated;
 
     if (reportPreviewAction.childMoneyRequestCount > 0) {
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
