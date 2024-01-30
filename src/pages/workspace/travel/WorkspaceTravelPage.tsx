@@ -20,7 +20,7 @@ function WorkspaceTravelPage({route}: WorkspaceTravelPageProps) {
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
         >
-            {(hasVBA: boolean, policyID: string) => (
+            {(hasVBA = false, policyID = '') => (
                 <>
                     {!hasVBA && <WorkspaceTravelNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceTravelVBAView />}
