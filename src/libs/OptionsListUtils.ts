@@ -509,7 +509,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     const lastActionName = lastReportAction?.actionName ?? '';
 
     if (ReportUtils.isArchivedRoom(report)) {
-        const archiveReason = lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && lastOriginalReportAction?.originalMessage?.reason || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        const archiveReason =
+            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && lastOriginalReportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
