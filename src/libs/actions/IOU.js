@@ -219,7 +219,7 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
  * @param {String} transactionID
  * @param {Object} pendingFields
  */
-function setMoneyRequestPendingFields_temporaryForRefactor(transactionID, pendingFields) {
+function setMoneyRequestPendingFields(transactionID, pendingFields) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
@@ -3812,7 +3812,7 @@ export {
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
-    setMoneyRequestPendingFields_temporaryForRefactor,
+    setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
     setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,

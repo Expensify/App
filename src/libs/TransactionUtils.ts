@@ -318,7 +318,7 @@ function getOriginalAmount(transaction: Transaction): number {
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function hasPendingRoute(transaction: OnyxEntry<Transaction>): boolean {
+function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -588,7 +588,7 @@ export {
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
-    hasPendingRoute,
+    isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
     isPending,

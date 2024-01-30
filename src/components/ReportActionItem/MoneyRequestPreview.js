@@ -165,17 +165,22 @@ function MoneyRequestPreview(props) {
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
-    const hasPendingRoute = TransactionUtils.hasPendingRoute(props.transaction);
+    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
+    /*
+     Show the merchant for IOUs and expenses only if:
+     - the merchant is not empty, is custom or not related to scanning smartscan;
+     - the request is not a distance request with a pending route and amount = 0 - in this case,
+       the merchant says: "Route pending...", which is already shown in the amount field;
+    */
     const shouldShowMerchant =
         !_.isEmpty(requestMerchant) &&
         requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
         requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(isDistanceRequest && hasPendingRoute && !requestAmount);
+        !(isDistanceRequest && isFetchingWaypointsFromServer && !requestAmount);
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     let merchantOrDescription = requestMerchant;
@@ -233,7 +238,7 @@ function MoneyRequestPreview(props) {
             return translate('iou.receiptScanning');
         }
 
-        if (hasPendingRoute && !requestAmount) {
+        if (isFetchingWaypointsFromServer && !requestAmount) {
             return translate('iou.routePending');
         }
 

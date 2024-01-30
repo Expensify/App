@@ -428,7 +428,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         if (isDistanceRequestWithPendingRoute) {
-            IOU.setMoneyRequestPendingFields_temporaryForRefactor(props.transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+            IOU.setMoneyRequestPendingFields(props.transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
         }
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);

@@ -30,7 +30,7 @@ type FileNameAndExtension = {
  * @param receiptFileName
  */
 function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string | null = null, receiptFileName: string | null = null): ThumbnailAndImageURI {
-    if (TransactionUtils.hasPendingRoute(transaction)) {
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return {thumbnail: null, image: ReceiptGeneric, isLocalFile: true};
     }
 

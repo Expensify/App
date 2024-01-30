@@ -221,8 +221,17 @@ function ReportPreview({
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    /*
+     Show subtitle if at least one of the money requests is not being smart scanned, and either:
+     - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
+     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+
+     * There is an edge case when there is only one distance request with a pending route and amount = 0.
+       In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
+     */
     const shouldShowSubtitle =
         !isScanning && (numberOfRequests > 1 || (hasReceipts && numberOfRequests === 1 && formattedMerchant && !(hasOnlyPendingDistanceRequests && !totalDisplaySpend)));
+
     return (
         <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.preview}>
             <View style={[styles.chatItemMessage, containerStyles]}>

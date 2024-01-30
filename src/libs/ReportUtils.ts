@@ -1080,7 +1080,7 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
         return false;
     }
 
-    return transactions.every((transaction) => TransactionUtils.hasPendingRoute(transaction));
+    return transactions.every((transaction) => TransactionUtils.isFetchingWaypointsFromServer(transaction));
 }
 
 /**
@@ -2095,7 +2095,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
         return Localize.translateLocal('iou.request');
     }
 
-    if (TransactionUtils.hasPendingRoute(transaction)) {
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
         return Localize.translateLocal('iou.routePending');
     }
 
@@ -2178,7 +2178,7 @@ function getReportPreviewMessage(
             return Localize.translateLocal('iou.receiptScanning');
         }
 
-        if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasPendingRoute(linkedTransaction) && !TransactionUtils.getAmount(linkedTransaction)) {
+        if (!isEmptyObject(linkedTransaction) && TransactionUtils.isFetchingWaypointsFromServer(linkedTransaction) && !TransactionUtils.getAmount(linkedTransaction)) {
             return Localize.translateLocal('iou.routePending');
         }
     }
