@@ -71,7 +71,7 @@ function MoneyReportView({report, policyReportFields, shouldShowHorizontalRule, 
     );
     const isAdmin = ReportUtils.isPolicyAdmin(report.policyID ?? '', policies);
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.overflowHidden]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {canUseReportFields &&
