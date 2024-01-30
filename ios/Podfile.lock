@@ -32,7 +32,10 @@ PODS:
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
-  - Expo (50.0.3):
+  - EXAV (13.10.4):
+    - ExpoModulesCore
+    - ReactCommon/turbomodule/core
+  - Expo (50.0.4):
     - ExpoModulesCore
   - ExpoImage (1.10.1):
     - ExpoModulesCore
@@ -1425,7 +1428,7 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
-  - RNReanimated (3.6.2):
+  - RNReanimated (3.6.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1460,6 +1463,7 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXAV (from `../node_modules/expo-av/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
@@ -1639,6 +1643,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXAV:
+    :path: "../node_modules/expo-av/ios"
   Expo:
     :path: "../node_modules/expo"
   ExpoImage:
@@ -1836,7 +1842,8 @@ SPEC CHECKSUMS:
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
-  Expo: 88b4aa68115bbb57c1a07cc30161c2352ab2fc25
+  EXAV: 09a4d87fa6b113fbb0ada3aade6799f78271cb44
+  Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
   ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
@@ -1963,7 +1970,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
-  RNReanimated: 5589be82dc26b3f94738eb7c6b1f942787532b25
+  RNReanimated: 57f436e7aa3d277fbfed05e003230b43428157c0
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSVG: 255767813dac22db1ec2062c8b7e7b856d4e5ae6
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
