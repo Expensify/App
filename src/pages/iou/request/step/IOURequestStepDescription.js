@@ -70,14 +70,16 @@ function IOURequestStepDescription({
      */
     const updateComment = (value) => {
         const newComment = value.moneyRequestComment.trim();
-        // Only update comment if it has changed
-        if (newComment === lodashGet(transaction, 'comment.comment', '')) {
-            navigateBack();
-            return;
-        }
+        
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT) {
             IOU.setDraftSplitTransaction(transaction.transactionID, {newComment});
+            navigateBack();
+            return;
+        }
+        
+        // Only update comment if it has changed
+        if (newComment === lodashGet(transaction, 'comment.comment', '')) {
             navigateBack();
             return;
         }

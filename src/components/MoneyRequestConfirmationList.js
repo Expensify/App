@@ -663,13 +663,10 @@ function MoneyRequestConfirmationList(props) {
                 title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => {
-                    if (!props.isEditingSplitBill) {
-                        return;
-                    }
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
                             CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.SPLIT,
+                            props.iouType,
                             transaction.transactionID,
                             props.reportID,
                             Navigation.getActiveRouteWithoutParams(),
