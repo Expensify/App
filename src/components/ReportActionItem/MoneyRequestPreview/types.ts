@@ -1,6 +1,5 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type * as OnyxTypes from '@src/types/onyx';
 

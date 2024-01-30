@@ -539,7 +539,12 @@ function hasViolation(transactionOrID: Transaction | OnyxEntry<Transaction> | st
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
 }
 
-function getTransactionViolations({transactionID}: Transaction, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+function getTransactionViolations(transactionOrID: OnyxEntry<Transaction> | string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
+    if (!transactionOrID) {
+        return null;
+    }
+    const transactionID = typeof transactionOrID === 'string' ? transactionOrID : transactionOrID.transactionID;
+
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
 

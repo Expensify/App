@@ -19,6 +19,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -782,8 +783,8 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategory[] | PolicyTag[]): boolean {
-    return options.some((option) => option.enabled);
+function hasEnabledOptions(options: PolicyCategories | PolicyTags): boolean {
+    return Object.values(options).some((option) => option.enabled);
 }
 
 /**
