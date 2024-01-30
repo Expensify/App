@@ -75,6 +75,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                // Clear the existing distance to recalculate next time
+                distance: null,
                 geometry: {
                     coordinates: null,
                 },
@@ -148,6 +150,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             // Clear the existing route so that we don't show an old route
             routes: {
                 route0: {
+                    // Clear the existing distance to recalculate next time
                     distance: null,
                     geometry: {
                         coordinates: null,
@@ -253,6 +256,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         // Clear the existing route so that we don't show an old route
         routes: {
             route0: {
+                // Clear the existing distance to recalculate next time
                 distance: null,
                 geometry: {
                     coordinates: null,
