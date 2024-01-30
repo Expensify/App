@@ -157,6 +157,7 @@ function ReportPreview(props) {
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
     const policyType = lodashGet(props.policy, 'type');
+    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(props.iouReport, props.policy);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -248,8 +249,8 @@ function ReportPreview(props) {
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, props.iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {

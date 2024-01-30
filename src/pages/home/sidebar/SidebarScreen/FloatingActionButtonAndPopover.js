@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -20,12 +19,9 @@ import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 /**
  * @param {Object} [policy]
@@ -141,18 +137,6 @@ function FloatingActionButtonAndPopover(props) {
             callback();
         }
     };
-
-    useEffect(() => {
-        const navigationState = props.navigation.getState();
-        const routes = lodashGet(navigationState, 'routes', []);
-        const currentRoute = routes[navigationState.index];
-        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
-            return;
-        }
-
-        Welcome.show({routes, showCreateMenu});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isLoading]);
 
     useEffect(() => {
         if (!didScreenBecomeInactive()) {

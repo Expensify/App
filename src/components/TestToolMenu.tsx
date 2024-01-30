@@ -9,8 +9,7 @@ import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type NetworkOnyx from '@src/types/onyx/Network';
-import type UserOnyx from '@src/types/onyx/User';
+import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {withNetwork} from './OnyxProvider';
@@ -28,7 +27,6 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
     /** Network object in Onyx */
     network: OnyxEntry<NetworkOnyx>;
 };
-
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
 function TestToolMenu({user = USER_DEFAULT, network, lastShownSplashScreenVideo}: TestToolMenuProps) {

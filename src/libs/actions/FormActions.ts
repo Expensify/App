@@ -1,34 +1,36 @@
 import Onyx from 'react-native-onyx';
 import type {KeyValueMapping, NullishDeep} from 'react-native-onyx/lib/types';
+import type {OnyxFormKeyWithoutDraft} from '@components/Form/types';
 import FormUtils from '@libs/FormUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Form} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
-type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
-
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
-    Onyx.merge(formID, {isLoading} satisfies Form);
+    Onyx.merge(formID, {isLoading});
 }
 
 function setErrors(formID: OnyxFormKey, errors: OnyxCommon.Errors) {
-    Onyx.merge(formID, {errors} satisfies Form);
+    Onyx.merge(formID, {errors});
 }
 
 function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields) {
-    Onyx.merge(formID, {errorFields} satisfies Form);
+    Onyx.merge(formID, {errorFields});
+}
+
+function clearErrors(formID: OnyxFormKey) {
+    Onyx.merge(formID, {errors: null});
+}
+
+function clearErrorFields(formID: OnyxFormKey) {
+    Onyx.merge(formID, {errorFields: null});
 }
 
 function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDeep<KeyValueMapping[`${OnyxFormKeyWithoutDraft}Draft`]>) {
     Onyx.merge(FormUtils.getDraftKey(formID), draftValues);
 }
 
-/**
- * @param formID
- */
 function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
-    Onyx.merge(FormUtils.getDraftKey(formID), undefined);
+    Onyx.set(FormUtils.getDraftKey(formID), {});
 }
 
-export {setDraftValues, setErrorFields, setErrors, setIsLoading, clearDraftValues};
+export {setDraftValues, setErrorFields, setErrors, clearErrors, clearErrorFields, setIsLoading, clearDraftValues};
