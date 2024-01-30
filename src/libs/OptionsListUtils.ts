@@ -1820,8 +1820,8 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: member.keyForList || String(accountID ?? 0) || '',
-        isSelected: false,
-        isDisabled: false,
+        isSelected: member.isSelected ? member.isSelected : false,
+        isDisabled: member.isDisabled ? member.isDisabled : false,
         accountID,
         login: member.login ?? '',
         icons: member.icons,

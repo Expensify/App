@@ -150,7 +150,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
 
             let newSelectedOptions: ReportUtils.OptionData[];
             if (isOptionInList) {
-                newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login === option.login);
+                newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
             } else {
                 newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
             }
@@ -203,8 +203,8 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
             testID={RoomInvitePage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={!!report}
-                subtitleKey={report ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={!report}
+                subtitleKey={!report ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(backRoute)}
             >
                 <HeaderWithBackButton
