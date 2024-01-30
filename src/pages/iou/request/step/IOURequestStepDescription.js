@@ -71,7 +71,7 @@ function IOURequestStepDescription({
     const updateComment = (value) => {
         const newComment = value.moneyRequestComment.trim();
         // Only update comment if it has changed
-        if (newComment !== lodashGet(transaction, 'comment.comment', '')) {
+        if (newComment === lodashGet(transaction, 'comment.comment', '')) {
             navigateBack();
             return;
         }
