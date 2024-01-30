@@ -136,7 +136,7 @@ function WorkspacePageWithSections({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={WorkspacePageWithSections.displayName}
-            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
                 onBackButtonPress={goBack}
