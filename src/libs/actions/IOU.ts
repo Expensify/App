@@ -3450,14 +3450,14 @@ function detachReceipt(transactionID: string) {
 }
 
 function replaceReceipt(transactionID: string, file: File, source: string) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
