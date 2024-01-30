@@ -925,6 +925,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        NUMBER_PAD: 'number-pad',
     },
 
     INPUT_MODE: {
