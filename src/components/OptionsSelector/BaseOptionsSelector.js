@@ -229,8 +229,8 @@ function BaseOptionsSelector(props) {
     );
 
     const handleReferralModal = () => {
-        setShouldShowReferralModal(prev => !prev)
-    }
+        setShouldShowReferralModal((prev) => !prev);
+    };
 
     const handleFocusIn = () => {
         const activeElement = document.activeElement;
