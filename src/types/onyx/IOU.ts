@@ -1,10 +1,21 @@
+import type {Icon} from './OnyxCommon';
+
 type Participant = {
     accountID: number;
-    login?: string;
+    login: string;
     isPolicyExpenseChat?: boolean;
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;
     reportID?: string;
+    searchText?: string;
+    alternateText: string;
+    firstName: string;
+    icons: Icon[];
+    keyForList: string;
+    lastName: string;
+    phoneNumber: string;
+    text: string;
+    isSelected?: boolean;
 };
 
 type IOU = {
@@ -23,3 +34,4 @@ type IOU = {
 };
 
 export default IOU;
+export type {Participant};
