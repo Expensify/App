@@ -161,7 +161,15 @@ function SignInPageLayout(props) {
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight)), {backgroundColor: theme.signInPage}]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexColumn,
+                            styles.overflowHidden,
+                            StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight)),
+                            {backgroundColor: theme.signInPage},
+                        ]}
+                    >
                         <BackgroundImage
                             isSmallScreen
                             pointerEvents="none"

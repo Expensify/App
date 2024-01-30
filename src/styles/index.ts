@@ -1260,7 +1260,7 @@ const styles = (theme: ThemeColors) =>
             top: 0,
             left: 0,
             backgroundColor: colors.productDark200,
-            justifyContent: "flex-end"
+            justifyContent: 'flex-end',
         },
 
         signInBackgroundImage: {

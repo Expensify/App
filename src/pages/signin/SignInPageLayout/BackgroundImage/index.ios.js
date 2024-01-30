@@ -1,12 +1,12 @@
-import {View} from "react-native";
 import {Image} from 'expo-image';
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from "@hooks/useWindowDimensions";
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {
@@ -22,7 +22,7 @@ const propTypes = {
 function BackgroundImage(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowHeight} = useWindowDimensions()
+    const {windowHeight} = useWindowDimensions();
     const src = useMemo(() => (props.isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [props.isSmallScreen]);
 
     return (
@@ -32,7 +32,6 @@ function BackgroundImage(props) {
                 style={styles.signInBackgroundImage}
             />
         </View>
-
     );
 }
 
