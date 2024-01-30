@@ -127,7 +127,7 @@ function DetailsPage(props) {
 
     return (
         <ScreenWrapper testID={DetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(login) || CONST.RESTRICTED_EMAILS.includes(login)}>
                 <HeaderWithBackButton title={props.translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {details ? (

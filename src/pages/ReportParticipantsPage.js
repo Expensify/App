@@ -88,7 +88,7 @@ function ReportParticipantsPage(props) {
     const styles = useThemeStyles();
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
         ...participant,
-        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID) || CONST.RESTRICTED_ACCOUNT_IDS.includes(participant.accountID),
     }));
 
     return (
