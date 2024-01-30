@@ -103,15 +103,15 @@ type GetOptionsConfig = {
 
 type MemberForList = {
     text: string;
-    alternateText: string | null;
-    keyForList: string | null;
+    alternateText: string;
+    keyForList: string;
     isSelected: boolean;
-    isDisabled: boolean | null;
-    accountID?: number | null;
-    login: string | null;
-    rightElement: React.ReactNode | null;
+    isDisabled: boolean;
+    accountID?: number;
+    login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
+    reportID: string;
 };
 
 type SectionForSearchTerm = {
@@ -1810,12 +1810,8 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
-    if (!member) {
-        return undefined;
-    }
-
-    const accountID = member.accountID;
+function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
+    const accountID = member.accountID ?? undefined;
 
     return {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1828,10 +1824,9 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
         isDisabled: false,
         accountID,
         login: member.login ?? '',
-        rightElement: null,
         icons: member.icons,
         pendingAction: member.pendingAction,
-        ...config,
+        reportId: member.reportID,
     };
 }
 
@@ -1993,3 +1988,5 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
 };
+
+export type {MemberForList};

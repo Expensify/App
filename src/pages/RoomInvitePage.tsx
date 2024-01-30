@@ -45,14 +45,16 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS], [report]);
 
     useEffect(() => {
-        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const inviteOptions: any = OptionsListUtils.getMemberInviteOptions(personalDetails, betas, searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
-        const detailsMap: Record<string, ReportUtils.OptionData> = {};
-        // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
-        inviteOptions.personalDetails.forEach((detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
+        const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
+        inviteOptions.personalDetails.forEach((detail) => {
+            if (!detail.login) {
+                return;
+            }
+            detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail);
+        });
         const newSelectedOptions: ReportUtils.OptionData[] = [];
         selectedOptions.forEach((option) => {
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
@@ -76,14 +78,15 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                 const isOptionInPersonalDetails = invitePersonalDetails.filter((personalDetail) => personalDetail.accountID === accountID);
                 const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
-                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchValue) || option.login?.toLowerCase().includes(searchValue);
+                const isPartOfSearchTerm = option.text?.toLowerCase().includes(searchValue) ?? option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm ?? isOptionInPersonalDetails;
             });
         }
+        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => OptionsListUtils.formatMemberForList(selectedOption));
 
         sections.push({
             title: undefined,
-            data: filterSelectedOptions,
+            data: filterSelectedOptionsFormatted,
             indexOffset,
         });
         indexOffset += filterSelectedOptions.length;
@@ -91,7 +94,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = invitePersonalDetails.filter(({login}) => !selectedLogins.includes(login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
         sections.push({
@@ -104,7 +107,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         if (hasUnselectedUserToInvite) {
             sections.push({
                 title: undefined,
-                data: [OptionsListUtils.formatMemberForList(userToInvite, false)],
+                data: [OptionsListUtils.formatMemberForList(userToInvite)],
                 indexOffset,
             });
         }
@@ -113,10 +116,10 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     };
 
     const toggleOption = useCallback(
-        (option: ReportUtils.OptionData) => {
+        (option: OptionsListUtils.MemberForList) => {
             const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-            let newSelectedOptions;
+            let newSelectedOptions: ReportUtils.OptionData[];
             if (isOptionInList) {
                 newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login === option.login);
             } else {
@@ -187,7 +190,6 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                             }}
                         />
                         <SelectionList
-                            // @ts-expect-error TODO: Remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript.
                             canSelectMultiple
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -198,7 +200,6 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                             onConfirm={inviteUsers}
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                             showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
                         />
                         <View style={[styles.flexShrink0]}>

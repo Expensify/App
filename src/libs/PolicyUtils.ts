@@ -7,7 +7,7 @@ import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTag, PolicyTags} 
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-export type MemberEmailsToAccountIDs = Record<string, number>;
+type MemberEmailsToAccountIDs = Record<string, number>;
 type UnitRate = {rate: number};
 
 /**
@@ -233,3 +233,5 @@ export {
     isPolicyMember,
     isPaidGroupPolicy,
 };
+
+export type {MemberEmailsToAccountIDs};
