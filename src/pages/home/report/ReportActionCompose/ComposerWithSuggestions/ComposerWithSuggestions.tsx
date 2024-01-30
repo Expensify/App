@@ -58,6 +58,8 @@ type SyncSelection = {
 
 type AnimatedRef = ReturnType<typeof useAnimatedRef>;
 
+type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
+
 type ComposerWithSuggestionsOnyxProps = {
     /** The number of lines the comment should take up */
     numberOfLines: OnyxEntry<number>;
@@ -189,6 +191,7 @@ function ComposerWithSuggestions(
         return draft;
     });
     const commentRef = useRef(value);
+    const lastTextRef = useRef(value);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -255,12 +258,59 @@ function ComposerWithSuggestions(
     );
 
     /**
+     * Find the newly added characters between the previous text and the new text based on the selection.
+     *
+     * @param prevText - The previous text.
+     * @param newText - The new text.
+     * @returns An object containing information about the newly added characters.
+     * @property startIndex - The start index of the newly added characters in the new text.
+     * @property endIndex - The end index of the newly added characters in the new text.
+     * @property diff - The newly added characters.
+     */
+    const findNewlyAddedChars = useCallback(
+        (prevText: string, newText: string | null): NewlyAddedChars => {
+            let startIndex = -1;
+            let endIndex = -1;
+            let currentIndex = 0;
+
+            // Find the first character mismatch with newText
+            while (currentIndex < (newText?.length ?? 0) && prevText.charAt(currentIndex) === newText?.charAt(currentIndex) && selection.start > currentIndex) {
+                currentIndex++;
+            }
+
+            if (currentIndex < (newText?.length ?? 0)) {
+                startIndex = currentIndex;
+                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText ?? '', selection.end);
+                // if text is getting pasted over find length of common suffix and subtract it from new text length
+                if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
+                    endIndex = (newText?.length ?? 0) - commonSuffixLength;
+                } else {
+                    endIndex = currentIndex + (newText?.length ?? 0);
+                }
+            }
+
+            return {
+                startIndex,
+                endIndex,
+                diff: newText?.substring(startIndex, endIndex) ?? '',
+            };
+        },
+        [selection.start, selection.end],
+    );
+
+    /**
      * Update the value of the comment in Onyx
      */
     const updateComment = useCallback(
         (commentValue: string | null, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentValue ?? '', preferredSkinTone, preferredLocale);
+            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
+            const {
+                text: newComment,
+                emojis,
+                cursorPosition,
+            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
             if (emojis.length) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -317,6 +367,7 @@ function ComposerWithSuggestions(
         },
         [
             debouncedUpdateFrequentlyUsedEmojis,
+            findNewlyAddedChars,
             preferredLocale,
             preferredSkinTone,
             reportID,
@@ -368,14 +419,8 @@ function ComposerWithSuggestions(
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      */
     const replaceSelectionWithText = useCallback(
-        (text: string, shouldAddTrailSpace = true) => {
-            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
-            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, updatedText));
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + text.length + selectionSpaceLength,
-                end: prevSelection.start + text.length + selectionSpaceLength,
-            }));
+        (text: string) => {
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
         },
         [selection, updateComment],
     );
@@ -586,6 +631,10 @@ function ComposerWithSuggestions(
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+
+    useEffect(() => {
+        lastTextRef.current = value;
+    }, [value]);
 
     useEffect(() => {
         onValueChange(value);
