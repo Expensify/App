@@ -55,6 +55,19 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 * To run the **development web app**: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
 
+* 
+## Install Chocolatey on windows 
+Hey there! 👋 To install Chocolatey on Windows, follow these steps:
+
+1. Open a PowerShell window as an administrator. You can do this by right-clicking the Start button and selecting "Windows PowerShell (Admin)".
+
+2. Copy and paste the following command into the PowerShell window and press Enter to download and install Chocolatey:
+
+   ```powershell
+   Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+#   choco --version
+
 ## Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
