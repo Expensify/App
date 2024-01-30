@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -11,55 +11,45 @@ const propTypes = {
     position: PropTypes.number.isRequired,
 
     seekPosition: PropTypes.func.isRequired,
-
-    togglePlayCurrentVideo: PropTypes.func.isRequired,
 };
 
 const defaultProps = {};
 
-function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition}) {
+function ProgressBar({duration, position, seekPosition}) {
     const styles = useThemeStyles();
-    const {pauseVideo} = usePlaybackContext();
+    const {pauseVideo, playVideo, checkVideoPlaying} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const progressWidth = useSharedValue(0);
+    const wasVideoPlayingOnCheck = useRef(false);
+
+    const onCheckVideoPlaying = (isPlaying) => {
+        wasVideoPlayingOnCheck.current = isPlaying;
+    };
+
+    const progressBarInteraction = (event) => {
+        progressWidth.value = (event.x / sliderWidth) * 100;
+        runOnJS(seekPosition)((event.x / sliderWidth) * duration);
+    };
 
     const onSliderLayout = (e) => {
         setSliderWidth(e.nativeEvent.layout.width);
     };
 
-    const tap = Gesture.Tap()
-        .onBegin((event) => {
-            runOnJS(pauseVideo)();
-            progressWidth.value = (event.x / sliderWidth) * 100;
-            runOnJS(seekPosition)((event.x / sliderWidth) * duration);
-        })
-        .onEnd(() => {
-            runOnJS(togglePlayCurrentVideo)();
-        });
-
-    const longPress = Gesture.LongPress()
-        .onBegin((event) => {
-            runOnJS(pauseVideo)();
-            progressWidth.value = (event.x / sliderWidth) * 100;
-            runOnJS(seekPosition)((event.x / sliderWidth) * duration);
-        })
-        .onEnd(() => {
-            runOnJS(togglePlayCurrentVideo)();
-        });
-
     const pan = Gesture.Pan()
-        .onBegin(() => {
+        .onBegin((event) => {
+            runOnJS(checkVideoPlaying)(onCheckVideoPlaying);
             runOnJS(pauseVideo)();
+            progressBarInteraction(event);
         })
         .onChange((event) => {
-            progressWidth.value = (event.x / sliderWidth) * 100;
-            runOnJS(seekPosition)((event.x / sliderWidth) * duration);
+            progressBarInteraction(event);
         })
-        .onEnd(() => {
-            runOnJS(togglePlayCurrentVideo)();
+        .onFinalize(() => {
+            if (!wasVideoPlayingOnCheck.current) {
+                return;
+            }
+            runOnJS(playVideo)();
         });
-
-    const composed = Gesture.Race(tap, longPress, pan);
 
     useEffect(() => {
         progressWidth.value = (position / duration) * 100;
@@ -68,7 +58,7 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
     const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
 
     return (
-        <GestureDetector gesture={composed}>
+        <GestureDetector gesture={pan}>
             <Animated.View style={[styles.w100, styles.h100, styles.pv2, styles.cursorPointer]}>
                 <Animated.View
                     style={styles.progressBarOutline}

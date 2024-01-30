@@ -120,7 +120,6 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
                         duration={duration}
                         position={position}
                         seekPosition={seekPosition}
-                        togglePlayCurrentVideo={togglePlayCurrentVideo}
                     />
                 </View>
             </Animated.View>

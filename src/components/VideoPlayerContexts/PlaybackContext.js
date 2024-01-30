@@ -59,6 +59,15 @@ function PlaybackContextProvider({children}) {
         [playVideo],
     );
 
+    const checkVideoPlaying = useCallback(
+        (statusCallback) => {
+            currentVideoPlayerRef.current.getStatusAsync().then((status) => {
+                statusCallback(status.isPlaying);
+            });
+        },
+        [currentVideoPlayerRef],
+    );
+
     const resetVideoPlayerData = useCallback(() => {
         stopVideo();
         unloadVideo();
@@ -85,8 +94,9 @@ function PlaybackContextProvider({children}) {
             shareVideoPlayerElements,
             playVideo,
             pauseVideo,
+            checkVideoPlaying,
         }),
-        [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo],
+        [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying],
     );
     return <PlaybackContext.Provider value={contextValue}>{children}</PlaybackContext.Provider>;
 }
