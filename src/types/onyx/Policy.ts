@@ -32,6 +32,13 @@ type CustomUnit = {
     errors?: OnyxCommon.Errors;
 };
 
+type DisabledFields = {
+    defaultBillable?: boolean;
+    reimbursable?: boolean;
+};
+
+type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
+
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -90,23 +97,23 @@ type Policy = {
     /** Whether the scheduled submit is enabled */
     isHarvestingEnabled?: boolean;
 
+    /** Whether the scheduled submit is enabled */
+    isPreventSelfApprovalEnabled?: boolean;
+
+    /** When the monthly scheduled submit should happen */
+    autoReportingOffset?: AutoReportingOffset;
+
     /** The accountID of manager who the employee submits their expenses to on paid policies */
     submitsTo?: number;
 
     /** The employee list of the policy */
     employeeList?: [];
 
-    /** Whether tax tracking enabled for policy */
-    isTaxTrackingEnabled?: boolean;
+    /** The reimbursement choice for policy */
+    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
-    /** List of fields which should disabled for the policy */
-    disabledFields?: Record<string, boolean>;
-
-    /** Whether or not the policy requires categories */
-    requiresCategory?: boolean;
-
-    /** Whether or not the policy requires tags */
-    requiresTag?: boolean;
+    /** The maximum report total allowed to trigger auto reimbursement. */
+    autoReimbursementLimit?: number;
 
     /** Whether to leave the calling account as an admin on the policy */
     makeMeAdmin?: boolean;
@@ -122,6 +129,30 @@ type Policy = {
 
     /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
     primaryLoginsInvited?: Record<string, string>;
+
+    /** The approval mode set up on this policy */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Whether transactions should be billable by default */
+    defaultBillable?: boolean;
+
+    /** The workspace description */
+    description?: string;
+
+    /** List of field names that are disabled */
+    disabledFields?: DisabledFields;
+
+    /** Whether new transactions need to be tagged */
+    requiresTag?: boolean;
+
+    /** Whether new transactions need to be categorized */
+    requiresCategory?: boolean;
+
+    /** Whether the workspace has multiple levels of tags enabled */
+    hasMultipleTagLists?: boolean;
+
+    /** When tax tracking is enabled */
+    isTaxTrackingEnabled?: boolean;
 };
 
 export default Policy;

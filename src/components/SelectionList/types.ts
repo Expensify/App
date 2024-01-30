@@ -1,7 +1,6 @@
 import type {ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {SubAvatar} from '@components/SubscriptAvatar';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type CommonListItemProps<TItem> = {
@@ -56,10 +55,10 @@ type User = {
     login?: string;
 
     /** Element to show on the right side of the item */
-    rightElement: ReactElement;
+    rightElement?: ReactElement;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
-    icons?: SubAvatar[];
+    icons?: Icon[];
 
     /** Errors that this user may contain */
     errors?: Errors;
@@ -70,10 +69,10 @@ type User = {
     invitedSecondaryLogin?: string;
 
     /** Represents the index of the section it came from  */
-    sectionIndex: number;
+    sectionIndex?: number;
 
     /** Represents the index of the option within the section it came from */
-    index: number;
+    index?: number;
 };
 
 type UserListItemProps = CommonListItemProps<User> & {
@@ -97,25 +96,14 @@ type RadioItem = {
     /** Whether this option is selected */
     isSelected?: boolean;
 
-    /** Element to show on the right side of the item */
-    rightElement?: undefined;
-
     /** Whether this option is disabled for selection */
-    isDisabled?: undefined;
-
-    invitedSecondaryLogin?: undefined;
-
-    /** Errors that this user may contain */
-    errors?: undefined;
-
-    /** The type of action that's pending  */
-    pendingAction?: undefined;
+    isDisabled?: boolean;
 
     /** Represents the index of the section it came from  */
-    sectionIndex: number;
+    sectionIndex?: number;
 
     /** Represents the index of the option within the section it came from */
-    index: number;
+    index?: number;
 };
 
 type RadioListItemProps = CommonListItemProps<RadioItem> & {
@@ -137,7 +125,7 @@ type Section<TItem extends User | RadioItem> = {
     indexOffset?: number;
 
     /** Array of options */
-    data: TItem[];
+    data?: TItem[];
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean;
@@ -145,7 +133,7 @@ type Section<TItem extends User | RadioItem> = {
 
 type BaseSelectionListProps<TItem extends User | RadioItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<Section<TItem>>;
+    sections: Array<SectionListData<TItem, Section<TItem>>>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;

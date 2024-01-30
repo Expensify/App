@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-import type {View} from 'react-native';
+/* eslint-disable no-restricted-imports */
+import type {Text as RNText, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -13,7 +13,7 @@ type AnchorOrigin = {
 /**
  * Gets the x,y position of the passed in component for the purpose of anchoring another component to it.
  */
-export default function calculateAnchorPosition(anchorComponent: View, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition> {
+export default function calculateAnchorPosition(anchorComponent: View | RNText, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition> {
     return new Promise((resolve) => {
         if (!anchorComponent) {
             return resolve({horizontal: 0, vertical: 0});
@@ -22,7 +22,7 @@ export default function calculateAnchorPosition(anchorComponent: View, anchorOri
             if (anchorOrigin?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP && anchorOrigin?.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
                 return resolve({horizontal: x, vertical: y + height + (anchorOrigin?.shiftVertical ?? 0)});
             }
-            return resolve({horizontal: x + width, vertical: y});
+            return resolve({horizontal: x + width, vertical: y + (anchorOrigin?.shiftVertical ?? 0)});
         });
     });
 }

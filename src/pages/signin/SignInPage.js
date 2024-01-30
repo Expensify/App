@@ -18,6 +18,7 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
+import Visibility from '@libs/Visibility';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -96,7 +97,7 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, isClientTheLeader}) {
+function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, isUsingMagicCode, hasInitiatedSAMLLogin, shouldShowAnotherLoginPageOpenedMessage}) {
     const hasAccount = !_.isEmpty(account);
     const isSAMLEnabled = Boolean(account.isSAMLEnabled);
     const isSAMLRequired = Boolean(account.isSAMLRequired);
@@ -113,13 +114,13 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
         Session.clearSignInData();
     }
 
-    const shouldShowLoginForm = isClientTheLeader && !hasLogin && !hasValidateCode;
+    const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
         hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || !isClientTheLeader;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -154,6 +155,9 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
     const isClientTheLeader = activeClients && ActiveClientManager.isClientTheLeader();
+    // We need to show "Another login page is opened" message if the page isn't active and visible
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -192,7 +196,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
-        isClientTheLeader,
+        shouldShowAnotherLoginPageOpenedMessage,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -204,7 +208,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
     let welcomeText = '';
     const headerText = translate('login.hero.header');
 
-    if (!isClientTheLeader) {
+    if (shouldShowAnotherLoginPageOpenedMessage) {
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
         welcomeText = translate('welcomeText.anotherLoginPageIsOpenExplanation');
     } else if (shouldShowLoginForm) {
@@ -251,7 +255,10 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
-        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}>
+        <View
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
+            testID={SignInPageInner.displayName}
+        >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
@@ -270,7 +277,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                     blurOnSubmit={account.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current && signInPageLayoutRef.current.scrollPageToTop}
                 />
-                {isClientTheLeader && (
+                {!shouldShowAnotherLoginPageOpenedMessage && (
                     <>
                         {shouldShowValidateCodeForm && (
                             <ValidateCodeForm
