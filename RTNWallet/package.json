@@ -1,0 +1,71 @@
+{
+    "name": "react-native-wallet",
+    "version": "0.0.1",
+    "description": "A cross platform native module for React-Native to add payment cards to Apple Pay and Google Pay",
+    "main": "index.js",
+    "scripts": {
+      "build": "echo \"Warning: no build process has been specified yet\"",
+      "lint": "eslint index.js",
+      "prettier": "prettier --write .",
+      "prettier-watch": "onchange \"**/*.js\" -- prettier --write --ignore-unknown {{changed}}",
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Expensify/react-native-wallet.git"
+    },
+    "files": [
+      "js",
+      "android",
+      "ios",
+      "rtn-wallet.podspec",
+      "!android/build",
+      "!ios/build",
+      "!**/__tests__",
+      "!**/__fixtures__",
+      "!**/__mocks__"
+    ],
+    "keywords": [
+      "React",
+      "React-Native",
+      "Passkit",
+      "Wallet"
+    ],
+    "author": "Expensify, Inc.",
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/Expensify/react-native-wallet/issues"
+    },
+    "homepage": "https://github.com/Expensify/react-native-wallet#readme",
+    "devDependencies": {
+      "@babel/core": "7.20.12",
+      "@babel/preset-env": "^7.20.2",
+      "@babel/preset-react": "^7.18.6",
+      "babel-eslint": "^10.1.0",
+      "babel-loader": "^8.2.5",
+      "eslint": "^7.6.0",
+      "eslint-config-expensify": "^2.0.24",
+      "eslint-config-prettier": "^8.8.0",
+      "eslint-plugin-jsx-a11y": "^6.6.1",
+      "eslint-plugin-react": "^7.31.10",
+      "metro-react-native-babel-preset": "^0.72.3",
+      "prettier": "^2.8.8"
+    },
+    "peerDependencies": {
+      "react": "*",
+      "react-native": "*"
+    },
+    "engines": {
+      "node": "20.9.0",
+      "npm": "10.1.0"
+    },
+    "codegenConfig": {
+      "name": "RTNWalletSpec",
+      "type": "modules",
+      "jsSrcsDir": "js",
+      "android": {
+        "javaPackageName": "com.rtnwallet"
+      }
+    }
+  }
+  
