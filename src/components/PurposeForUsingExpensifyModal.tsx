@@ -60,14 +60,14 @@ const messageCopy = {
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
         'Hi there, to split an expense such as with a friend, please:\n' +
         '\n' +
-        'Press the big green + button\n' +
-        'Choose *Request money*\n' +
-        'Indicate how much was spent, either manually, by scanning a receipt, or by tracking distance\n' +
-        'Enter the email address or phone number of your friend\n' +
-        'Press *Split* next to their name\n' +
-        'Repeat as many times as you like for each of your friends\n' +
-        'Press *Add to split* when done adding friends\n' +
-        'Press Split to split the bill\n' +
+        '1. Press the big green + button\n' +
+        '2. Choose *Request money*\n' +
+        '3. Indicate how much was spent, either manually, by scanning a receipt, or by tracking distance\n' +
+        '4. Enter the email address or phone number of your friend\n' +
+        '5. Press *Split* next to their name\n' +
+        '6. Repeat as many times as you like for each of your friends\n' +
+        '7. Press *Add to split* when done adding friends\n' +
+        '8. Press Split to split the bill\n' +
         '\n' +
         "This will send a money request to each of your friends for however much they owe you, and we'll take care of getting you paid back. Thanks for asking, and let me know how it goes!",
 };

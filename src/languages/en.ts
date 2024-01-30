@@ -301,6 +301,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -774,6 +775,11 @@ export default {
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
     },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
+    },
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
@@ -1135,7 +1141,7 @@ export default {
     },
     personalDetails: {
         error: {
-            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
@@ -1288,8 +1294,8 @@ export default {
             dob: 'Please select a valid date of birth',
             age: 'Must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
-            firstName: 'Please enter valid first name',
-            lastName: 'Please enter valid last name',
+            firstName: 'Please enter a valid first name',
+            lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
@@ -1764,6 +1770,8 @@ export default {
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
+        deleteTask: 'Delete task',
+        deleteConfirmation: 'Are you sure that you want to delete this task?',
     },
     statementPage: {
         title: (year, monthName) => `${monthName} ${year} statement`,
@@ -2000,7 +2008,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out of pocket',
+        outOfPocket: 'Out-of-pocket spend',
         companySpend: 'Company spend',
     },
     distance: {
