@@ -46,7 +46,7 @@ type IconProps = {
 type AvatarProps = {
     iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
-    icon: AvatarSource;
+    icon: AvatarSource | IconType[];
 };
 
 type NoIcon = {
