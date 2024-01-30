@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import participantPropTypes from '@components/participantPropTypes';
@@ -242,14 +243,16 @@ function ReportDetailsPage(props) {
                         </View>
                     </View>
                     {shouldShowReportDescription && (
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditReportDescription}
-                            interactive={canEditReportDescription}
-                            title={props.report.description}
-                            shouldRenderAsHTML
-                            description={props.translate('reportDescriptionPage.roomDescription')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
-                        />
+                        <OfflineWithFeedback pendingAction={props.report.pendingFields.description}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={canEditReportDescription}
+                                interactive={canEditReportDescription}
+                                title={props.report.description}
+                                shouldRenderAsHTML
+                                description={props.translate('reportDescriptionPage.roomDescription')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(props.report.reportID))}
+                            />
+                        </OfflineWithFeedback>
                     )}
                     {_.map(menuItems, (item) => {
                         const brickRoadIndicator =

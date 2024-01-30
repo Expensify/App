@@ -1475,20 +1475,27 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {description: parsedDescription},
+            value: {description: parsedDescription, pendingFields: {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {description: previousValue},
+            value: {description: previousValue, pendingFields: {description: null}},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {pendingFields: {description: null}},
         },
     ];
 
     const parameters: UpdateRoomDescriptionParams = {reportID, description: parsedDescription};
 
-    API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, parameters, {optimisticData, failureData, successData});
     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 }
 
