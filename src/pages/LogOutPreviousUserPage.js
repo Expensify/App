@@ -57,6 +57,14 @@ function LogOutPreviousUserPage(props) {
                 const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
+
+            const isSupportalLogin = lodashGet(props, 'route.params.supportAuthToken', '') !== '';
+            if (isSupportalLogin) {
+                const email = lodashGet(props, 'route.params.email', '');
+                const supportAuthToken = lodashGet(props, 'route.params.supportAuthToken', '');
+                const accountID = lodashGet(props, 'route.params.accountID', 0);
+                Session.setSupportAuthToken(supportAuthToken, email, accountID);
+            }
         });
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
