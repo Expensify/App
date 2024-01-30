@@ -1,9 +1,9 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -20,6 +20,7 @@ import type {
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
     EditActionParams,
+    ElectronicFundsParams,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
@@ -67,6 +68,7 @@ import type {
     StepCounterParams,
     TagSelectionParams,
     TaskCreatedActionParams,
+    TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -107,13 +109,12 @@ type StateValue = {
 
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
-type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
+type AllCountries = Record<Country, string>;
 
 /* eslint-disable max-len */
 export default {
     common: {
         cancel: 'Cancel',
-        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -300,6 +301,7 @@ export default {
         showing: 'Showing',
         of: 'of',
         default: 'Default',
+        update: 'Update',
     },
     location: {
         useCurrent: 'Use current location',
@@ -457,9 +459,10 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
-        subscribeToThread: 'Subscribe to thread',
-        unsubscribeFromThread: 'Unsubscribe from thread',
+        joinThread: 'Join thread',
+        leaveThread: 'Leave thread',
         flagAsOffensive: 'Flag as offensive',
+        menu: 'Menu',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -576,14 +579,12 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
-        cancelPayment: 'Cancel payment',
-        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        receiptScanning: 'Receipt scan in progress…',
+        receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
@@ -615,7 +616,6 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `The ${amount} payment has been cancelled by the admin.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -774,6 +774,11 @@ export default {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
+    },
+    updateRequiredView: {
+        updateRequired: 'Update required',
+        pleaseInstall: 'Please update to the latest version of New Expensify',
+        toGetLatestChanges: 'For mobile or desktop, download and install the latest version. For web, refresh your browser.',
     },
     initialSettingsPage: {
         about: 'About',
@@ -1136,7 +1141,7 @@ export default {
     },
     personalDetails: {
         error: {
-            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
@@ -1289,8 +1294,8 @@ export default {
             dob: 'Please select a valid date of birth',
             age: 'Must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
-            firstName: 'Please enter valid first name',
-            lastName: 'Please enter valid last name',
+            firstName: 'Please enter a valid first name',
+            lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
@@ -1361,10 +1366,8 @@ export default {
         agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet agreement',
         enablePayments: 'Enable payments',
-        feeAmountZero: '$0',
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
-        electronicFundsInstantFee: '1.5%',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
@@ -1386,7 +1389,7 @@ export default {
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
             conditionsPhone: 'or calling +1 833-400-0904.',
             instant: '(instant)',
-            electronicFundsInstantFeeMin: '(min $0.25)',
+            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
             listOfAllFees: 'A list of all Expensify Wallet fees',
@@ -1405,14 +1408,14 @@ export default {
                 'There is no fee to transfer funds from your Expensify Wallet ' +
                 'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
                 ' days.',
-            electronicFundsInstantDetails:
+            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
                 'There is a fee to transfer funds from your Expensify Wallet to ' +
                 'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
-            fdicInsuranceBancorp:
+                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+            fdicInsuranceBancorp: ({amount}: TermsParams) =>
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
                 `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to $250,000 by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
+                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
             fdicInsuranceBancorp2: 'for details.',
             contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
@@ -1422,7 +1425,7 @@ export default {
             automated: 'Automated',
             liveAgent: 'Live Agent',
             instant: 'Instant',
-            electronicFundsInstantFeeMin: 'Min $0.25',
+            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `Min ${amount}`,
         },
     },
     activateStep: {
@@ -1767,6 +1770,8 @@ export default {
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
+        deleteTask: 'Delete task',
+        deleteConfirmation: 'Are you sure that you want to delete this task?',
     },
     statementPage: {
         title: (year, monthName) => `${monthName} ${year} statement`,
@@ -2003,7 +2008,7 @@ export default {
     },
     cardTransactions: {
         notActivated: 'Not activated',
-        outOfPocket: 'Out of pocket',
+        outOfPocket: 'Out-of-pocket spend',
         companySpend: 'Company spend',
     },
     distance: {
@@ -2076,6 +2081,14 @@ export default {
             body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
         },
         copyReferralLink: 'Copy invite link',
+    },
+    purposeForExpensify: {
+        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
+        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+        welcomeMessage: 'Welcome to Expensify',
+        welcomeSubtitle: 'What would you like to do?',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
