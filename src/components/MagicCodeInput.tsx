@@ -428,3 +428,4 @@ function MagicCodeInput(
 MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default forwardRef(MagicCodeInput);
+export type {MagicCodeInputHandle};
