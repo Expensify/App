@@ -22,6 +22,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskUtils from '@libs/TaskUtils';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -63,7 +64,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         chatReportID: string;
 
         /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: HTMLDivElement | View | null;
+        contextMenuAnchor: ContextMenuAnchor;
 
         /** Callback for updating context menu active state, used for showing context menu */
         checkIfContextMenuActive: () => void;
