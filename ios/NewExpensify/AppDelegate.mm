@@ -31,9 +31,9 @@
   [[RCTI18nUtil sharedInstance] forceRTL:NO];
 
   [super application:application didFinishLaunchingWithOptions:launchOptions];
-  self.window.rootViewController.view.backgroundColor = [UIColor colorWithRed:0.00000 green:0.18039 blue:0.13333 alpha:1.00];
-  // [RCTBootSplash initWithStoryboard:@"BootSplash"
-  //                          rootView:(RCTRootView *)self.window.rootViewController.view]; // <- initialization using the storyboard file name
+
+  [RCTBootSplash initWithStoryboard:@"BootSplash"
+                           rootView:(RCTRootView *)self.window.rootViewController.view]; // <- initialization using the storyboard file name
   
   // Define UNUserNotificationCenter
   UNUserNotificationCenter *center =

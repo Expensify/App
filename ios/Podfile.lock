@@ -284,8 +284,6 @@ PODS:
   - OpenSSL-Universal (1.1.1100)
   - Plaid (4.7.0)
   - PromisesObjC (2.3.1)
-  - PromisesSwift (2.3.1):
-    - PromisesObjC (= 2.3.1)
   - RCT-Folly (2022.05.16.00):
     - boost
     - DoubleConversion
@@ -1178,6 +1176,8 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
+  - react-native-launch-arguments (4.0.2):
+    - React
   - react-native-netinfo (11.2.1):
     - React-Core
   - react-native-pager-view (6.2.2):
@@ -1196,12 +1196,6 @@ PODS:
   - react-native-render-html (6.3.1):
     - React-Core
   - react-native-safe-area-context (4.7.4):
-    - React-Core
-  - react-native-video (6.0.0-beta.3):
-    - React-Core
-    - react-native-video/Video (= 6.0.0-beta.3)
-  - react-native-video/Video (6.0.0-beta.3):
-    - PromisesSwift
     - React-Core
   - react-native-view-shot (3.8.0):
     - React-Core
@@ -1535,6 +1529,7 @@ DEPENDENCIES:
   - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
+  - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -1543,7 +1538,6 @@ DEPENDENCIES:
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
@@ -1637,7 +1631,6 @@ SPEC REPOS:
     - OpenSSL-Universal
     - Plaid
     - PromisesObjC
-    - PromisesSwift
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -1731,6 +1724,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
+  react-native-launch-arguments:
+    :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -1747,8 +1742,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-video:
-    :path: "../node_modules/react-native-video"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
   react-native-webview:
@@ -1899,7 +1892,6 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Plaid: 431ef9be5314a1345efb451bc5e6b067bfb3b4c6
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
-  PromisesSwift: 28dca69a9c40779916ac2d6985a0192a5cb4a265
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 9b1e7e262745fb671e33c51c1078d093bd30e322
   RCTTypeSafety: a759e3b086eccf3e2cbf2493d22f28e082f958e6
@@ -1930,6 +1922,7 @@ SPEC CHECKSUMS:
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: c33d4e79f0a14a2b66e5065e14946ae63749660b
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
+  react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
   react-native-pdf: b4ca3d37a9a86d9165287741c8b2ef4d8940c00e
@@ -1938,7 +1931,6 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 2cd91d532de12acdb0a9cbc8d43ac72a8e4c897c
-  react-native-video: 60ecad11b7179ec0e2012dea643775b4fca9b224
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
   react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
   React-nativeconfig: d753fbbc8cecc8ae413d615599ac378bbf6999bb
@@ -1990,8 +1982,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
-  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
+  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.3

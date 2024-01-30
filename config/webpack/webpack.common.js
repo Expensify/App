@@ -97,7 +97,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/manifest.json'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
-                {from: 'assets/videos/web', to: 'videos'},
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
@@ -191,11 +190,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             {
                 resourceQuery: /raw/,
                 type: 'asset/source',
-            },
-            // Load mp4 videos
-            {
-                test: /\.mp4$/,
-                use: 'file-loader?name=videos/[name].[ext]',
             },
             {
                 test: /\.lottie$/,

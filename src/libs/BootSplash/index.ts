@@ -10,17 +10,11 @@ function hide(): Promise<void> {
 
     return document.fonts.ready.then(() => {
         const splash = document.getElementById('splash');
-
-        resolveAfter(200).then(() => {
-            // wait 250ms so the rendering can finish
-            if (!splash) {
-                return;
-            }
-
+        if (splash) {
             splash.style.opacity = '0';
-        });
+        }
 
-        return resolveAfter(500).then(() => {
+        return resolveAfter(250).then(() => {
             if (!splash?.parentNode) {
                 return;
             }

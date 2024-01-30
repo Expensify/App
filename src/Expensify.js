@@ -4,13 +4,13 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AnimatedSplashScreen from './components/AnimatedSplashScreen';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
+import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import CONST from './CONST';
@@ -141,14 +141,8 @@ function Expensify(props) {
         Navigation.setIsNavigationReady();
     }, []);
 
-    // Callback invoked once we want to hide our animated, build in RN, splash screen
-    const hideRNSplashScreen = useCallback(() => {
+    const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
-    }, []);
-
-    // Hide the native splash screen as soon as possible
-    useEffect(() => {
-        BootSplash.hide();
     }, []);
 
     useLayoutEffect(() => {
@@ -255,13 +249,7 @@ function Expensify(props) {
                 </SplashScreenHiddenContext.Provider>
             )}
 
-            {/* Initially, show a animated splash screen implemented in react native: */}
-            {!isSplashHidden && (
-                <AnimatedSplashScreen
-                    onHide={hideRNSplashScreen}
-                    shouldHideSplashScreen={shouldHideSplash}
-                />
-            )}
+            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }

@@ -20,7 +20,6 @@ import Text from './Text';
 type TestToolMenuOnyxProps = {
     /** User object in Onyx */
     user: OnyxEntry<UserOnyx>;
-    lastShownSplashScreenVideo: OnyxEntry<string>;
 };
 
 type TestToolMenuProps = TestToolMenuOnyxProps & {
@@ -29,7 +28,7 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
 };
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
-function TestToolMenu({user = USER_DEFAULT, network, lastShownSplashScreenVideo}: TestToolMenuProps) {
+function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
 
@@ -90,19 +89,6 @@ function TestToolMenu({user = USER_DEFAULT, network, lastShownSplashScreenVideo}
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
-
-            <MenuItemWithTopDescription
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment, spaced-comment
-                //@ts-ignore
-                interactive={false}
-                description="Last shown splash video"
-                title={lastShownSplashScreenVideo ?? ''}
-                wrapperStyle={{paddingHorizontal: 0, paddingVertical: 0}}
-            />
-
-            {/* <TestToolRow title="Last shown splash video">
-                <Text style={styles.mutedTextLabel}>{lastShownSplashScreenVideo ?? ''}</Text>
-            </TestToolRow> */}
         </>
     );
 }
@@ -113,9 +99,6 @@ export default compose(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
-        },
-        lastShownSplashScreenVideo: {
-            key: ONYXKEYS.LAST_SHOWN_SPLASH_VIDEO,
         },
     }),
     withNetwork(),

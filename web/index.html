@@ -81,44 +81,17 @@
             transition: transform var(--label-transition-duration);
         }
 
-        /* Chrome-only styles */
-        @media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
-            .splash-video {
-                filter: brightness(0.9);
-            }
-        }
-        /* Firefox-only styles */
-        @-moz-document url-prefix() {
-            .splash-video {
-                filter: brightness(0.99);
-            }
-        }
-        /* Safari-only styles */
-        @media not all and (min-resolution: 0.001dpcm) {
-            @media and {
-                .splash-video {
-                    filter: brightness(0.89) contrast(1.01);
-                }
-            }
-        }
-        _::-webkit-full-page-media,
-        _:future,
-        :root .splash-video {
-            filter: brightness(0.89) contrast(1.01);
-        }
-        /* end Safari-only styles */
-
         @media screen and (min-width: 480px) {
-            .splash-video {
-                width: 380px;
-                height: 380px;
+            .splash-logo > svg {
+                width: 104px;
+                height: 104px;
             }
         }
 
         @media screen and (max-width: 479px) {
-            .splash-video {
-                width: 300px;
-                height: 300px;
+            .splash-logo > svg {
+                width: 52px;
+                height: 52px;
             }
         }
 
@@ -128,7 +101,7 @@
             left: 0;
             right: 0;
             top: 0;
-            background-color: #002e22;
+            background-color: #061B09;
             width: 100%;
             height: 100%;
             display: flex;
@@ -166,34 +139,9 @@
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
     <div id="root"></div>
     <div id="splash">
-        <video
-            class="splash-video"
-            muted
-            autoplay
-            playsinline
-            disablepictureinpicture
-            disableremoteplayback
-        >
-            <source
-                id="splash-video-source"
-                type="video/webm"
-            />
-        </video>
+        <div class="splash-logo">
+            <%= htmlWebpackPlugin.options.splashLogo %>
+        </div>
     </div>
-    <!-- For test purposes, we rotate the video source each week -->
-    <script>
-        function displayVideo() {
-            const splashVideoVariants = [
-                {path: '/videos/Expensify_Sonic_Full_Nonvocal.webm', fileName: 'Full Nonvocal'},
-                {path: '/videos/Expensify_Sonic_Full_Vocal.webm', fileName: 'Full Vocal'},
-                {path: '/videos/Expensify_Sonic_Minimal_Nonvocal.webm', fileName: 'Sonic Minimal Nonvocal'},
-                {path: '/videos/Expensify_Sonic_Full_Nonvocal.webm', fileName: 'Sonic Minimal Vocal'},
-            ];
-            const randomIndex = Math.floor(Math.random() * splashVideoVariants.length);
-            document.getElementById('splash-video-source').src = splashVideoVariants[randomIndex].path;
-            localStorage.setItem('lastShownSplashVideo', splashVideoVariants[randomIndex].fileName);
-        }
-        displayVideo();
-    </script>
 </body>
 </html>
