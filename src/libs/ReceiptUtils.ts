@@ -74,3 +74,4 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
 // eslint-disable-next-line import/prefer-default-export
 export {getThumbnailAndImageURIs};
+export type {ThumbnailAndImageURI};
