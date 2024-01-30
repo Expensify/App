@@ -1268,7 +1268,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         signInBackgroundImage: {
-            height: 700,
+            minHeight: 700,
         },
 
         signInPageInner: {
