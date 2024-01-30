@@ -438,9 +438,9 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 
 /**
  */
-function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
-    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge ?? {}, true));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return null;

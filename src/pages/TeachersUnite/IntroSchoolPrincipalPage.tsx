@@ -22,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LoginList} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type IntroSchoolPrincipalPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;

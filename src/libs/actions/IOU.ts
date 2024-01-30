@@ -4,7 +4,6 @@ import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/lib/utils';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
@@ -60,7 +59,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG>['route'];
+type MoneyRequestRoute = StackScreenProps<
+    MoneyRequestNavigatorParamList,
+    typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG | typeof SCREENS.MONEY_REQUEST.CONFIRMATION
+>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -794,7 +796,7 @@ function getMoneyRequestInformation(
     // to remind me to do this.
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction);
+        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -1441,7 +1443,7 @@ function createSplitsAndOnyxData(
             value: {pendingAction: null},
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
@@ -1464,7 +1466,7 @@ function createSplitsAndOnyxData(
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
@@ -2278,7 +2280,7 @@ function setDraftSplitTransaction(transactionID: string, transactionChanges: Tra
 
     const updatedTransaction = draftSplitTransaction ? TransactionUtils.getUpdatedTransaction(draftSplitTransaction, transactionChanges, false, false) : null;
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction ?? {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }
 
 function editRegularMoneyRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
@@ -2348,7 +2350,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: updatedTransaction ?? {},
+            value: updatedTransaction,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2482,7 +2484,7 @@ function editRegularMoneyRequest(transactionID: string, transactionThreadReportI
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`,
-            value: chatReport ?? {},
+            value: chatReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2659,7 +2661,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedIOUReport ?? {},
+            value: updatedIOUReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2772,7 +2774,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport ?? {},
+                  value: iouReport,
               },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3016,8 +3018,10 @@ function getSendMoneyParams(
             },
         };
 
-        // Add an optimistic created action to the optimistic chat reportActions data
-        optimisticChatReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+        if (optimisticChatReportActionsData.value) {
+            // Add an optimistic created action to the optimistic chat reportActions data
+            optimisticChatReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+        }
     } else {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3436,7 +3440,7 @@ function detachReceipt(transactionID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? {},
+            value: transaction,
         },
     ];
 
@@ -3582,7 +3586,6 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
     if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
-        // @ts-expect-error TODO: Remove this once NewRequestAmountPage (https://github.com/Expensify/App/issues/34614) and NewDistanceRequestPage (https://github.com/Expensify/App/issues/34610) are removed.
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
         return;
     }
@@ -3601,7 +3604,6 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
             resetMoneyRequestCategory();
             resetMoneyRequestTag();
         }
-        // @ts-expect-error TODO: Remove this once NewRequestAmountPage (https://github.com/Expensify/App/issues/34614) and NewDistanceRequestPage (https://github.com/Expensify/App/issues/34610) are removed.
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
         return;
     }
