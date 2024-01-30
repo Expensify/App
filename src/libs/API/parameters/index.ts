@@ -123,4 +123,4 @@ export type {default as CompleteTaskParams} from './CompleteTaskParams';
 export type {default as CompleteEngagementModalParams} from './CompleteEngagementModalParams';
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
 export type {default as SetPolicyReportFieldParams} from './SetPolicyReportFieldParams';
-export type {default as SetPolicyReportNameParams} from './SetPolicyReportNameParams';
+export type {default as SetReportNameParams} from './SetReportNameParams';

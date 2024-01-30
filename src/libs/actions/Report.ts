@@ -1468,7 +1468,7 @@ function toggleSubscribeToChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
-function updatePolicyReportName(reportID: string, value: string) {
+function updateReportName(reportID: string, value: string, previousValue: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1486,6 +1486,7 @@ function updatePolicyReportName(reportID: string, value: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                reportName: previousValue,
                 pendingFields: {
                     reportName: null,
                 },
@@ -1519,7 +1520,7 @@ function updatePolicyReportName(reportID: string, value: string) {
     API.write('RenameReport', parameters, {optimisticData, failureData, successData});
 }
 
-function updatePolicyReportField(reportID: string, reportField: PolicyReportField) {
+function updatePolicyReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const recentlyUsedValues = allRecentlyUsedReportFields?.[reportField.fieldID] ?? [];
 
     const optimisticData: OnyxUpdate[] = [
@@ -1552,6 +1553,9 @@ function updatePolicyReportField(reportID: string, reportField: PolicyReportFiel
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                reportFields: {
+                    [reportField.fieldID]: previousReportField,
+                },
                 pendingFields: {
                     [reportField.fieldID]: null,
                 },
@@ -2855,6 +2859,6 @@ export {
     updateLastVisitTime,
     clearNewRoomFormError,
     updatePolicyReportField,
-    updatePolicyReportName,
+    updateReportName,
     resolveActionableMentionWhisper,
 };

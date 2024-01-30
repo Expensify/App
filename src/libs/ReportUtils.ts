@@ -1914,6 +1914,26 @@ function getReportFieldsByPolicyID(policyID: string) {
 }
 
 /**
+ * Get the report fields that we should display a MoneyReportView gets opened
+ */
+
+function getAvailableReportFields(report: Report, policyReportFields: PolicyReportField[]): PolicyReportField[] {
+    // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
+    const reportFields = Object.values(report.reportFields ?? {});
+    const reportIsSettled = isSettled(report.reportID);
+
+    // If the report is settled, we don't want to show any new field that gets added to the policy.
+    if (reportIsSettled) {
+        return reportFields;
+    }
+
+    // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
+    // are attached to the report.
+    const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
+    return mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+}
+
+/**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
@@ -4843,6 +4863,7 @@ export {
     isValidReport,
     isReportFieldOfTypeTitle,
     isReportFieldDisabled,
+    getAvailableReportFields,
 };
 
 export type {

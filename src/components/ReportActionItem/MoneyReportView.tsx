@@ -59,12 +59,9 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     ];
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
-        const reportFields = Object.values(report.reportFields ?? {});
-        const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
-        const mergedFields = mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
-        const allReportFields = isSettled ? reportFields : mergedFields;
-        return allReportFields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
-    }, [policyReportFields, report.reportFields, isSettled]);
+        const fields = ReportUtils.getAvailableReportFields(report, policyReportFields);
+        return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
+    }, [policyReportFields, report]);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>

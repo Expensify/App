@@ -66,9 +66,9 @@ function EditReportFieldPage({route, policy, report, policyReportFields}: EditRe
     const handleReportFieldChange = (form: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.POLICY_REPORT_FIELD_EDIT_FORM>) => {
         const value = form[reportField.fieldID].toString() || '';
         if (isReportFieldTitle) {
-            ReportActions.updatePolicyReportName(report.reportID, value);
+            ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
         } else {
-            ReportActions.updatePolicyReportField(report.reportID, {...reportField, value});
+            ReportActions.updatePolicyReportField(report.reportID, {...reportField, value}, reportField);
         }
 
         Navigation.dismissModal(report?.reportID);
