@@ -204,7 +204,7 @@ function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
  * @param {String} comment
  * @param {Boolean} isDraft
  */
-function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment, isDraft) {
+function setMoneyRequestDescription(transactionID, comment, isDraft) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
@@ -3588,13 +3588,6 @@ function setMoneyRequestCurrency(currency) {
 }
 
 /**
- * @param {String} comment
- */
-function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
-}
-
-/**
  * @param {String} merchant
  */
 function setMoneyRequestMerchant(merchant) {
@@ -3780,7 +3773,7 @@ export {
     setMoneyRequestCategory_temporaryForRefactor,
     setMoneyRequestCreated_temporaryForRefactor,
     setMoneyRequestCurrency_temporaryForRefactor,
-    setMoneyRequestDescription_temporaryForRefactor,
+    setMoneyRequestDescription,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestReceipt,
@@ -3790,7 +3783,6 @@ export {
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
-    setMoneyRequestDescription,
     setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,

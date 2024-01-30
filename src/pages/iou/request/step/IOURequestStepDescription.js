@@ -73,18 +73,20 @@ function IOURequestStepDescription({
         const newComment = value.moneyRequestComment.trim();
         // Only update comment if it has changed
         if (newComment !== lodashGet(transaction, 'comment.comment', '')) {
-            if (iouType === CONST.IOU.TYPE.REQUEST) {
-                IOU.setMoneyRequestDescription_temporaryForRefactor(transaction.transactionID, newComment, isDraft);
-                if (isDraft) {
-                    IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment);
-                }
+            navigateBack();
+            return;
+        }
+        if (iouType === CONST.IOU.TYPE.REQUEST) {
+            IOU.setMoneyRequestDescription(transaction.transactionID, newComment, isDraft);
+            if (!isDraft) {
+                IOU.updateMoneyRequestDescription(transaction.transactionID, reportID, newComment);
             }
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
-                if (isDraft) {
-                    IOU.setMoneyRequestDescription_temporaryForRefactor(transaction.transactionID, newComment, isDraft);
-                } else {
-                    IOU.setDraftSplitTransaction(transaction.transactionID, {newComment});
-                }
+        }
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            if (isDraft) {
+                IOU.setMoneyRequestDescription(transaction.transactionID, newComment, isDraft);
+            } else {
+                IOU.setDraftSplitTransaction(transaction.transactionID, {newComment});
             }
         }
         navigateBack();
