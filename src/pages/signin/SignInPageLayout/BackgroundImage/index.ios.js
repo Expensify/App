@@ -9,15 +9,11 @@ import defaultPropTypes from './propTypes';
 
 const defaultProps = {
     isSmallScreen: false,
-    transitionDuration: 0,
 };
 
 const propTypes = {
     /** Is the window width narrow, like on a mobile device */
     isSmallScreen: PropTypes.bool,
-
-    /** Transition duration in milliseconds */
-    transitionDuration: PropTypes.number,
 
     ...defaultPropTypes,
 };

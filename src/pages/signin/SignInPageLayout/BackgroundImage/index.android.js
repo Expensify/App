@@ -9,13 +9,6 @@ const defaultProps = {
     transitionDuration: 0,
 };
 
-const propTypes = {
-    /** Transition duration in milliseconds */
-    transitionDuration: PropTypes.number,
-
-    ...defaultPropTypes,
-};
-
 function BackgroundImage(props) {
     const styles = useThemeStyles();
     return (
@@ -29,7 +22,6 @@ function BackgroundImage(props) {
 }
 
 BackgroundImage.displayName = 'BackgroundImage';
-BackgroundImage.propTypes = propTypes;
-BackgroundImage.defaultProps = defaultProps;
+BackgroundImage.propTypes = defaultPropTypes;
 
 export default BackgroundImage;

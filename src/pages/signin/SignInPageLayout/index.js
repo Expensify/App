@@ -128,7 +128,7 @@ function SignInPageLayout(props) {
                                     isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
-                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION}
+                                    transitionDuration={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
                                 />
                             </View>
                             <View>
