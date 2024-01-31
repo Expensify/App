@@ -41,8 +41,8 @@ type DisplayNamesProps = {
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
 
-    /** Additional component to display after the display names */
-    AdditionalComponent?: ComponentType;
+    /** Additional Text component to render after the displayNames */
+    renderAdditionalText?: () => React.ReactNode;
 };
 
 export default DisplayNamesProps;

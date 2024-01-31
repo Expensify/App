@@ -187,6 +187,18 @@ function HeaderView(props) {
         />
     );
 
+    const renderAdditionalText = () => {
+        if (_.isEmpty(policyName) || _.isEmpty(reportDescription)) {
+            return null;
+        }
+        return (
+            <>
+                <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting]}>{translate('threads.in')}</Text>
+                <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
+            </>
+        );
+    };
+
     threeDotMenuItems.push(HeaderUtils.getPinMenuItem(props.report));
 
     if (isConcierge && props.guideCalendarLink) {
@@ -285,15 +297,7 @@ function HeaderView(props) {
                                             numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
-                                            AdditionalComponent={() =>
-                                                !_.isEmpty(policyName) &&
-                                                !_.isEmpty(reportDescription) && (
-                                                    <>
-                                                        <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting]}>{translate('threads.in')}</Text>
-                                                        <Text style={[styles.ml1, styles.sidebarLinkText, styles.textLabelSupporting, styles.textStrong]}>{policyName}</Text>
-                                                    </>
-                                                )
-                                            }
+                                            renderAdditionalText={renderAdditionalText}
                                         />
                                         {!_.isEmpty(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle

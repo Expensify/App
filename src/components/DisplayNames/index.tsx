@@ -4,7 +4,7 @@ import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
 import type DisplayNamesProps from './types';
 
-function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldUseFullTitle, displayNamesWithTooltips, AdditionalComponent}: DisplayNamesProps) {
+function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldUseFullTitle, displayNamesWithTooltips, renderAdditionalText}: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = fullTitle || translate('common.hidden');
 
@@ -14,7 +14,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 textStyles={textStyles}
                 numberOfLines={numberOfLines}
                 fullTitle={title}
-                AdditionalComponent={AdditionalComponent}
+                renderAdditionalText={renderAdditionalText}
             />
         );
     }
@@ -26,7 +26,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
             displayNamesWithTooltips={displayNamesWithTooltips}
             textStyles={textStyles}
             numberOfLines={numberOfLines}
-            AdditionalComponent={AdditionalComponent}
+            renderAdditionalText={renderAdditionalText}
         />
     );
 }

@@ -14,11 +14,11 @@ type DisplayNamesWithoutTooltipProps = {
     /** Number of lines before wrapping */
     numberOfLines?: number;
 
-    /** Additional component to render after the text */
-    AdditionalComponent?: ComponentType;
+    /** Additional Text component to render after the displayNames */
+    renderAdditionalText?: () => React.ReactNode;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', AdditionalComponent}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
@@ -26,7 +26,7 @@ function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTit
             numberOfLines={numberOfLines}
         >
             {fullTitle}
-            {AdditionalComponent && <AdditionalComponent />}
+            {renderAdditionalText?.()}
         </Text>
     );
 }
