@@ -86,8 +86,12 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     footerContent?: ReactNode;
 };
 
+type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
+    resetForm: (optionalValue: OnyxFormValues<TFormID>) => void;
+};
+
 type RegisterInput = <TInputProps extends BaseInputProps>(inputID: keyof Form, inputProps: TInputProps) => TInputProps;
 
 type InputRefs = Record<string, MutableRefObject<BaseInputProps>>;
 
-export type {InputWrapperProps, FormProps, RegisterInput, ValidInputs, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRefs, OnyxFormKeyWithoutDraft};
+export type {InputWrapperProps, FormRef, FormProps, RegisterInput, ValidInputs, BaseInputProps, ValueTypeKey, OnyxFormValues, OnyxFormValuesFields, InputRefs, OnyxFormKeyWithoutDraft};

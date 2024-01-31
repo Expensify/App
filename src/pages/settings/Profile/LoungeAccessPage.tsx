@@ -1,35 +1,30 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import userPropTypes from '@pages/settings/userPropTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {User} from '@src/types/onyx';
 
-const propTypes = {
-    /** Current user details, which will hold whether or not they have Lounge Access */
-    user: userPropTypes,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
+type LoungeAccessPageOnyxProps = {
+    user: OnyxEntry<User>;
 };
 
-const defaultProps = {
-    user: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
+type LoungeAccessPageProps = LoungeAccessPageOnyxProps & WithCurrentUserPersonalDetailsProps;
 
-function LoungeAccessPage(props) {
+function LoungeAccessPage({user}: LoungeAccessPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    if (!props.user.hasLoungeAccess) {
+    if (!user?.hasLoungeAccess) {
         return <NotFoundPage />;
     }
 
@@ -45,20 +40,17 @@ function LoungeAccessPage(props) {
             >
                 {translate('loungeAccessPage.headline')}
             </Text>
-            <Text style={[styles.flex1, styles.ph5, styles.baseFontStyle]}>{translate('loungeAccessPage.description')}</Text>
+            <Text style={[styles.flex1, styles.ph5, styles.webViewStyles.baseFontStyle]}>{translate('loungeAccessPage.description')}</Text>
         </IllustratedHeaderPageLayout>
     );
 }
 
-LoungeAccessPage.propTypes = propTypes;
-LoungeAccessPage.defaultProps = defaultProps;
 LoungeAccessPage.displayName = 'LoungeAccessPage';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
+export default withCurrentUserPersonalDetails(
+    withOnyx<LoungeAccessPageProps, LoungeAccessPageOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
-    }),
-)(LoungeAccessPage);
+    })(LoungeAccessPage),
+);
