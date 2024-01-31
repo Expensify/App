@@ -23,6 +23,7 @@ function SidebarScreen(props) {
         if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name && currentRoute.name !== SCREENS.HOME) {
             return;
         }
+
         Welcome.show(routes, () => Navigation.navigate(ROUTES.ONBOARD));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
