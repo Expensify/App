@@ -218,6 +218,13 @@ function isInstantSubmitEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || policy?.type === CONST.POLICY.TYPE.FREE;
 }
 
+/**
+ * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
+ */
+function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+}
+
 export {
     getActivePolicies,
     hasPolicyMemberError,
@@ -232,6 +239,7 @@ export {
     isExpensifyGuideTeam,
     isInstantSubmitEnabled,
     isPolicyAdmin,
+    isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
     getTag,
