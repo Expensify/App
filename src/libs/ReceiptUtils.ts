@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import _ from 'lodash';
 import type {ImageSourcePropType} from 'react-native';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -7,6 +8,7 @@ import ReceiptSVG from '@assets/images/receipt-svg.png';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
@@ -34,9 +36,11 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
     }
 
     // URI to image, i.e. blob:new.expensify.com/9ef3a018-4067-47c6-b29f-5f1bd35f213d or expensify.com/receipts/w_e616108497ef940b7210ec6beb5a462d01a878f4.jpg
-    const path = transaction?.receipt?.source ?? receiptPath ?? '';
+    // If there're errors, we need to display them in preview. We can store many files in errors, but we just need to get the last one
+    const errors = _.findLast(transaction.errors) as ReceiptError | undefined;
+    const path = errors?.source ?? transaction?.receipt?.source ?? receiptPath ?? '';
     // filename of uploaded image or last part of remote URI
-    const filename = transaction?.filename ?? receiptFileName ?? '';
+    const filename = errors?.filename ?? transaction?.filename ?? receiptFileName ?? '';
     const isReceiptImage = Str.isImage(filename);
     const hasEReceipt = transaction?.hasEReceipt;
 
@@ -73,3 +77,4 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
 // eslint-disable-next-line import/prefer-default-export
 export {getThumbnailAndImageURIs};
+export type {ThumbnailAndImageURI};
