@@ -62,7 +62,7 @@ type BuildNextStepParameters = {
  */
 function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
     const policy = ReportUtils.getPolicy(report.policyID ?? '');
-    const {submitsTo, harvesting, isHarvestingEnabled, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {submitsTo, isHarvestingEnabled, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
     const {ownerAccountID = -1, managerID = -1} = report;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
@@ -101,7 +101,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
             };
 
             // Scheduled submit enabled
-            if ((harvesting?.enabled ?? isHarvestingEnabled) && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+            if (isHarvestingEnabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
                 optimisticNextStep.message = [
                     {
                         text: 'These expenses are scheduled to ',
