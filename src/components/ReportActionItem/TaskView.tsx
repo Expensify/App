@@ -1,9 +1,7 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -15,68 +13,66 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions from '@components/withWindowDimensions';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 
-const propTypes = {
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+type TaskViewOnyxProps = {
+    /** All of the personal details for everyone */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** The policy of root parent report */
-    policy: PropTypes.shape({
-        /** The role of current user */
-        role: PropTypes.string,
-    }),
-
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: PropTypes.bool.isRequired,
-
-    ...withLocalizePropTypes,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** The policy for the current route */
+    policy: Pick<Policy, 'role'> | null;
 };
 
-const defaultProps = {
-    policy: {},
-};
+type TaskViewProps = TaskViewOnyxProps &
+    WithCurrentUserPersonalDetailsProps & {
+        /** The report currently being looked at */
+        report: Report;
 
-function TaskView(props) {
+        /** Whether we should display the horizontal rule below the component */
+        shouldShowHorizontalRule: boolean;
+    };
+
+function TaskView({report, policy, shouldShowHorizontalRule, ...props}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     useEffect(() => {
-        Task.setTaskReport({...props.report});
-    }, [props.report]);
+        Task.setTaskReport(report);
+    }, [report]);
 
-    const taskTitle = convertToLTR(props.report.reportName || '');
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails), false);
-    const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
-    const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID, lodashGet(props.policy, 'role', ''));
+    const taskTitle = convertToLTR(report.reportName ?? '');
+    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails),
+        false,
+    );
+    const isCompleted = ReportUtils.isCompletedTaskReport(report);
+    const isOpen = ReportUtils.isOpenTaskReport(report);
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, policy?.role);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {translate} = useLocalize();
 
     return (
         <View>
             <OfflineWithFeedback
                 shouldShowErrorMessages
-                errors={lodashGet(props, 'report.errorFields.editTask') || lodashGet(props, 'report.errorFields.createTask')}
-                onClose={() => Task.clearTaskErrors(props.report.reportID)}
+                errors={report.errorFields?.editTask ?? report.errorFields?.createTask}
+                onClose={() => Task.clearTaskErrors(report.reportID)}
                 errorRowStyles={styles.ph5}
             >
                 <Hoverable>
@@ -87,10 +83,10 @@ function TaskView(props) {
                                     return;
                                 }
                                 if (e && e.type === 'click') {
-                                    e.currentTarget.blur();
+                                    (e.currentTarget as HTMLElement).blur();
                                 }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(props.report.reportID));
+                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID));
                             })}
                             style={({pressed}) => [
                                 styles.ph5,
@@ -98,20 +94,19 @@ function TaskView(props) {
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                 isDisableInteractive && !disableState && styles.cursorDefault,
                             ]}
-                            ref={props.forwardedRef}
                             disabled={disableState}
-                            accessibilityLabel={taskTitle || props.translate('task.task')}
+                            accessibilityLabel={taskTitle || translate('task.task')}
                         >
                             {({pressed}) => (
-                                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.reportName')}>
-                                    <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
-                                    <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
+                                <OfflineWithFeedback pendingAction={report.pendingFields?.reportName}>
+                                    <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
+                                    <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
                                                 if (isCompleted) {
-                                                    Task.reopenTask(props.report);
+                                                    Task.reopenTask(report);
                                                 } else {
-                                                    Task.completeTask(props.report);
+                                                    Task.completeTask(report);
                                                 }
                                             })}
                                             isChecked={isCompleted}
@@ -119,7 +114,7 @@ function TaskView(props) {
                                             containerSize={24}
                                             containerBorderRadius={8}
                                             caretSize={16}
-                                            accessibilityLabel={taskTitle || props.translate('task.task')}
+                                            accessibilityLabel={taskTitle || translate('task.task')}
                                             disabled={!canModifyTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
@@ -145,12 +140,12 @@ function TaskView(props) {
                         </PressableWithSecondaryInteraction>
                     )}
                 </Hoverable>
-                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
+                <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                     <MenuItemWithTopDescription
                         shouldParseTitle
-                        description={props.translate('task.description')}
-                        title={props.report.description || ''}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(props.report.reportID))}
+                        description={translate('task.description')}
+                        title={report.description ?? ''}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_DESCRIPTION.getRoute(report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -159,16 +154,16 @@ function TaskView(props) {
                         interactive={!isDisableInteractive}
                     />
                 </OfflineWithFeedback>
-                {props.report.managerID ? (
-                    <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.managerID')}>
+                {report.managerID ? (
+                    <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
                         <MenuItem
-                            label={props.translate('task.assignee')}
-                            title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], personalDetails)}
+                            label={translate('task.assignee')}
+                            title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
                             shouldShowRightIcon={isOpen}
                             disabled={disableState}
                             wrapperStyle={[styles.pv2]}
@@ -180,8 +175,8 @@ function TaskView(props) {
                     </OfflineWithFeedback>
                 ) : (
                     <MenuItemWithTopDescription
-                        description={props.translate('task.assignee')}
-                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(props.report.reportID))}
+                        description={translate('task.assignee')}
+                        onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID))}
                         shouldShowRightIcon={isOpen}
                         disabled={disableState}
                         wrapperStyle={[styles.pv2]}
@@ -191,31 +186,26 @@ function TaskView(props) {
                 )}
             </OfflineWithFeedback>
             <SpacerView
-                shouldShow={props.shouldShowHorizontalRule}
-                style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+                shouldShow={shouldShowHorizontalRule}
+                style={shouldShowHorizontalRule && styles.reportHorizontalRule}
             />
         </View>
     );
 }
 
-TaskView.propTypes = propTypes;
-TaskView.defaultProps = defaultProps;
 TaskView.displayName = 'TaskView';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    policy: {
+        key: ({report}) => {
+            const rootParentReport = ReportUtils.getRootParentReport(report);
+            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
         },
-        policy: {
-            key: ({report}) => {
-                const rootParentReport = ReportUtils.getRootParentReport(report);
-                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-            },
-            selector: (policy) => _.pick(policy, ['role']),
-        },
-    }),
-)(TaskView);
+        selector: (policy: OnyxEntry<Policy>) => (policy ? {role: policy.role} : null),
+    },
+})(TaskView);
+
+export default withCurrentUserPersonalDetails(TaskViewWithOnyx);

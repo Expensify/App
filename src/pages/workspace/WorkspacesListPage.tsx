@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
 import {FlatList, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FeatureList from '@components/FeatureList';
@@ -10,7 +10,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import type {MenuItemProps} from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -19,59 +22,59 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import policyMemberPropType from '@pages/policyMemberPropType';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import WorkspacesListRow from './WorkspacesListRow';
 
-const propTypes = {
+type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'icon' | 'disabled'>> &
+    Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
+    Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
+    Pick<PolicyType, 'role' | 'type' | 'ownerAccountID'> & {
+        action: () => void;
+        dismissError: () => void;
+        iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
+        policyID?: string;
+        adminRoom?: string | null;
+        announceRoom?: string | null;
+    };
+
+// eslint-disable-next-line react/no-unused-prop-types
+type GetMenuItem = {item: WorkspaceItem; index: number};
+
+type ChatType = {
+    adminRoom?: string | null;
+    announceRoom?: string | null;
+};
+
+type ChatPolicyType = Record<string, ChatType>;
+
+type WorkspaceListPageOnyxProps = {
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            ID: PropTypes.string,
-
-            /** The name of the policy */
-            name: PropTypes.string,
-
-            /** The type of the policy */
-            type: PropTypes.string,
-
-            /** The user's role in the policy */
-            role: PropTypes.string,
-
-            /** The current action that is waiting to happen on the policy */
-            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-        }),
-    ),
+    policies: OnyxCollection<PolicyType>;
 
     /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+    allPolicyMembers: OnyxCollection<PolicyMembers>;
 
     /** All reports shared with the user (coming from Onyx) */
-    reports: PropTypes.objectOf(reportPropTypes),
+    reports: OnyxCollection<Report>;
 };
 
-const defaultProps = {
-    policies: {},
-    allPolicyMembers: {},
-    reimbursementAccount: {},
-    reports: {},
-};
+type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
 
 const workspaceFeatures = [
     {
@@ -90,11 +93,8 @@ const workspaceFeatures = [
 
 /**
  * Dismisses the errors on one item
- *
- * @param {string} policyID
- * @param {string} pendingAction
  */
-function dismissWorkspaceError(policyID, pendingAction) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
@@ -107,8 +107,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-// TODO: Rewrite this component to TS according to existing migration on the main branch
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -116,61 +115,71 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [policyIDToDelete, setPolicyIDToDelete] = useState(null);
-    const [policyNameToDelete, setPolicyNameToDelete] = useState(null);
+    const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
 
     const confirmDeleteAndHideModal = () => {
+        if (!policyIDToDelete || !policyNameToDelete) {
+            return;
+        }
+
         Policy.deleteWorkspace(policyIDToDelete, [], policyNameToDelete);
         setIsDeleteModalOpen(false);
     };
+
     /**
      * Gets the menu item for each workspace
-     *
-     * @param {Object} item
-     * @returns {JSX}
      */
     const getMenuItem = useCallback(
-        ({item}) => {
-            const threeDotsMenuItems = [
-                // Check if the user is an admin of the workspace
-                ...(item.role === CONST.POLICY.ROLE.ADMIN
-                    ? [
-                          {
-                              icon: Expensicons.Trashcan,
-                              text: translate('workspace.common.delete'),
-                              onSelected: () => {
-                                  setPolicyIDToDelete(item.policyID);
-                                  setPolicyNameToDelete(item.title);
-                                  setIsDeleteModalOpen(true);
-                              },
-                          },
-                          {
-                              icon: Expensicons.Hashtag,
-                              text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                              onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom)),
-                          },
-                      ]
-                    : []),
-                {
+        ({item, index}: GetMenuItem) => {
+            const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
+            // Menu options to navigate to the chat report of #admins and #announce room.
+            // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
+            // In such cases, let us use the available chat report ids from the policy.
+            const threeDotsMenuItems: PopoverMenuItem[] = [];
+
+            if (isAdmin) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('workspace.common.delete'),
+                    onSelected: () => {
+                        setPolicyIDToDelete(item.policyID ?? '');
+                        setPolicyNameToDelete(item.title);
+                        setIsDeleteModalOpen(true);
+                    },
+                });
+            }
+
+            if (isAdmin && item.adminRoom) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Hashtag,
+                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom ?? '')),
+                });
+            }
+
+            if (item.announceRoom) {
+                threeDotsMenuItems.push({
                     icon: Expensicons.Hashtag,
                     text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom)),
-                },
-            ];
+                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
+                });
+            }
 
             return (
                 <OfflineWithFeedback
-                    key={`${item.policyID}`}
+                    key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
                     errorRowStyles={styles.ph5}
                     onClose={item.dismissError}
                     errors={item.errors}
                 >
                     <PressableWithoutFeedback
-                        accessibilityRole="button"
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel="row"
                         style={[styles.mh5, styles.mb3]}
                         disabled={item.disabled}
-                        onPress={() => item.action()}
+                        onPress={item.action}
                     >
                         {({hovered}) => (
                             <WorkspacesListRow
@@ -181,6 +190,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 workspaceType={item.type}
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isSmallScreenWidth ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                brickRoadIndicator={item.brickRoadIndicator}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -226,71 +236,79 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
         );
     }, [isSmallScreenWidth, styles, translate]);
 
-    const policyRooms = useMemo(
-        () =>
-            _.reduce(
-                reports,
-                (result, report) => {
-                    if (!report || !report.reportID || !report.policyID) {
-                        return result;
-                    }
+    const policyRooms = useMemo(() => {
+        if (!reports || isEmptyObject(reports)) {
+            return;
+        }
 
-                    if (!result[report.policyID]) {
-                        // eslint-disable-next-line no-param-reassign
-                        result[report.policyID] = {};
-                    }
+        return Object.values(reports).reduce<ChatPolicyType>((result, report) => {
+            if (!report?.reportID || !report.policyID) {
+                return result;
+            }
 
-                    switch (report.chatType) {
-                        case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
-                            // eslint-disable-next-line no-param-reassign
-                            result[report.policyID].adminRoom = report.reportID;
-                            break;
-                        case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
-                            // eslint-disable-next-line no-param-reassign
-                            result[report.policyID].announceRoom = report.reportID;
-                            break;
-                        default:
-                            break;
-                    }
+            if (!result[report.policyID]) {
+                // eslint-disable-next-line no-param-reassign
+                result[report.policyID] = {};
+            }
 
-                    return result;
-                },
-                {},
-            ),
-        [reports],
-    );
+            switch (report.chatType) {
+                case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
+                    // eslint-disable-next-line no-param-reassign
+                    result[report.policyID].adminRoom = report.reportID;
+                    break;
+                case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
+                    // eslint-disable-next-line no-param-reassign
+                    result[report.policyID].announceRoom = report.reportID;
+                    break;
+                default:
+                    break;
+            }
+
+            return result;
+        }, {});
+    }, [reports]);
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
      */
     const workspaces = useMemo(() => {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
-            .map((policy) => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                iconFill: theme.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                pendingAction: policy.pendingAction,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                policyID: policy.id,
-                adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
-                announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
-                ownerAccountID: policy.ownerAccountID,
-                role: policy.role,
-            }))
-            .sortBy((policy) => policy.title.toLowerCase())
-            .value();
-    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
+        const reimbursementAccountBrickRoadIndicator = reimbursementAccount?.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        if (isEmptyObject(policies)) {
+            return [];
+        }
 
-    if (_.isEmpty(workspaces)) {
+        return Object.values(policies)
+            .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            .map(
+                (policy): WorkspaceItem => ({
+                    title: policy.name,
+                    icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                    action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                    brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                    pendingAction: policy.pendingAction,
+                    errors: policy.errors,
+                    dismissError: () => {
+                        if (!policy.pendingAction) {
+                            return;
+                        }
+                        dismissWorkspaceError(policy.id, policy.pendingAction);
+                    },
+                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconFill: theme.textLight,
+                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                    policyID: policy.id,
+                    adminRoom: policyRooms?.[policy.id].adminRoom ?? policy.chatReportIDAdmins?.toString(),
+                    announceRoom: policyRooms?.[policy.id].announceRoom ?? policy.chatReportIDAnnounce?.toString(),
+                    ownerAccountID: policy.ownerAccountID,
+                    role: policy.role,
+                    type: policy.type,
+                }),
+            )
+            .sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
+
+    if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -321,6 +339,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                             ctaText={translate('workspace.new.newWorkspace')}
                             ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
                             onCtaPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                            // @ts-expect-error TODO: Remove once FeatureList (https://github.com/Expensify/App/issues/25039) is migrated to TS
                             illustration={LottieAnimations.WorkspacePlanet}
                             illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
@@ -336,6 +355,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
+            testID={WorkspacesListPage.displayName}
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton
@@ -370,13 +390,10 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     );
 }
 
-WorkspacesListPage.propTypes = propTypes;
-WorkspacesListPage.defaultProps = defaultProps;
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
-export default compose(
-    withPolicyAndFullscreenLoading,
-    withOnyx({
+export default withPolicyAndFullscreenLoading(
+    withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
@@ -389,5 +406,5 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-    }),
-)(WorkspacesListPage);
+    })(WorkspacesListPage),
+);

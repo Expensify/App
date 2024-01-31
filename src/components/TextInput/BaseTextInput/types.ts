@@ -117,4 +117,4 @@ type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {CustomBaseTextInputProps, BaseTextInputRef, BaseTextInputProps};
+export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps};
