@@ -188,7 +188,7 @@ function HeaderView(props) {
     );
 
     const renderAdditionalText = () => {
-        if (_.isEmpty(policyName) || _.isEmpty(reportDescription)) {
+        if (_.isEmpty(policyName) || _.isEmpty(reportDescription) || !_.isEmpty(parentNavigationSubtitleData)) {
             return null;
         }
         return (
