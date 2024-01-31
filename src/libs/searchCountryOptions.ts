@@ -41,7 +41,7 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
     });
 
     let fullSorted;
-    let unsanitizedSearchValue = searchValue.toLowerCase().trim();
+    const unsanitizedSearchValue = searchValue.toLowerCase().trim();
     if (trimmedSearchValue !== unsanitizedSearchValue) {
         // Diacritic detected, prioritize diacritic matches
         // We search for diacritic matches by using the unsanitized country name and search term
