@@ -121,6 +121,8 @@ type Policy = {
 
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    connections?: Record<'quickbooksOnline'|'someconnection', unknown>;
 };
 
 export default Policy;

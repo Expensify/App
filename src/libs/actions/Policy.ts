@@ -792,6 +792,47 @@ function deleteWorkspaceAvatar(policyID: string) {
     API.write('DeleteWorkspaceAvatar', params, {optimisticData, finallyData, failureData});
 }
 
+function removeWorkspaceIntegration(policyID: string, connectionName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        //     value: {
+        //         pendingFields: {
+        //             avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        //         },
+        //         errorFields: {
+        //             avatar: null,
+        //         },
+        //         avatar: '',
+        //     },
+        // },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        //     value: {
+        //         pendingFields: {
+        //             avatar: null,
+        //         },
+        //     },
+        // },
+    ];
+    const failureData: OnyxUpdate[] = [
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        //     value: {
+        //         errorFields: {
+        //             avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
+        //         },
+        //     },
+        // },
+    ];
+    API.write('RemoveWorkspaceIntegration', {policyID, connectionName}, {optimisticData, finallyData, failureData});
+}
+
 /**
  * Clear error and pending fields for the workspace avatar
  */
@@ -2080,6 +2121,7 @@ export {
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
+    removeWorkspaceIntegration,
     updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,

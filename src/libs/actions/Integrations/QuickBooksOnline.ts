@@ -11,8 +11,6 @@ const buildQuickbooksOnlineOAuthJob = function (callbackPath: string, policyID?:
 
     const queryString = new URLSearchParams(queryArguments).toString();
     const callbackURL = addEncryptedAuthTokenToURL(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}partners/quickbooks/oauthCallbackNewDot?${queryString}`);
-    console.log('callbackURL', callbackURL);
-
     const jobDescription = {
         type: 'OAuthConnect',
         inputSettings: {
