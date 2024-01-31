@@ -189,4 +189,4 @@ function serverDataIsReadyPromise(): Promise<void> {
     return isReadyPromise;
 }
 
-export {show, serverDataIsReadyPromise, resetReadyCheck};
+export {show, serverDataIsReadyPromise, resetReadyCheck, isFirstTimeNewExpensifyUser};
