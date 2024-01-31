@@ -1,9 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import TextInput from '@components/TextInput';
 import AddressSearch from '@components/AddressSearch';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
+import TextInput from '@components/TextInput';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import FormContext from './FormContext';
 import type {InputWrapperProps, ValidInputs} from './types';
@@ -13,11 +13,11 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     shouldSubmitForm,
     multiline,
     autoGrowHeight,
-    blurOnSubmit
+    blurOnSubmit,
 }: InputWrapperProps<TInput>): {
-    readonly shouldSubmitForm: boolean,
-    readonly blurOnSubmit: boolean | undefined,
-    readonly shouldSetTouchedOnBlurOnly: boolean,
+    readonly shouldSubmitForm: boolean;
+    readonly blurOnSubmit: boolean | undefined;
+    readonly shouldSetTouchedOnBlurOnly: boolean;
 } {
     const validTextInputComponents = [TextInput, AddressSearch, RoomNameInput] as TInput[];
     if (validTextInputComponents.includes(InputComponent)) {
@@ -64,11 +64,7 @@ function InputWrapper<TInput extends ValidInputs>(props: InputWrapperProps<TInpu
     const {InputComponent, inputID, valueType = 'string', ...rest} = props;
     const {registerInput} = useContext(FormContext);
 
-    const {
-        shouldSetTouchedOnBlurOnly,
-        blurOnSubmit,
-        shouldSubmitForm,
-    } = computeComponentSpecificRegistrationParams(props);
+    const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props);
 
     // TODO: Sometimes we return too many props with register input, so we need to consider if it's better to make the returned type more general and disregard the issue, or we would like to omit the unused props somehow.
     // eslint-disable-next-line react/jsx-props-no-spreading, @typescript-eslint/no-explicit-any

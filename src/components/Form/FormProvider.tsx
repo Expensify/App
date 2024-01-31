@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
-import type { NativeSyntheticEvent, TextInputSubmitEditingEventData } from 'react-native';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputSubmitEditingEventData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import * as ValidationUtils from '@libs/ValidationUtils';
