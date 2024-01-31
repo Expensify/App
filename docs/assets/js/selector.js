@@ -11,16 +11,28 @@ This can be derived from class name .
 
 
 
-
-const selectors = document.getElementsByClassName('selector');
-for (let selector of selectors) {
-    // selector.addEventListener('onchange')
-}
-
-function select(e) {
-    const selectedValue = e.options[e.selectedIndex].value;
-    const toHide = document.getElementsByClassName(selectedValue);
-    for (element of toHide) {
-        element.classList.add('hidden');
+function selectOption(s) {
+    if (!s) {
+        return;
     }
+
+    const allOptions = Array.from(s.options);
+    const selectedValue = s.options[s.selectedIndex].value;
+    
+    allOptions.forEach(option => {
+        if (option.value === selectedValue) {
+            const toShow = document.getElementsByClassName(option.value);
+            for (e of toShow) {
+                e.classList.remove('hidden');
+            }
+            return;
+        }
+        
+        const toHide = document.getElementsByClassName(option.value);
+        for (e of toHide) {
+            e.classList.add('hidden');
+        }
+    });
 }
+
+window.onload = selectOption(document.getElementsByClassName('platform')[0]);

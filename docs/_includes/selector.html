@@ -1,7 +1,7 @@
 {% assign values = include.values | split: "," %}
 
 <div class="selector">
-<select class="platform" onchange="select(this)">
+<select class="platform" onchange="selectOption(this)">
     {% for value in values %}
         <option value="selector-{{ value | strip | downcase }}">{{ value | strip | capitalize }}</option>
     {% endfor %}
