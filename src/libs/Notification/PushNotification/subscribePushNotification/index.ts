@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
