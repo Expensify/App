@@ -5,18 +5,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 
-const propTypes = {
+type EditRequestTaxRatePageProps = {
     /** Transaction default tax Rate value */
-    defaultTaxRate: PropTypes.string.isRequired,
+    defaultTaxRate: string,
 
     /** The policyID we are getting categories for */
-    policyID: PropTypes.string.isRequired,
+    policyID: string,
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: PropTypes.func.isRequired,
+    onSubmit: () => void,
 };
 
-function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}) {
+function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}: EditRequestTaxRatePageProps) {
     const {translate} = useLocalize();
 
     return (
@@ -29,6 +29,7 @@ function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}) {
                 <>
                     <HeaderWithBackButton title={translate('iou.taxRate')} />
                     <TaxPicker
+                        // @ts-ignore
                         selectedTaxRate={defaultTaxRate}
                         policyID={policyID}
                         insets={insets}
@@ -40,7 +41,6 @@ function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}) {
     );
 }
 
-EditRequestTaxRatePage.propTypes = propTypes;
 EditRequestTaxRatePage.displayName = 'EditRequestTaxRatePage';
 
 export default EditRequestTaxRatePage;
