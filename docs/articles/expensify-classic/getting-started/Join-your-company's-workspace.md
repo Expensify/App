@@ -12,7 +12,8 @@ Welcome to Expensify! If you received an invitation to join your company’s Exp
 
 Upload your expenses and check your reports right from your phone by downloading the Expensify mobile app. You can search for “Expensify” in the app store, or tap one of the links below. 
 
-[iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) | [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US)
+[iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) 
+| [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US)
 
 # 2. Add your name and photo
 
