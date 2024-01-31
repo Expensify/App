@@ -102,7 +102,7 @@ function PurposeForUsingExpensifyModal() {
 
     const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
         if (choice === CONST.INTRO_CHOICES.MANAGE_TEAM) {
-            return; // TODO: Navigate to manage Team expenses
+            return Navigation.navigate(ROUTES.ONBOARD_MANAGE_EXPENSES);
         }
 
         Report.completeEngagementModal(message, choice);
