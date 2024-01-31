@@ -73,5 +73,5 @@ export type {
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
     PersonalBankAccountForm,
-    FormValues
+    FormValues,
 };
