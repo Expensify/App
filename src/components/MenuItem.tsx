@@ -40,13 +40,13 @@ type IconProps = {
     iconType?: typeof CONST.ICON_TYPE_ICON;
 
     /** Icon to display on the left side of component */
-    icon: IconAsset;
+    icon: IconAsset | IconType[];
 };
 
 type AvatarProps = {
     iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
-    icon: AvatarSource;
+    icon: AvatarSource | IconType[];
 };
 
 type NoIcon = {

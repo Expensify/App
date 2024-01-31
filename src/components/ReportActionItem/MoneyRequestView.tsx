@@ -29,6 +29,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -202,7 +203,14 @@ function MoneyRequestView({
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                 {hasReceipt && (
-                    <OfflineWithFeedback pendingAction={pendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={pendingAction}
+                        errors={transaction.errors}
+                        errorRowStyles={[styles.ml4]}
+                        onClose={() => {
+                            Transaction.clearError(transaction.transactionID);
+                        }}
+                    >
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
                                 thumbnail={receiptURIs?.thumbnail}
