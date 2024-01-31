@@ -39,6 +39,7 @@ function HeaderWithBackButton({
     shouldShowGetAssistanceButton = false,
     shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
+    shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
     stepCounter,
@@ -87,7 +88,7 @@ function HeaderWithBackButton({
                                     onBackButtonPress();
                                 }
                             }}
-                            style={[styles.touchableButtonImage]}
+                            style={[styles.LHNToggle]}
                             role="button"
                             accessibilityLabel={translate('common.back')}
                             nativeID={CONST.BACK_BUTTON_NATIVE_ID}
@@ -165,6 +166,7 @@ function HeaderWithBackButton({
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
                             shouldOverlay={shouldOverlayDots}
+                            shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}
                     {shouldShowCloseButton && (

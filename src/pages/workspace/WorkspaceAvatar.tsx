@@ -23,7 +23,6 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
 
     return (
         <AttachmentModal
-            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             headerTitle={policy?.name ?? ''}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
@@ -35,7 +34,7 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             isWorkspaceAvatar
             originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
-            isLoading={!Object.keys(policy ?? {}).length && isLoadingApp}
+            isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
         />
     );
 }
