@@ -1,5 +1,4 @@
-import React, {useCallback} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,24 +13,18 @@ import * as Expensicons from './Icon/Expensicons';
 import Modal from './Modal';
 import Text from './Text';
 
-type Props = {
-    isToExpensifyClassicModalOpen: boolean;
-    setIsToExpensifyClassicModalOpen: Dispatch<SetStateAction<boolean>>;
-};
-function ToExpensifyClassicModal({isToExpensifyClassicModalOpen, setIsToExpensifyClassicModalOpen}: Props) {
+function ToExpensifyClassicModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, isExtraSmallScreenHeight, windowHeight} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const theme = useTheme();
 
-    const closeModal = useCallback(() => setIsToExpensifyClassicModalOpen(false), [setIsToExpensifyClassicModalOpen]);
-
     return (
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isToExpensifyClassicModalOpen}
-            onClose={closeModal}
+            isVisible
+            onClose={() => {}}
             innerContainerStyle={styles.pt0}
             shouldUseCustomBackdrop
         >
@@ -41,7 +34,7 @@ function ToExpensifyClassicModal({isToExpensifyClassicModalOpen, setIsToExpensif
                         title="Expensify Classic"
                         shouldOverlay
                         shouldShowBackButton
-                        onBackButtonPress={closeModal}
+                        onBackButtonPress={() => {}}
                         iconFill={theme.iconColorfulBackground}
                     />
                     <View style={styles.pt10}>
@@ -59,13 +52,13 @@ function ToExpensifyClassicModal({isToExpensifyClassicModalOpen, setIsToExpensif
                             style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                             numberOfLines={2}
                         >
-                            Expensify Classic has everything you`&apos;`ll need
+                            Expensify Classic has everything you&apos;ll need
                         </Text>
                         <Text style={[styles.mb4]}>While we&apos;re busy working on New Expensify, it currently doesn&apos;t support some of the features you&apos;re looking for.</Text>
-                        <Text>Don&apos;t worry, Expensify Classic has everything you need.</Text>
+                        <Text>Don&apos;t worry, Expensify Classic has everything you need</Text>
                     </View>
                 </ScrollView>
-                <View style={[styles.ph5]}>
+                <View style={[styles.p5]}>
                     <Button
                         success
                         medium={isExtraSmallScreenHeight}
