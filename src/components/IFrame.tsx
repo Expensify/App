@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Session} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
 
 type OldDotIFrameOnyxProps = {
     session: OnyxEntry<Session>;

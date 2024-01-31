@@ -4,6 +4,7 @@ import React, {memo, useState} from 'react';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
@@ -28,6 +29,9 @@ const propTypes = {
     ...attachmentViewPropTypes,
     ...withLocalizePropTypes,
 
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
+
     /** Flag to show/hide download icon */
     shouldShowDownloadIcon: PropTypes.bool,
 
@@ -44,6 +48,9 @@ const propTypes = {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
 
+    /** Denotes whether it is an icon (ex: SVG) */
+    maybeIcon: PropTypes.bool,
+
     /** The id of the transaction related to the attachment */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: PropTypes.string,
@@ -56,6 +63,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     containerStyles: [],
     isWorkspaceAvatar: false,
+    maybeIcon: false,
     transactionID: '',
 };
 
@@ -67,7 +75,6 @@ function AttachmentView({
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
     containerStyles,
-    onScaleChanged,
     onToggleKeyboard,
     translate,
     isFocused,
@@ -77,6 +84,7 @@ function AttachmentView({
     carouselActiveItemIndex,
     isUsedInAttachmentModal,
     isWorkspaceAvatar,
+    maybeIcon,
     fallbackSource,
     transaction,
 }) {
@@ -88,8 +96,9 @@ function AttachmentView({
 
     useNetwork({onReconnect: () => setImageError(false)});
 
-    // Handles case where source is a component (ex: SVG)
-    if (_.isFunction(source)) {
+    // Handles case where source is a component (ex: SVG) or a number
+    // Number may represent a SVG or an image
+    if ((maybeIcon && typeof source === 'number') || _.isFunction(source)) {
         let iconFillColor = '';
         let additionalStyles = [];
         if (isWorkspaceAvatar) {
@@ -141,11 +150,11 @@ function AttachmentView({
                     carouselItemIndex={carouselItemIndex}
                     carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
-                    onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInCarousel={isUsedInCarousel}
                 />
             </View>
         );
@@ -162,7 +171,7 @@ function AttachmentView({
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
-                source={imageError ? fallbackSource : source}
+                url={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
@@ -173,7 +182,6 @@ function AttachmentView({
                 carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
-                onScaleChanged={onScaleChanged}
                 onError={() => {
                     setImageError(true);
                 }}
@@ -184,14 +192,20 @@ function AttachmentView({
     return (
         <View style={[styles.defaultAttachmentView, ...containerStyles]}>
             <View style={styles.mr2}>
-                <Icon src={Expensicons.Paperclip} />
+                <Icon
+                    fill={theme.icon}
+                    src={Expensicons.Paperclip}
+                />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
-                        <Icon src={Expensicons.Download} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Download}
+                        />
                     </View>
                 </Tooltip>
             )}

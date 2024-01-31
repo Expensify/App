@@ -1,5 +1,5 @@
 import DeviceInfo from 'react-native-device-info';
-import GenerateDeviceID from './types';
+import type GenerateDeviceID from './types';
 
 const deviceID = DeviceInfo.getDeviceId();
 

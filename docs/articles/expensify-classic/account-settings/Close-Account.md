@@ -114,10 +114,12 @@ Here's how to do it:
  
 By following these steps, you can easily verify your email or phone number and close an unwanted Expensify account.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What should I do if I'm not directed to my account when clicking the validate option from my phone or email?
 It's possible your browser has blocked this, either because of some existing cache or extension. In this case, you should follow the Reset Password flow to reset the password and manually gain access with the new password, along with your email address. 
 
 ## Why don't I see the Close Account option?
 It's possible your account is on a managed company domain. In this case, only the admins from that company can close it.
+
+{% include faq-end.md %}

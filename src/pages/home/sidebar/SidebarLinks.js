@@ -7,6 +7,7 @@ import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -16,9 +17,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Performance from '@libs/Performance';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
@@ -67,7 +70,6 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
 
         InteractionManager.runAfterInteractions(() => {
@@ -122,6 +124,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             return;
         }
 
+        // Capture metric for opening the search page
+        Timing.start(CONST.TIMING.OPEN_SEARCH);
+        Performance.markStart(CONST.TIMING.OPEN_SEARCH);
+
         Navigation.navigate(ROUTES.SEARCH);
     }, [isCreateMenuOpen]);
 
@@ -157,10 +163,12 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <Header
                     title={
-                        <LogoComponent
-                            fill={theme.text}
+                        <ImageSVG
+                            src={LogoComponent}
                             width={variables.lhnLogoWidth}
                             height={variables.lhnLogoHeight}
+                            fill={theme.text}
+                            contentFit="contain"
                         />
                     }
                     role={CONST.ROLE.PRESENTATION}
@@ -173,7 +181,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
-                        <Icon src={Expensicons.MagnifyingGlass} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.MagnifyingGlass}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
@@ -186,6 +197,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={isSmallScreenWidth}
                     optionMode={viewMode}
+                    onFirstItemRendered={App.setSidebarLoaded}
                 />
                 {isLoading && optionListItems.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.highlightBG]}>

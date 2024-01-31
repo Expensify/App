@@ -1,20 +1,23 @@
+import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/lib/utils';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
-import Report from '@src/types/onyx/Report';
-import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ActionName, ChangeLog, OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
+import type Report from '@src/types/onyx/Report';
+import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportAction from '@src/types/onyx/ReportAction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
-import {MessageElementBase, MessageTextElement} from './MessageElement';
+import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {
@@ -108,10 +111,6 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
-function isSubmittedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
-}
-
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
@@ -133,7 +132,7 @@ function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
 }
 
-function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageReimbursementDequeued {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
 }
 
@@ -150,7 +149,7 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
@@ -375,8 +374,18 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction && !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const isPending = !!reportAction.pendingAction;
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+}
+
+/**
+ * Checks if the new marker should be hidden for the report action.
+ */
+function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!reportAction) {
+        return true;
+    }
+    return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -430,7 +439,7 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -459,7 +468,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
@@ -640,6 +649,19 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
+/**
+ * When we delete certain reports, we want to check whether there are any visible actions left to display.
+ * If there are no visible actions left (including system messages), we can hide the report from view entirely
+ */
+function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
+    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+
+    // Exclude the task system message and the created message
+    const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
+    return visibleReportActionsWithoutTaskSystemMessage.length > 0;
+}
+
 function getAllReportActions(reportID: string): ReportActions {
     return allReportActions?.[reportID] ?? {};
 }
@@ -751,6 +773,14 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+/**
+ * MARKEDREIMBURSED reportActions come from marking a report as reimbursed in OldDot. For now, we just
+ * concat all of the text elements of the message to create the full message.
+ */
+function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.map((element) => element.text).join('') ?? '';
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -800,7 +830,6 @@ export {
     isDeletedParentAction,
     isMessageDeleted,
     isModifiedExpenseAction,
-    isSubmittedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,
@@ -811,15 +840,18 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
+    doesReportHaveVisibleActions,
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
+    shouldHideNewMarker,
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
+    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,

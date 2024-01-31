@@ -4,9 +4,7 @@ import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import withLocalize from '@components/withLocalize';
 import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -28,6 +26,10 @@ class PDFView extends Component {
         this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
 
         this.retrieveCanvasLimits();
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(this.state, nextState) || !_.isEqual(this.props, nextProps);
     }
 
     componentDidUpdate(prevProps) {
@@ -91,7 +93,6 @@ class PDFView extends Component {
                     maxCanvasWidth={this.props.maxCanvasWidth}
                     maxCanvasHeight={this.props.maxCanvasHeight}
                     maxCanvasArea={this.props.maxCanvasArea}
-                    LoadingComponent={<FullScreenLoadingIndicator />}
                     ErrorComponent={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
@@ -123,7 +124,6 @@ class PDFView extends Component {
         );
     }
 }
-
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 

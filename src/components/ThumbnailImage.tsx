@@ -1,6 +1,7 @@
 import lodashClamp from 'lodash/clamp';
 import React, {useCallback, useState} from 'react';
-import {Dimensions, StyleProp, View, ViewStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -9,7 +10,7 @@ import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
-    previewSourceURL: string;
+    previewSourceURL: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;

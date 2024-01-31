@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 /**
  * Spacing utility styles with Bootstrap inspired naming.
@@ -221,6 +221,10 @@ export default {
 
     mtAuto: {
         marginTop: 'auto',
+    },
+
+    mtn2: {
+        marginTop: -8,
     },
 
     mtn6: {
@@ -527,6 +531,10 @@ export default {
 
     pb20: {
         paddingBottom: 80,
+    },
+
+    pb40: {
+        paddingBottom: 160,
     },
 
     pb10Percentage: {

@@ -1,4 +1,5 @@
-import * as OnyxCommon from './OnyxCommon';
+import type {Route} from '@src/ROUTES';
+import type * as OnyxCommon from './OnyxCommon';
 
 type PersonalBankAccount = {
     /** An error message to display to the user */
@@ -17,7 +18,7 @@ type PersonalBankAccount = {
     exitReportID?: string;
 
     /** If set, continue with the KYC flow after adding a PBA. This specifies the fallback route to use. */
-    onSuccessFallbackRoute?: string;
+    onSuccessFallbackRoute?: Route;
 };
 
 export default PersonalBankAccount;

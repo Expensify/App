@@ -60,7 +60,7 @@ Request an edit an expense or remove an expense before you pay, you can let your
 - Automatic submission is already set up, so your admin can pay you back immediately once you create an expense.
 - Your admin will get a notification when you send them a new expense, but you can also remind them to pay you by making a comment in the Report History section of your Processing report or chatting with them on new.expensify.com.
 
-# FAQs
+{% include faq-begin.md %}
 
 ## Do I need a business bank account to use the Free Plan?
 
@@ -145,3 +145,5 @@ Depending on how quickly you report it to us, we may be able to help cancel a re
 ## As an admin, can I edit users’ expenses and delete them from reports?
 
 No. Only users can edit and delete expenses on the Free plan. Admin control of submitted expenses on a workspace is a feature of our paid plans. If you need something changed, let the user know by commenting in the Report History section of the report on www.expensify.com or by chatting with them in new.expensify.com.
+
+{% include faq-end.md %}
