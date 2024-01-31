@@ -28,7 +28,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 type TaskViewOnyxProps = {
     /** All of the personal details for everyone */
