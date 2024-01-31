@@ -29,13 +29,14 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const showSettingsPage = useCallback(() => {
+    const showStatusPage = useCallback(() => {
         if (isCreateMenuOpen) {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS);
+        Navigation.setShouldPopAllStateOnUP();
+        Navigation.navigate(ROUTES.SETTINGS_STATUS);
     }, [isCreateMenuOpen]);
 
     return (
@@ -44,15 +45,17 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 role={CONST.ROLE.BUTTON}
-                onPress={showSettingsPage}
+                onPress={showStatusPage}
                 style={[styles.sidebarStatusAvatar]}
             >
-                <Text
-                    style={styles.emojiStatusLHN}
-                    numberOfLines={1}
-                >
-                    {emojiStatus}
-                </Text>
+                <Tooltip text={translate('statusPage.status')}>
+                    <Text
+                        style={styles.emojiStatusLHN}
+                        numberOfLines={1}
+                    >
+                        {emojiStatus}
+                    </Text>
+                </Tooltip>
             </PressableWithoutFeedback>
         </View>
     );
