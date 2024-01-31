@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +16,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
-import ManageTeamsExpensesModal from './ManageTeamsExpensesModal';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemList from './MenuItemList';
 import Modal from './Modal';
@@ -86,8 +85,6 @@ function PurposeForUsingExpensifyModal() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const navigation = useNavigation();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isManageTeamsExpensesModalOpen, setIsManageTeamsExpensesModalOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
@@ -98,22 +95,22 @@ function PurposeForUsingExpensifyModal() {
             return;
         }
 
-        Welcome.show(routes, () => setIsModalOpen(true));
+        Welcome.show(routes, () => {});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
-        setIsModalOpen(false);
+        // TODO: Navigate to Previous screen;
     }, []);
 
     const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
         if (choice === CONST.INTRO_CHOICES.MANAGE_TEAM) {
-            return setIsManageTeamsExpensesModalOpen(true);
+            return; // TODO: Navigate to manage Team expenses
         }
 
         Report.completeEngagementModal(message, choice);
-        setIsModalOpen(false);
+        // TODO: Navigate to Previous screen
         Report.navigateToConciergeChat();
     }, []);
 
@@ -135,10 +132,9 @@ function PurposeForUsingExpensifyModal() {
     );
 
     return (
-        <>
             <Modal
                 type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                isVisible={isModalOpen}
+                isVisible={true}
                 onClose={closeModal}
                 innerContainerStyle={styles.pt0}
                 shouldUseCustomBackdrop
@@ -177,11 +173,6 @@ function PurposeForUsingExpensifyModal() {
                     </ScrollView>
                 </View>
             </Modal>
-            <ManageTeamsExpensesModal
-                isManageTeamsExpensesModalOpen={isManageTeamsExpensesModalOpen}
-                setIsManageTeamsExpensesModalOpen={setIsManageTeamsExpensesModalOpen}
-            />
-        </>
     );
 }
 
