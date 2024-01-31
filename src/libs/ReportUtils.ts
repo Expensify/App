@@ -4138,12 +4138,13 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
 }
 
 /**
- * Return the pendingAction and the errors we have when creating a chat or a workspace room offline
+ * Return the pendingAction and the errors we have when creating a chat or a workspace room offline or pay the request
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
-    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
+    // We are either adding a workspace room, or we're creating a chat, or we're paying request money, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
     // simply looking up the first truthy value for each case will get the relevant property if it's set.
-    const addWorkspaceRoomOrChatPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat;
+    const addWorkspaceRoomOrChatPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed;
+
     const addWorkspaceRoomOrChatErrors = getAddWorkspaceRoomOrChatReportErrors(report);
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }

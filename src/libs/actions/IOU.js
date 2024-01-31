@@ -3141,6 +3141,10 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
             },
         },
         {
@@ -3157,6 +3161,16 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: {
+                    preview: null,
+                    reimbursed: null,
                 },
             },
         },
