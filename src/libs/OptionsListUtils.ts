@@ -4,7 +4,6 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
-import lodashSome from 'lodash/some';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1148,13 +1147,9 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
 /**
  * Verifies that there is at least one enabled option
  *
- * @param {Object[]} options - an initial strings array
- * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
- * @returns {Boolean}
+ * @param options - an initial strings array
+ * @returns boolean
  */
-function hasEnabledOptionsForTaxRate(options: TaxRates) {
-    return lodashSome(options, (option) => !option.isDisabled);
-}
 
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
@@ -2001,7 +1996,6 @@ export {
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
     hasEnabledOptions,
-    hasEnabledOptionsForTaxRate,
     sortCategories,
     getCategoryOptionTree,
     formatMemberForList,
