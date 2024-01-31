@@ -64,19 +64,22 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
-    const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const isDraftExpenseReport = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
+        () => isPayer && !isDraftExpenseReport && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
+        [isPayer, isDraftExpenseReport, isSettled, moneyRequestReport, reimbursableSpend, chatReport, isAutoReimbursable],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isPaidGroupPolicy) {
             return false;
         }
-        return isManager && !isDraft && !isApproved && !isSettled;
-    }, [isPaidGroupPolicy, isManager, isDraft, isApproved, isSettled]);
+        return isManager && !isDraftExpenseReport && !isApproved && !isSettled;
+    }, [isPaidGroupPolicy, isManager, isDraftExpenseReport, isApproved, isSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
-    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = useMemo(
+        () => isDraftExpenseReport && reimbursableSpend !== 0,
+        [isDraftExpenseReport, reimbursableSpend],
+    );
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
