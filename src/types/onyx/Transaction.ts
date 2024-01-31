@@ -67,6 +67,10 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
+type ReceiptError = {error?: string; source: string; filename: string};
+
+type ReceiptErrors = Record<string, ReceiptError>;
+
 type Transaction = {
     amount: number;
     billable: boolean;
@@ -74,7 +78,7 @@ type Transaction = {
     comment: Comment;
     created: string;
     currency: string;
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | ReceiptErrors;
     errorFields?: OnyxCommon.ErrorFields<'route'>;
     // The name of the file used for a receipt (formerly receiptFilename)
     filename?: string;
@@ -115,4 +119,4 @@ type Transaction = {
 };
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint};
+export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError};
