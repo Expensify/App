@@ -229,7 +229,10 @@ function ReportPreview({
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.preview}>
+        <OfflineWithFeedback 
+            pendingAction={iouReport?.pendingFields?.preview}
+            shouldDisableOpacity={action.pendingAction !== undefined || action.isOptimisticAction === true}
+        >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
                     onPress={() => {
