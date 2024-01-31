@@ -145,7 +145,6 @@ const SCREENS = {
         CURRENCY: 'Money_Request_Currency',
         DATE: 'Money_Request_Date',
         DESCRIPTION: 'Money_Request_Description',
-        CATEGORY: 'Money_Request_Category',
         TAG: 'Money_Request_Tag',
         MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',

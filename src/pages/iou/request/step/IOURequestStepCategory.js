@@ -8,6 +8,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -34,12 +35,14 @@ const defaultProps = {
 function IOURequestStepCategory({
     report,
     route: {
-        params: {transactionID, backTo},
+        params: {transactionID, backTo, action, iouType},
     },
     transaction,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isBillSplit = iouType === CONST.IOU.TYPE.SPLIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -50,10 +53,26 @@ function IOURequestStepCategory({
      * @param {String} category.searchText
      */
     const updateCategory = (category) => {
-        if (category.searchText === transaction.category) {
+        const isSelectedCategory = category.searchText === transaction.category;
+        const updatedCategory = isSelectedCategory ? '' : category.searchText;
+
+        // The case edit split bill
+        if (isBillSplit && isEditing) {
+            IOU.setDraftSplitTransaction(transaction.transactionID, {category: category.searchText});
+            navigateBack();
+            return;
+        }
+        // The casse edit request
+        if (isEditing) {
+            IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory);
+            Navigation.dismissModal();
+            return;
+        }
+        // The case create request monney or split bill or send money
+        if (isSelectedCategory) {
             IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
         } else {
-            IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, category.searchText);
+            IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, updatedCategory);
         }
         navigateBack();
     };
