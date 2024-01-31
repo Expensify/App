@@ -3,6 +3,7 @@ import React, {useRef, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
@@ -34,7 +36,7 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
     const {reason} = route.params;
 
     const [response, setResponse] = useState('');
-    const responseInputRef = useRef(null);
+    const responseInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const formTopMarginsStyle = styles.mt3;
     const textStyle = styles.headerAnonymousFooter;
@@ -70,7 +72,6 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {/* @ts-expect-error - FormProvider is not yet migrated to TS */}
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
@@ -80,12 +81,13 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                 }}
                 submitButtonText={translate('common.next')}
                 validate={() => {
-                    if (response?.trim()) {
-                        return {};
+                    const errors: Errors = {};
+
+                    if (!response?.trim()) {
+                        errors[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID] = 'common.error.fieldRequired';
                     }
-                    return {
-                        [CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: translate('common.error.fieldRequired'),
-                    };
+
+                    return errors;
                 }}
                 shouldValidateOnBlur
                 shouldValidateOnChange
@@ -93,7 +95,6 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                 <>
                     <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
                     <InputWrapper
-                        // @ts-expect-error – InputWrapper is not yet implemented in TS
                         InputComponent={TextInput}
                         inputID={CONST.EXIT_SURVEY.RESPONSE_INPUT_ID}
                         label={translate(`exitSurvey.responsePlaceholder`)}
@@ -101,7 +102,7 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         autoGrowHeight
                         maxLength={CONST.MAX_COMMENT_LENGTH}
-                        ref={(el) => {
+                        ref={(el: AnimatedTextInputRef) => {
                             if (!el) {
                                 return;
                             }
