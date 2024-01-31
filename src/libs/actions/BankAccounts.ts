@@ -17,6 +17,7 @@ import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes'
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, OnfidoData, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
@@ -85,7 +86,7 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 /**
  * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
  */
-function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: string) {
+function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 

@@ -361,6 +361,8 @@ const ONYXKEYS = {
         POLICY_REPORT_FIELD_EDIT_FORM_DRAFT: 'policyReportFieldEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
+        PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
+        PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
     },
 } as const;
 
@@ -547,6 +549,8 @@ type OnyxValues = {
     // @ts-expect-error Different values are defined under the same key: ReimbursementAccount and ReimbursementAccountForm
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: OnyxTypes.ReimbursementAccountFormDraft;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT]: OnyxTypes.PersonalBankAccount;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
