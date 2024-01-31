@@ -261,8 +261,8 @@ function WorkspaceSwitcherPage({policies}) {
                         showTitleTooltip={false}
                         contentContainerStyles={[styles.pt0, styles.mt0]}
                         textIconLeft={MagnifyingGlass}
-                        // It has to be set to null or -1 to avoid focus on any element at the beggining
-                        initiallyFocusedOptionKey={null}
+                        // Null is to avoid selecting unfocused option when Global selected, undefined is to focus selected workspace
+                        initiallyFocusedOptionKey={!activeWorkspaceID ? null : undefined}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
