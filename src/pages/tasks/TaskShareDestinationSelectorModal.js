@@ -107,6 +107,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}) {
     );
 }
 
+TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 TaskShareDestinationSelectorModal.propTypes = propTypes;
 TaskShareDestinationSelectorModal.defaultProps = defaultProps;
 
