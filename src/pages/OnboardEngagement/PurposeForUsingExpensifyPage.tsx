@@ -76,7 +76,7 @@ function PurposeForUsingExpensifyModal() {
         Navigation.goBack(ROUTES.HOME);
     }, []);
 
-    const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
+    const completeEngagement = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
         if (choice === CONST.INTRO_CHOICES.MANAGE_TEAM) {
             return Navigation.navigate(ROUTES.ONBOARD_MANAGE_EXPENSES);
         }
@@ -94,12 +94,12 @@ function PurposeForUsingExpensifyModal() {
                     title: translate(translationKey),
                     icon: menuIcons[choice],
                     iconRight: Expensicons.ArrowRight,
-                    onPress: () => completeModalAndClose(messageCopy[choice], choice),
+                    onPress: () => completeEngagement(messageCopy[choice], choice),
                     shouldShowRightIcon: true,
                     numberOfLinesTitle: 2,
                 };
             }),
-        [completeModalAndClose, translate],
+        [completeEngagement, translate],
     );
 
     return (
