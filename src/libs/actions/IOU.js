@@ -3507,18 +3507,18 @@ function detachReceipt(transactionID) {
  * @param {String} source
  */
 function replaceReceipt(transactionID, file, source) {
-    const transaction = lodashGet(allTransactions, 'transactionID', {});
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
     const oldReceipt = lodashGet(transaction, 'receipt', {});
-
+    const receiptOptimistic = {
+        source,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                receipt: {
-                    source,
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
+                receipt: receiptOptimistic,
                 filename: file.name,
             },
         },
@@ -3531,6 +3531,7 @@ function replaceReceipt(transactionID, file, source) {
             value: {
                 receipt: oldReceipt,
                 filename: transaction.filename,
+                errors: getReceiptError(receiptOptimistic, file.name),
             },
         },
     ];
