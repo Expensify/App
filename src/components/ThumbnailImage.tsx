@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
@@ -7,7 +7,7 @@ import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
-    previewSourceURL: string | number;
+    previewSourceURL: string | ImageSourcePropType;
 
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;

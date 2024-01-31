@@ -1141,7 +1141,7 @@ export default {
     },
     personalDetails: {
         error: {
-            containsReservedWord: 'First name cannot contain the words Expensify or Concierge',
+            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
         },
     },
@@ -1770,6 +1770,8 @@ export default {
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
+        deleteTask: 'Delete task',
+        deleteConfirmation: 'Are you sure that you want to delete this task?',
     },
     statementPage: {
         title: (year, monthName) => `${monthName} ${year} statement`,
