@@ -33,6 +33,8 @@ type DisabledFields = {
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+type PolicyValue = ValueOf<typeof CONST.POLICY.ROLE>;
+
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -41,7 +43,7 @@ type Policy = {
     name: string;
 
     /** The current user's role in the policy */
-    role: ValueOf<typeof CONST.POLICY.ROLE>;
+    role: PolicyValue;
 
     /** The policy type */
     type: ValueOf<typeof CONST.POLICY.TYPE>;
@@ -163,6 +165,11 @@ type Policy = {
     chatReportIDAnnounce?: number;
 };
 
+type PolicyRole = {
+    /** The role of current user */
+    role?: PolicyValue;
+};
+
 export default Policy;
 
-export type {Unit, CustomUnit};
+export type {Unit, CustomUnit, PolicyRole};

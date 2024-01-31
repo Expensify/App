@@ -63,6 +63,11 @@ type WorkspaceSettingsForm = Form<{
 
 type ReportFieldEditForm = Form<Record<string, string>>;
 
+type EditTaskForm = Form<{
+    title: string;
+    description: string;
+}>;
+
 export default Form;
 
 export type {
@@ -70,6 +75,7 @@ export type {
     DateOfBirthForm,
     PrivateNotesForm,
     DisplayNameForm,
+    EditTaskForm,
     FormValueType,
     NewRoomForm,
     BaseForm,

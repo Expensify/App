@@ -70,7 +70,7 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
 
 type GetOptionsConfig = {
     reportActions?: ReportActions;
-    betas?: Beta[];
+    betas?: OnyxEntry<Beta[]>;
     selectedOptions?: Option[];
     maxRecentReportsToShow?: number;
     excludeLogins?: string[];
@@ -1401,7 +1401,8 @@ function getOptions(
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
         const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
-        const doesReportHaveViolations = betas.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const doesReportHaveViolations =
+            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -1738,9 +1739,9 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  * Build the options for the New Group view
  */
 function getFilteredOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
+    betas: OnyxEntry<Beta[]> = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
     excludeLogins: string[] = [],
@@ -1785,9 +1786,9 @@ function getFilteredOptions(
  */
 
 function getShareDestinationOptions(
-    reports: Record<string, Report>,
+    reports: Record<string, Report | null>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
+    betas: Beta[] | null = [],
     searchValue = '',
     selectedOptions: Array<Partial<ReportUtils.OptionData>> = [],
     excludeLogins: string[] = [],

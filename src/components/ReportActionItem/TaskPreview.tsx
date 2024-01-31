@@ -28,13 +28,8 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyRole, Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type PolicyRole = {
-    /** The role of current user */
-    role: Task.PolicyValue | undefined;
-};
 
 type TaskPreviewOnyxProps = {
     /* Onyx Props */
@@ -153,7 +148,7 @@ export default withCurrentUserPersonalDetails(
         },
         rootParentReportpolicy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '0'}`,
-            selector: (policy: Policy | null) => ({role: policy?.role}),
+            selector: (policy: OnyxEntry<Policy>) => ({role: policy?.role}),
         },
     })(TaskPreview),
 );

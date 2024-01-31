@@ -3685,7 +3685,7 @@ function shouldReportBeInOptionList({
     report: OnyxEntry<Report>;
     currentReportId: string;
     isInGSDMode: boolean;
-    betas: Beta[];
+    betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;

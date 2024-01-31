@@ -1,81 +1,73 @@
 import {useFocusEffect} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, PolicyRole} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
-    /** The report currently being looked at */
-    report: reportPropTypes,
-
+type TaskDescriptionOnyxPageProps = {
     /** The policy of parent report */
-    rootParentReportPolicy: PropTypes.shape({
-        /** The role of current user */
-        role: PropTypes.string,
-    }),
-
-    /* Onyx Props */
-    ...withLocalizePropTypes,
+    rootParentReportPolicy: OnyxEntry<PolicyRole>;
 };
 
-const defaultProps = {
-    report: {},
-    rootParentReportPolicy: {},
-};
+type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & TaskDescriptionOnyxPageProps;
 
 const parser = new ExpensiMark();
-function TaskDescriptionPage(props) {
+
+function TaskDescriptionPage({report, rootParentReportPolicy, currentUserPersonalDetails}: TaskDescriptionPageProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const validate = useCallback(() => ({}), []);
 
     const submit = useCallback(
-        (values) => {
-            // props.report.description might contain CRLF from the server
-            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(props.report.description)) {
+        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+            // report.description might contain CRLF from the server
+            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(report?.description) && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
-                Task.editTask(props.report, {description: values.description});
+                Task.editTask(report, {description: values.description});
             }
 
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModal(report?.reportID);
         },
-        [props],
+        [report],
     );
 
-    if (!ReportUtils.isTaskReport(props.report)) {
+    if (!ReportUtils.isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(props.report.reportID);
+            Navigation.dismissModal(report?.reportID);
         });
     }
-    const inputRef = useRef(null);
-    const focusTimeoutRef = useRef(null);
+    const inputRef = useRef<AnimatedTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
-    const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
+    const isOpen = ReportUtils.isOpenTaskReport(report);
+    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID, rootParentReportPolicy?.role);
+    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     useFocusEffect(
         useCallback(() => {
@@ -100,13 +92,13 @@ function TaskDescriptionPage(props) {
             testID={TaskDescriptionPage.displayName}
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                <HeaderWithBackButton title={props.translate('task.task')} />
+                <HeaderWithBackButton title={translate('task.task')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                     validate={validate}
                     onSubmit={submit}
-                    submitButtonText={props.translate('common.save')}
+                    submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
                     <View style={[styles.mb4]}>
@@ -115,14 +107,14 @@ function TaskDescriptionPage(props) {
                             role={CONST.ROLE.PRESENTATION}
                             inputID="description"
                             name="description"
-                            label={props.translate('newTaskPage.descriptionOptional')}
-                            accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parser.htmlToMarkdown((props.report && parser.replace(props.report.description)) || '')}
-                            ref={(el) => {
-                                if (!el) {
+                            label={translate('newTaskPage.descriptionOptional')}
+                            accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                            defaultValue={parser.htmlToMarkdown((report && parser.replace(report?.description ?? '')) ?? '')}
+                            ref={(element: AnimatedTextInputRef) => {
+                                if (!element) {
                                     return;
                                 }
-                                inputRef.current = el;
+                                inputRef.current = element;
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
@@ -136,24 +128,18 @@ function TaskDescriptionPage(props) {
     );
 }
 
-TaskDescriptionPage.propTypes = propTypes;
-TaskDescriptionPage.defaultProps = defaultProps;
 TaskDescriptionPage.displayName = 'TaskDescriptionPage';
 
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withReportOrNotFound(),
-    withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+const ComponentWithOnyx = withOnyx<TaskDescriptionPageProps, TaskDescriptionOnyxPageProps>({
+    rootParentReportPolicy: {
+        key: ({report}) => {
+            const rootParentReport = ReportUtils.getRootParentReport(report);
+            return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
         },
-        rootParentReportPolicy: {
-            key: ({report}) => {
-                const rootParentReport = ReportUtils.getRootParentReport(report);
-                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
-            },
-            selector: (policy) => _.pick(policy, ['role']),
-        },
-    }),
-)(TaskDescriptionPage);
+        selector: (policy: OnyxEntry<Policy>) => ({role: policy?.role}),
+    },
+})(TaskDescriptionPage);
+
+const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(ComponentWithOnyx);
+
+export default withReportOrNotFound()(ComponentWithCurrentUserPersonalDetails);

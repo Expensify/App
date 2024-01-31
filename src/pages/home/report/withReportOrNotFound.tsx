@@ -7,9 +7,11 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -24,9 +26,11 @@ type WithReportOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
-    route: RouteProp<{params: {reportID: string}}>;
+type WithReportOrNotFoundRoute = {
+    route: RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 };
+
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & WithReportOrNotFoundRoute;
 
 export default function (
     shouldRequireReportID = true,

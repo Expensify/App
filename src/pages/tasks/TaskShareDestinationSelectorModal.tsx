@@ -1,87 +1,79 @@
-/* eslint-disable es/no-optional-chaining */
-import PropTypes from 'prop-types';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
-import compose from '@libs/compose';
+import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Beta, PersonalDetailsList, Report} from '@src/types/onyx';
 
-const propTypes = {
-    /* Onyx Props */
+type TaskShareDestinationSelectorModalOnyxProps = {
+    betas: OnyxEntry<Beta[]>;
 
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    reports: OnyxCollection<Report>;
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    isSearchingForReports: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    betas: [],
-    personalDetails: {},
-    reports: {},
-    isSearchingForReports: false,
-};
+type TaskShareDestinationSelectorModalProps = TaskShareDestinationSelectorModalOnyxProps;
 
-function TaskShareDestinationSelectorModal(props) {
+function TaskShareDestinationSelectorModal({reports, isSearchingForReports, personalDetails, betas}: TaskShareDestinationSelectorModalProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState([]);
+    const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
 
     const {inputCallbackRef} = useAutoFocusInput();
-    const {isSearchingForReports} = props;
     const {isOffline} = useNetwork();
 
     const filteredReports = useMemo(() => {
-        const reports = {};
-        _.keys(props.reports).forEach((reportKey) => {
+        const filtered: Record<string, Report | null> = {};
+
+        if (!reports) {
+            return filtered;
+        }
+
+        Object.keys(reports).forEach((reportKey) => {
             if (
-                !ReportUtils.canUserPerformWriteAction(props.reports[reportKey]) ||
-                !ReportUtils.canCreateTaskInReport(props.reports[reportKey]) ||
-                ReportUtils.isCanceledTaskReport(props.reports[reportKey])
+                !ReportUtils.canUserPerformWriteAction(reports[reportKey]) ||
+                !ReportUtils.canCreateTaskInReport(reports[reportKey]) ||
+                ReportUtils.isCanceledTaskReport(reports[reportKey])
             ) {
                 return;
             }
-            reports[reportKey] = props.reports[reportKey];
+
+            filtered[reportKey] = reports[reportKey];
         });
-        return reports;
-    }, [props.reports]);
+
+        return filtered;
+    }, [reports]);
+
     const updateOptions = useCallback(() => {
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, personalDetails, betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
 
         setFilteredRecentReports(recentReports);
-    }, [props, searchValue, filteredReports]);
+    }, [filteredReports, personalDetails, betas, searchValue]);
 
     useEffect(() => {
-        const debouncedSearch = _.debounce(updateOptions, 150);
+        const debouncedSearch = debounce(updateOptions, 150);
         debouncedSearch();
         return () => {
             debouncedSearch.cancel();
@@ -104,7 +96,7 @@ function TaskShareDestinationSelectorModal(props) {
         return sections;
     };
 
-    const selectReport = (option) => {
+    const selectReport = (option: ReportUtils.OptionData) => {
         if (!option) {
             return;
         }
@@ -117,7 +109,7 @@ function TaskShareDestinationSelectorModal(props) {
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
+        ReportActions.searchInServer(text);
         setSearchValue(text);
     }, []);
 
@@ -131,11 +123,12 @@ function TaskShareDestinationSelectorModal(props) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('newTaskPage.shareSomewhere')}
+                        title={translate('newTaskPage.shareSomewhere')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
+                            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
                             sections={sections}
                             onSelectRow={selectReport}
                             onChangeText={setSearchTermAndSearchInServer}
@@ -144,8 +137,8 @@ function TaskShareDestinationSelectorModal(props) {
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${props.translate('common.youAppearToBeOffline')} ${props.translate('search.resultsAreLimited')}` : ''}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
                             ref={inputCallbackRef}
@@ -159,24 +152,19 @@ function TaskShareDestinationSelectorModal(props) {
 }
 
 TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
-TaskShareDestinationSelectorModal.propTypes = propTypes;
-TaskShareDestinationSelectorModal.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
-    }),
-)(TaskShareDestinationSelectorModal);
+export default withOnyx<TaskShareDestinationSelectorModalProps, TaskShareDestinationSelectorModalProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(TaskShareDestinationSelectorModal);
