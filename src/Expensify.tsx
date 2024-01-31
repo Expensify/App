@@ -11,6 +11,7 @@ import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
+import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
@@ -35,7 +36,6 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ScreenShareRequest, Session} from './types/onyx';
-import CONST from './CONST';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -63,7 +63,7 @@ type ExpensifyOnyxProps = {
     screenShareRequest: OnyxEntry<ScreenShareRequest>;
 
     /** True when the user must update to the latest minimum version of the app */
-    updateRequired: OnyxEntry<boolean>,
+    updateRequired: OnyxEntry<boolean>;
 
     /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: OnyxEntry<boolean>;
