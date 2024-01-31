@@ -60,7 +60,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
-    const isActionOwner = parentReportAction.actorAccountID === (session?.accountID ?? null);
+    const isActionOwner = typeof parentReportAction.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(parentReportAction.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
