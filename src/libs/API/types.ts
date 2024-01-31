@@ -18,7 +18,6 @@ const WRITE_COMMANDS = {
     VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS: 'ValidateBankAccountWithTransactions',
     UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT: 'UpdateCompanyInformationForBankAccount',
     UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT: 'UpdateBeneficialOwnersForBankAccount',
-    ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
     CONNECT_BANK_ACCOUNT_MANUALLY: 'ConnectBankAccountManually',
     VERIFY_IDENTITY_FOR_BANK_ACCOUNT: 'VerifyIdentityForBankAccount',
     BANK_ACCOUNT_HANDLE_PLAID_ERROR: 'BankAccount_HandlePlaidError',
@@ -114,6 +113,7 @@ const WRITE_COMMANDS = {
     COMPLETE_TASK: 'CompleteTask',
     COMPLETE_ENGAGEMENT_MODAL: 'CompleteEngagementModal',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
+    ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -224,6 +224,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL]: Parameters.CompleteEngagementModalParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
+    [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
 };
 
 const READ_COMMANDS = {

@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';

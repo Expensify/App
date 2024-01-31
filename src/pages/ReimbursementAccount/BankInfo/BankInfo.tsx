@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';

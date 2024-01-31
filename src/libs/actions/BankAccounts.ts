@@ -7,7 +7,6 @@ import type {
     ConnectBankAccountWithPlaidParams,
     DeletePaymentBankAccountParams,
     OpenReimbursementAccountPageParams,
-    UpdatePersonalInformationForBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -20,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, OnfidoData, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -173,10 +172,10 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  */
 function addPersonalBankAccount(account: PlaidBankAccount) {
     const parameters: AddPersonalBankAccountParams = {
-        addressName: account.addressName,
+        addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
         accountNumber: account.accountNumber,
-        isSavings: account.isSavings,
+        isSavings: account.isSavings ?? false,
         setupType: 'plaid',
         bank: account.bankName,
         plaidAccountID: account.plaidAccountID,
@@ -252,7 +251,7 @@ function deletePaymentBankAccount(bankAccountID: number) {
  *
  * This action is called by the requestor step in the Verified Bank Account flow
  */
-function updatePersonalInformationForBankAccount(bankAccountID: number, params: UpdatePersonalInformationForBankAccountParams) {
+function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps) {
     API.write(
         WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT,
         {
