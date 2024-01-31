@@ -64,6 +64,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const loginData = loginList[contactMethod];
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldDisableResendValidateCode = isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -79,8 +80,10 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
-            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focusLastSelected, CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => {
+                // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
+                inputValidateCodeRef.current.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
         },
     }));
 
@@ -92,8 +95,10 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
-            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focusLastSelected, CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => {
+                // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
+                inputValidateCodeRef.current.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -201,6 +206,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             messages={{0: 'resendValidationForm.linkHasBeenResent'}}
                         />
                     )}
