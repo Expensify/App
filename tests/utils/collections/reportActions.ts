@@ -1,4 +1,5 @@
 import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -17,15 +18,11 @@ const flattenActionNamesValues = (actionNames: any) => {
     return result;
 };
 
-const addZero = (value: number): string | number => (value < 10 ? `0${value}` : value);
-
 const getRandomDate = (): string => {
     const randomTimestamp = Math.random() * new Date().getTime();
     const randomDate = new Date(randomTimestamp);
 
-    const formattedDate = `${randomDate.getFullYear()}-${addZero(randomDate.getMonth() + 1)}-${addZero(randomDate.getDate())} ${addZero(randomDate.getHours())}:${addZero(
-        randomDate.getMinutes(),
-    )}:${addZero(randomDate.getSeconds())}.${randomDate.getMilliseconds()}`;
+    const formattedDate = format(randomDate, CONST.DATE.FNS_DB_FORMAT_STRING);
 
     return formattedDate;
 };

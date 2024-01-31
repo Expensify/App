@@ -247,7 +247,7 @@ test('[ReportScreen] should press of the report item', () => {
 
         await act(triggerTransitionEnd);
 
-        // // Query for the report list
+        // Query for the report list
         await screen.findByTestId('report-actions-list');
 
         const hintReportPreviewText = Localize.translateLocal('iou.viewDetails');
