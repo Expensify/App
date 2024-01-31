@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
@@ -33,10 +34,37 @@ function switchToOldDot() {
         return;
     }
 
-    API.write('SwitchToOldDot', {
-        reason: exitReason,
-        surveyResponse: exitSurveyResponse,
-    });
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT,
+            value: null,
+        },
+    ];
+
+    API.write(
+        'SwitchToOldDot',
+        {
+            reason: exitReason,
+            surveyResponse: exitSurveyResponse,
+        },
+        {finallyData},
+    );
 }
 
 export {saveExitReason, saveResponse, switchToOldDot};
