@@ -1,7 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemList from '@components/MenuItemList';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,11 +15,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import LottieAnimations from '../../components/LottieAnimations';
-import type {MenuItemProps} from '../../components/MenuItem';
-import MenuItemList from '../../components/MenuItemList';
-import Text from '../../components/Text';
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
