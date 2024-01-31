@@ -65,10 +65,9 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
 
     const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
-    const contextMenuTargetNode = useRef<HTMLElement | null>(null);
+    const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
@@ -166,7 +165,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
-        contextMenuTargetNode.current = event.target as HTMLElement;
+        contextMenuTargetNode.current = event.target as HTMLDivElement;
 
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
@@ -307,7 +306,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<ReportA
                 shouldSetModalVisibility={false}
                 fullscreen
                 withoutOverlay
-                anchorRef={anchorRef}
+                anchorRef={contextMenuTargetNode}
             >
                 <BaseReportActionContextMenu
                     isVisible
