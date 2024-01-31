@@ -47,14 +47,14 @@ function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: I
             onSubmit={handleSubmit}
             style={[styles.mh0, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadline, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
+            <Text style={[styles.textHeadline, styles.ph5, styles.mt5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
             <InputWrapper
                 InputComponent={StatePicker}
                 inputID={COMPANY_INCORPORATION_STATE_KEY}
                 label={translate('businessInfoStep.incorporationState')}
                 defaultValue={defaultCompanyIncorporationState}
                 shouldSaveDraft={!isEditing}
-                wrapperStyle={[styles.ph5, styles.mt4]}
+                wrapperStyle={[styles.ph5, styles.mt3]}
             />
         </FormProvider>
     );

@@ -279,9 +279,9 @@ function AddPlaidBankAccount({
     if (isDisplayedInNewVBBA) {
         return (
             <FullPageOfflineBlockingView>
-                <Text style={[styles.mb5, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
-                {!_.isEmpty(text) && <Text style={[styles.mb5]}>{text}</Text>}
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                <Text style={[styles.mt5, styles.mb3, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
+                {!_.isEmpty(text) && <Text style={[styles.mb6, styles.textLabel, styles.textSupporting]}>{text}</Text>}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                     <Icon
                         src={icon}
                         height={iconSize}
@@ -299,6 +299,7 @@ function AddPlaidBankAccount({
                     items={options}
                     defaultCheckedValue={defaultSelectedPlaidAccountID}
                     onPress={handleSelectingPlaidAccount}
+                    radioButtonStyle={[styles.mb6]}
                 />
                 <FormHelpMessage message={errorText} />
             </FullPageOfflineBlockingView>

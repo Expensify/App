@@ -60,9 +60,9 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
     return (
         <ScreenWrapper
             testID={ConfirmAgreements.displayName}
-            style={[styles.pt3]}
+            style={[styles.pt5]}
         >
-            <Text style={[styles.textHeadline, styles.ph5, styles.mb3]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
+            <Text style={[styles.textHeadline, styles.ph5]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}
@@ -74,7 +74,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
                     inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
-                    style={styles.mt4}
+                    style={styles.mt6}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.isAuthorizedToUseBankAccount')}</Text>}
                     defaultValue={defaultValues.isAuthorizedToUseBankAccount}
                     shouldSaveDraft
@@ -83,7 +83,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
                     inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
-                    style={styles.mt4}
+                    style={styles.mt6}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.certifyTrueAndAccurate')}</Text>}
                     defaultValue={defaultValues.certifyTrueInformation}
                     shouldSaveDraft
@@ -92,7 +92,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
                     inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}
-                    style={styles.mt4}
+                    style={styles.mt6}
                     LabelComponent={() => (
                         <Text>
                             {translate('common.iAcceptThe')}

@@ -60,14 +60,14 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={styles.textHeadline}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
+            <Text style={[styles.textHeadline, styles.mt5]}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.businessName')}
                 aria-label={translate('businessInfoStep.businessName')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={COMPANY_NAME_KEY}
-                containerStyles={[styles.mt4]}
+                containerStyles={[styles.mt6]}
                 disabled={shouldDisableCompanyName}
                 defaultValue={defaultCompanyName}
                 shouldSaveDraft={!isEditing}

@@ -77,7 +77,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
             submitButtonStyles={[styles.mb0, styles.pb5]}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadline]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
+            <Text style={[styles.textHeadline, styles.mt5]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
             <Text>{translate('common.noPO')}</Text>
             <AddressForm
                 inputKeys={INPUT_KEYS}

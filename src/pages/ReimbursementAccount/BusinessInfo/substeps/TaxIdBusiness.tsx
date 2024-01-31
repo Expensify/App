@@ -58,7 +58,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
+            <Text style={[styles.textHeadline, styles.mt5]}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={COMPANY_TAX_ID_KEY}
@@ -70,7 +70,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessP
                 disabled={shouldDisableCompanyTaxID}
                 shouldSaveDraft={!isEditing}
                 shouldUseDefaultValue={shouldDisableCompanyTaxID}
-                containerStyles={[styles.mt4]}
+                containerStyles={[styles.mt6]}
                 placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
             />
         </FormProvider>

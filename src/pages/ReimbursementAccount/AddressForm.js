@@ -102,12 +102,11 @@ function AddressForm(props) {
                     inputID={props.inputKeys.street}
                     shouldSaveDraft={props.shouldSaveDraft}
                     label={props.translate(props.streetTranslationKey)}
-                    containerStyles={[styles.mt4]}
+                    containerStyles={[styles.mt6]}
                     value={props.values.street}
                     defaultValue={props.defaultValues.street}
                     onInputChange={props.onFieldChange}
                     errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
-                    hint={props.translate('common.noPO')}
                     renamedInputKeys={props.inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     isLimitedToUSA
@@ -124,10 +123,10 @@ function AddressForm(props) {
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                containerStyles={[styles.mt4]}
+                containerStyles={[styles.mt6]}
             />
 
-            <View style={[styles.mt4, styles.mhn5]}>
+            <View style={[styles.mt6, styles.mhn5]}>
                 <InputWrapper
                     InputComponent={StatePicker}
                     inputID={props.inputKeys.state}
@@ -151,7 +150,7 @@ function AddressForm(props) {
                 onChangeText={(value) => props.onFieldChange({zipCode: value})}
                 errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                containerStyles={[styles.mt2]}
+                containerStyles={[styles.mt5]}
             />
         </>
     );

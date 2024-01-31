@@ -4174,7 +4174,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             alignSelf: 'center',
             flexDirection: 'row',
-            paddingBottom: 24,
         },
 
         interactiveStepHeaderStepContainer: {

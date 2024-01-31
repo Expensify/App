@@ -69,13 +69,12 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
+            <Text style={[styles.textHeadline, styles.mv5]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
             {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
             <InputWrapper<unknown>
                 InputComponent={DatePicker}
                 inputID={PERSONAL_INFO_DOB_KEY}
                 label={translate('common.dob')}
-                containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}
                 defaultValue={dobDefaultValue}
                 minDate={minDate}

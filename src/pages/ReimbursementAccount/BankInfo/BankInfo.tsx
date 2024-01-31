@@ -127,7 +127,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.bankInfo')}
             />
-            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={0}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}

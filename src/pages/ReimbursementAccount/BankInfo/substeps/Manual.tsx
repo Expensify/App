@@ -73,8 +73,8 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadline, styles.mb3]}>{translate('bankAccount.manuallyAdd')}</Text>
-            <Text style={[styles.mb5, styles.textLabel]}>{translate('bankAccount.checkHelpLine')}</Text>
+            <Text style={[styles.textHeadline, styles.mb3, styles.mt5]}>{translate('bankAccount.manuallyAdd')}</Text>
+            <Text style={[styles.mb5, styles.textLabel, styles.textSupporting]}>{translate('bankAccount.checkHelpLine')}</Text>
             <ExampleCheckImage />
             <InputWrapper
                 InputComponent={TextInput}
@@ -91,7 +91,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER}
-                containerStyles={[styles.mt4]}
+                containerStyles={[styles.mt6]}
                 label={translate('bankAccount.accountNumber')}
                 aria-label={translate('bankAccount.accountNumber')}
                 role={CONST.ROLE.PRESENTATION}

@@ -1,10 +1,9 @@
 import type {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +12,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
@@ -53,8 +51,6 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
 
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
-
     const defaultCheckboxState = reimbursementAccountDraft?.[BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
 
     return (
@@ -63,7 +59,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
             style={[styles.pt0]}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadline, styles.ph5, styles.mb0]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadline, styles.ph5, styles.mt5, styles.mb3]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.businessName')}
                     title={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}
@@ -148,19 +144,10 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                                 <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
                             </Text>
                         )}
-                        style={[styles.mt4]}
+                        style={[styles.mt3]}
                         shouldSaveDraft
                     />
                 </FormProvider>
-                <View style={[styles.ph5, styles.mtAuto]}>
-                    {error.length > 0 && (
-                        <DotIndicatorMessage
-                            textStyles={[styles.formError]}
-                            type="error"
-                            messages={{error}}
-                        />
-                    )}
-                </View>
             </ScrollView>
         </ScreenWrapper>
     );

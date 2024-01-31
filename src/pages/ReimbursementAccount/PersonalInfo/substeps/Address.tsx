@@ -76,8 +76,8 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
             style={[styles.mh5, styles.flexGrow1]}
         >
             <View>
-                <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterYourAddress')}</Text>
-                <Text>{translate('common.noPO')}</Text>
+                <Text style={[styles.textHeadline, styles.mt5, styles.mb3]}>{translate('personalInfoStep.enterYourAddress')}</Text>
+                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('common.noPO')}</Text>
                 <AddressForm
                     inputKeys={INPUT_KEYS}
                     translate={translate}
@@ -85,7 +85,7 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
                 />
-                <HelpLinks containerStyles={[styles.mt5]} />
+                <HelpLinks containerStyles={[styles.mt6]} />
             </View>
         </FormProvider>
     );

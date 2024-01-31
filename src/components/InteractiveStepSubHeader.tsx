@@ -92,7 +92,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                                     fill={colors.white}
                                 />
                             ) : (
-                                <Text style={styles.interactiveStepHeaderStepText}>{index + 1}</Text>
+                                <Text style={[styles.interactiveStepHeaderStepText, isLockedStep && styles.textSupporting]}>{index + 1}</Text>
                             )}
                         </PressableWithFeedback>
                         {hasUnion ? <View style={[styles.interactiveStepHeaderStepLine, isLockedLine && styles.interactiveStepHeaderLockedStepLine]} /> : null}

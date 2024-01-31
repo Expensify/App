@@ -52,14 +52,14 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={styles.textHeadline}>{translate('beneficialOwnerInfoStep.enterLegalFirstAndLastName')}</Text>
+            <Text style={[styles.textHeadline, styles.mt5]}>{translate('beneficialOwnerInfoStep.enterLegalFirstAndLastName')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={firstNameInputID}
-                containerStyles={[styles.mt4]}
+                containerStyles={[styles.mt6]}
                 defaultValue={defaultFirstName}
                 shouldSaveDraft={!isEditing}
             />
@@ -69,7 +69,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
                 aria-label={translate('beneficialOwnerInfoStep.legalLastName')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={lastNameInputID}
-                containerStyles={[styles.mt4]}
+                containerStyles={[styles.mt6]}
                 defaultValue={defaultLastName}
                 shouldSaveDraft={!isEditing}
             />

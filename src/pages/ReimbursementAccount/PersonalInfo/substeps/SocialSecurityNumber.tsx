@@ -59,8 +59,8 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterTheLast4')}</Text>
-                <Text style={[styles.mb3]}>{translate('personalInfoStep.dontWorry')}</Text>
+                <Text style={[styles.textHeadline, styles.mt5, styles.mb3]}>{translate('personalInfoStep.enterTheLast4')}</Text>
+                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('personalInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -68,7 +68,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
                         label={translate('personalInfoStep.last4SSN')}
                         aria-label={translate('personalInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt4]}
+                        containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}

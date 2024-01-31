@@ -56,18 +56,18 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
+            <Text style={[styles.textHeadline, styles.mt5]}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={COMPANY_PHONE_NUMBER_KEY}
                 label={translate('common.phoneNumber')}
                 aria-label={translate('common.phoneNumber')}
                 role={CONST.ROLE.PRESENTATION}
-                containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.TEL}
                 placeholder={translate('common.phoneNumberPlaceholder')}
                 defaultValue={defaultCompanyPhoneNumber}
                 shouldSaveDraft={!isEditing}
+                containerStyles={[styles.mt6]}
             />
         </FormProvider>
     );

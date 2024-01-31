@@ -58,8 +58,8 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadline]}>{translate('beneficialOwnerInfoStep.enterTheLast4')}</Text>
-                <Text style={[styles.mb3]}>{translate('beneficialOwnerInfoStep.dontWorry')}</Text>
+                <Text style={[styles.textHeadline, styles.mt5, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheLast4')}</Text>
+                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -67,7 +67,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
                         label={translate('beneficialOwnerInfoStep.last4SSN')}
                         aria-label={translate('beneficialOwnerInfoStep.last4SSN')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt4]}
+                        containerStyles={[styles.mt6]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}

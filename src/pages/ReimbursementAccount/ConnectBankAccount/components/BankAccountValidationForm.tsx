@@ -96,7 +96,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
                     InputComponent={TextInput}
                     inputID="amount1"
                     shouldSaveDraft
-                    containerStyles={[styles.mb1]}
+                    containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 1`}
                 />
@@ -104,7 +104,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
                     InputComponent={TextInput}
                     inputID="amount2"
                     shouldSaveDraft
-                    containerStyles={[styles.mb1]}
+                    containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 2`}
                 />
@@ -112,7 +112,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount}
                     InputComponent={TextInput}
                     shouldSaveDraft
                     inputID="amount3"
-                    containerStyles={[styles.mb1]}
+                    containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 3`}
                 />

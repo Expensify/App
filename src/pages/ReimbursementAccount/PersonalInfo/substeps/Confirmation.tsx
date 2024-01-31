@@ -40,10 +40,10 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     return (
         <ScreenWrapper
             testID={Confirmation.displayName}
-            style={[styles.pt0]}
+            style={[styles.pt5]}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadline, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('personalInfoStep.legalName')}
                     title={`${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`}

@@ -223,7 +223,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
                 title={translate('beneficialOwnerInfoStep.companyOwner')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={4}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}

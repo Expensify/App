@@ -54,12 +54,13 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
                 style={[styles.mh5, styles.flexGrow1]}
                 submitButtonStyles={[styles.pb5, styles.mb0]}
             >
-                <Text style={styles.textHeadline}>{title}</Text>
-                <Text style={styles.pv5}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+                <Text style={[styles.textHeadline, styles.mt5]}>{title}</Text>
+                <Text style={[styles.pv3, styles.textLabel, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
                 <RadioButtons
                     items={options}
                     onPress={handleSelectUBOValue}
                     defaultCheckedValue={defaultValue.toString()}
+                    radioButtonStyle={[styles.mb6]}
                 />
             </FormProvider>
         </ScreenWrapper>
