@@ -7,6 +7,7 @@ import _ from 'underscore';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -73,6 +74,9 @@ const propTypes = {
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
     }),
+
+    /** The reportID of the request */
+    reportID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -88,6 +92,7 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
+    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -109,9 +114,7 @@ function HeaderView(props) {
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(props.report, isPolicyMember);
@@ -133,18 +136,18 @@ function HeaderView(props) {
         }
 
         // Task is not closed
-        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && canModifyTask) {
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && props.report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.deleteTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
+                onSelected: () => setIsDeleteTaskConfirmModalVisible(true),
             });
         }
     }
 
     const join = Session.checkIfActionIsAllowed(() =>
         Report.updateNotificationPreference(
-            props.report.reportID,
+            props.reportID,
             props.report.notificationPreference,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             false,
@@ -153,7 +156,7 @@ function HeaderView(props) {
         ),
     );
 
-    const canJoinOrLeave = (isChatThread && !isEmptyChat) || isUserCreatedPolicyRoom || canLeaveRoom;
+    const canJoinOrLeave = isChatThread || isUserCreatedPolicyRoom || canLeaveRoom;
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
@@ -163,11 +166,11 @@ function HeaderView(props) {
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.report.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
+            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(props.reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
         });
     }
 
@@ -216,7 +219,7 @@ function HeaderView(props) {
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
-    const isLoading = !props.report || !title;
+    const isLoading = !props.report || !props.report.reportID || !title;
 
     return (
         <View
@@ -316,11 +319,24 @@ function HeaderView(props) {
                                     )}
                                 </View>
                             </View>
+                            <ConfirmModal
+                                isVisible={isDeleteTaskConfirmModalVisible}
+                                onConfirm={() => {
+                                    setIsDeleteTaskConfirmModalVisible(false);
+                                    Session.checkIfActionIsAllowed(Task.deleteTask(props.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
+                                }}
+                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
+                                title={translate('task.deleteTask')}
+                                prompt={translate('task.deleteConfirmation')}
+                                confirmText={translate('common.delete')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                            />
                         </>
                     )}
                 </View>
             </View>
-            {canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }

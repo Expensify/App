@@ -22,6 +22,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskUtils from '@libs/TaskUtils';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -32,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyRole = {
     /** The role of current user */
-    role: string;
+    role: Task.PolicyValue | undefined;
 };
 
 type TaskPreviewOnyxProps = {
@@ -63,7 +64,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         chatReportID: string;
 
         /** Popover context menu anchor, used for showing context menu */
-        contextMenuAnchor: Element;
+        contextMenuAnchor: ContextMenuAnchor;
 
         /** Callback for updating context menu active state, used for showing context menu */
         checkIfContextMenuActive: () => void;
@@ -84,14 +85,15 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
+
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompleted = !isEmptyObject(taskReport)
-        ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
-        : action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
+        ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
+        : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport ?? {}) ?? action?.childManagerAccountID ?? '';
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? '';
     const assigneeLogin = personalDetails[taskAssigneeAccountID]?.login ?? '';
     const assigneeDisplayName = personalDetails[taskAssigneeAccountID]?.displayName ?? '';
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
@@ -111,7 +113,7 @@ function TaskPreview({
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action ?? {}, checkIfContextMenuActive)}
+                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
@@ -121,12 +123,12 @@ function TaskPreview({
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(taskReport ?? {}, currentUserPersonalDetails.accountID, rootParentReportpolicy?.role ?? '')}
+                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID, rootParentReportpolicy?.role)}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(taskReport ?? {});
+                                Task.reopenTask(taskReport);
                             } else {
-                                Task.completeTask(taskReport ?? {});
+                                Task.completeTask(taskReport);
                             }
                         })}
                         accessibilityLabel={translate('task.task')}
@@ -151,7 +153,7 @@ export default withCurrentUserPersonalDetails(
         },
         rootParentReportpolicy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '0'}`,
-            selector: (policy: Policy | null) => ({role: policy?.role ?? ''}),
+            selector: (policy: Policy | null) => ({role: policy?.role}),
         },
     })(TaskPreview),
 );

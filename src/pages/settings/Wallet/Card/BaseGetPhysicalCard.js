@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@libs/actions/FormActions';
 import * as Wallet from '@libs/actions/Wallet';
@@ -186,8 +186,8 @@ function BaseGetPhysicalCard({
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
-            const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
-            const cardID = virtualCard.cardID;
+            const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+            const cardID = physicalCard.cardID;
             Wallet.requestPhysicalExpensifyCard(cardID, authToken, updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx

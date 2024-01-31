@@ -184,7 +184,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     }
 
     const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState())?.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
-    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute);
+    const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
