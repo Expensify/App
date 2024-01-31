@@ -373,9 +373,8 @@ function getOptionData({
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
                     : Localize.translate(preferredLocale, 'workspace.invite.removed');
             const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            const actorDisplayName = ReportUtils.getDisplayNameForParticipant(lastAction.actorAccountID);
-            result.alternateText =
-                lastAction.actorAccountID === currentUserAccountID ? `${verb} ${targetAccountIDs.length} ${users}` : `${actorDisplayName} ${verb} ${targetAccountIDs.length} ${users}`;
+            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
+
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
                 const preposition =
