@@ -134,7 +134,6 @@ function PurposeForUsingExpensifyModal() {
             backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
             onCloseButtonPress={navigateBack}
             illustration={LottieAnimations.Hands}
-            iconFill={theme.iconColorfulBackground}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
                 <Text
