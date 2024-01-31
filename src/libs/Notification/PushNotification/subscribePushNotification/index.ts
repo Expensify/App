@@ -4,19 +4,6 @@ import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNo
 import ONYXKEYS from '@src/ONYXKEYS';
 import PushNotification from '..';
 
-export default function subscribePushNotification(notificationID: OnyxEntry<string>) {
-    if (notificationID) {
-        PushNotification.register(notificationID);
-
-        // Prevent issue where report linking fails after users switch accounts without closing the app
-        PushNotification.init();
-        subscribeToReportCommentPushNotifications();
-    } else {
-        PushNotification.deregister();
-        PushNotification.clearNotifications();
-    }
-}
-
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  *
@@ -26,6 +13,15 @@ export default function subscribePushNotification(notificationID: OnyxEntry<stri
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
-        subscribePushNotification(notificationID);
+        if (notificationID) {
+            PushNotification.register(notificationID);
+
+            // Prevent issue where report linking fails after users switch accounts without closing the app
+            PushNotification.init();
+            subscribeToReportCommentPushNotifications();
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
     },
 });

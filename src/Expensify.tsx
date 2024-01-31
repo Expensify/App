@@ -25,7 +25,7 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
+import './libs/Notification/PushNotification/subscribePushNotification';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -46,11 +46,22 @@ Onyx.registerLogger(({level, message}) => {
 });
 
 type ExpensifyOnyxProps = {
+    /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;
+
+    /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
+
+    /** Whether a new update is available and ready to install. */
     updateAvailable: OnyxEntry<boolean>;
+
+    /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
+
+    /** Information about a screen share call requested by a GuidesPlus agent */
     screenShareRequest: OnyxEntry<ScreenShareRequest>;
+
+    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: OnyxEntry<boolean>;
 };
 
@@ -130,7 +141,7 @@ function Expensify({
                 Log.info('[BootSplash] splash screen status', false, {appState, status});
 
                 if (status === 'visible') {
-                    const propsToLog = {
+                    const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
                         isCheckingPublicRoom,
                         updateAvailable,
                         isSidebarLoaded,
