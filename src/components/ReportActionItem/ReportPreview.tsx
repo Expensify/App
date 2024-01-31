@@ -229,7 +229,7 @@ function ReportPreview({
     }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <OfflineWithFeedback 
+        <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={action.pendingAction !== undefined || action.isOptimisticAction === true}
         >
