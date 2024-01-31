@@ -15,6 +15,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import OnboardEngagementScreenWrapper from './OnboardEngagementScreenWrapper';
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {
@@ -103,27 +104,29 @@ function PurposeForUsingExpensifyModal() {
     );
 
     return (
-        <IllustratedHeaderPageLayout
-            shouldShowCloseButton
-            shouldShowBackButton={false}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
-            onCloseButtonPress={navigateBack}
-            illustration={LottieAnimations.Hands}
-        >
-            <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
-                <Text
-                    style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                    numberOfLines={2}
-                >
-                    {translate('purposeForExpensify.welcomeMessage')}
-                </Text>
-                <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
-            </View>
-            <MenuItemList
-                menuItems={menuItems}
-                shouldUseSingleExecution
-            />
-        </IllustratedHeaderPageLayout>
+        <OnboardEngagementScreenWrapper>
+            <IllustratedHeaderPageLayout
+                shouldShowCloseButton
+                shouldShowBackButton={false}
+                backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
+                onCloseButtonPress={navigateBack}
+                illustration={LottieAnimations.Hands}
+            >
+                <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
+                    <Text
+                        style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                        numberOfLines={2}
+                    >
+                        {translate('purposeForExpensify.welcomeMessage')}
+                    </Text>
+                    <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+                </View>
+                <MenuItemList
+                    menuItems={menuItems}
+                    shouldUseSingleExecution
+                />
+            </IllustratedHeaderPageLayout>
+        </OnboardEngagementScreenWrapper>
     );
 }
 

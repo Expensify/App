@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import OnboardEngagementScreenWrapperProps from './OnboardEngagementScreenWrapper';
 
 const TEAMS_EXPENSE_CHOICE = {
     MULTI_LEVEL: 'Multi level approval',
@@ -82,48 +83,50 @@ function ManageTeamsExpensesModal() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={ManageTeamsExpensesModal.displayName}
-        >
-            <View style={[styles.flex1]}>
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={navigateBack}
-                    iconFill={theme.iconColorfulBackground}
-                />
+        <OnboardEngagementScreenWrapperProps>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={ManageTeamsExpensesModal.displayName}
+            >
+                <View style={[styles.flex1]}>
+                    <HeaderWithBackButton
+                        shouldShowBackButton
+                        onBackButtonPress={navigateBack}
+                        iconFill={theme.iconColorfulBackground}
+                    />
 
-                <ScrollView contentContainerStyle={[styles.flex1, styles.ph5]}>
-                    <View style={styles.w100}>
-                        <Text
-                            style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                            numberOfLines={2}
-                        >
-                            Do you require any of the following features
-                        </Text>
+                    <ScrollView contentContainerStyle={[styles.flex1, styles.ph5]}>
+                        <View style={styles.w100}>
+                            <Text
+                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                                numberOfLines={2}
+                            >
+                                Do you require any of the following features
+                            </Text>
+                        </View>
+                        <MenuItemList
+                            menuItems={menuItems}
+                            shouldUseSingleExecution
+                        />
+                    </ScrollView>
+                    <View style={[styles.flexRow, styles.ph5, styles.pv4]}>
+                        <Button
+                            medium={isExtraSmallScreenHeight}
+                            style={[styles.flexGrow1, styles.mr1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            text={translate('common.no')}
+                            onPress={completeEngagement}
+                        />
+                        <Button
+                            pressOnEnter
+                            medium={isExtraSmallScreenHeight}
+                            style={[styles.flexGrow1, styles.ml1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            text={translate('common.yes')}
+                            onPress={navigateToExpensifyClassicPage}
+                        />
                     </View>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        shouldUseSingleExecution
-                    />
-                </ScrollView>
-                <View style={[styles.flexRow, styles.ph5, styles.pv4]}>
-                    <Button
-                        medium={isExtraSmallScreenHeight}
-                        style={[styles.flexGrow1, styles.mr1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        text={translate('common.no')}
-                        onPress={completeEngagement}
-                    />
-                    <Button
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        style={[styles.flexGrow1, styles.ml1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        text={translate('common.yes')}
-                        onPress={navigateToExpensifyClassicPage}
-                    />
                 </View>
-            </View>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </OnboardEngagementScreenWrapperProps>
     );
 }
 
