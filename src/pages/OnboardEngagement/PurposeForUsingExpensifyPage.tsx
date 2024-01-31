@@ -97,7 +97,7 @@ function PurposeForUsingExpensifyModal() {
 
     const navigateBack = useCallback(() => {
         Report.dismissEngagementModal();
-        // TODO: Navigate to Previous screen;
+        Navigation.goBack(ROUTES.HOME);
     }, []);
 
     const completeModalAndClose = useCallback((message: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) => {
