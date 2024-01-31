@@ -231,7 +231,7 @@ function ReportPreview({
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
-            shouldDisableOpacity={action.pendingAction !== undefined || action.isOptimisticAction === true}
+            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
