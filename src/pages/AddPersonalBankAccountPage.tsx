@@ -1,8 +1,6 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormProvider from '@components/Form/FormProvider';
@@ -16,69 +14,37 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
+import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
-const propTypes = {
+type AddPersonalBankAccountPageWithOnyxProps = {
     /** Contains plaid data */
-    plaidData: PlaidDataProps.plaidDataPropTypes,
+    plaidData: OnyxEntry<PlaidData>;
 
     /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: PropTypes.shape({
-        /** An error message to display to the user */
-        error: PropTypes.string,
-
-        /** Whether we should show the view that the bank account was successfully added */
-        shouldShowSuccess: PropTypes.bool,
-
-        /** Any reportID we should redirect to at the end of the flow */
-        exitReportID: PropTypes.string,
-
-        /** Whether we should continue with KYC at the end of the flow  */
-        shouldContinueKYCOnSuccess: PropTypes.bool,
-
-        /** Whether the form is loading */
-        isLoading: PropTypes.bool,
-
-        /** The account ID of the selected bank account from Plaid */
-        plaidAccountID: PropTypes.string,
-    }),
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
 };
 
-const defaultProps = {
-    plaidData: PlaidDataProps.plaidDataDefaultProps,
-    personalBankAccount: {
-        error: '',
-        shouldShowSuccess: false,
-        isLoading: false,
-        plaidAccountID: '',
-        exitReportID: '',
-        shouldContinueKYCOnSuccess: false,
-    },
-};
-
-function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
+function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersonalBankAccountPageWithOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
-    const shouldShowSuccess = lodashGet(personalBankAccount, 'shouldShowSuccess', false);
+    const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
 
-    /**
-     * @returns {Object}
-     */
     const validateBankAccountForm = () => ({});
 
     const submitBankAccountForm = useCallback(() => {
-        const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
-            plaidAccountID: selectedPlaidAccountId,
-        });
+        const bankAccounts = plaidData?.bankAccounts ?? [];
+        const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
-        BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+        if (selectedPlaidBankAccount) {
+            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+        }
     }, [plaidData, selectedPlaidAccountId]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
-            const exitReportID = lodashGet(personalBankAccount, 'exitReportID');
-            const onSuccessFallbackRoute = lodashGet(personalBankAccount, 'onSuccessFallbackRoute', '');
+            const exitReportID = personalBankAccount?.exitReportID;
+            const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
             if (exitReportID) {
                 Navigation.dismissModal(exitReportID);
@@ -114,7 +80,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
                 />
             ) : (
                 <FormProvider
-                    formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
                     submitButtonText={translate('common.saveAndContinue')}
                     scrollContextEnabled
@@ -135,11 +101,8 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
     );
 }
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
-AddPersonalBankAccountPage.propTypes = propTypes;
-AddPersonalBankAccountPage.defaultProps = defaultProps;
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
-export default withOnyx({
+export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
     personalBankAccount: {
         key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },

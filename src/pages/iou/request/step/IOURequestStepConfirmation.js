@@ -8,7 +8,6 @@ import categoryPropTypes from '@components/categoryPropTypes';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -24,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -43,6 +43,9 @@ const propTypes = {
     /** The personal details of the current user */
     ...withCurrentUserPersonalDetailsPropTypes,
 
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
+
     /** The policy of the report */
     ...policyPropTypes,
 
@@ -59,6 +62,7 @@ const propTypes = {
     transaction: transactionPropTypes,
 };
 const defaultProps = {
+    personalDetails: {},
     policy: {},
     policyCategories: {},
     policyTags: {},
@@ -68,6 +72,7 @@ const defaultProps = {
 };
 function IOURequestStepConfirmation({
     currentUserPersonalDetails,
+    personalDetails,
     policy,
     policyTags,
     policyCategories,
@@ -81,7 +86,6 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
@@ -381,6 +385,12 @@ export default compose(
     withCurrentUserPersonalDetails,
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
