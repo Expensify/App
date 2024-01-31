@@ -25,7 +25,6 @@ type RadioButtonsProps = {
 };
 
 function RadioButtons({items, onPress, errorText}: RadioButtonsProps, ref: ForwardedRef<View>) {
-    console.log('RORY_DEBUG errorText', errorText);
     const styles = useThemeStyles();
     const [checkedValue, setCheckedValue] = useState('');
 
