@@ -106,6 +106,9 @@ type OptionRowLHNDataProps = {
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+
+    /** Callback to execute when the OptionList lays out */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type OptionRowLHNProps = {
