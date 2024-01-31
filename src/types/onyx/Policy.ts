@@ -85,7 +85,7 @@ type Policy = {
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
 
-    /** The scheduled submit frequency set up on the this policy */
+    /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
     /** Whether the scheduled submit is enabled */
