@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {getPathFromState} from '@react-navigation/native';
-import type {Writable} from 'type-fest';
+import type {ValueOf, Writable} from 'type-fest';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -11,7 +11,7 @@ import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
 import TAB_TO_CENTRAL_PANE_MAPPING from './linkingConfig/TAB_TO_CENTRAL_PANE_MAPPING';
-import type {NavigationRoot, RootStackParamList, StackNavigationAction, State, switchPolicyIDParams} from './types';
+import type {CentralPaneNavigatorParamList, NavigationRoot, RootStackParamList, StackNavigationAction, State, SwitchPolicyIDParams} from './types';
 
 type ActionPayloadParams = {
     screen?: string;
@@ -60,7 +60,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     };
 }
 
-export default function switchPolicyID(navigation: NavigationContainerRef<RootStackParamList> | null, {policyID, route, isPolicyAdmin = true}: switchPolicyIDParams) {
+export default function switchPolicyID(navigation: NavigationContainerRef<RootStackParamList> | null, {policyID, route, isPolicyAdmin = false}: SwitchPolicyIDParams) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
@@ -110,17 +110,18 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
             let screen = topmostCentralPaneRoute?.name;
             const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
+            const isWorkspaceScreen = screen && Object.values(SCREENS.WORKSPACE).includes(screen as ValueOf<typeof SCREENS.WORKSPACE>);
 
             // Only workspace settings screens have to store the policyID in the params.
             // In other case, the policyID is read from the BottomTab params.
-            if (!screen?.startsWith('Workspace_')) {
+            if (!isWorkspaceScreen) {
                 delete params.policyID;
             } else {
                 params.policyID = policyID;
             }
 
             // We need to redirect non admin users to overview screen, when switching workspace.
-            if (!isPolicyAdmin && screen !== SCREENS.WORKSPACE.OVERVIEW) {
+            if (!isPolicyAdmin && isWorkspaceScreen && screen !== SCREENS.WORKSPACE.OVERVIEW) {
                 screen = SCREENS.WORKSPACE.OVERVIEW;
             }
 

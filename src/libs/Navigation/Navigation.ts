@@ -18,7 +18,7 @@ import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import switchPolicyID from './switchPolicyID';
-import type {State, StateOrRoute, switchPolicyIDParams} from './types';
+import type {State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -327,7 +327,7 @@ function waitForProtectedRoutes() {
     });
 }
 
-function navigateWithSwitchPolicyID(params: switchPolicyIDParams) {
+function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     if (!canNavigate('navigateWithSwitchPolicyID')) {
         return;
     }
