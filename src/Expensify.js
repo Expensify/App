@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -24,6 +23,7 @@ import compose from './libs/compose';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
+import getTopmostBottomTabRoute from './libs/Navigation/getTopmostBottomTabRoute';
 import Navigation, {navigationRef} from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
