@@ -912,7 +912,6 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedCategories,
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
-        isNewIOUReport,
         optimisticTransactionThread,
         optimisticCreatedActionForTransactionThread,
         shouldCreateNewMoneyRequestReport,
