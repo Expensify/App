@@ -6,15 +6,16 @@ import ROUTES from '@src/ROUTES';
 
 type OnboardEngagementScreenWrapperProps = {
     /** Child elements */
-    children?: React.ReactNode;
+    children: React.ReactNode;
 };
 
 function OnboardEngagementScreenWrapper({children}: OnboardEngagementScreenWrapperProps) {
-    if (!Welcome.isFirstTimeNewExpensifyUser) {
-        return Navigation.navigate(ROUTES.HOME);
+    const isFirstTimeNewExpensifyUser = Welcome.isFirstTimeExpensifyUser();
+    if (!isFirstTimeNewExpensifyUser) {
+        Navigation.navigate(ROUTES.HOME);
     }
 
-    return <FullPageNotFoundView shouldShow={!Welcome.isFirstTimeNewExpensifyUser}>{children}</FullPageNotFoundView>;
+    return <FullPageNotFoundView shouldShow={!isFirstTimeNewExpensifyUser}>{children}</FullPageNotFoundView>;
 }
 
 OnboardEngagementScreenWrapper.displayName = 'PurposeForUsingExpensifyModal';
