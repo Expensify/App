@@ -2586,10 +2586,10 @@ export default {
         title: '¿Necesita alguna de las siguientes funciones?',
     },
     expensifyClassic: {
-        title: "Expensify Classic tiene todo lo que necesitarás",
-        firstDescription: "Aunque estamos ocupados trabajando en el nuevo Expensify, actualmente no soporta algunas de las características que estás buscando",
-        secondDescription: "No te preocupes, Expensify Classic tiene todo lo que necesitas",
-        buttonText: "Llévame a expensify classic"
+        title: 'Expensify Classic tiene todo lo que necesitarás',
+        firstDescription: 'Aunque estamos ocupados trabajando en el nuevo Expensify, actualmente no soporta algunas de las características que estás buscando',
+        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas',
+        buttonText: 'Llévame a expensify classic',
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',

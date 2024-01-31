@@ -58,7 +58,7 @@ function ManageTeamsExpensesModal() {
                     interactive: false,
                 };
             }),
-        [],
+        [translate],
     );
 
     const completeEngagement = useCallback(() => {

@@ -2102,7 +2102,7 @@ export default {
         title: "Expensify Classic has everything you'll need",
         firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
         secondDescription: "Don't worry, Expensify Classic has everything you need.",
-        buttonText: "Take me to expensify classic"
+        buttonText: 'Take me to expensify classic',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
