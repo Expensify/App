@@ -1,6 +1,5 @@
-import type {RefObject} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -15,8 +14,8 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Report} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
@@ -24,9 +23,7 @@ import KYCWall from './KYCWall';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
-
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentType) => void;
+type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
@@ -37,7 +34,7 @@ type SettlementButtonOnyxProps = {
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType?: PaymentType) => void;
+    onPress: (paymentType?: PaymentMethodType) => void;
 
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: EnablePaymentsRoute;
@@ -185,7 +182,7 @@ function SettlementButton({
         return buttonOptions;
     }, [currency, formattedAmount, iouReport, nvpLastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
-    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentType, triggerKYCFlow: TriggerKYCFlow) => {
+    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -215,7 +212,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
-                    buttonRef={buttonRef as RefObject<View>}
+                    buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}

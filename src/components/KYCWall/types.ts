@@ -1,17 +1,15 @@
-import type {ForwardedRef} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
-
-type TransferMethod = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
 type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
 
@@ -62,10 +60,10 @@ type KYCWallProps = {
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** Callback for the end of the onContinue trigger on option selection */
-    onSuccessfulKYC: (iouPaymentType?: TransferMethod, currentSource?: Source) => void;
+    onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
+    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
 };
 
-export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect};
+export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect};
