@@ -17,8 +17,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
-    PolicyCategory,
-    PolicyTag,
     PolicyTags,
     Report,
     ReportAction,
