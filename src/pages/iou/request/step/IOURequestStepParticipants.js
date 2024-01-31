@@ -39,7 +39,15 @@ function IOURequestStepParticipants({
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = () => {
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            return translate('iou.split');
+        }
+        if (iouType === CONST.IOU.TYPE.SEND) {
+            return translate('common.send');
+        }
+        translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    };
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
 
@@ -81,7 +89,7 @@ function IOURequestStepParticipants({
 
     return (
         <StepScreenWrapper
-            headerTitle={headerTitle}
+            headerTitle={headerTitle()}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}

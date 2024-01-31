@@ -15,7 +15,6 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
-import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -182,7 +181,15 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.Send,
                         text: props.translate('iou.sendMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                        // onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                Navigation.navigate(
+                                    // When starting to create a send money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SEND, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
+                                ),
+                            ),
                     },
                     ...[
                         {
