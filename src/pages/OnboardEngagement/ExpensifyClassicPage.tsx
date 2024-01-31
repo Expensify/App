@@ -1,6 +1,11 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,11 +14,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import Button from '../../components/Button';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Icon from '../../components/Icon';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import Text from '../../components/Text';
 
 function ToExpensifyClassicModal() {
     const StyleUtils = useStyleUtils();
