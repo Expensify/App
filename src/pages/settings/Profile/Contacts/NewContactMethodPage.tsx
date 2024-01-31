@@ -64,8 +64,7 @@ function NewContactMethodPage({loginList = {}, route}: NewContactMethodPageProps
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
-            // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-            if (!isEmptyObject(values.phoneOrEmail) && loginList && loginList[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
+            if (!isEmptyObject(values.phoneOrEmail) && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
             }
 

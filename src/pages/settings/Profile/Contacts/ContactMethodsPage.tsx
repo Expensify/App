@@ -44,8 +44,7 @@ function ContactMethodsPage({loginList = {}, session, route}: ContactMethodsPage
     const sortedLoginNames = loginNames.sort((loginName) => (loginList && loginList[loginName].partnerUserID === session?.email ? 0 : 1));
 
     const loginMenuItems = sortedLoginNames.map((loginName) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        const login = loginList && loginList[loginName];
+        const login = loginList?.[loginName];
         const pendingAction = login?.pendingFields?.deletedLogin ?? login?.pendingFields?.addedLogin;
         if (!login?.partnerUserID && isEmptyObject(pendingAction)) {
             return null;

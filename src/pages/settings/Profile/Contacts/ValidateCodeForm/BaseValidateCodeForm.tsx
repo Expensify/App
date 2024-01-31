@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
+import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -27,8 +28,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
-    focus?: () => void;
-    focusLastSelected?: () => void;
+    focus: () => void;
+    focusLastSelected: () => void;
 };
 
 type BaseValidateCodeFormOnyxProps = {
@@ -36,7 +37,7 @@ type BaseValidateCodeFormOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & {
+type ValidateCodeFormProps = {
     /** The contact method being valdiated */
     contactMethod: string;
 
@@ -53,6 +54,8 @@ type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & {
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 };
 
+type BaseValidateCodeFormProps = BaseValidateCodeFormOnyxProps & ValidateCodeFormProps;
+
 function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent, loginList, autoComplete = 'one-time-code', innerRef = () => {}}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -62,7 +65,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const [formError, setFormError] = useState<Errors>({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = loginList[contactMethod];
-    const inputValidateCodeRef = useRef();
+    const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldDisableResendValidateCode = isOffline || account?.isLoading;
@@ -70,7 +73,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
 
     useImperativeHandle(innerRef, () => ({
         focus() {
-            // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
             inputValidateCodeRef.current?.focus();
         },
         focusLastSelected() {
@@ -81,8 +83,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                 clearTimeout(focusTimeoutRef.current);
             }
             focusTimeoutRef.current = setTimeout(() => {
-                // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
-                inputValidateCodeRef.current.focusLastSelected();
+                inputValidateCodeRef.current?.focusLastSelected();
             }, CONST.ANIMATED_TRANSITION);
         },
     }));
@@ -96,8 +97,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                 clearTimeout(focusTimeoutRef.current);
             }
             focusTimeoutRef.current = setTimeout(() => {
-                // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
-                inputValidateCodeRef.current.focusLastSelected();
+                inputValidateCodeRef.current?.focusLastSelected();
             }, CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
@@ -122,8 +122,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         if (!hasMagicCodeBeenSent) {
             return;
         }
-        // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
-        inputValidateCodeRef.current.clear();
+        inputValidateCodeRef.current?.clear();
     }, [hasMagicCodeBeenSent]);
 
     /**
@@ -131,8 +130,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
      */
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(contactMethod);
-        // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
-        inputValidateCodeRef.current.clear();
+        inputValidateCodeRef.current?.clear();
     };
 
     /**
@@ -171,7 +169,6 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     return (
         <>
             <MagicCodeInput
-                // @ts-expect-error TODO: Remove this once MagicCodeInput (https://github.com/Expensify/App/issues/25078) is migrated to TypeScript.
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
                 label={translate('common.magicCode')}
@@ -234,7 +231,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
 
 BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
-export type {BaseValidateCodeFormProps, ValidateCodeFormHandle};
+export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 
 export default withOnyx<BaseValidateCodeFormProps, BaseValidateCodeFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},

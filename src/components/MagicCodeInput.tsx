@@ -19,6 +19,9 @@ const TEXT_INPUT_EMPTY_STATE = '';
 type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
 
 type MagicCodeInputProps = {
+    /** Input label */
+    label?: string;
+
     /** Name attribute for the input */
     name?: string;
 
@@ -96,6 +99,7 @@ const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(
 function MagicCodeInput(
     {
         value = '',
+        label = '',
         name = '',
         autoFocus = true,
         shouldDelayFocus = false,
@@ -374,6 +378,7 @@ function MagicCodeInput(
                             inputMode="numeric"
                             textContentType="oneTimeCode"
                             name={name}
+                            label={label}
                             maxLength={maxLength}
                             value={input}
                             hideFocusedState
@@ -427,4 +432,5 @@ function MagicCodeInput(
 
 MagicCodeInput.displayName = 'MagicCodeInput';
 
+export type {MagicCodeInputHandle};
 export default forwardRef(MagicCodeInput);
