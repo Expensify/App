@@ -1776,6 +1776,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
+            optimisticTransactionThread,
+            optimisticCreatedActionForTransactionThread,
         );
 
         const individualSplit = {
@@ -2340,6 +2342,8 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             {},
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
+            optimisticTransactionThread,
+            optimisticCreatedActionForTransactionThread,
         );
 
         splits.push({
