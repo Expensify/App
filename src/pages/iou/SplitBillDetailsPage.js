@@ -146,7 +146,7 @@ function SplitBillDetailsPage(props) {
                             transaction={isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
-                            policyID={ReportUtils.isPolicyExpenseChat(props.report) && props.report.policyID}
+                            policyID={ReportUtils.isPolicyExpenseChat(props.report) ? props.report.policyID : null}
                         />
                     )}
                 </View>

@@ -355,5 +355,8 @@ export default memo(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
             selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
         },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
     })(HeaderView),
 );
