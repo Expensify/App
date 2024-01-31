@@ -846,3 +846,9 @@ button {
 .hidden {
     display: none;
 }
+
+.selector {
+    background-color: $color-highlightBG;
+    border-radius: 12px;
+    padding: 20px;
+}

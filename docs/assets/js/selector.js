@@ -8,9 +8,6 @@
 This can be derived from class name .
 
  */
-
-
-
 function selectOption(s) {
     if (!s) {
         return;
