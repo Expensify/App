@@ -14,15 +14,15 @@ type ThumbnailDimensions = {
 
 export default function useThumbnailDimensions(width: number, height: number): ThumbnailDimensions {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const fixedDimenstion = isSmallScreenWidth ? CONST.THUMBNAIL_IMAGE.SMALL_SCREEN.SIZE : CONST.THUMBNAIL_IMAGE.WIDE_SCREEN.SIZE;
+    const fixedDimension = isSmallScreenWidth ? CONST.THUMBNAIL_IMAGE.SMALL_SCREEN.SIZE : CONST.THUMBNAIL_IMAGE.WIDE_SCREEN.SIZE;
 
     const thumbnailDimensionsStyles = useMemo(() => {
         const aspectRatio = (height && width / height) || 1;
         if (width > height) {
-            return {width: fixedDimenstion, aspectRatio};
+            return {width: fixedDimension, aspectRatio};
         }
-        return {height: fixedDimenstion, aspectRatio};
-    }, [width, height, fixedDimenstion]);
+        return {height: fixedDimension, aspectRatio};
+    }, [width, height, fixedDimension]);
 
     return {thumbnailDimensionsStyles};
 }

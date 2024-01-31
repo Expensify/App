@@ -32,8 +32,8 @@ type UpdateImageSizeParams = {
 
 function ThumbnailImage({previewSourceURL, style, isAuthTokenRequired, imageWidth = 200, imageHeight = 200, shouldDynamicallyResize = true}: ThumbnailImageProps) {
     const styles = useThemeStyles();
-    const [imagedimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
-    const {thumbnailDimensionsStyles} = useThumbnailDimensions(imagedimensions.width, imagedimensions.height);
+    const [imageDimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
+    const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
 
     /**
      * Update the state with the computed thumbnail sizes.
