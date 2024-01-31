@@ -389,6 +389,7 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
@@ -906,15 +907,19 @@ button {
     text-align: center;
     font-weight: 700;
     font-size: 13px;
+    gap: 4px;
 }
 
 #platform-tabs > * {
     cursor: pointer;
     border-radius: 20px;
     padding: 10px 20px;
+    box-sizing: border-box;
+    height: 36px;
+    line-height: 16px;
 }
 
 #platform-tabs > .active {
-    color:#fff;
-    background-color: #1A3D32;
+    color: $color-text;
+    background-color: $color-button-background;
 }
