@@ -1454,10 +1454,10 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        let accountIDs = report.visibleChatMemberAccountIDs ?? [];
-        if (isTaskReport && isTaskActionTypeForParticipants) {
-            accountIDs = report.ownerAccountID ? [report.ownerAccountID] : [];
-        }
+        const accountIDs =
+            isTaskReport && isTaskActionTypeForParticipants
+                ? report.participantAccountIDs?.filter((accountID) => accountID !== currentUserAccountID) ?? []
+                : report.visibleChatMemberAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
