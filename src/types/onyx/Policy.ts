@@ -88,13 +88,8 @@ type Policy = {
     /** The scheduled submit frequency set up on the this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** @deprecated Whether the scheduled submit is enabled */
-    isHarvestingEnabled?: boolean;
-
     /** Whether the scheduled submit is enabled */
-    harvesting?: {
-        enabled: boolean;
-    };
+    isHarvestingEnabled?: boolean;
 
     /** Whether the scheduled submit is enabled */
     isPreventSelfApprovalEnabled?: boolean;
