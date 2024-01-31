@@ -23,8 +23,7 @@ import compose from './libs/compose';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
-import getTopmostBottomTabRoute from './libs/Navigation/getTopmostBottomTabRoute';
-import Navigation, {navigationRef} from './libs/Navigation/Navigation';
+import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
@@ -38,7 +37,6 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import SCREENS from './SCREENS';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -64,7 +62,8 @@ const propTypes = {
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
-    /** Tells us if the sidebar has rendered */
+    /** Tells us if the sidebar has rendered - TODO: We don't use it as temporary solution to fix not hidding splashscreen */
+    // eslint-disable-next-line react/no-unused-prop-types
     isSidebarLoaded: PropTypes.bool,
 
     /** Information about a screen share call requested by a GuidesPlus agent */
@@ -132,16 +131,7 @@ function Expensify(props) {
         [isSplashHidden],
     );
 
-    // This is a temporary fix to handle more that one possible screen in the sidebar.
-    const isSidebarLoaded = useMemo(() => {
-        if (!isNavigationReady) {
-            return false;
-        }
-
-        return getTopmostBottomTabRoute(navigationRef.getState()).name === SCREENS.HOME ? props.isSidebarLoaded : true;
-    }, [isNavigationReady, props.isSidebarLoaded]);
-
-    const shouldInit = isNavigationReady && (!isAuthenticated || isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
