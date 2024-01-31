@@ -141,6 +141,7 @@ const SCREENS = {
         ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
+        CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         DATE: 'Money_Request_Date',
         DESCRIPTION: 'Money_Request_Description',
