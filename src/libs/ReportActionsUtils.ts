@@ -190,7 +190,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
     const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
-        // First sort by timestamp
+        // When it compares an optimistic report action and a non-optimistic (aka already created) report action, the optimistic report action will always be consider later
+        if (first.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && second.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            return 1 * invertedMultiplier;
+        }
+
+        if (second.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && first.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            return -1 * invertedMultiplier;
+        }
+
+        // Sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
