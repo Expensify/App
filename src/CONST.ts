@@ -93,7 +93,7 @@ const CONST = {
 
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
-        RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+        RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
     LEGAL_NAME: {
@@ -459,6 +459,8 @@ const CONST = {
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
+    GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
@@ -565,6 +567,7 @@ const CONST = {
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    LEAVE_ROOM: 'POLICYCHANGELOG_LEAVEROOM',
                     REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
@@ -607,7 +610,7 @@ const CONST = {
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
-                    JOIN_ROOM: 'JOINROOM',
+                    LEAVE_ROOM: 'LEAVEROOM',
                 },
             },
             THREAD_DISABLED: ['CREATED'],
@@ -791,6 +794,7 @@ const CONST = {
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',
+        UPDATE_REQUIRED: 426,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -821,6 +825,9 @@ const CONST = {
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
         DUPLICATE_RECORD: 'A record already exists with this ID',
+
+        // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
+        UPDATE_REQUIRED: 'Upgrade Required',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -921,6 +928,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        NUMBER_PAD: 'number-pad',
     },
 
     INPUT_MODE: {
@@ -3057,13 +3065,6 @@ const CONST = {
      * When paginate, it multiplies by page number.
      */
     MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
-
-    /**
-     * Performance test setup - run the same test multiple times to get a more accurate result
-     */
-    PERFORMANCE_TESTS: {
-        RUNS: 20,
-    },
 
     /**
      * Bank account names
