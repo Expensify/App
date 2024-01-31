@@ -23,8 +23,8 @@ import type {
     OriginalMessageActionName,
     OriginalMessageCreated,
     OriginalMessageReimbursementDequeued,
+    PaymentMethodType,
     ReimbursementDeQueuedMessage,
-    PaymentMethodType
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';

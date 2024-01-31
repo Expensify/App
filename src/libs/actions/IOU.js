@@ -897,7 +897,6 @@ function createDistanceRequest(report, participant, comment, created, category, 
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : 0;
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
 
-
     const optimisticReceipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
