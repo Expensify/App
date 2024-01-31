@@ -353,11 +353,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             return;
         }
 
-        // scroll is unnecessary if multiple options cannot be selected
-        if (!canSelectMultiple) {
-            return;
-        }
-
         // set the focus on the first item when the sections list is changed
         if (sections.length > 0) {
             updateAndScrollToFocusedIndex(0);
