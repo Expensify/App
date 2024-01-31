@@ -1493,8 +1493,8 @@ function createSplitsAndOnyxData(
     category,
     tag,
     existingSplitChatReportID = '',
-    policyTags,
-    policyCategories,
+    policyTags = undefined,
+    policyCategories = undefined,
 ) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
