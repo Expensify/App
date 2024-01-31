@@ -18,11 +18,13 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     readonly shouldSetTouchedOnBlurOnly: boolean,
 } {
     if (InputComponent === TextInput) {
-        const isEffectivelyMultiline = Boolean(multiline ?? autoGrowHeight);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const isEffectivelyMultiline = Boolean(multiline || autoGrowHeight);
 
         // We calculate the effective requested value of `shouldSubmitForm`, assuming that the default value should be
         // `true` for single-line inputs and `false` for multi-line inputs.
-        const shouldSubmitFormOrDefault = shouldSubmitForm ?? !isEffectivelyMultiline;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const shouldSubmitFormOrDefault = shouldSubmitForm || !isEffectivelyMultiline;
 
         // If the user can use the hardware keyboard, they have access to an alternative way of inserting a new line
         // (like a Shift+Enter keyboard shortcut). For simplicity, we assume that when there's no touch screen, it's a
