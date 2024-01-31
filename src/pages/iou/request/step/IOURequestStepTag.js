@@ -55,7 +55,7 @@ function IOURequestStepTag({
     // Fetches the first tag list of the policy
     const tagListKey = _.first(_.keys(policyTags));
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
-    const isEditting = action === CONST.IOU.ACTION.EDIT;
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -68,7 +68,7 @@ function IOURequestStepTag({
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
         const updatedTag = !isSelectedTag ? selectedTag.searchText : '';
-        if (isEditting) {
+        if (isEditing) {
             IOU.updateMoneyRequestTag(transactionID, report.reportID, updatedTag);
             Navigation.dismissModal();
             return;

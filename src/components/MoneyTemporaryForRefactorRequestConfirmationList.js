@@ -810,30 +810,29 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
-                    {shouldShowTags ||
-                        (true && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!isReadOnly}
-                                title={PolicyUtils.getCleanedTagName(iouTag)}
-                                description={policyTagListName}
-                                numberOfLinesTitle={2}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.CREATE,
-                                            iouType,
-                                            transaction.transactionID,
-                                            reportID,
-                                            Navigation.getActiveRouteWithoutParams(),
-                                        ),
-                                    )
-                                }
-                                style={[styles.moneyRequestMenuItem]}
-                                disabled={didConfirm}
-                                interactive={!isReadOnly}
-                                rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
-                            />
-                        ))}
+                    {shouldShowTags && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={PolicyUtils.getCleanedTagName(iouTag)}
+                            description={policyTagListName}
+                            numberOfLinesTitle={2}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction.transactionID,
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                )
+                            }
+                            style={[styles.moneyRequestMenuItem]}
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                            rightLabel={canUseViolations && lodashGet(policy, 'requiresTag', false) ? translate('common.required') : ''}
+                        />
+                    )}
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
