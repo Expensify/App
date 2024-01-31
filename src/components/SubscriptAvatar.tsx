@@ -20,6 +20,9 @@ type SubIcon = {
 
     /** Height of the icon */
     height?: number;
+
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
+    fill?: string;
 };
 
 type SubscriptAvatarProps = {
@@ -120,7 +123,7 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CON
                         width={subscriptIcon.width}
                         height={subscriptIcon.height}
                         additionalStyles={styles.alignSelfCenter}
-                        fill={theme.icon}
+                        fill={subscriptIcon.fill ?? theme.icon}
                     />
                 </View>
             )}
