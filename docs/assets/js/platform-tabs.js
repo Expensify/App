@@ -1,6 +1,5 @@
 const expensifyClassicContent = document.getElementById('expensify-classic');
 const newExpensifyContent = document.getElementById('new-expensify');
-
 const platformTabs = document.getElementById('platform-tabs');
 
 if (expensifyClassicContent) {
