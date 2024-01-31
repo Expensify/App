@@ -11,8 +11,11 @@ import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type ConnectBankAccountButtonProps = {
+    /** PolicyID for navigating to bank account route of that policy */
     policyID: string;
-    style: StyleProp<ViewStyle>;
+
+    /** Button styles, also applied for offline message wrapper */
+    style?: StyleProp<ViewStyle>;
 };
 
 function ConnectBankAccountButton({style, policyID}: ConnectBankAccountButtonProps) {
@@ -20,7 +23,7 @@ function ConnectBankAccountButton({style, policyID}: ConnectBankAccountButtonPro
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const activeRoute = Navigation.getActiveRouteWithoutParams();
-    
+
     return isOffline ? (
         <View style={style}>
             <Text>{`${translate('common.youAppearToBeOffline')} ${translate('common.thisFeatureRequiresInternet')}`}</Text>
@@ -31,7 +34,7 @@ function ConnectBankAccountButton({style, policyID}: ConnectBankAccountButtonPro
             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(policyID, activeRoute)}
             icon={Expensicons.Bank}
             style={style}
-            iconStyles={[styles.buttonCTAIcon]}
+            iconStyles={styles.buttonCTAIcon}
             shouldShowRightIcon
             large
             success
