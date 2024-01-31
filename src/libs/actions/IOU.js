@@ -349,7 +349,6 @@ function getOutstandingChildRequest(policy, needsToBeManuallySubmitted) {
  * @param {Array} optimisticPolicyRecentlyUsedCategories
  * @param {Array} optimisticPolicyRecentlyUsedTags
  * @param {boolean} isNewChatReport
- * @param {boolean} isNewIOUReport
  * @param {Object} transactionThreadReport
  * @param {Object} transactionThreadCreatedReportAction
  * @param {boolean} shouldCreateNewMoneyRequestReport
@@ -371,7 +370,6 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedCategories,
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
-    isNewIOUReport,
     transactionThreadReport,
     transactionThreadCreatedReportAction,
     shouldCreateNewMoneyRequestReport,
@@ -1879,8 +1877,8 @@ function splitBill(
     category,
     tag,
     existingSplitChatReportID = '',
-    policyTags = [],
-    policyCategories = [],
+    policyTags = undefined,
+    policyCategories = undefined,
 ) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
@@ -1933,7 +1931,19 @@ function splitBill(
  * @param {Array} policyTags
  * @param {Array} policyCategories
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, policyTags, policyCategories) {
+function splitBillAndOpenReport(
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    amount,
+    comment,
+    currency,
+    merchant,
+    category,
+    tag,
+    policyTags = undefined,
+    policyCategories = undefined,
+) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
