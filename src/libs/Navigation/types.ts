@@ -470,9 +470,10 @@ type CentralPaneName = keyof CentralPaneNavigatorParamList;
 
 type FullScreenName = keyof SettingsCentralPaneNavigatorParamList;
 
-type switchPolicyIDParams = {
+type SwitchPolicyIDParams = {
     policyID?: string;
     route?: Routes;
+    isPolicyAdmin?: boolean;
 };
 
 export type {
@@ -519,5 +520,5 @@ export type {
     ReimbursementAccountNavigatorParamList,
     State,
     WorkspaceSwitcherNavigatorParamList,
-    switchPolicyIDParams,
+    SwitchPolicyIDParams,
 };

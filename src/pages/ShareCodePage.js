@@ -90,13 +90,8 @@ class ShareCodePage extends React.Component {
                     shouldShowBackButton={isReport || this.props.isSmallScreenWidth}
                 />
 
-                <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
-                    <View
-                        style={[
-                            this.props.themeStyles.shareCodePage,
-                            this.props.isSmallScreenWidth ? this.props.themeStyles.workspaceSectionMobile : this.props.themeStyles.workspaceSection,
-                        ]}
-                    >
+                <ScrollView style={[this.props.themeStyles.flex1]}>
+                    <View style={[this.props.isSmallScreenWidth ? this.props.themeStyles.workspaceSectionMobile : this.props.themeStyles.workspaceSection, this.props.themeStyles.ph4]}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}

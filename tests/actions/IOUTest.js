@@ -24,7 +24,6 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
-    dismissModalWithReportID: jest.fn(),
     goBack: jest.fn(),
 }));
 

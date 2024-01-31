@@ -1641,7 +1641,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     };
 
     API.write(WRITE_COMMANDS.ADD_WORKSPACE_ROOM, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReportID(policyReport.reportID);
+    Navigation.dismissModal(policyReport.reportID);
 }
 
 /** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */

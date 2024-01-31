@@ -41,7 +41,7 @@ function ThemePage(props) {
                 title={translate('themePage.theme')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
 
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>

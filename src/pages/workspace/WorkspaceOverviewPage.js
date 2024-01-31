@@ -70,6 +70,7 @@ function WorkspaceOverviewPage({policy, currencyList, route}) {
             shouldShowLoading={false}
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
+            shouldShowNonAdmin
         >
             {(hasVBA) => (
                 <>

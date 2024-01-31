@@ -139,7 +139,7 @@ function TaskAssigneeSelectorModal(props) {
 
     if (report && !ReportUtils.isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModalWithReportID(report.reportID);
+            Navigation.dismissModal(report.reportID);
         });
     }
 

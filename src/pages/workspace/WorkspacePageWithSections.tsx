@@ -62,7 +62,13 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Option to show the loading page while the API is calling */
         shouldShowLoading?: boolean;
 
+        /** Should show the back button. It is used when in RHP. */
+        shouldShowBackButton?: boolean;
+
         shouldShowOfflineIndicatorInWideScreen?: boolean;
+
+        /** Whether to show this page to non admin policy members */
+        shouldShowNonAdmin?: boolean;
 
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
@@ -87,15 +93,16 @@ function WorkspacePageWithSections({
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
+    shouldShowBackButton = false,
     user,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
+    shouldShowNonAdmin = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
     const isLoading = reimbursementAccount?.isLoading ?? true;
-    const isOverview = route.name;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const policyID = route.params.policyID;
@@ -125,9 +132,8 @@ function WorkspacePageWithSections({
             return true;
         }
 
-        // TODO - check is the value of isOveriew is correct
-        return !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !isOverview;
-    }, [isOverview, policy]);
+        return (!PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || PolicyUtils.isPendingDeletePolicy(policy);
+    }, [shouldShowNonAdmin, policy]);
 
     return (
         <ScreenWrapper
@@ -135,7 +141,7 @@ function WorkspacePageWithSections({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={WorkspacePageWithSections.displayName}
-            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
                 onBackButtonPress={goBack}
@@ -147,7 +153,7 @@ function WorkspacePageWithSections({
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
                 {(isLoading || firstRender.current) && shouldShowLoading ? (

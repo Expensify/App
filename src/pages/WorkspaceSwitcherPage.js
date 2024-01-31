@@ -110,8 +110,8 @@ function WorkspaceSwitcherPage({policies}) {
         [unreadStatusesForPolicies],
     );
 
-    const selectPolicy = useCallback((option) => {
-        const policyID = option.policyID;
+    const selectPolicy = (option) => {
+        const {policyID, isPolicyAdmin} = option;
 
         if (policyID) {
             setSelectedOption(option);
@@ -121,13 +121,9 @@ function WorkspaceSwitcherPage({policies}) {
         setActiveWorkspaceID(policyID);
         Navigation.goBack();
         if (policyID !== activeWorkspaceID) {
-            Navigation.navigateWithSwitchPolicyID({policyID});
+            Navigation.navigateWithSwitchPolicyID({policyID, isPolicyAdmin});
         }
-    }, []);
-
-    const onChangeText = useCallback((newSearchTerm) => {
-        setSearchTerm(newSearchTerm);
-    }, []);
+    };
 
     const usersWorkspaces = useMemo(
         () =>
@@ -147,6 +143,7 @@ function WorkspaceSwitcherPage({policies}) {
                     ],
                     boldStyle: hasUnreadData(policy.id),
                     keyForList: policy.id,
+                    isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
                 }))
                 .value(),
         [policies, getIndicatorTypeForPolicy, hasUnreadData],
@@ -247,7 +244,7 @@ function WorkspaceSwitcherPage({policies}) {
                         sections={[usersWorkspacesSectionData]}
                         value={searchTerm}
                         shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
-                        onChangeText={onChangeText}
+                        onChangeText={(newSearchTerm) => setSearchTerm(newSearchTerm)}
                         selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}
                         shouldPreventDefaultFocusOnSelectRow
@@ -269,7 +266,7 @@ function WorkspaceSwitcherPage({policies}) {
                 )}
             </>
         ),
-        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData],
+        [inputCallbackRef, setSearchTerm, searchTerm, selectPolicy, selectedOption, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData],
     );
 
     useEffect(() => {
