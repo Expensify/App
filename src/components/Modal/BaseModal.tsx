@@ -177,7 +177,7 @@ function BaseModal(
             onBackdropPress={handleBackdropPress}
             // Note: Escape key on web/desktop will trigger onBackButtonPress callback
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={onClose}
+            onBackButtonPress={Modal.closeTop}
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
