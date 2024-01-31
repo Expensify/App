@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
-import focusInputOnPaste from './focusInputOnPaste';
+import focusInputOnPaste from '@libs/focusInputOnPaste';
 import type UseHtmlPaste from './types';
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, removeListenerOnScreenBlur = true) => {
@@ -20,6 +20,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, remov
             textInputRef.current?.focus();
             // eslint-disable-next-line no-empty
         } catch (e) {}
+        // We only need to set the callback once.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -95,8 +96,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, remov
     );
 
     useEffect(() => {
-        // we need to handle listeners on navigation focus/blur if the component (like Composer) is not unmounting
-        // when navigating away to different screen (report)
+        // we need to re-register listener on navigation focus/blur if the component (like Composer) is not unmounting
+        // when navigating away to different screen (report) to avoid paste event on other screen being wrongly handled
+        // by current screen paste listener
         let unsubscribeFocus: () => void;
         let unsubscribeBlur: () => void;
         if (!removeListenerOnScreenBlur) {
