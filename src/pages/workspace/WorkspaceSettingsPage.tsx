@@ -6,6 +6,7 @@ import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -38,8 +39,6 @@ type WorkSpaceSettingsPageProps = WithPolicyProps & WorkSpaceSettingsPageOnyxPro
 
 type WorkSpaceSettingsPageErrors = {name?: string};
 
-type WorkSpaceSettingsPageValues = {name: string};
-
 function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -48,7 +47,7 @@ function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSett
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${policy?.outputCurrency ?? ''} - ${currencyList?.[policy?.outputCurrency ?? '']?.symbol ?? ''}` : '';
 
     const submit = useCallback(
-        (values: WorkSpaceSettingsPageValues) => {
+        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
             Policy.updateGeneralSettings(policy?.id ?? '', values.name.trim(), policy?.outputCurrency ?? '');
             Keyboard.dismiss();
             Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy?.id ?? ''));
@@ -56,7 +55,7 @@ function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSett
         [policy?.id, policy?.outputCurrency],
     );
 
-    const validate = useCallback((values: WorkSpaceSettingsPageValues) => {
+    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
         const errors: WorkSpaceSettingsPageErrors = {};
         const name = values.name.trim();
 
@@ -82,8 +81,7 @@ function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSett
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
             shouldShowLoading={false}
         >
-            {(hasVBA: boolean) => (
-                // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
+            {(hasVBA?: boolean) => (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}
@@ -93,41 +91,42 @@ function WorkspaceSettingsPage({policy, currencyList = {}, route}: WorkSpaceSett
                     onSubmit={submit}
                     enabledWhenOffline
                 >
-                    <AvatarWithImagePicker
-                        source={policy?.avatar ?? ''}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                        DefaultAvatar={() => (
-                            <Avatar
-                                containerStyles={styles.avatarLarge}
-                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                source={policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                size={CONST.AVATAR_SIZE.LARGE}
-                                name={policyName}
-                                type={CONST.ICON_TYPE_WORKSPACE}
-                            />
-                        )}
-                        type={CONST.ICON_TYPE_WORKSPACE}
-                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                        style={[styles.mb3]}
-                        anchorPosition={styles.createMenuPositionProfile(windowWidth)}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                        isUsingDefaultAvatar={!policy?.avatar ?? null}
-                        onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
-                        onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
-                        editorMaskImage={Expensicons.ImageCropSquareMask}
-                        pendingAction={policy?.pendingFields?.avatar ?? null}
-                        errors={policy?.errorFields?.avatar ?? null}
-                        onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
-                        previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
-                        headerTitle={translate('workspace.common.workspaceAvatar')}
-                        originalFileName={policy?.originalFileName ?? ''}
-                        // TODO: Remove the line below once AvatarWithImagePicker (https://github.com/Expensify/App/issues/25122) is migrated to TypeScript.
-                        errorRowStyles={undefined}
-                    />
+                    {
+                        // @ts-expect-error TODO: Remove this once AvatarWithImagePicker (https://github.com/Expensify/App/issues/25122) is migrated to TypeScript.
+                        <AvatarWithImagePicker
+                            source={policy?.avatar ?? ''}
+                            size={CONST.AVATAR_SIZE.LARGE}
+                            DefaultAvatar={() => (
+                                <Avatar
+                                    containerStyles={styles.avatarLarge}
+                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                    source={policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    name={policyName}
+                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                />
+                            )}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                            style={[styles.mb3]}
+                            anchorPosition={styles.createMenuPositionProfile(windowWidth)}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            isUsingDefaultAvatar={!policy?.avatar ?? null}
+                            onImageSelected={(file: File) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file)}
+                            onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
+                            editorMaskImage={Expensicons.ImageCropSquareMask}
+                            pendingAction={policy?.pendingFields?.avatar ?? null}
+                            errors={policy?.errorFields?.avatar ?? null}
+                            onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
+                            previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
+                            headerTitle={translate('workspace.common.workspaceAvatar')}
+                            originalFileName={policy?.originalFileName ?? ''}
+                            errorRowStyles={undefined}
+                        />
+                    }
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings as OnyxCommon.PendingAction}>
                         <InputWrapper
-                            // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID="name"
