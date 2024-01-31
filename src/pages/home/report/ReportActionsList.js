@@ -9,11 +9,11 @@ import InvertedFlatList from '@components/InvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -213,24 +213,21 @@ function ReportActionsList({
         } else {
             readActionSkipped.current = true;
         }
-    }
+    };
 
     useEffect(() => {
-
-        readNewestReportActionOnFocus()
-
+        readNewestReportActionOnFocus();
         if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
         }
-
         cacheUnreadMarkers.delete(report.reportID);
         lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, report.reportID]);
 
-    // mark actions as read when the user opens up the tab or app
-    useAppFocusEvent(readNewestReportActionOnFocus)
+    // mark actions as read when the user opens up the tab or app and current report is open
+    useAppFocusEvent(readNewestReportActionOnFocus);
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
