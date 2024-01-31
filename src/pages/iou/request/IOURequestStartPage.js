@@ -16,6 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as KeyDownPressListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -86,6 +87,19 @@ function IOURequestStartPage({
         },
         [reportID],
     );
+
+    useEffect(() => {
+        const handler = (event) => {
+            if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        };
+        KeyDownPressListener.addKeyDownPressListener(handler);
+
+        return () => KeyDownPressListener.removeKeyDownPressListener(handler);
+    }, []);
 
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {

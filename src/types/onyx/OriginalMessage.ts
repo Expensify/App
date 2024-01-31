@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
     | 'ADDCOMMENT'
@@ -43,7 +45,7 @@ type IOUMessage = {
     lastModified?: string;
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
-    paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    paymentType?: PaymentMethodType;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -283,6 +285,8 @@ export type {
     OriginalMessageCreated,
     OriginalMessageAddComment,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageChronosOOOList,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
+    PaymentMethodType,
 };
