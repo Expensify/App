@@ -1,8 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalBankAccount from './PersonalBankAccount';
 
-type FormValueType = string | boolean | Date;
+type FormValueType = string | boolean | Date | OnyxCommon.Errors;
 
 type BaseForm = {
     /** Controls the loading state of the form */
@@ -56,6 +57,8 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type PersonalBankAccountForm = Form<PersonalBankAccount>;
+
 type ExitSurveyReasonForm = Form<{
     [CONST.EXIT_SURVEY.REASON_INPUT_ID]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
 }>;
@@ -76,6 +79,7 @@ export type {
     BaseForm,
     IKnowATeacherForm,
     IntroSchoolPrincipalForm,
+    PersonalBankAccountForm,
     ExitSurveyReasonForm,
     ExitSurveyResponseForm,
 };

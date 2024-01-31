@@ -349,6 +349,7 @@ function ReportActionItem(props) {
                     // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is props.report.chatReportID
                     chatReportID={originalMessage.IOUReportID ? props.report.chatReportID : props.report.reportID}
                     requestReportID={iouReportID}
+                    reportID={props.report.reportID}
                     action={props.action}
                     isMostRecentIOUReportAction={props.isMostRecentIOUReportAction}
                     isHovered={hovered}
@@ -447,7 +448,7 @@ function ReportActionItem(props) {
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else {
@@ -508,7 +509,6 @@ function ReportActionItem(props) {
                             reportID={props.report.reportID}
                             index={props.index}
                             ref={textInputRef}
-                            report={props.report}
                             // Avoid defining within component due to an existing Onyx bug
                             preferredSkinTone={props.preferredSkinTone}
                             shouldDisableEmojiPicker={
