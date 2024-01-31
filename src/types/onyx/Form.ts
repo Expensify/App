@@ -1,6 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalBankAccount from './PersonalBankAccount';
 
-type FormValueType = string | boolean | Date;
+type FormValueType = string | boolean | Date | OnyxCommon.Errors;
 
 type BaseForm = {
     /** Controls the loading state of the form */
@@ -58,6 +59,20 @@ type PrivateNotesForm = Form<{
     privateNotes: string;
 }>;
 
+type PersonalBankAccountForm = Form<PersonalBankAccount>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm, PrivateNotesForm, DisplayNameForm, FormValueType, NewContactMethodForm, NewRoomForm, BaseForm, IKnowATeacherForm, IntroSchoolPrincipalForm};
+export type {
+    AddDebitCardForm,
+    DateOfBirthForm,
+    PrivateNotesForm,
+    DisplayNameForm,
+    FormValueType,
+    NewContactMethodForm,
+    NewRoomForm,
+    BaseForm,
+    IKnowATeacherForm,
+    IntroSchoolPrincipalForm,
+    PersonalBankAccountForm,
+};
