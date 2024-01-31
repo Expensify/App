@@ -1,24 +1,22 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import Lottie from '../../components/Lottie';
 import LottieAnimations from '../../components/LottieAnimations';
 import type {MenuItemProps} from '../../components/MenuItem';
 import MenuItemList from '../../components/MenuItemList';
-import Modal from '../../components/Modal';
 import Text from '../../components/Text';
 
 // This is not translated because it is a message coming from concierge, which only supports english
@@ -81,9 +79,7 @@ const menuIcons = {
 
 function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
-    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const navigation = useNavigation();
     const theme = useTheme();
 
@@ -132,47 +128,28 @@ function PurposeForUsingExpensifyModal() {
     );
 
     return (
-            <Modal
-                type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                isVisible={true}
-                onClose={closeModal}
-                innerContainerStyle={styles.pt0}
-                shouldUseCustomBackdrop
-            >
-                <View style={{maxHeight: windowHeight}}>
-                    <ScrollView>
-                        <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
-                            <Lottie
-                                source={LottieAnimations.Hands}
-                                style={styles.w100}
-                                webStyle={styles.w100}
-                                autoPlay
-                                loop
-                            />
-                            <HeaderWithBackButton
-                                shouldShowCloseButton
-                                shouldShowBackButton={false}
-                                onCloseButtonPress={closeModal}
-                                shouldOverlay
-                                iconFill={theme.iconColorfulBackground}
-                            />
-                        </View>
-                        <View style={[styles.w100, styles.ph5, styles.pv5]}>
-                            <Text
-                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                                numberOfLines={2}
-                            >
-                                {translate('purposeForExpensify.welcomeMessage')}
-                            </Text>
-                            <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
-                        </View>
-                        <MenuItemList
-                            menuItems={menuItems}
-                            shouldUseSingleExecution
-                        />
-                    </ScrollView>
-                </View>
-            </Modal>
+        <IllustratedHeaderPageLayout
+            shouldShowCloseButton
+            shouldShowBackButton={false}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+            illustration={LottieAnimations.Hands}
+            iconFill={theme.iconColorfulBackground}
+        >
+            <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
+                <Text
+                    style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                    numberOfLines={2}
+                >
+                    {translate('purposeForExpensify.welcomeMessage')}
+                </Text>
+                <Text>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+            </View>
+            <MenuItemList
+                menuItems={menuItems}
+                shouldUseSingleExecution
+            />
+        </IllustratedHeaderPageLayout>
     );
 }
 
