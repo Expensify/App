@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,13 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 
 type EditRequestTaxRatePageProps = {
     /** Transaction default tax Rate value */
-    defaultTaxRate: string,
+    defaultTaxRate: string;
 
     /** The policyID we are getting categories for */
-    policyID: string,
+    policyID: string;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void,
+    onSubmit: () => void;
 };
 
 function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}: EditRequestTaxRatePageProps) {
@@ -29,7 +28,7 @@ function EditRequestTaxRatePage({defaultTaxRate, policyID, onSubmit}: EditReques
                 <>
                     <HeaderWithBackButton title={translate('iou.taxRate')} />
                     <TaxPicker
-                        // @ts-ignore
+                         // @ts-expect-error We need to Migrate MoneyRequestAmountForm to TSC for this to work.
                         selectedTaxRate={defaultTaxRate}
                         policyID={policyID}
                         insets={insets}

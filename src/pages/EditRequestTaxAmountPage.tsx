@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
-import {TextInput} from 'react-native';
+import type {TextInput} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -52,7 +52,7 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
         >
             <HeaderWithBackButton title={translate('iou.taxAmount')} />
             <MoneyRequestAmountForm
-                // @ts-ignore
+                // @ts-expect-error We need to Migrate MoneyRequestAmountForm to TSC for this to work.
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 taxAmount={defaultTaxAmount}
