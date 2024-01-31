@@ -556,7 +556,7 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: OnyxTypes.ExitSurveyReasonForm;
     [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: OnyxTypes.ExitSurveyResponseForm;
-    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: OnyxTypes.ExitSurveyResponseForm;
+    [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT]: OnyxTypes.FormDraft<OnyxTypes.ExitSurveyResponseForm>;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

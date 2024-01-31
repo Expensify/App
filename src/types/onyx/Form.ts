@@ -17,6 +17,9 @@ type BaseForm = {
 };
 
 type Form<TFormValues extends Record<string, FormValueType> = Record<string, FormValueType>> = TFormValues & BaseForm;
+type FormDraft<TForm> = {
+    [Key in keyof TForm as `${Key & string}Draft`]: TForm[Key];
+};
 
 type AddDebitCardForm = Form<{
     /** Whether the form has been submitted */
@@ -82,4 +85,5 @@ export type {
     PersonalBankAccountForm,
     ExitSurveyReasonForm,
     ExitSurveyResponseForm,
+    FormDraft,
 };

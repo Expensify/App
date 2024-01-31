@@ -1,5 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +14,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import FormUtils from '@libs/FormUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
@@ -24,9 +27,13 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
+type ExitSurveyResponsePageOnyxProps = {
+    responseDraft: OnyxEntry<string>;
+};
 
-function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
+type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
+
+function ExitSurveyResponsePage({responseDraft, route}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -120,4 +127,8 @@ function ExitSurveyResponsePage({route}: ExitSurveyResponsePageProps) {
 
 ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
-export default ExitSurveyResponsePage;
+export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
+    responseDraft: {
+        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM),
+    },
+})(ExitSurveyResponsePage);
