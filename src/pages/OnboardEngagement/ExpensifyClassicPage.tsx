@@ -1,53 +1,57 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 import Button from '../../components/Button';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import Modal from '../../components/Modal';
 import Text from '../../components/Text';
 
 function ToExpensifyClassicModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, isExtraSmallScreenHeight, windowHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight, windowHeight} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const theme = useTheme();
+    const iconWrapperHeight = windowHeight / variables.oldDotWireframeIconWrapperHeightFactor;
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.ONBOARD_MANAGE_EXPENSES);
+    };
 
     return (
-        <Modal
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible
-            onClose={() => {}}
-            innerContainerStyle={styles.pt0}
-            shouldUseCustomBackdrop
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={ToExpensifyClassicModal.displayName}
         >
             <View style={[styles.flex1]}>
-                <View style={[StyleUtils.getBackgroundColorStyle(theme.success), styles.alignItemsCenter, styles.justifyContentCenter, styles.mb5, {height: windowHeight / 3}]}>
+                <View style={[StyleUtils.getBackgroundColorStyle(theme.success), StyleUtils.getHeight(iconWrapperHeight), styles.alignItemsCenter, styles.justifyContentCenter, styles.mb4]}>
                     <HeaderWithBackButton
                         title="Expensify Classic"
                         shouldOverlay
                         shouldShowBackButton
-                        onBackButtonPress={() => {}}
+                        onBackButtonPress={navigateBack}
                         iconFill={theme.iconColorfulBackground}
                     />
                     <View style={styles.pt10}>
                         <Icon
                             src={Expensicons.OldDotWireframe}
-                            width={253.38}
-                            height={143.28}
+                            width={variables.oldDotWireframeIconWidth}
+                            height={variables.oldDotWireframeIconHeight}
                         />
                     </View>
                 </View>
 
-                <ScrollView contentContainerStyle={styles.flex1}>
-                    <View style={[styles.w100, styles.ph5]}>
+                <ScrollView contentContainerStyle={[styles.flex1, styles.ph5]}>
+                    <View>
                         <Text
                             style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                             numberOfLines={2}
@@ -55,20 +59,20 @@ function ToExpensifyClassicModal() {
                             Expensify Classic has everything you&apos;ll need
                         </Text>
                         <Text style={[styles.mb4]}>While we&apos;re busy working on New Expensify, it currently doesn&apos;t support some of the features you&apos;re looking for.</Text>
-                        <Text>Don&apos;t worry, Expensify Classic has everything you need</Text>
+                        <Text>Don&apos;t worry, Expensify Classic has everything you need.</Text>
                     </View>
                 </ScrollView>
-                <View style={[styles.p5]}>
+                <View style={[styles.ph5, styles.pv4]}>
                     <Button
                         success
                         medium={isExtraSmallScreenHeight}
                         style={[canUseTouchScreen ? styles.mt5 : styles.mt3, styles.w100]}
-                        onPress={() => {}}
                         text="Take me to expensify classic"
+                        onPress={() => {}}
                     />
                 </View>
             </View>
-        </Modal>
+        </ScreenWrapper>
     );
 }
 
