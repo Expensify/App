@@ -11,7 +11,7 @@ import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import linkingConfig from './linkingConfig';
 import TAB_TO_CENTRAL_PANE_MAPPING from './linkingConfig/TAB_TO_CENTRAL_PANE_MAPPING';
-import type {CentralPaneNavigatorParamList, NavigationRoot, RootStackParamList, StackNavigationAction, State, SwitchPolicyIDParams} from './types';
+import type {NavigationRoot, RootStackParamList, StackNavigationAction, State, SwitchPolicyIDParams} from './types';
 
 type ActionPayloadParams = {
     screen?: string;
