@@ -43,15 +43,7 @@ const messageCopy = {
         '4. Enter the email address or phone number of your boss\n' +
         '\n' +
         "And we'll take it from there to get you paid back. Please give it a shot and let me know how it goes!",
-    [CONST.INTRO_CHOICES.MANAGE_TEAM]:
-        "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
-        '\n' +
-        '1. Press your avatar icon\n' +
-        '2. Choose Workspaces\n' +
-        '3. Choose New Workspace\n' +
-        '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
-        '\n' +
-        'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!',
+    [CONST.INTRO_CHOICES.MANAGE_TEAM]: '',
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
         'Hi there, to split an expense such as with a friend, please:\n' +
         '\n' +
@@ -90,7 +82,6 @@ function PurposeForUsingExpensifyModal() {
         }
 
         Report.completeEngagementModal(message, choice);
-        // TODO: Navigate to Previous screen
         Report.navigateToConciergeChat();
     }, []);
 
