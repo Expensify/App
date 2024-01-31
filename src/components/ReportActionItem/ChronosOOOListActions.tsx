@@ -37,7 +37,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
         <OfflineWithFeedback pendingAction={action.pendingAction}>
             <View style={styles.chatItemMessage}>
                 {events.map((event) => {
-                    const start = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.end?.date ?? '');
+                    const start = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.start?.date ?? '');
                     const end = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.end?.date ?? '');
                     return (
                         <View
