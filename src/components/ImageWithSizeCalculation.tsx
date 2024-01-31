@@ -2,6 +2,7 @@ import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
@@ -42,13 +43,21 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const {isOffline} = useNetwork();
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
+        if (isOffline) {
+            return;
+        }
+        setIsLoading(false);
+        setIsImageCached(true);
     };
 
     const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
         isLoadedRef.current = true;
+        setIsLoading(false);
+        setIsImageCached(true);
         onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
@@ -81,10 +90,6 @@ function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: 
                         return;
                     }
                     setIsLoading(true);
-                }}
-                onLoadEnd={() => {
-                    setIsLoading(false);
-                    setIsImageCached(true);
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
