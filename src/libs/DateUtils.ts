@@ -360,12 +360,18 @@ function getMicroseconds(): number {
     return Date.now() * CONST.MICROSECONDS_PER_MS;
 }
 
+function getDBTimeFromDate(date: Date): string {
+    return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
 /**
- * Returns the current time in milliseconds in the format expected by the database
+ * Convert the given timestamp to the "yyyy-MM-dd HH:mm:ss" format, as expected by the database
+ *
+ * @param [timestamp] the given timestamp (if omitted, defaults to the current time)
  */
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return datetime.toISOString().replace('T', ' ').replace('Z', '');
+    return getDBTimeFromDate(datetime);
 }
 
 /**
@@ -734,6 +740,15 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
+ * Return the date with full format if the created date is the current date.
+ * Otherwise return the created date.
+ */
+function enrichMoneyRequestTimestamp(created: string): string {
+    const now = new Date();
+    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
+    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
+}
+/**
  * Returns the last business day of given date month
  *
  * param {Date} inputDate
@@ -796,6 +811,7 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
+    enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
 };
 
