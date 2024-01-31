@@ -95,7 +95,7 @@ function PurposeForUsingExpensifyModal() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const closeModal = useCallback(() => {
+    const navigateBack = useCallback(() => {
         Report.dismissEngagementModal();
         // TODO: Navigate to Previous screen;
     }, []);
@@ -132,7 +132,7 @@ function PurposeForUsingExpensifyModal() {
             shouldShowCloseButton
             shouldShowBackButton={false}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+            onCloseButtonPress={navigateBack}
             illustration={LottieAnimations.Hands}
             iconFill={theme.iconColorfulBackground}
         >
