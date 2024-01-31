@@ -51,21 +51,20 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
 // Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
-const dismissModal = (ref = navigationRef) => originalDismissModal(ref);
+const dismissModal = (reportID?: string, ref = navigationRef) => {
+    if (!reportID) {
+        originalDismissModal(ref);
+        return;
+    }
+    const report = getReport(reportID);
+    originalDismissModalWithReport({reportID, ...report}, ref);
+};
 
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
 // This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
 // Then we can pass the report as a param without getting it from the Onyx.
 const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
 
-const dismissModalWithReportID = (reportID?: string, ref = navigationRef) => {
-    if (!reportID) {
-        dismissModal(ref);
-        return;
-    }
-    const report = getReport(reportID);
-    originalDismissModalWithReport({reportID, ...report}, ref);
-};
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
     if ('routes' in stateOrRoute && stateOrRoute.routes) {
@@ -341,7 +340,6 @@ export default {
     setParams,
     dismissModal,
     dismissModalWithReport,
-    dismissModalWithReportID,
     isActiveRoute,
     getActiveRoute,
     getActiveRouteWithoutParams,

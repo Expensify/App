@@ -47,7 +47,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
             if (exitReportID) {
-                Navigation.dismissModalWithReportID(exitReportID);
+                Navigation.dismissModal(exitReportID);
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {

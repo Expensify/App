@@ -281,7 +281,7 @@ function AttachmentModal({
     const deleteAndCloseModal = useCallback(() => {
         IOU.detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.dismissModalWithReportID(report?.reportID);
+        Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);
 
     const isValidFile = useCallback((fileObject: FileObject) => {

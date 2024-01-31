@@ -60,7 +60,7 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
         // When the loading goes from true to false, then we know the transaction has just been
         // saved to the server. Check for errors. If there are no errors, then the modal can be closed.
         if (prevIsLoading && !transaction.isLoading && !hasWaypointError.current) {
-            Navigation.dismissModalWithReportID(report.reportID);
+            Navigation.dismissModal(report.reportID);
         }
     }, [transaction, prevIsLoading, report]);
 
@@ -75,7 +75,7 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
         const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
         const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
         if (_.isEqual(oldAddresses, addresses)) {
-            Navigation.dismissModalWithReportID(report.reportID);
+            Navigation.dismissModal(report.reportID);
             return;
         }
 
@@ -84,7 +84,7 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
         // If the client is offline, then the modal can be closed as well (because there are no errors or other feedback to show them
         // until they come online again and sync with the server).
         if (isOffline) {
-            Navigation.dismissModalWithReportID(report.reportID);
+            Navigation.dismissModal(report.reportID);
         }
     };
 

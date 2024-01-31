@@ -175,7 +175,7 @@ function WorkspaceNewRoomPage(props) {
         if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
             return;
         }
-        Navigation.dismissModalWithReportID(newRoomReportID);
+        Navigation.dismissModal(newRoomReportID);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
     }, [props.formState]);
 

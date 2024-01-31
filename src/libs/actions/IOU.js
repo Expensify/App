@@ -936,7 +936,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
         },
         onyxData,
     );
-    Navigation.dismissModalWithReportID(isMoneyRequestReport ? report.reportID : chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
@@ -1364,7 +1364,7 @@ function requestMoney(
         onyxData,
     );
     resetMoneyRequestInfo();
-    Navigation.dismissModalWithReportID(activeReportID);
+    Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
@@ -1806,7 +1806,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
     );
 
     resetMoneyRequestInfo();
-    Navigation.dismissModalWithReportID(splitData.chatReportID);
+    Navigation.dismissModal(splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -2288,7 +2288,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModalWithReportID(chatReportID);
+    Navigation.dismissModal(chatReportID);
     Report.notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -3244,7 +3244,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
-    Navigation.dismissModalWithReportID(params.chatReportID);
+    Navigation.dismissModal(params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -3262,7 +3262,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
-    Navigation.dismissModalWithReportID(params.chatReportID);
+    Navigation.dismissModal(params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
