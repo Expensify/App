@@ -2631,7 +2631,6 @@ export default {
             subtitle: 'Antes de irte, por favor dinos por qué te gustaría cambiarte a Expensify Classic.',
         },
         reasons: {
-            // TODO: use consts for these keys
             [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: 'Necesito una función que sólo está disponible en Expensify Classic.',
             [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'No entiendo cómo usar New Expensify.',
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Entiendo cómo usar New Expensify, pero prefiero Expensify Classic.',
