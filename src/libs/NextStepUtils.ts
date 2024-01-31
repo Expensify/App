@@ -68,7 +68,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
-    const submitterDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo, true) ?? '';
+    const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo, true) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -189,7 +189,7 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         text: 'Waiting for ',
                     },
                     {
-                        text: submitterDisplayName,
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {
