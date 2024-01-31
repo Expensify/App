@@ -2,6 +2,8 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useContext} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
+import AddressSearch from '@components/AddressSearch';
+import RoomNameInput from '@components/RoomNameInput';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import FormContext from './FormContext';
 import type {InputWrapperProps, ValidInputs} from './types';
@@ -17,7 +19,8 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
     readonly blurOnSubmit: boolean | undefined,
     readonly shouldSetTouchedOnBlurOnly: boolean,
 } {
-    if (InputComponent === TextInput) {
+    const validTextInputComponents = [TextInput, AddressSearch, RoomNameInput] as TInput[];
+    if (validTextInputComponents.includes(InputComponent)) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isEffectivelyMultiline = Boolean(multiline || autoGrowHeight);
 
