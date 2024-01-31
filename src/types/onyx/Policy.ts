@@ -150,6 +150,10 @@ type Policy = {
 
     /** When tax tracking is enabled */
     isTaxTrackingEnabled?: boolean;
+
+    chatReportIDAdmins?: number;
+
+    chatReportIDAnnounce?: number;
 };
 
 export default Policy;

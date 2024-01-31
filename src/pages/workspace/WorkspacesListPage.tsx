@@ -13,6 +13,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -131,32 +132,39 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
      */
     const getMenuItem = useCallback(
         ({item, index}: GetMenuItem) => {
-            const threeDotsMenuItems = [
-                // Check if the user is an admin of the workspace
-                ...(item.role === CONST.POLICY.ROLE.ADMIN
-                    ? [
-                          {
-                              icon: Expensicons.Trashcan,
-                              text: translate('workspace.common.delete'),
-                              onSelected: () => {
-                                  setPolicyIDToDelete(item.policyID ?? '');
-                                  setPolicyNameToDelete(item.title);
-                                  setIsDeleteModalOpen(true);
-                              },
-                          },
-                          {
-                              icon: Expensicons.Hashtag,
-                              text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                              onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom ?? '')),
-                          },
-                      ]
-                    : []),
-                {
+            const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
+            // Menu options to navigate to the chat report of #admins and #announce room.
+            // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
+            // In such cases, let us use the available chat report ids from the policy.
+            const threeDotsMenuItems: PopoverMenuItem[] = [];
+
+            if (isAdmin) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('workspace.common.delete'),
+                    onSelected: () => {
+                        setPolicyIDToDelete(item.policyID ?? '');
+                        setPolicyNameToDelete(item.title);
+                        setIsDeleteModalOpen(true);
+                    },
+                });
+            }
+
+            if (isAdmin && item.adminRoom) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Hashtag,
+                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom ?? '')),
+                });
+            }
+
+            if (item.announceRoom) {
+                threeDotsMenuItems.push({
                     icon: Expensicons.Hashtag,
                     text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
                     onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
-                },
-            ];
+                });
+            }
 
             return (
                 <OfflineWithFeedback
@@ -290,8 +298,8 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     iconFill: theme.textLight,
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
-                    adminRoom: policyRooms?.[policy.id] ? policyRooms[policy.id].adminRoom : null,
-                    announceRoom: policyRooms?.[policy.id] ? policyRooms[policy.id].announceRoom : null,
+                    adminRoom: policyRooms?.[policy.id].adminRoom ?? policy.chatReportIDAdmins?.toString(),
+                    announceRoom: policyRooms?.[policy.id].announceRoom ?? policy.chatReportIDAnnounce?.toString(),
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
                     type: policy.type,
