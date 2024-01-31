@@ -1,4 +1,5 @@
 import React, {forwardRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,13 +24,17 @@ type RadioButtonsProps = {
     errorText?: MaybePhraseKey;
 };
 
-function RadioButtons({items, onPress, errorText}: RadioButtonsProps) {
+function RadioButtons({items, onPress, errorText}: RadioButtonsProps, ref: ForwardedRef<View>) {
+    console.log('RORY_DEBUG errorText', errorText);
     const styles = useThemeStyles();
     const [checkedValue, setCheckedValue] = useState('');
 
     return (
         <>
-            <View style={styles.mb3}>
+            <View
+                style={styles.mb3}
+                ref={ref}
+            >
                 {items.map((item) => (
                     <RadioButtonWithLabel
                         key={item.value}

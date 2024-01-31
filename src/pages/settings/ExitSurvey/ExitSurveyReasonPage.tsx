@@ -69,7 +69,6 @@ function ExitSurveyReasonPage() {
                         items={reasons}
                         onPress={(value) => setReason(value as Reason)}
                     />
-                    x
                 </>
             </FormProvider>
         </ScreenWrapper>
