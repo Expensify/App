@@ -1,6 +1,12 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
+import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import type {MenuItemProps} from '@components/MenuItem';
+import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,12 +14,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
-import Button from '../../components/Button';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import type {MenuItemProps} from '../../components/MenuItem';
-import MenuItemList from '../../components/MenuItemList';
-import Text from '../../components/Text';
 
 const TEAMS_EXPENSE_CHOICE = {
     MULTI_LEVEL: 'Multi level approval',
@@ -34,7 +34,7 @@ const menuIcons = {
 function ManageTeamsExpensesModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useWindowDimensions();
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const theme = useTheme();
 
