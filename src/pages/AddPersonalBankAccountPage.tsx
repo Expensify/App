@@ -14,9 +14,12 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
+import type {BankAccountList, PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
+    /** List of bank accounts */
+    bankAccountList: OnyxEntry<BankAccountList>;
+
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
 
@@ -24,7 +27,7 @@ type AddPersonalBankAccountPageWithOnyxProps = {
     personalBankAccount: OnyxEntry<PersonalBankAccount>;
 };
 
-function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersonalBankAccountPageWithOnyxProps) {
+function AddPersonalBankAccountPage({bankAccountList, personalBankAccount, plaidData}: AddPersonalBankAccountPageWithOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
@@ -37,9 +40,9 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, bankAccountList ?? {});
         }
-    }, [plaidData, selectedPlaidAccountId]);
+    }, [plaidData, selectedPlaidAccountId, bankAccountList]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -103,6 +106,9 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
+    bankAccountList: {
+        key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
     personalBankAccount: {
         key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },
