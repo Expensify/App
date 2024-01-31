@@ -340,10 +340,6 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
-        verticalAlignMiddle: {
-            verticalAlign: 'middle',
-        },
-
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -441,6 +437,10 @@ const styles = (theme: ThemeColors) =>
 
         textBlue: {
             color: theme.link,
+        },
+
+        textIvoryLight: {
+            color: theme.iconColorfulBackground,
         },
 
         textNoWrap: {
@@ -673,8 +673,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         loadingVBAAnimation: {
-            width: 140,
-            height: 140,
+            width: '100%',
+        },
+
+        loadingVBAAnimationWeb: {
+            width: '100%',
         },
 
         pickerSmall: (backgroundColor = theme.highlightBG) =>
@@ -1460,7 +1463,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (windowHeight: number) =>
             ({
                 horizontal: 18 + variables.sideBarWidth,
-                vertical: windowHeight - 83,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
         createMenuPositionRightSidepane: {
@@ -2281,9 +2284,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportActionContextMenuMiniButton: {
-            ...spacing.p1,
-            ...spacing.mv1,
-            ...spacing.mh1,
+            height: 28,
+            width: 28,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
             ...{borderRadius: variables.buttonBorderRadius},
         },
 
@@ -2867,6 +2871,10 @@ const styles = (theme: ThemeColors) =>
             outlineStyle: 'none',
         },
 
+        boxShadowNone: {
+            boxShadow: 'none',
+        },
+
         cardStyleNavigator: {
             overflow: 'hidden',
             height: '100%',
@@ -3318,8 +3326,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         miniQuickEmojiReactionText: {
-            fontSize: 15,
-            lineHeight: 20,
+            fontSize: 18,
+            lineHeight: 22,
             verticalAlign: 'middle',
         },
 
@@ -3908,26 +3916,30 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiStatusLHN: {
-            fontSize: 22,
-        },
-        sidebarStatusAvatarContainer: {
-            height: 44,
-            width: 84,
-            backgroundColor: theme.componentBG,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderRadius: 42,
-            paddingHorizontal: 2,
-            marginVertical: -2,
-            marginRight: -2,
-        },
-        sidebarStatusAvatar: {
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontSize: 9,
         },
 
+        sidebarStatusAvatarContainer: {
+            height: 40,
+            width: 40,
+            backgroundColor: theme.componentBG,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 20,
+        },
+        sidebarStatusAvatar: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.border,
+            height: 20,
+            width: 20,
+            borderRadius: 10,
+            position: 'absolute',
+            right: -4,
+            bottom: -4,
+            borderColor: theme.highlightBG,
+            borderWidth: 2,
+        },
         moneyRequestViewImage: {
             ...spacing.mh5,
             ...spacing.mv3,
@@ -4157,6 +4169,19 @@ const styles = (theme: ThemeColors) =>
         },
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+
+        updateAnimation: {
+            width: variables.updateAnimationW,
+            height: variables.updateAnimationH,
+        },
+
+        updateRequiredViewHeader: {
+            height: variables.updateViewHeaderHeight,
+        },
+
+        updateRequiredViewTextContainer: {
+            width: variables.updateTextViewContainerWidth,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
