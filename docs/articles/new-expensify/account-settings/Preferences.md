@@ -3,7 +3,7 @@ title: Preferences
 description: How to manage your Expensify Preferences
 ---
 # Overview
-Your Preferences in Expensify allow you to customise how you use New Expensify.
+Your Preferences in Expensify allow you to customize how you use New Expensify.
 
 - Set your theme preference
 
