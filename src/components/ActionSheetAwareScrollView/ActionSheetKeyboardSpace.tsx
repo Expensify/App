@@ -140,6 +140,15 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
     const translateY = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.value;
 
+        console.log("RE-EXECUTION", {
+            current,
+            previous,
+            "keyboard.height.value": keyboard.height.value,
+            "keyboard.heightWhenOpened.value": keyboard.heightWhenOpened.value,
+            "keyboard.state.value": keyboard.state.value,
+            "keyboard.progress.value": keyboard.progress.value,
+        });
+
         // we don't need to run any additional logic
         // it will always return 0 for idle state
         if (current.state === States.IDLE) {
@@ -263,7 +272,7 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
             }
             case States.CALL_POPOVER_WITH_KEYBOARD_CLOSED: {
                 // keyboard is opened
-                if (keyboard.height.value === keyboard.heightWhenOpened.value) {
+                if (keyboard.height.value > 0) {
                     console.log("TRANSITION #14 (1-2) -> ", 0);
                     return 0;
                 }

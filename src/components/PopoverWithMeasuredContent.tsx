@@ -74,12 +74,17 @@ function PopoverWithMeasuredContent({
         setPopoverHeight(height);
         setIsContentMeasured(true);
 
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
-            payload: {
-                popoverHeight: height,
-            },
-        });
+        // it handles the case when `measurePopover` is called with values like: 192, 192.00003051757812, 192
+        // if we update it, then animation in `ActionSheetAwareScrollView` may be re-running
+        // and we'll see unsynchronized and junky animation
+        if (actionSheetAwareScrollViewContext.currentActionSheetState.value.current.payload?.popoverHeight !== Math.floor(popoverHeight)) {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
+                payload: {
+                    popoverHeight: Math.floor(popoverHeight),
+                },
+            });
+        }
     };
 
     const adjustedAnchorPosition = useMemo(() => {
