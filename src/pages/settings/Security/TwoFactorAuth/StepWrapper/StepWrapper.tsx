@@ -27,7 +27,7 @@ function StepWrapper({
         >
             <AnimatedStep
                 style={[styles.flex1]}
-                onAnimationEnd={onEntryTransitionEnd}
+                onAnimationEnd={onEntryTransitionEnd as () => void}
                 direction={animationDirection}
             >
                 <HeaderWithBackButton
