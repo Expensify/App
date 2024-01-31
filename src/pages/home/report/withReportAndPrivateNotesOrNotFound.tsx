@@ -1,4 +1,4 @@
-import type {ParamListBase} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -24,10 +24,7 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 };
 
-type WithReportAndPrivateNotesOrNotFoundProps<
-    ParamList extends ParamListBase = Record<string, {reportID: string; accountID: string} | undefined>,
-    RouteName extends string = string,
-> = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps<ParamList, RouteName>;
+type WithReportAndPrivateNotesOrNotFoundProps = WithReportAndPrivateNotesOrNotFoundOnyxProps & WithReportOrNotFoundProps & {route: RouteProp<{params: {accountID?: string}}>};
 
 export default function <TProps extends WithReportAndPrivateNotesOrNotFoundProps, TRef>(pageTitle: TranslationPaths) {
     // eslint-disable-next-line rulesdir/no-negated-variables

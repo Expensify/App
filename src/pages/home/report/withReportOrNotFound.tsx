@@ -1,6 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {ParamListBase} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {RouteProp} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -25,10 +24,7 @@ type WithReportOrNotFoundOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type WithReportOrNotFoundProps<
-    ParamList extends ParamListBase = Record<string, {reportID: string; accountID: string} | undefined>,
-    RouteName extends string = string,
-> = WithReportOrNotFoundOnyxProps & StackScreenProps<ParamList, RouteName>;
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {route: RouteProp<{params: {reportID?: string}}>};
 
 export default function (
     shouldRequireReportID = true,
