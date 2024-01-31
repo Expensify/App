@@ -40,6 +40,7 @@ import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -237,14 +238,28 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                 {showMapAsImage && (
-                    <OfflineWithFeedback pendingAction={pendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={pendingAction}
+                        errors={transaction.errors}
+                        errorRowStyles={[styles.ml4]}
+                        onClose={() => {
+                            Transaction.clearError(transaction.transactionID);
+                        }}
+                    >
                         <View style={styles.moneyRequestViewImage}>
                             <ConfirmedRoute transaction={transaction} />
                         </View>
                     </OfflineWithFeedback>
                 )}
                 {!showMapAsImage && hasReceipt && (
-                    <OfflineWithFeedback pendingAction={pendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={pendingAction}
+                        errors={transaction.errors}
+                        errorRowStyles={[styles.ml4]}
+                        onClose={() => {
+                            Transaction.clearError(transaction.transactionID);
+                        }}
+                    >
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage
                                 thumbnail={receiptURIs.thumbnail}
