@@ -1,16 +1,15 @@
-import type {RouteProp} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 
-/** Defined route object that contains the policyID param, WorkspacePageWithSections is a common component for Workspaces and expect the route prop that includes the policyID */
-type WorkspaceCardPageProps = {
-    route: RouteProp<{params: {policyID: string}}>;
-};
+type WorkspaceCardPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CARD>;
 
 function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
     const {translate} = useLocalize();

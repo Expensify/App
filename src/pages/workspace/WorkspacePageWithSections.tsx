@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
@@ -38,9 +37,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** The text to display in the header */
         headerText: string;
-
-        /** The route object passed to this page from the navigator */
-        route: RouteProp<{params: {policyID: string}}>;
 
         /** Main content of the page */
         children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
