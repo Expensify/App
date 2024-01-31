@@ -1,14 +1,30 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {
+    AddPersonalBankAccountParams,
+    BankAccountHandlePlaidErrorParams,
+    ConnectBankAccountManuallyParams,
+    ConnectBankAccountWithPlaidParams,
+    DeletePaymentBankAccountParams,
+    OpenReimbursementAccountPageParams,
+    UpdateCompanyInformationForBankAccountParams,
+    UpdatePersonalInformationForBankAccountParams,
+    ValidateBankAccountWithTransactionsParams,
+    VerifyIdentityForBankAccountParams,
+} from '@libs/API/parameters';
+import type UpdateBeneficialOwnersForBankAccountParams from '@libs/API/parameters/UpdateBeneficialOwnersForBankAccountParams';
+import type {BankAccountCompanyInformation} from '@libs/API/parameters/UpdateCompanyInformationForBankAccountParams';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {OnfidoData} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -26,8 +42,6 @@ export {
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
-
-type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
 
 type ReimbursementAccountStep = BankAccountStep | '';
 
@@ -62,7 +76,7 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 /**
  * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
  */
-function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: string) {
+function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute});
 }
 
@@ -123,17 +137,6 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount) {
-    const commandName = 'ConnectBankAccountWithPlaid';
-
-    type ConnectBankAccountWithPlaidParams = {
-        bankAccountID: number;
-        routingNumber: string;
-        accountNumber: string;
-        bank?: string;
-        plaidAccountID: string;
-        plaidAccessToken: string;
-    };
-
     const parameters: ConnectBankAccountWithPlaidParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
@@ -143,7 +146,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
     };
 
-    API.write(commandName, parameters, getVBBADataForOnyx());
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, getVBBADataForOnyx());
 }
 
 /**
@@ -152,19 +155,6 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account: PlaidBankAccount) {
-    const commandName = 'AddPersonalBankAccount';
-
-    type AddPersonalBankAccountParams = {
-        addressName: string;
-        routingNumber: string;
-        accountNumber: string;
-        isSavings: boolean;
-        setupType: string;
-        bank?: string;
-        plaidAccountID: string;
-        plaidAccessToken: string;
-    };
-
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName,
         routingNumber: account.routingNumber,
@@ -211,12 +201,10 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
         ],
     };
 
-    API.write(commandName, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
 function deletePaymentBankAccount(bankAccountID: number) {
-    type DeletePaymentBankAccountParams = {bankAccountID: number};
-
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
     const onyxData: OnyxData = {
@@ -239,7 +227,7 @@ function deletePaymentBankAccount(bankAccountID: number) {
         ],
     };
 
-    API.write('DeletePaymentBankAccount', parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT, parameters, onyxData);
 }
 
 /**
@@ -247,16 +235,11 @@ function deletePaymentBankAccount(bankAccountID: number) {
  *
  * This action is called by the requestor step in the Verified Bank Account flow
  */
-function updatePersonalInformationForBankAccount(params: RequestorStepProps) {
-    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
+function updatePersonalInformationForBankAccount(params: UpdatePersonalInformationForBankAccountParams) {
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT, params, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR));
 }
 
 function validateBankAccount(bankAccountID: number, validateCode: string) {
-    type ValidateBankAccountWithTransactionsParams = {
-        bankAccountID: number;
-        validateCode: string;
-    };
-
     const parameters: ValidateBankAccountWithTransactionsParams = {
         bankAccountID,
         validateCode,
@@ -293,7 +276,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string) {
         ],
     };
 
-    API.write('ValidateBankAccountWithTransactions', parameters, onyxData);
+    API.write(WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS, parameters, onyxData);
 }
 
 function clearReimbursementAccount() {
@@ -331,37 +314,29 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         ],
     };
 
-    type OpenReimbursementAccountPageParams = {
-        stepToOpen: ReimbursementAccountStep;
-        subStep: ReimbursementAccountSubStep;
-        localCurrentStep: ReimbursementAccountStep;
-    };
-
     const parameters: OpenReimbursementAccountPageParams = {
         stepToOpen,
         subStep,
         localCurrentStep,
     };
 
-    return API.read('OpenReimbursementAccountPage', parameters, onyxData);
+    return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
 }
 
 /**
  * Updates the bank account in the database with the company step data
  */
 function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyInformation, policyID: string) {
-    type UpdateCompanyInformationForBankAccountParams = BankAccountCompanyInformation & {policyID: string};
-
     const parameters: UpdateCompanyInformationForBankAccountParams = {...bankAccount, policyID};
 
-    API.write('UpdateCompanyInformationForBankAccount', parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
+    API.write(WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY));
 }
 
 /**
  * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  */
-function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
-    API.write('UpdateBeneficialOwnersForBankAccount', params, getVBBADataForOnyx());
+function updateBeneficialOwnersForBankAccount(params: UpdateBeneficialOwnersForBankAccountParams) {
+    API.write(WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT, params, getVBBADataForOnyx());
 }
 
 /**
@@ -369,13 +344,6 @@ function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
  *
  */
 function connectBankAccountManually(bankAccountID: number, accountNumber?: string, routingNumber?: string, plaidMask?: string) {
-    type ConnectBankAccountManuallyParams = {
-        bankAccountID: number;
-        accountNumber?: string;
-        routingNumber?: string;
-        plaidMask?: string;
-    };
-
     const parameters: ConnectBankAccountManuallyParams = {
         bankAccountID,
         accountNumber,
@@ -383,29 +351,24 @@ function connectBankAccountManually(bankAccountID: number, accountNumber?: strin
         plaidMask,
     };
 
-    API.write('ConnectBankAccountManually', parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT));
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT));
 }
 
 /**
  * Verify the user's identity via Onfido
  */
 function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoData) {
-    type VerifyIdentityForBankAccountParams = {
-        bankAccountID: number;
-        onfidoData: string;
-    };
-
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
     };
 
-    API.write('VerifyIdentityForBankAccount', parameters, getVBBADataForOnyx());
+    API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView() {
     API.read(
-        'OpenWorkspaceView',
+        READ_COMMANDS.OPEN_WORKSPACE_VIEW,
         {},
         {
             optimisticData: [
@@ -440,13 +403,6 @@ function openWorkspaceView() {
 }
 
 function handlePlaidError(bankAccountID: number, error: string, errorDescription: string, plaidRequestID: string) {
-    type BankAccountHandlePlaidErrorParams = {
-        bankAccountID: number;
-        error: string;
-        errorDescription: string;
-        plaidRequestID: string;
-    };
-
     const parameters: BankAccountHandlePlaidErrorParams = {
         bankAccountID,
         error,
@@ -454,7 +410,7 @@ function handlePlaidError(bankAccountID: number, error: string, errorDescription
         plaidRequestID,
     };
 
-    API.write('BankAccount_HandlePlaidError', parameters);
+    API.write(WRITE_COMMANDS.BANK_ACCOUNT_HANDLE_PLAID_ERROR, parameters);
 }
 
 /**
