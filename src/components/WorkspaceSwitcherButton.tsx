@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -21,6 +22,7 @@ type WorkspaceSwitcherButtonProps = {activeWorkspaceID?: string} & WorkspaceSwit
 
 function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
 
     const {source, name, type} = useMemo(() => {
         if (!activeWorkspaceID) {
@@ -46,12 +48,19 @@ function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherB
                 })
             }
         >
-            <SubscriptAvatar
-                mainAvatar={{source, name, type}}
-                subscriptIcon={{source: Expensicons.DownArrow, width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE, height: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE}}
-                showTooltip={false}
-                noMargin
-            />
+            {({hovered}) => (
+                <SubscriptAvatar
+                    mainAvatar={{source, name, type}}
+                    subscriptIcon={{
+                        source: Expensicons.DownArrow,
+                        width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE,
+                        height: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE,
+                        fill: hovered ? theme.buttonHoveredBG : theme.icon,
+                    }}
+                    showTooltip={false}
+                    noMargin
+                />
+            )}
         </PressableWithFeedback>
     );
 }
