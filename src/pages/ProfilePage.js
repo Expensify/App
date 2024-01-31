@@ -133,7 +133,7 @@ function ProfilePage(props) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+    const navigateBackTo = lodashGet(props.route, 'params.backTo');
 
     const shouldShowNotificationPreference = !_.isEmpty(props.report) && props.report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference ? props.translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`) : '';
