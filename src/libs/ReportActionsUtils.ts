@@ -415,29 +415,23 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
  * which includes a baseURL placeholder that's replaced in the client.
  */
 function replaceBaseURL(reportAction: ReportAction): ReportAction {
-    if (!reportAction) {
+    const policyChangeActions = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
+
+    if (!reportAction?.message || !policyChangeActions.has(reportAction?.actionName)) {
         return reportAction;
     }
 
-    if (
-        !reportAction ||
-        (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM)
-    ) {
-        return reportAction;
-    }
-    if (!reportAction.message) {
-        return reportAction;
-    }
     const updatedReportAction = _.clone(reportAction);
+
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
+
     updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
+
     return updatedReportAction;
 }
 
-/**
- */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
     const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
