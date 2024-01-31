@@ -3820,12 +3820,12 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        reportPreviewBoxBody: {
+        expenseAndReportPreviewBoxBody: {
             padding: 16,
             marginTop: -4,
         },
 
-        reportPreviewTextContainer: {
+        expenseAndReportPreviewTextContainer: {
             gap: 8,
         },
 
@@ -3833,7 +3833,7 @@ const styles = (theme: ThemeColors) =>
             gap: 4,
         },
 
-        reportPreviewTextButtonContainer: {
+        expenseAndReportPreviewTextButtonContainer: {
             gap: 16,
         },
 

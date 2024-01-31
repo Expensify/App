@@ -251,9 +251,9 @@ function ReportPreview({
                                 size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
                             />
                         )}
-                        <View style={[styles.reportPreviewBoxBody]}>
-                            <View style={styles.reportPreviewTextButtonContainer}>
-                                <View style={styles.reportPreviewTextContainer}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody]}>
+                            <View style={styles.expenseAndReportPreviewTextButtonContainer}>
+                                <View style={styles.expenseAndReportPreviewTextContainer}>
                                         <View style={styles.flexRow}>
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
@@ -288,7 +288,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View> 
-                                {true && (
+                                {shouldShowSettlementButton && (
                                     <SettlementButton
                                         // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                                         currency={iouReport?.currency}
