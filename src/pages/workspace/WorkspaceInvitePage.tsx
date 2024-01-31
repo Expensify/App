@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, InvitedEmailsToAccountIDsDraft, PersonalDetailsList} from '@src/types/onyx';
+import type {Beta, InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
@@ -46,7 +46,7 @@ type WorkspaceInvitePageOnyxProps = {
     betas: OnyxEntry<Beta[]>;
 
     /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDsDraft | undefined>;
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs | undefined>;
 };
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInvitePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
@@ -250,7 +250,7 @@ function WorkspaceInvitePage({
             return;
         }
 
-        const invitedEmailsToAccountIDs: Record<string, number> = {};
+        const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
             const accountID = option.accountID ?? '';

@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDsDraft, PersonalDetailsList} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
@@ -41,7 +41,7 @@ type WorkspaceInviteMessagePageOnyxProps = {
     allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDsDraft | undefined>;
+    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs | undefined>;
 
     /** Updated workspace invite message */
     workspaceInviteMessageDraft: OnyxEntry<string | undefined>;

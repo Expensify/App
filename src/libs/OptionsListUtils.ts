@@ -310,9 +310,9 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  */
-function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList> | ReportUtils.OptionData[]): boolean {
-    const personalDetailsValues = Array.isArray(personalDetails) ? personalDetails : Object.values(personalDetails ?? {});
-    return personalDetailsValues.some((personalDetail) => personalDetail?.accountID);
+function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>): boolean {
+    const personalDetailsKeys = Object.keys(personalDetails ?? {});
+    return personalDetailsKeys.some((key) => personalDetails?.[key]?.accountID);
 }
 
 /**
@@ -2005,4 +2005,5 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
 };
+
 export type {MemberForList};
