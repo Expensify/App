@@ -1,14 +1,20 @@
 type PolicyTaxRate = {
-    /** Name of a tax */
+    /** The name of the tax rate. */
     name: string;
 
-    /** The value of a tax */
+    /** The value of the tax rate. */
     value: string;
 
-    /** Whether the tax is disabled */
+    /** The code associated with the tax rate. */
+    code: string;
+
+    /** This contains the tax name and tax value as one name */
+    modifiedName: string;
+
+    /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
 };
 
 type PolicyTaxRates = Record<string, PolicyTaxRate>;
-export default PolicyTaxRate;
-export type {PolicyTaxRates};
+
+export type {PolicyTaxRates, PolicyTaxRate};

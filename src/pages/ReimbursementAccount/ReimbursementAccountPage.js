@@ -315,6 +315,11 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
             const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                    BankAccounts.hideBankAccountErrors();
+                }
+
                 // The route is showing the correct step, no need to update the route param or clear errors.
                 return;
             }
@@ -553,7 +558,7 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,
