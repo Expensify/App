@@ -533,6 +533,10 @@ export default {
         paddingBottom: 80,
     },
 
+    pb40: {
+        paddingBottom: 160,
+    },
+
     pb10Percentage: {
         paddingBottom: '10%',
     },

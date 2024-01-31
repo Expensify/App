@@ -1,14 +1,14 @@
 import Str from 'expensify-common/lib/str';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
+import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RNTextInput from '@components/RNTextInput';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
@@ -58,7 +58,7 @@ function BaseTextInput(
         inputID,
         ...props
     }: BaseTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
@@ -81,7 +81,7 @@ function BaseTextInput(
     const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
-    const input = useRef<TextInput>(null);
+    const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -323,7 +323,7 @@ function BaseTextInput(
                                         ref.current = element;
                                     }
 
-                                    (input.current as AnimatedTextInputRef | null) = element;
+                                    input.current = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -425,6 +425,9 @@ function BaseTextInput(
                         styles.visibilityHidden,
                     ]}
                     onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                            return;
+                        }
                         setTextInputWidth(e.nativeEvent.layout.width);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
