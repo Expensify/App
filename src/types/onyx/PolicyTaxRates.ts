@@ -1,11 +1,17 @@
 type TaxRate = {
-    /** Name of a tax */
+    /** Name of the a tax rate. */
     name: string;
 
-    /** The value of a tax */
+    /** The value of the tax rate. */
     value: string;
 
-    /** Whether the tax is disabled */
+    /** The code associated with the tax rate. */
+    code: string;
+
+    /** This contains the tax name and tax value as one name */
+    modifiedName: string;
+
+    /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
 };
 
@@ -27,5 +33,4 @@ type PolicyTaxRates = {
     taxes: TaxRates;
 };
 
-export default TaxRate;
-export type {TaxRates, PolicyTaxRates};
+export type {TaxRate, TaxRates, PolicyTaxRates};
