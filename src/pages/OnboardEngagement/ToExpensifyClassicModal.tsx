@@ -6,12 +6,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import Button from './Button';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import Modal from './Modal';
-import Text from './Text';
+import Button from '../../components/Button';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import Icon from '../../components/Icon';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import Modal from '../../components/Modal';
+import Text from '../../components/Text';
 
 function ToExpensifyClassicModal() {
     const StyleUtils = useStyleUtils();

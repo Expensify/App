@@ -12,14 +12,14 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
-import Lottie from './Lottie';
-import LottieAnimations from './LottieAnimations';
-import type {MenuItemProps} from './MenuItem';
-import MenuItemList from './MenuItemList';
-import Modal from './Modal';
-import Text from './Text';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import Lottie from '../../components/Lottie';
+import LottieAnimations from '../../components/LottieAnimations';
+import type {MenuItemProps} from '../../components/MenuItem';
+import MenuItemList from '../../components/MenuItemList';
+import Modal from '../../components/Modal';
+import Text from '../../components/Text';
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy = {

@@ -6,13 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import Button from './Button';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
-import type {MenuItemProps} from './MenuItem';
-import MenuItemList from './MenuItemList';
-import Modal from './Modal';
-import Text from './Text';
+import Button from '../../components/Button';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import type {MenuItemProps} from '../../components/MenuItem';
+import MenuItemList from '../../components/MenuItemList';
+import Modal from '../../components/Modal';
+import Text from '../../components/Text';
 
 const TEAMS_EXPENSE_CHOICE = {
     MULTI_LEVEL: 'Multi level approval',
