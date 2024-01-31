@@ -81,17 +81,16 @@ function isManualRequest(transaction: Transaction): boolean {
 }
 
 function getTransactionsByActionType(actionType?: string): Array<OnyxEntry<Transaction>> {
-    return Object.values(allTransactions ?? {})
-        .filter(
-            (transaction): transaction is Transaction =>
-                transaction != null && (actionType === CONST.IOU.TYPE.SPLIT ? isSplitRequest(transaction) : getRequestType(transaction) === actionType),
-        )
-        .sort((transactionA, transactionB) => {
-            const transactionATime = new Date(transactionA?.created);
-            const transactionBTime = new Date(transactionB?.created);
-            return transactionATime.valueOf() - transactionBTime.valueOf();
-        })
-        .reverse();
+    return (
+        Object.values(allTransactions ?? {})
+            .filter(
+                (transaction): transaction is Transaction =>
+                    transaction != null && (actionType === CONST.IOU.TYPE.SPLIT ? isSplitRequest(transaction) : getRequestType(transaction) === actionType),
+            )
+            // String based sorting of dates having format [YYYY-MM-DD HH:MM:SS.mmm]
+            .sort((transactionA, transactionB) => (transactionA?.created && transactionB?.created && transactionA?.created > transactionB?.created ? 1 : -1))
+            .reverse()
+    );
 }
 
 /**
