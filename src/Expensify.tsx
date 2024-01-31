@@ -35,6 +35,7 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ScreenShareRequest, Session} from './types/onyx';
+import CONST from './CONST';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -61,6 +62,9 @@ type ExpensifyOnyxProps = {
     /** Information about a screen share call requested by a GuidesPlus agent */
     screenShareRequest: OnyxEntry<ScreenShareRequest>;
 
+    /** True when the user must update to the latest minimum version of the app */
+    updateRequired: OnyxEntry<boolean>,
+
     /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: OnyxEntry<boolean>;
 };
@@ -75,9 +79,10 @@ function Expensify({
         authToken: undefined,
         accountID: undefined,
     },
-    updateAvailable = false,
+    updateAvailable,
     isSidebarLoaded = false,
     screenShareRequest = null,
+    updateRequired = false,
     focusModeNotification = false,
 }: ExpensifyProps) {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
@@ -143,6 +148,7 @@ function Expensify({
                 if (status === 'visible') {
                     const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
                         isCheckingPublicRoom,
+                        updateRequired,
                         updateAvailable,
                         isSidebarLoaded,
                         screenShareRequest,
@@ -194,6 +200,10 @@ function Expensify({
         return null;
     }
 
+    if (updateRequired) {
+        throw new Error(CONST.ERROR.UPDATE_REQUIRED);
+    }
+
     return (
         <DeeplinkWrapper
             isAuthenticated={isAuthenticated}
@@ -205,7 +215,7 @@ function Expensify({
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {updateAvailable ? <UpdateAppModal /> : null}
+                    {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
                     {screenShareRequest ? (
                         <ConfirmModal
                             title={translate('guides.screenShare')}
@@ -246,6 +256,10 @@ export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     },
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,
+        initWithStoredValues: false,
+    },
+    updateRequired: {
+        key: ONYXKEYS.UPDATE_REQUIRED,
         initWithStoredValues: false,
     },
     isSidebarLoaded: {
