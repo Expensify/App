@@ -1,4 +1,3 @@
-import type {ComponentType} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {AvatarSource} from '@libs/UserUtils';
 
