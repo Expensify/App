@@ -1083,10 +1083,10 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     }
 
     // Add optimistic transaction violations if there is a policy
-    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] || [];
     if (policy && policy.id) {
         optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations || [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
+            ViolationsUtils.getViolationsOnyxData(updatedTransaction, currentTransactionViolations, policy.requiresTag, policyTags, policy.requiresCategory, policyCategories),
         );
     }
 
@@ -2526,10 +2526,10 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
     // Add transaction violations if there is a policy
     if (policy && policy.id) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] || [];
         const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
-            currentTransactionViolations || [],
+            currentTransactionViolations,
             policy.requiresTag,
             policyTags,
             policy.requiresCategory,
