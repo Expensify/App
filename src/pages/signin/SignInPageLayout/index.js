@@ -170,11 +170,13 @@ function SignInPageLayout(props) {
                             {backgroundColor: theme.signInPage},
                         ]}
                     >
-                        <BackgroundImage
-                            isSmallScreen
-                            pointerEvents="none"
-                            width={variables.signInHeroBackgroundWidthMobile}
-                        />
+                        <View style={[styles.signInBackground, {height: windowHeight}]}>
+                            <BackgroundImage
+                                isSmallScreen
+                                pointerEvents="none"
+                                width={variables.signInHeroBackgroundWidthMobile}
+                            />
+                        </View>
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}
