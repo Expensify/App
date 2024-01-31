@@ -137,6 +137,7 @@ function DetailsPage(props) {
                                     headerTitle={displayName}
                                     source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
                                     originalFileName={details.originalFileName}
+                                    maybeIcon
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus

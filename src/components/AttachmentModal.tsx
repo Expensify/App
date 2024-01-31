@@ -130,6 +130,9 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
 
+    /** Denotes whether it can be an icon (ex: SVG) */
+    maybeIcon?: boolean;
+
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
 
@@ -154,6 +157,7 @@ function AttachmentModal({
     onCarouselAttachmentChange = () => {},
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
+    maybeIcon = false,
     transaction,
     parentReport,
     parentReportActions,
@@ -531,6 +535,7 @@ function AttachmentModal({
                                     file={file}
                                     onToggleKeyboard={updateConfirmButtonVisibility}
                                     isWorkspaceAvatar={isWorkspaceAvatar}
+                                    maybeIcon={maybeIcon}
                                     fallbackSource={fallbackSource}
                                     isUsedInAttachmentModal
                                     transactionID={transaction?.transactionID}
