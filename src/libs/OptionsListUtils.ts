@@ -676,15 +676,16 @@ function createOption(
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        if(isTaskActionTypeForParticipants && report) {
-            result.reportID = report.reportID;
-            result.isTaskReport = ReportUtils.isTaskReport(report);
-        }
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs[0]);
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
+    }
+
+    if (isTaskActionTypeForParticipants && report) {
+        result.reportID = report.reportID;
+        result.isTaskReport = ReportUtils.isTaskReport(report);
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
