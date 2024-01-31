@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -17,13 +17,13 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
         <WorkspacePageWithSections
             shouldUseScrollView
             headerText={translate('workspace.common.invoices')}
-            route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
+            route={route}
         >
-            {(hasVBA: boolean, policyID: string) => (
+            {(hasVBA?: boolean, policyID?: string) => (
                 <>
-                    {!hasVBA && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
-                    {hasVBA && <WorkspaceInvoicesVBAView policyID={policyID} />}
+                    {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
+                    {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
                 </>
             )}
         </WorkspacePageWithSections>

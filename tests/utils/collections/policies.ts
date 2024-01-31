@@ -11,7 +11,9 @@ export default function createRandomPolicy(index: number): Policy {
         autoReporting: randBoolean(),
         isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES)),
-        isHarvestingEnabled: randBoolean(),
+        harvesting: {
+            enabled: randBoolean(),
+        },
         autoReportingOffset: 1,
         isPreventSelfApprovalEnabled: randBoolean(),
         submitsTo: index,
@@ -26,5 +28,6 @@ export default function createRandomPolicy(index: number): Policy {
         errors: {},
         customUnits: {},
         errorFields: {},
+        approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
 }
