@@ -88,7 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.REQUEST && participants.length > 0 ? CONST.IOU.REQUEST_TYPE.SPLIT : iouRequestType;
+    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.REQUEST && participants.length > 0 ? CONST.IOU.TYPE.SPLIT : iouRequestType;
 
     /**
      * Returns the sections needed for the OptionsSelector

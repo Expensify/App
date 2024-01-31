@@ -80,11 +80,11 @@ function isManualRequest(transaction: Transaction): boolean {
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
-function getTransactionsByRequestType(iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>): Array<OnyxEntry<Transaction>> {
+function getTransactionsByActionType(actionType?: string): Array<OnyxEntry<Transaction>> {
     return Object.values(allTransactions ?? {})
         .filter(
             (transaction): transaction is Transaction =>
-                transaction != null && (iouRequestType === CONST.IOU.REQUEST_TYPE.SPLIT ? isSplitRequest(transaction) : getRequestType(transaction) === iouRequestType),
+                transaction != null && (actionType === CONST.IOU.TYPE.SPLIT ? isSplitRequest(transaction) : getRequestType(transaction) === actionType),
         )
         .sort((transactionA, transactionB) => {
             const transactionATime = new Date(transactionA?.created);
@@ -615,5 +615,5 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
-    getTransactionsByRequestType,
+    getTransactionsByActionType,
 };

@@ -1340,11 +1340,6 @@ function getOptions(
         actionTypeForParticipants = '',
     }: GetOptionsConfig,
 ): GetOptions {
-    const isMoneyRequestActionType =
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SPLIT;
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -1439,6 +1434,11 @@ function getOptions(
 
     const allReportOptions: ReportUtils.OptionData[] = [];
     const isTaskActionTypeForParticipants = !includeTasks && actionTypeForParticipants === CONST.REPORT.TYPE.TASK;
+    const isMoneyRequestActionTypeForParticipants =
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
+        actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        actionTypeForParticipants === CONST.IOU.TYPE.SPLIT;
     orderedReports.forEach((report) => {
         if (!report) {
             return;
@@ -1546,8 +1546,8 @@ function getOptions(
 
     if (includeRecentReports) {
         let recentTransactions: Array<OnyxEntry<Transaction>> = [];
-        if (isMoneyRequestActionType) {
-            recentTransactions = TransactionUtils.getTransactionsByRequestType(actionTypeForParticipants);
+        if (isMoneyRequestActionTypeForParticipants) {
+            recentTransactions = TransactionUtils.getTransactionsByActionType(actionTypeForParticipants);
         }
 
         for (const reportOption of allReportOptions) {
@@ -1588,7 +1588,7 @@ function getOptions(
                 }
             }
 
-            if (isMoneyRequestActionType && recentTransactions.some((transaction: OnyxEntry<Transaction>) => transaction?.reportID === String(reportOption.iouReportID))) {
+            if (isMoneyRequestActionTypeForParticipants && recentTransactions.some((transaction: OnyxEntry<Transaction>) => transaction?.reportID === String(reportOption.iouReportID))) {
                 isActionTypeOptionForParticipants = true;
             }
 

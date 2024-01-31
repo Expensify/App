@@ -1214,7 +1214,6 @@ const CONST = {
             DISTANCE: 'distance',
             MANUAL: 'manual',
             SCAN: 'scan',
-            SPLIT: 'split',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
