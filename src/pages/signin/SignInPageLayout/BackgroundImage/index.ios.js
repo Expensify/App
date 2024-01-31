@@ -25,7 +25,7 @@ function BackgroundImage(props) {
     return (
         <Image
             source={src}
-            style={[styles.signInBackgroundImage, StyleUtils.getWidthStyle(props.width)]}
+            style={[styles.signInBackground, StyleUtils.getWidthStyle(props.width)]}
         />
     );
 }

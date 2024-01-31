@@ -170,7 +170,14 @@ function SignInPageLayout(props) {
                             {backgroundColor: theme.signInPage},
                         ]}
                     >
-                        <View style={[styles.signInBackground, {height: windowHeight}]}>
+                        <View
+                            style={[
+                                styles.pAbsolute,
+                                styles.w100,
+                                StyleUtils.getHeight(Math.max(variables.signInContentMinHeight, containerHeight)),
+                                StyleUtils.getBackgroundColorStyle(theme.highlightBG),
+                            ]}
+                        >
                             <BackgroundImage
                                 isSmallScreen
                                 pointerEvents="none"

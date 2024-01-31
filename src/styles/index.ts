@@ -1257,14 +1257,9 @@ const styles = (theme: ThemeColors) =>
 
         signInBackground: {
             position: 'absolute',
-            top: 0,
+            bottom: 0,
             left: 0,
-            backgroundColor: colors.productDark200,
-            justifyContent: 'flex-end',
-        },
-
-        signInBackgroundImage: {
-            minHeight: 700,
+            minHeight: 700
         },
 
         signInPageInner: {

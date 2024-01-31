@@ -378,7 +378,7 @@ function BaseValidateCodeForm(props) {
                         key="validateCode"
                         testID="validateCode"
                     />
-                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
+                    {hasError && <FormHelpMessage message={"ErrorUtils.getLatestErrorMessage(props.account) ErrorUtils.getLatestErrorMessage(props.account) ErrorUtils.getLatestErrorMessage(props.account) ErrorUtils.getLatestErrorMessage(props.account)ErrorUtils.getLatestErrorMessage(props.account)ErrorUtils.getLatestErrorMessage(props.account) ErrorUtils.getLatestErrorMessage(props.account) ErrorUtils.getLatestErrorMessage(props.account)"} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
