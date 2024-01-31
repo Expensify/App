@@ -2,20 +2,22 @@
  * 1. The selector can have any name
  * 2. The selector should be in sync in all pages
  * 3. Minimal code in article
- * 
- * 
-
-This can be derived from class name .
-
  */
 function selectOption(s) {
     if (!s) {
         return;
     }
 
+    // Keep all selects on the page in sync
+    const allSelects = document.querySelectorAll('select');
+    for (e of allSelects) {
+        e.selectedIndex = s.selectedIndex;
+    }
+
     const allOptions = Array.from(s.options);
     const selectedValue = s.options[s.selectedIndex].value;
-    
+
+    // Hide section that isn't selected, and show section that is selected.
     allOptions.forEach(option => {
         if (option.value === selectedValue) {
             const toShow = document.getElementsByClassName(option.value);
