@@ -5,8 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
-import type PolicyTaxRate from '@src/types/onyx/PolicyTaxRates';
+import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
@@ -37,10 +36,10 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-function isDistanceRequest(transaction: Transaction): boolean {
+function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
 
     // This is the case for transaction objects once they have been saved to the server
