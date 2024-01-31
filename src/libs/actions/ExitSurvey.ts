@@ -18,11 +18,11 @@ Onyx.connect({
 });
 
 function saveExitReason(reason: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>) {
-    Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[CONST.EXIT_SURVEY.REASON_INPUT_ID]: reason});
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {[CONST.EXIT_SURVEY.REASON_INPUT_ID]: reason});
 }
 
 function saveResponse(response: string) {
-    Onyx.merge(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: response});
+    Onyx.set(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID]: response});
 }
 
 /**
