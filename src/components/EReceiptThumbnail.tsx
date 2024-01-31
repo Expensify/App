@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,7 +107,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
                     />
-                    {isThumbnail && fileExtension && <Text style={styles.labelStrong}>{fileExtension.toUpperCase()}</Text>}
+                    {isThumbnail && fileExtension && <Text style={{...styles.labelStrong, color: colors.black}}>{fileExtension.toUpperCase()}</Text>}
                     {MCCIcon && !isThumbnail ? (
                         <Icon
                             src={MCCIcon}
