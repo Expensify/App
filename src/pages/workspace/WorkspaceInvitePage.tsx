@@ -314,7 +314,7 @@ function WorkspaceInvitePage({
                     onSelectRow={toggleOption}
                     onConfirm={inviteUser}
                     showScrollIndicator
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 />
                 <View style={[styles.flexShrink0]}>
