@@ -3162,6 +3162,14 @@ const CONST = {
         CHAT_SPLIT: 'newDotSplitChat',
     },
 
+    MANAGE_TEAMS_CHOICE: {
+        MULTI_LEVEL: 'multiLevelApproval',
+        CUSTOM_EXPENSE: 'customExpenseCoding',
+        CARD_TRACKING: 'companyCardTracking',
+        ACCOUNTING: 'accountingIntegrations',
+        RULE: 'ruleEnforcement',
+    },
+
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
