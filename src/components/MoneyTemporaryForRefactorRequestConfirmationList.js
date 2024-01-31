@@ -746,6 +746,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
                 />
             ),
             isRelevant: isCategoryRequired,
@@ -762,6 +763,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
+                    rightLabel={isTagRequired ? translate('common.required') : ''}
                 />
             ),
             isRelevant: isTagRequired,
