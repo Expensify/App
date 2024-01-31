@@ -1,5 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
-import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
+import type {FocusEvent, ForwardedRef, MutableRefObject, ReactNode} from 'react';
 import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -273,7 +273,7 @@ function FormProvider(
                     }
                     inputProps.onPressOut?.(event);
                 },
-                onBlur: (event) => {
+                onBlur: (event: FocusEvent) => {
                     // Only run validation when user proactively blurs the input.
                     if (Visibility.isVisible() && Visibility.hasFocus()) {
                         const relatedTarget = event && 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;

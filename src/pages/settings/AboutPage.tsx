@@ -22,14 +22,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-<<<<<<<< HEAD:src/pages/settings/AboutPage.js
-import pkg from '../../../package.json';
-|||||||| b4ccb0c4d1:src/pages/settings/AboutPage/AboutPage.js
-import pkg from '../../../../package.json';
-========
 import type IconAsset from '@src/types/utils/IconAsset';
-import pkg from '../../../../package.json';
->>>>>>>> main:src/pages/settings/AboutPage.tsx
+import pkg from '../../../package.json';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();

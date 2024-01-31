@@ -1,9 +1,10 @@
-import type {ComponentProps, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {ComponentProps, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type AddressSearch from '@components/AddressSearch';
 import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type Picker from '@components/Picker';
+import type RadioButtons from '@components/RadioButtons';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import type TextInput from '@components/TextInput';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
@@ -17,7 +18,7 @@ import type {BaseForm, FormValueType} from '@src/types/onyx/Form';
  * TODO: Add remaining inputs here once these components are migrated to Typescript:
  * CountrySelector | StatePicker | DatePicker | EmojiPickerButtonDropdown | RoomNameInput | ValuePicker
  */
-type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch;
+type ValidInputs = typeof TextInput | typeof AmountTextInput | typeof SingleChoiceQuestion | typeof CheckboxWithLabel | typeof Picker | typeof AddressSearch | typeof RadioButtons;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date';
 
@@ -26,13 +27,13 @@ type MeasureLayoutOnSuccessCallback = (left: number, top: number, width: number,
 type BaseInputProps = {
     shouldSetTouchedOnBlurOnly?: boolean;
     onValueChange?: (value: unknown, key: string) => void;
-    onTouched?: (event: GestureResponderEvent) => void;
+    onTouched?: (event: unknown) => void;
     valueType?: ValueTypeKey;
     value?: FormValueType;
     defaultValue?: FormValueType;
-    onBlur?: (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>) => void;
-    onPressOut?: (event: GestureResponderEvent) => void;
-    onPress?: (event: GestureResponderEvent) => void;
+    onBlur?: (event: unknown) => void;
+    onPressOut?: (event: unknown) => void;
+    onPress?: (event: unknown) => void;
     shouldSaveDraft?: boolean;
     shouldUseDefaultValue?: boolean;
     key?: Key | null | undefined;
