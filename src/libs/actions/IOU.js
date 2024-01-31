@@ -651,7 +651,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {Object} [policy]
  * @param {Object} [policyTags]
  * @param {Object} [policyCategories]
- * @param {Number} [moneyRequestReportID] - If user requests money from a composer on some money request report, we always add a request to that specific report.
+ * @param {Number} [moneyRequestReportID] - If user requests money via the report composer on some money request report, we always add a request to that specific report.
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
