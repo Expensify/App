@@ -58,7 +58,11 @@ const dismissModal = (ref = navigationRef) => originalDismissModal(ref);
 // Then we can pass the report as a param without getting it from the Onyx.
 const dismissModalWithReport = (report: Report | EmptyObject, ref = navigationRef) => originalDismissModalWithReport(report, ref);
 
-const dismissModalWithReportID = (reportID: string, ref = navigationRef) => {
+const dismissModalWithReportID = (reportID?: string, ref = navigationRef) => {
+    if (!reportID) {
+        dismissModal(ref);
+        return;
+    }
     const report = getReport(reportID);
     originalDismissModalWithReport({reportID, ...report}, ref);
 };

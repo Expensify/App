@@ -1553,7 +1553,7 @@ function navigateToConciergeChat(ignoreConciergeReportID = false, shouldDismissM
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModal(conciergeChatReportID);
+        Navigation.dismissModalWithReportID(conciergeChatReportID);
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
     }
