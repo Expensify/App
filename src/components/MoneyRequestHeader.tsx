@@ -14,12 +14,13 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import {usePersonalDetails} from './OnyxProvider';
 
 type MoneyRequestHeaderOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -45,12 +46,10 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: ReportAction & OriginalMessageIOU;
-
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy, personalDetails}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, policy}: MoneyRequestHeaderProps) {
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
