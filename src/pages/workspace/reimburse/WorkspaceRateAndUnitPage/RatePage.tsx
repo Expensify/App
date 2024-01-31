@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import type {OnyxFormValuesFields} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -25,15 +26,15 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
-    const submit = (values: {rateEdit: number}) => {
-        Navigation.navigate(
-            ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', props.route.params.unit, (values.rateEdit * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()),
-        );
+    const submit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
+        const rateEdit = values.rateEdit as number;
+        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '', props.route.params.unit, (rateEdit * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toString()));
     };
 
-    const validate = (values: {rateEdit: number}) => {
+    const validate = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM>) => {
         const errors: {rateEdit?: string} = {};
-        const parsedRate = PolicyUtils.getRateDisplayValue(values.rateEdit, toLocaleDigit);
+        const rateEdit = values.rateEdit as number;
+        const parsedRate = PolicyUtils.getRateDisplayValue(rateEdit, toLocaleDigit);
         const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = props.policy?.outputCurrency ?? CONST.CURRENCY.USD;
         // Allow one more decimal place for accuracy
@@ -62,7 +63,6 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             shouldShowLoading={false}
         >
             {() => (
-                // @ts-expect-error Migration Pending
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
                     submitButtonText={translate('common.save')}
@@ -70,13 +70,12 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                     onSubmit={submit}
                     enabledWhenOffline
                     style={[styles.flexGrow1, styles.mh5]}
+                    // @ts-expect-error TODO: fix this
                     submitFlexEnabled={false}
                 >
                     <InputWrapperWithRef
-                        // @ts-expect-error Migration Pending
                         InputComponent={AmountForm}
                         inputID="rateEdit"
-                        onCurrencyButtonPress={() => {}}
                         currency={props.policy?.outputCurrency ?? CONST.CURRENCY.USD}
                         defaultValue={(typeof props.route.params.rate === 'string' ? parseFloat(props.route.params.rate) : defaultValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}
                     />

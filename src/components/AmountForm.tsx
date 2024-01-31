@@ -28,7 +28,7 @@ type AmountFormProps = {
     onInputChange?: (value: number) => void;
 
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress: () => void;
+    onCurrencyButtonPress?: () => void;
 };
 
 /**
@@ -38,8 +38,6 @@ const getNewSelection = (oldSelection: {start: number; end: number}, prevLength:
     const cursorPosition = oldSelection.end + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
-
-// const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -197,7 +195,7 @@ function AmountForm({value: amount = 0, currency = CONST.CURRENCY.USD, errorText
                 style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
-                    // @ts-expect-error: TODO: fix this
+                    // @ts-expect-error: Migration pending
                     formattedAmount={formattedAmount}
                     onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}

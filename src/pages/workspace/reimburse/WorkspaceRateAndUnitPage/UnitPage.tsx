@@ -70,7 +70,6 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                     <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
 
                     <SelectionList
-                        // @ts-expect-error Migration pending for SelectionList
                         sections={[{data: unitOptions}]}
                         onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
                         initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
