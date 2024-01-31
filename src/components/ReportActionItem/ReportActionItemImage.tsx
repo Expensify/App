@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import Str from 'expensify-common/lib/str';
 import React from 'react';
+import type {ViewStyle} from 'react-native';
 import AttachmentModal from '@components/AttachmentModal';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
@@ -75,30 +76,25 @@ function ReportActionItemImage({
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                     <AttachmentModal
                         source={imageSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
-                        allowToDownload
+                        allowDownload
                         originalFileName={transaction?.filename}
                     >
-                        {
-                            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
-                            ({show}) => (
-                                <PressableWithoutFocus
-                                    // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
-                                    style={[styles.noOutline, styles.w100, styles.h100]}
-                                    onPress={show}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                    accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                                >
-                                    <ReceiptImage {...propsObj} />
-                                </PressableWithoutFocus>
-                            )
-                        }
+                        {({show}) => (
+                            <PressableWithoutFocus
+                                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
+                                onPress={show}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            >
+                                <ReceiptImage {...propsObj} />
+                            </PressableWithoutFocus>
+                        )}
                     </AttachmentModal>
                 )}
             </ShowContextMenuContext.Consumer>
