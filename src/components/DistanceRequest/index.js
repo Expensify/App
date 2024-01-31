@@ -163,7 +163,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
     }, [waypoints, previousWaypoints]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditingNewRequest ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isEditingNewRequest ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID) : ROUTES.HOME);
     };
 
     /**

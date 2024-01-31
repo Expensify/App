@@ -60,7 +60,7 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || translate('common.tag');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, '1', report.reportID));
     };
 
     const updateTag = (selectedTag) => {

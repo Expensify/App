@@ -57,7 +57,7 @@ function NewDistanceRequestPage({iou, report, route}) {
 
     const onSubmit = useCallback(() => {
         if (isEditingNewRequest) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, lodashGet(iou, 'transactionID', '1'), report.reportID));
             return;
         }
         IOU.navigateToNextPage(iou, iouType, report);

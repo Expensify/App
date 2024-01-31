@@ -89,7 +89,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         IOU.setMoneyRequestId(moneyRequestType);
         IOU.resetMoneyRequestCategory();
         IOU.resetMoneyRequestTag();
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(moneyRequestType, lodashGet(transaction, 'transactionID', 1), reportID));
     };
 
     const navigateBack = useCallback((forceFallback = false) => {

@@ -50,7 +50,7 @@ function MoneyRequestCategoryPage({route, report, iou}) {
     const iouType = lodashGet(route, 'params.iouType', '');
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, '1', reportID));
     };
 
     const updateCategory = (category) => {
@@ -60,7 +60,7 @@ function MoneyRequestCategoryPage({route, report, iou}) {
             IOU.setMoneyRequestCategory(category.searchText);
         }
 
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, '1', reportID));
     };
 
     return (
