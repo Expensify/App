@@ -444,7 +444,7 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.report.reportID, props.action)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMarkedReimbursedMessage(props.action)} />;
         } else {

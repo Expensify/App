@@ -1,9 +1,9 @@
 import {format} from 'date-fns';
+import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/lib/utils';
 import _ from 'underscore';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
@@ -781,7 +781,7 @@ function getMoneyRequestInformation(
     // to remind me to do this.
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-        optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction);
+        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -895,6 +895,8 @@ function createDistanceRequest(report, participant, comment, created, category, 
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : 0;
+    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+
 
     const optimisticReceipt = {
         source: ReceiptGeneric,
@@ -906,7 +908,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
         comment,
         amount,
         currency,
-        created,
+        currentCreated,
         merchant,
         moneyRequestReportID,
         userAccountID,
@@ -932,7 +934,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(validWaypoints),
-            created,
+            created: currentCreated,
             category,
             tag,
             billable,
@@ -1317,6 +1319,7 @@ function requestMoney(
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : 0;
+    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
         getMoneyRequestInformation(
             currentChatReport,
@@ -1324,7 +1327,7 @@ function requestMoney(
             comment,
             amount,
             currency,
-            created,
+            currentCreated,
             merchant,
             moneyRequestReportID,
             payeeAccountID,
@@ -1348,7 +1351,7 @@ function requestMoney(
             amount,
             currency,
             comment,
-            created,
+            created: currentCreated,
             merchant,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -3597,18 +3600,18 @@ function detachReceipt(transactionID) {
  * @param {String} source
  */
 function replaceReceipt(transactionID, file, source) {
-    const transaction = lodashGet(allTransactions, 'transactionID', {});
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
     const oldReceipt = lodashGet(transaction, 'receipt', {});
-
+    const receiptOptimistic = {
+        source,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                receipt: {
-                    source,
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
+                receipt: receiptOptimistic,
                 filename: file.name,
             },
         },
@@ -3621,6 +3624,7 @@ function replaceReceipt(transactionID, file, source) {
             value: {
                 receipt: oldReceipt,
                 filename: transaction.filename,
+                errors: getReceiptError(receiptOptimistic, file.name),
             },
         },
     ];
