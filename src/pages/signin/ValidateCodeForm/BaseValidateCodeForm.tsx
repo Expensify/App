@@ -30,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -43,18 +44,15 @@ type BaseValidateCodeFormOnyxProps = {
 };
 
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
+    ValidateCodeFormProps &
     BaseValidateCodeFormOnyxProps & {
         /** Specifies autocomplete hints for the system, so it can provide autofill */
         autoComplete: 'sms-otp' | 'one-time-code';
-
-        /** Determines if user is switched to using recovery code instead of 2fa code */
-        isUsingRecoveryCode: boolean;
-
-        /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
-        setIsUsingRecoveryCode: (isUsingRecoveryCode: boolean) => void;
     };
 
 type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryCode';
+
+type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
 function BaseValidateCodeForm({account, credentials, session, autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps) {
     const styles = useThemeStyles();
@@ -62,7 +60,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
-    const [formError, setFormError] = useState<Partial<Record<ValidateCodeFormVariant, TranslationPaths>>>({});
+    const [formError, setFormError] = useState<FormError>({});
     const [validateCode, setValidateCode] = useState(credentials?.validateCode ?? '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(30);
@@ -97,16 +95,14 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     }, [isVisible, isFocused]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidateCode || !credentials?.validateCode) {
+        if (!!prevValidateCode || !credentials?.validateCode) {
             return;
         }
         setValidateCode(credentials.validateCode);
     }, [credentials?.validateCode, prevValidateCode]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!input2FARef.current || prevRequiresTwoFactorAuth || !account?.requiresTwoFactorAuth) {
+        if (!input2FARef.current || !!prevRequiresTwoFactorAuth || !account?.requiresTwoFactorAuth) {
             return;
         }
         input2FARef.current.focus();
