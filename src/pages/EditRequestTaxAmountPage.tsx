@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
+import {TextInput} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -8,28 +8,28 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
-const propTypes = {
+type EditRequestTaxAmountPageProps = {
     /** Transaction default amount value */
-    defaultAmount: PropTypes.number.isRequired,
+    defaultAmount: number;
 
     /** Transaction default tax amount value */
-    defaultTaxAmount: PropTypes.number.isRequired,
+    defaultTaxAmount: number;
 
     /** Transaction default currency value */
-    defaultCurrency: PropTypes.string.isRequired,
+    defaultCurrency: string;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: PropTypes.func.isRequired,
+    onSubmit: () => void;
 
     /** Callback to fire when we press on the currency  */
-    onNavigateToCurrency: PropTypes.func.isRequired,
+    onNavigateToCurrency: () => void;
 };
 
-function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {
+function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onNavigateToCurrency, onSubmit}: EditRequestTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const textInput = useRef(null);
+    const textInput = useRef<TextInput>(null);
 
-    const focusTimeoutRef = useRef(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -52,10 +52,11 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
         >
             <HeaderWithBackButton title={translate('iou.taxAmount')} />
             <MoneyRequestAmountForm
+                // @ts-ignore
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 taxAmount={defaultTaxAmount}
-                ref={(e) => (textInput.current = e)}
+                ref={textInput}
                 onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
                 isEditing
@@ -64,7 +65,6 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
     );
 }
 
-EditRequestTaxAmountPage.propTypes = propTypes;
 EditRequestTaxAmountPage.displayName = 'EditRequestTaxAmountPage';
 
 export default EditRequestTaxAmountPage;
