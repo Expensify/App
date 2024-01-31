@@ -1477,10 +1477,25 @@ function requestMoney(
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function createSplitsAndOnyxData(
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    amount,
+    comment,
+    currency,
+    merchant,
+    category,
+    tag,
+    existingSplitChatReportID = '',
+    policyTags,
+    policyCategories,
+) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1762,6 +1777,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
         const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
 
+        // Get the policy for the participant to determine if there should be transaction violations
+        const policy = ReportUtils.getPolicy(participant.policyID);
+
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
@@ -1778,6 +1796,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             shouldCreateNewOneOnOneIOUReport,
             optimisticTransactionThread,
             optimisticCreatedActionForTransactionThread,
+            participant.isPolicyExpenseChat && policy,
+            policyTags,
+            policyCategories,
         );
 
         const individualSplit = {
@@ -1830,8 +1851,23 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function splitBill(
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    amount,
+    comment,
+    currency,
+    merchant,
+    category,
+    tag,
+    existingSplitChatReportID = '',
+    policyTags = [],
+    policyCategories = [],
+) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1843,6 +1879,8 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         category,
         tag,
         existingSplitChatReportID,
+        policyTags,
+        policyCategories,
     );
     API.write(
         'SplitBill',
@@ -1878,9 +1916,23 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} merchant
  * @param {String} category
  * @param {String} tag
+ * @param {Array} policyTags
+ * @param {Array} policyCategories
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, policyTags, policyCategories) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+        participants,
+        currentUserLogin,
+        currentUserAccountID,
+        amount,
+        comment,
+        currency,
+        merchant,
+        category,
+        tag,
+        policyTags,
+        policyCategories,
+    );
 
     API.write(
         'SplitBillAndOpenReport',

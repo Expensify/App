@@ -244,6 +244,8 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     report.reportID,
+                    policyTags,
+                    policyCategories,
                 );
                 return;
             }
@@ -260,6 +262,8 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     transaction.category,
                     transaction.tag,
+                    policyTags,
+                    policyCategories,
                 );
                 return;
             }
@@ -276,7 +280,19 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [
+            iouType,
+            transaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            report,
+            requestType,
+            createDistanceRequest,
+            requestMoney,
+            receiptFile,
+            policyTags,
+            policyCategories,
+        ],
     );
 
     /**
