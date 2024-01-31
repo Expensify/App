@@ -175,9 +175,9 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
 });
 
 const OnboardEngagementModalStackNavigator = createModalStackNavigator<OnboardEngagementNavigatorParamList>({
-    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../components/PurposeForUsingExpensifyModal').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../components/ManageTeamsExpensesModal').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../components/ToExpensifyClassicModal').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../pages/OnboardEngagement/PurposeForUsingExpensifyPage').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../pages/OnboardEngagement/ManageTeamsExpensesPage').default as React.ComponentType,
+    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../pages/OnboardEngagement/ExpensifyClassicPage').default as React.ComponentType,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
