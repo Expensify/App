@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -368,7 +367,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode) as TextStyle]}>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
                                     {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.magicCodeNotReceived')}
                                 </Text>
                             </PressableWithFeedback>
