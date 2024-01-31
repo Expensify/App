@@ -15,7 +15,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedOnyxProps = {
@@ -24,6 +24,9 @@ type ReportActionItemCreatedOnyxProps = {
 
     /** The policy object for the current route */
     policy: OnyxEntry<Policy>;
+
+    /** Personal details of all the users */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
@@ -45,7 +48,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
         return null;
     }
 
-    const icons = ReportUtils.getIcons(props.report);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     return (
@@ -100,6 +103,10 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
+
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
 })(
     memo(
         ReportActionItemCreated,
@@ -108,6 +115,7 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
             prevProps.policy?.avatar === nextProps.policy?.avatar &&
             prevProps.report?.stateNum === nextProps.report?.stateNum &&
             prevProps.report?.statusNum === nextProps.report?.statusNum &&
-            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime,
+            prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
+            prevProps.personalDetails === nextProps.personalDetails,
     ),
 );

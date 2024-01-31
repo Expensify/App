@@ -341,6 +341,8 @@ function ReportActionCompose({
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
 
     const handleSendMessage = useCallback(() => {
+        'worklet';
+
         if (isSendDisabled || !isReportReadyForDisplay) {
             return;
         }
