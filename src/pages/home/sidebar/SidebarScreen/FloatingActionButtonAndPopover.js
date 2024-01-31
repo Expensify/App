@@ -182,7 +182,14 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.Send,
                         text: props.translate('iou.sendMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                Navigation.navigate(
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SEND, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
+                                ),
+                            ),
                     },
                     ...[
                         {
