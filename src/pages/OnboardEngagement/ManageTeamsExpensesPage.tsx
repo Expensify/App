@@ -18,20 +18,12 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import OnboardEngagementScreenWrapperProps from './OnboardEngagementScreenWrapper';
 
-const TEAMS_EXPENSE_CHOICE = {
-    MULTI_LEVEL: 'Multi level approval',
-    CUSTOM_EXPENSE: 'Custom expense coding',
-    CARD_TRACKING: 'Company Card Tracking',
-    ACCOUNTING: 'Accounting integrations',
-    RULE: 'Rule enforcement',
-};
-
 const menuIcons = {
-    [TEAMS_EXPENSE_CHOICE.MULTI_LEVEL]: Expensicons.Task,
-    [TEAMS_EXPENSE_CHOICE.CUSTOM_EXPENSE]: Expensicons.ReceiptSearch,
-    [TEAMS_EXPENSE_CHOICE.CARD_TRACKING]: Expensicons.CreditCard,
-    [TEAMS_EXPENSE_CHOICE.ACCOUNTING]: Expensicons.Sync,
-    [TEAMS_EXPENSE_CHOICE.RULE]: Expensicons.Gear,
+    [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: Expensicons.Task,
+    [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: Expensicons.ReceiptSearch,
+    [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: Expensicons.CreditCard,
+    [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: Expensicons.Sync,
+    [CONST.MANAGE_TEAMS_CHOICE.RULE]: Expensicons.Gear,
 };
 
 // This is not translated because it is a message coming from concierge, which only supports english
@@ -56,11 +48,11 @@ function ManageTeamsExpensesModal() {
 
     const menuItems: MenuItemProps[] = useMemo(
         () =>
-            Object.values(TEAMS_EXPENSE_CHOICE).map((choice) => {
-                const translationKey = `${choice}` as const;
+            Object.values(CONST.MANAGE_TEAMS_CHOICE).map((choice) => {
+                const translationKey = `manageTeams.${choice}` as const;
                 return {
                     key: translationKey,
-                    title: translationKey,
+                    title: translate(translationKey),
                     icon: menuIcons[choice],
                     numberOfLinesTitle: 2,
                     interactive: false,
@@ -101,7 +93,7 @@ function ManageTeamsExpensesModal() {
                                 style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                                 numberOfLines={2}
                             >
-                                Do you require any of the following features
+                                {translate('manageTeams.title')};
                             </Text>
                         </View>
                         <MenuItemList
