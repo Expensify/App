@@ -213,7 +213,7 @@ function WorkspaceSwitcherPage({policies}) {
     const workspacesSection = useMemo(
         () => (
             <>
-                <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
+                <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb0] : [styles.mb3])]}>
                     <View>
                         <Text
                             style={styles.label}
