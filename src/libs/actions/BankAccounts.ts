@@ -167,6 +167,8 @@ function addPersonalBankAccount(account: PlaidBankAccount, bankAccountList: Bank
         plaidAccessToken: account.plaidAccessToken,
     };
 
+    const successBankAccountList: BankAccountList = Object.fromEntries(Object.entries(bankAccountList).map(([key, bankAccount]) => [key, {...bankAccount, isDefault: false}]));
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -188,6 +190,11 @@ function addPersonalBankAccount(account: PlaidBankAccount, bankAccountList: Bank
                     errors: null,
                     shouldShowSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: successBankAccountList,
             },
         ],
         failureData: [
