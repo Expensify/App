@@ -11,9 +11,11 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
@@ -79,26 +81,14 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <AttachmentModal
-                        source={imageSource}
-                        isAuthTokenRequired={!isLocalFile}
-                        report={report}
-                        isReceiptAttachment
-                        canEditReceipt={canEditReceipt}
-                        allowDownload
-                        originalFileName={transaction?.filename}
+                    <PressableWithoutFocus
+                        style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(String(report?.reportID), String(transaction?.transactionID)))}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        {({show}) => (
-                            <PressableWithoutFocus
-                                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                                onPress={show}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            >
-                                {receiptImageComponent}
-                            </PressableWithoutFocus>
-                        )}
-                    </AttachmentModal>
+                        {receiptImageComponent}
+                    </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
         );

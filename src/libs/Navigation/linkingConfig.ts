@@ -32,6 +32,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
             [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
             [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
+            [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
 
             // Sidebar
             [SCREENS.HOME]: {
