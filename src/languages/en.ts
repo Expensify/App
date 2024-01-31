@@ -803,8 +803,8 @@ export default {
             },
         },
         troubleshooting: {
-            resetAndRefresh: 'Reset and refresh',
-            viewConsole: 'View console',
+            resetAndRefresh: 'Reset and refresh stashed data',
+            viewConsole: 'View debug console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
             submitBug: 'submit a bug',
         },
