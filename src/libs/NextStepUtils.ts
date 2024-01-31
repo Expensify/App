@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -127,12 +128,14 @@ function buildNextStep(report: Report, predictedNextStatus: ValueOf<typeof CONST
                         formattedDate = format(autoSubmissionDate, CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     }
 
-                    const harvestingSuffixes = {
+                    const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate ? `on the ${formattedDate} of each month` : '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of your trip',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
                     };
 
                     if (harvestingSuffixes[autoReportingFrequency]) {
