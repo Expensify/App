@@ -36,10 +36,10 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isDistanceRequest(transaction: Transaction): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
 
     // This is the case for transaction objects once they have been saved to the server

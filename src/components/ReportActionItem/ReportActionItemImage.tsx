@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import React from 'react';
 import type {ReactElement} from 'react';
-import type {ImageSourcePropType, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
@@ -79,25 +79,30 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
+                    // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
                     <AttachmentModal
                         source={imageSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
                         canEditReceipt={canEditReceipt}
-                        allowDownload
+                        allowToDownload
                         originalFileName={transaction?.filename}
                     >
-                        {({show}) => (
-                            <PressableWithoutFocus
-                                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                                onPress={show}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            >
-                                {receiptImageComponent}
-                            </PressableWithoutFocus>
-                        )}
+                        {
+                            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
+                            ({show}) => (
+                                <PressableWithoutFocus
+                                    // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
+                                    style={[styles.noOutline, styles.w100, styles.h100]}
+                                    onPress={show}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                >
+                                    {receiptImageComponent}
+                                </PressableWithoutFocus>
+                            )
+                        }
                     </AttachmentModal>
                 )}
             </ShowContextMenuContext.Consumer>

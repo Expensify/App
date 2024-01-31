@@ -34,6 +34,7 @@ function ProfileAvatar({route, personalDetails, isLoadingApp = true}: ProfileAva
 
     return (
         <AttachmentModal
+            // @ts-expect-error TODO: Remove this once AttachmentModal (https://github.com/Expensify/App/issues/25130) is migrated to TypeScript.
             headerTitle={personalDetail?.displayName ?? ''}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
@@ -41,7 +42,7 @@ function ProfileAvatar({route, personalDetails, isLoadingApp = true}: ProfileAva
                 Navigation.goBack();
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
-            isLoading={!!isLoading}
+            isLoading={isLoading}
             shouldShowNotFoundPage={!avatarURL}
         />
     );
