@@ -26,6 +26,11 @@ type CustomUnit = {
     errors?: OnyxCommon.Errors;
 };
 
+type DisabledFields = {
+    defaultBillable?: boolean;
+    reimbursable?: boolean;
+};
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type Policy = {
@@ -80,13 +85,18 @@ type Policy = {
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
 
-    /** The scheduled submit frequency set up on the this policy */
+    /** The scheduled submit frequency set up on this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** Whether the scheduled submit is enabled */
+    /** @deprecated Whether the scheduled submit is enabled */
     isHarvestingEnabled?: boolean;
 
     /** Whether the scheduled submit is enabled */
+    harvesting?: {
+        enabled: boolean;
+    };
+
+    /** Whether the self approval or submitting is enabled */
     isPreventSelfApprovalEnabled?: boolean;
 
     /** When the monthly scheduled submit should happen */
@@ -121,6 +131,27 @@ type Policy = {
 
     /** The approval mode set up on this policy */
     approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Whether transactions should be billable by default */
+    defaultBillable?: boolean;
+
+    /** The workspace description */
+    description?: string;
+
+    /** List of field names that are disabled */
+    disabledFields?: DisabledFields;
+
+    /** Whether new transactions need to be tagged */
+    requiresTag?: boolean;
+
+    /** Whether new transactions need to be categorized */
+    requiresCategory?: boolean;
+
+    /** Whether the workspace has multiple levels of tags enabled */
+    hasMultipleTagLists?: boolean;
+
+    /** When tax tracking is enabled */
+    isTaxTrackingEnabled?: boolean;
 };
 
 export default Policy;
