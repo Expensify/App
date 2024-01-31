@@ -415,6 +415,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        fontWeightNormal: {
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
         textHeadline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
