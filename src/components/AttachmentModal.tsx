@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -615,6 +615,6 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
     },
-})(AttachmentModal);
+})(memo(AttachmentModal));
 
 export type {Attachment};
