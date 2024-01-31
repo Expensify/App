@@ -28,7 +28,7 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     borderRadius?: number;
     fileExtension?: string;
     isThumbnail?: boolean;
-    useStaticIconLayout?: boolean;
+    isStaticIconLayout?: boolean;
 };
 
 const backgroundImages = {
@@ -40,7 +40,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnail = false, useStaticIconLayout = false}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnail = false, isStaticIconLayout = false}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -70,11 +70,11 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
     let receiptIconHeight: number = variables.eReceiptIconHeight;
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
 
-    if (isSmall && !useStaticIconLayout) {
+    if (isSmall && !isStaticIconLayout) {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
-    } else if (isMedium || useStaticIconLayout) {
+    } else if (isMedium || isStaticIconLayout) {
         receiptIconWidth = variables.eReceiptIconWidthMedium;
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
@@ -87,10 +87,10 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {},
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                useStaticIconLayout || (containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
+                isStaticIconLayout || (containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
                 borderRadius ? {borderRadius} : {},
             ]}
-            onLayout={useStaticIconLayout ? undefined : onContainerLayout}
+            onLayout={isStaticIconLayout ? undefined : onContainerLayout}
         >
             <Image
                 source={backgroundImage}
