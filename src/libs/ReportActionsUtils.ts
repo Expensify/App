@@ -39,6 +39,8 @@ type MemberChangeMessageRoomReferenceElement = {
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
+const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
+
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -411,13 +413,11 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
 }
 
 /**
- * For invite to room and remove from room policy change logs, report URLs are generated in the server,
+ * For policy change logs, report URLs are generated in the server,
  * which includes a baseURL placeholder that's replaced in the client.
  */
 function replaceBaseURL(reportAction: ReportAction): ReportAction {
-    const policyChangeActions = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
-
-    if (!reportAction?.message || !policyChangeActions.has(reportAction?.actionName)) {
+    if (!reportAction?.message || !policyChangeActionsSet.has(reportAction?.actionName)) {
         return reportAction;
     }
 
