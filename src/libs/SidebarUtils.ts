@@ -56,11 +56,7 @@ let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        if (!session) {
-            return;
-        }
-
-        currentUserAccountID = session.accountID;
+        currentUserAccountID = session?.accountID;
     },
 });
 
