@@ -371,10 +371,10 @@ console.log("ActionSheetKeyboardSpace", {keyboardHeight, hook: keyboard.height.v
                     return elementOffset + lastKeyboardHeight;
                 }
 
-                if (keyboard.height.value === keyboard.heightWhenOpened.value) {
-                    console.log("TRANSITION #2 (1) -> ", elementOffset, {keyboardHeight, lastKeyboardHeight, elementOffset});
+                if (keyboard.height.value > 0) {
+                    console.log("TRANSITION #2 (1) -> ", keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset, {keyboardHeight, lastKeyboardHeight, elementOffset});
 
-                    return elementOffset;
+                    return keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset;
                 }
 
                 console.log("TRANSITION #2 -> ", {keyboardHeight, lastKeyboardHeight, elementOffset});
