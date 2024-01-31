@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -25,15 +25,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ExitSurveyResponsePageOnyxProps = {
-    responseDraft: OnyxEntry<string>;
+    draftResponse: string;
 };
 
 type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
-function ExitSurveyResponsePage({responseDraft, route}: ExitSurveyResponsePageProps) {
+function ExitSurveyResponsePage({draftResponse, route}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -42,7 +43,6 @@ function ExitSurveyResponsePage({responseDraft, route}: ExitSurveyResponsePagePr
 
     const {reason} = route.params;
 
-    const [response, setResponse] = useState('');
     const responseInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const formTopMarginsStyle = styles.mt3;
@@ -83,13 +83,13 @@ function ExitSurveyResponsePage({responseDraft, route}: ExitSurveyResponsePagePr
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
                 style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
                 onSubmit={() => {
-                    ExitSurvey.saveResponse(response);
+                    ExitSurvey.saveResponse(draftResponse);
                     Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM);
                 }}
                 submitButtonText={translate('common.next')}
                 validate={() => {
                     const errors: Errors = {};
-                    if (!response?.trim()) {
+                    if (!draftResponse?.trim()) {
                         errors[CONST.EXIT_SURVEY.RESPONSE_INPUT_ID] = 'common.error.fieldRequired';
                     }
                     return errors;
@@ -114,8 +114,8 @@ function ExitSurveyResponsePage({responseDraft, route}: ExitSurveyResponsePagePr
                             responseInputRef.current = el;
                             updateMultilineInputRange(el);
                         }}
-                        value={response}
-                        onChangeText={setResponse}
+                        value={draftResponse}
+                        // onChangeText={setResponse}
                         containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
                         shouldSaveDraft
                     />
@@ -128,7 +128,8 @@ function ExitSurveyResponsePage({responseDraft, route}: ExitSurveyResponsePagePr
 ExitSurveyResponsePage.displayName = 'ExitSurveyResponsePage';
 
 export default withOnyx<ExitSurveyResponsePageProps, ExitSurveyResponsePageOnyxProps>({
-    responseDraft: {
+    draftResponse: {
         key: FormUtils.getDraftKey(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM),
+        selector: (value: OnyxEntry<OnyxTypes.ExitSurveyResponseForm>) => value?.response ?? '',
     },
 })(ExitSurveyResponsePage);
