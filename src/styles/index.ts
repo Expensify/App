@@ -1259,7 +1259,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             bottom: 0,
             left: 0,
-            minHeight: 700
+            minHeight: 700,
         },
 
         signInPageInner: {
