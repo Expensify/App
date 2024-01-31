@@ -1603,17 +1603,16 @@ function getOptions(
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
+            if (recentReportOptionsByAction.length > 0 && recentReportOptionsByAction.length === maxRecentReportsToShow) {
+                break;
+            }
+
             if (isActionTypeOptionForParticipants) {
                 recentReportOptionsByAction.push(reportOption);
                 if (reportOption.login) {
                     optionsToExcludeByActions.push({login: reportOption.login});
                 }
                 continue;
-            }
-
-            // Stop adding options to the recentReports by action array when we reach the maxRecentReportsToShow value
-            if (recentReportOptionsByAction.length > 0 && recentReportOptionsByAction.length === maxRecentReportsToShow) {
-                break;
             }
 
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
