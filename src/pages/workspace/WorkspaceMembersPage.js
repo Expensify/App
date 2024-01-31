@@ -480,6 +480,7 @@ function WorkspaceMembersPage(props) {
                                 SearchInputManager.searchInput = value;
                                 setSearchValue(value);
                             }}
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}

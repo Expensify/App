@@ -276,6 +276,7 @@ function LoginForm(props) {
                     textContentType="username"
                     id="username"
                     name="username"
+                    testID="username"
                     onBlur={() =>
                         // This delay is to avoid the validate being called before google iframe is rendered to
                         // avoid error message appearing after pressing google signin button.
