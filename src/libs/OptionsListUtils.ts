@@ -1621,13 +1621,12 @@ function getOptions(
             }
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length < maxRecentReportsToShow) {
+            if (!maxRecentReportsToShow || recentReportOptions.length < maxRecentReportsToShow) {
                 recentReportOptions.push(reportOption);
-            }
-
-            // Add this login to the exclude list so it won't appear when we process the personal details
-            if (reportOption.login) {
-                optionsToExclude.push({login: reportOption.login});
+                // Add this login to the exclude list so it won't appear when we process the personal details
+                if (reportOption.login) {
+                    optionsToExclude.push({login: reportOption.login});
+                }
             }
         }
     }
