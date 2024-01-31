@@ -23,7 +23,8 @@ import compose from './libs/compose';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
-import Navigation from './libs/Navigation/Navigation';
+import getTopmostBottomTabRoute from './libs/Navigation/getTopmostBottomTabRoute';
+import Navigation, {navigationRef} from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
@@ -37,6 +38,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import SCREENS from './SCREENS';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -130,7 +132,16 @@ function Expensify(props) {
         [isSplashHidden],
     );
 
-    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
+    // This is a temporary fix to handle more that one possible screen in the sidebar.
+    const isSidebarLoaded = useMemo(() => {
+        if (!isNavigationReady) {
+            return false;
+        }
+
+        return getTopmostBottomTabRoute(navigationRef.getState()).name === SCREENS.HOME ? props.isSidebarLoaded : true;
+    }, [isNavigationReady, props.isSidebarLoaded]);
+
+    const shouldInit = isNavigationReady && (!isAuthenticated || isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {

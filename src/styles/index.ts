@@ -3197,6 +3197,7 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 24,
             backgroundColor: theme.hoverComponentBG,
             borderRadius: variables.componentBorderRadiusRounded,
+            justifyContent: 'center',
         },
 
         searchContainerHovered: {
@@ -3701,10 +3702,6 @@ const styles = (theme: ThemeColors) =>
             ...pointerEventsAuto,
             ...display.dFlex,
             ...flex.alignItemsCenter,
-        },
-
-        shareCodePage: {
-            paddingHorizontal: 38.5,
         },
 
         shareCodeContainer: {
