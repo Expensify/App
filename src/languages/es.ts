@@ -2577,6 +2577,20 @@ export default {
         welcomeMessage: 'Bienvenido a Expensify',
         welcomeSubtitle: '¿Qué te gustaría hacer?',
     },
+    manageTeams: {
+        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
+        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación de gastos personalizada',
+        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas de empresa',
+        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones contables',
+        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
+        title: '¿Necesita alguna de las siguientes funciones?',
+    },
+    expensifyClassic: {
+        title: "Expensify Classic tiene todo lo que necesitarás",
+        firstDescription: "Aunque estamos ocupados trabajando en el nuevo Expensify, actualmente no soporta algunas de las características que estás buscando",
+        secondDescription: "No te preocupes, Expensify Classic tiene todo lo que necesitas",
+        buttonText: "Llévame a expensify classic"
+    },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
