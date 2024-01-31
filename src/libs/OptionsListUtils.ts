@@ -213,6 +213,7 @@ Onyx.connect({
 const policyExpenseReports: OnyxCollection<Report> = {};
 const userCreatedRooms: OnyxCollection<Report> = {};
 const defaultRooms: OnyxCollection<Report> = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
