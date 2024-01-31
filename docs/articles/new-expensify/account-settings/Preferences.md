@@ -3,7 +3,8 @@ title: Preferences
 description: How to manage your Expensify Preferences
 ---
 # Overview
-Your Preferences in Expensify allow you to customise how you interact with New Expensify.
+Your Preferences in Expensify allow you to customise how you use New Expensify.
+
 - Set your theme preference
 
 # How to set your theme preference in New Expensify
@@ -15,6 +16,6 @@ To set or update your theme preference in New Expensify:
 
 _Use Device Settings_ is the default setting.
 
-Selecting _Use Device Settings_ will use your device's theme settings. For example, if you have your device set to switch to light theme during daylight hours, and dark theme during after sunset, we'll match that.
+Selecting _Use Device Settings_ will use your device's theme settings. For example, if your device is set to adjust the appearance from light to dark during the day, we'll match that.
 
-Your theme preference will sync across all of the ways you use New Expensify (mobile app, web app or OSX desktop app). 
+Your theme preference will sync across all your New Expensify apps (mobile, web, or OSX desktop apps).
