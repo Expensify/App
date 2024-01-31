@@ -2,8 +2,8 @@ import type {RouteProp} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -83,6 +83,7 @@ function WorkspacePageWithSections({
     guidesCallTaskID = '',
     headerText,
     policy,
+    policyDraft,
     reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
     route,
     shouldUseScrollView = false,
@@ -95,7 +96,6 @@ function WorkspacePageWithSections({
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
     const isLoading = reimbursementAccount?.isLoading ?? true;
-    const isOverview = route.name;
     const achState = reimbursementAccount?.achData?.state ?? '';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const policyID = route.params.policyID;
@@ -121,13 +121,13 @@ function WorkspacePageWithSections({
     }, [shouldSkipVBBACall]);
 
     const shouldShow = useMemo(() => {
-        if (isEmptyObject(policy)) {
+        if (isEmptyObject(policy) && isEmptyObject(policyDraft)) {
             return true;
         }
 
-        // TODO - check is the value of isOveriew is correct
-        return !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !isOverview;
-    }, [isOverview, policy]);
+        return (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy)) || PolicyUtils.isPendingDeletePolicy(policy);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policy]);
 
     return (
         <ScreenWrapper
