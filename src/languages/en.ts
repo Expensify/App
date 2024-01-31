@@ -1950,7 +1950,7 @@ export default {
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
-        in: 'In',
+        in: 'in',
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
