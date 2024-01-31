@@ -1,36 +1,35 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
-const propTypes = {
+type WorkspaceBillsVBAViewProps = {
     /** The policy ID currently being configured */
-    policyID: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
+    policyID: string;
 };
 
-function WorkspaceBillsVBAView(props) {
+function WorkspaceBillsVBAView({policyID}: WorkspaceBillsVBAViewProps) {
     const styles = useThemeStyles();
-    const reportsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`;
+    const {translate} = useLocalize();
+
+    const reportsUrl = `reports?policyID=${policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`;
 
     return (
         <>
-            <WorkspaceBillsFirstSection policyID={props.policyID} />
+            <WorkspaceBillsFirstSection policyID={policyID} />
 
             <Section
-                title={props.translate('workspace.bills.hassleFreeBills')}
+                title={translate('workspace.bills.hassleFreeBills')}
                 icon={Illustrations.MoneyBadge}
                 menuItems={[
                     {
-                        title: props.translate('workspace.common.bills'),
+                        title: translate('workspace.common.bills'),
                         onPress: () => Link.openOldDotLink(reportsUrl),
                         icon: Expensicons.Bill,
                         shouldShowRightIcon: true,
@@ -40,15 +39,14 @@ function WorkspaceBillsVBAView(props) {
                     },
                 ]}
             >
-                <View style={[styles.mv3]}>
-                    <Text>{props.translate('workspace.bills.VBACopy')}</Text>
+                <View style={styles.mv3}>
+                    <Text>{translate('workspace.bills.VBACopy')}</Text>
                 </View>
             </Section>
         </>
     );
 }
 
-WorkspaceBillsVBAView.propTypes = propTypes;
 WorkspaceBillsVBAView.displayName = 'WorkspaceBillsVBAView';
 
-export default withLocalize(WorkspaceBillsVBAView);
+export default WorkspaceBillsVBAView;
