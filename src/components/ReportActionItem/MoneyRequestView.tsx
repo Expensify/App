@@ -205,9 +205,13 @@ function MoneyRequestView({
                 {hasReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction.errors}
+                        errors={transaction?.errors}
                         errorRowStyles={[styles.ml4]}
                         onClose={() => {
+                            if (!transaction?.transactionID) {
+                                return;
+                            }
+
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
