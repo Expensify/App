@@ -87,7 +87,7 @@ function ManageTeamsExpensesModal() {
                         shouldUseSingleExecution
                     />
                 </ScrollView>
-                <View style={[styles.flexRow, styles.w100, styles.ph5, styles.pv4]}>
+                <View style={[styles.flexRow, styles.ph5, styles.pv4]}>
                     <Button
                         medium={isExtraSmallScreenHeight}
                         style={[styles.flexGrow1, styles.mr1, canUseTouchScreen ? styles.mt5 : styles.mt3]}
