@@ -216,13 +216,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const expensifyClassicContent = document.getElementById('expensify-classic');
     const newExpensifyContent = document.getElementById('new-expensify');
 
-    let contentSelector;
+    let contentSelector = '.article-toc-content';
     if (expensifyClassicContent) {
         contentSelector = '#expensify-classic';
     } else if (newExpensifyContent) {
         contentSelector = '#new-expensify';
-    } else {
-        contentSelector = '.article-toc-content';
     }
 
     if (window.tocbot) {
