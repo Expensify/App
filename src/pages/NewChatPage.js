@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
@@ -64,6 +65,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
         Boolean(filteredUserToInvite),
@@ -228,17 +231,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         }
         updateOptions();
     }, [didScreenTransitionEnd, updateOptions]);
-
-    // When search term updates & user hasn't selected max number of participants we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback(
-        (text = '') => {
-            if (text && !maxParticipantsReached) {
-                Report.searchInServer(text);
-            }
-            setSearchTerm(text);
-        },
-        [maxParticipantsReached],
-    );
 
     const {inputCallbackRef} = useAutoFocusInput();
 

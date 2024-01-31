@@ -13,8 +13,8 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -88,6 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -242,17 +243,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
         [maxParticipantsReached, newChatOptions, participants, searchTerm],
-    );
-
-    // When search term updates & user hasn't selected max number of participants we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback(
-        (text = '') => {
-            if (text && !maxParticipantsReached) {
-                Report.searchInServer(text);
-            }
-            setSearchTerm(text);
-        },
-        [maxParticipantsReached],
     );
 
     // Right now you can't split a request with a workspace and other additional participants

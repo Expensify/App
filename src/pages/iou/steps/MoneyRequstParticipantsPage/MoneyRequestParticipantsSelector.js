@@ -13,8 +13,8 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -89,6 +89,9 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
 
+    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const newChatOptions = useMemo(() => {
@@ -123,8 +126,6 @@ function MoneyRequestParticipantsSelector({
             userToInvite: chatOptions.userToInvite,
         };
     }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
-
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -258,17 +259,6 @@ function MoneyRequestParticipantsSelector({
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
         [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
-    );
-
-    // When search term updates & user hasn't selected max number of participants we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback(
-        (text = '') => {
-            if (text && !maxParticipantsReached) {
-                Report.searchInServer(text);
-            }
-            setSearchTerm(text);
-        },
-        [maxParticipantsReached],
     );
 
     // Right now you can't split a request with a workspace and other additional participants
