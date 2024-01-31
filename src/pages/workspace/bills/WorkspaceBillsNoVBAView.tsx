@@ -1,45 +1,43 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
-const propTypes = {
+type WorkspaceBillsNoVBAViewProps = {
     /** The policy ID currently being configured */
-    policyID: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
+    policyID: string;
 };
 
-function WorkspaceBillsNoVBAView(props) {
+function WorkspaceBillsNoVBAView({policyID}: WorkspaceBillsNoVBAViewProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
     return (
         <>
-            <WorkspaceBillsFirstSection policyID={props.policyID} />
+            <WorkspaceBillsFirstSection policyID={policyID} />
 
             <Section
-                title={props.translate('workspace.bills.unlockOnlineBillPayment')}
+                title={translate('workspace.bills.unlockOnlineBillPayment')}
                 icon={Illustrations.LockOpen}
-                containerStyles={[styles.cardSection]}
+                containerStyles={styles.cardSection}
             >
-                <View style={[styles.mv3]}>
-                    <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
+                <View style={styles.mv3}>
+                    <Text>{translate('workspace.bills.unlockNoVBACopy')}</Text>
                 </View>
                 <ConnectBankAccountButton
-                    policyID={props.policyID}
-                    style={[styles.mt4]}
+                    policyID={policyID}
+                    style={styles.mt4}
                 />
             </Section>
         </>
     );
 }
 
-WorkspaceBillsNoVBAView.propTypes = propTypes;
 WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
 
-export default withLocalize(WorkspaceBillsNoVBAView);
+export default WorkspaceBillsNoVBAView;
