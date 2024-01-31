@@ -6,17 +6,17 @@ import Navigation from '@navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
-import CONST from '@src/CONST';
 import type { Route } from '@src/ROUTES';
+import CONST from '@src/CONST';
 
 type SuccessStepProps = {
     /** The route where user needs to be redirected after setting up 2FA */
-    backTo: string;
+    backTo?: Route;
 };
 
 function SuccessStep({
-    backTo=''
-}:SuccessStepProps) {
+    backTo,
+}: SuccessStepProps) {
     const {setStep} = useTwoFactorAuthContext();
 
     const {translate} = useLocalize();
@@ -27,7 +27,6 @@ function SuccessStep({
             stepCounter={{
                 step: 3,
                 text: translate('twoFactorAuth.stepSuccess'),
-                total: 3,
             }}
         >
             <ConfirmationPage
@@ -40,7 +39,7 @@ function SuccessStep({
                     TwoFactorAuthActions.clearTwoFactorAuthData();
                     setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
                     if (backTo) {
-                        Navigation.navigate(backTo as Route);
+                        Navigation.navigate(backTo);
                     }
                 }}
             />

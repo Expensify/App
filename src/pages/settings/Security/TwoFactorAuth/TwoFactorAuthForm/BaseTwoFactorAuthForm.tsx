@@ -1,53 +1,60 @@
-import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useState, useRef} from 'react';
+import type {Ref, FC, RefObject} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Errors} from '@src/types/onyx/OnyxCommon'
 import MagicCodeInput from '@components/MagicCodeInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type { TwoFactorAuthStepOnyxProps } from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import useLocalize from '@hooks/useLocalize';
 
-const propTypes = {
-    ...withLocalizePropTypes,
+type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
 
-    /* Onyx Props */
-
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Whether two-factor authentication is required */
-        requiresTwoFactorAuth: PropTypes.bool,
-    }),
-
-    /** Specifies autocomplete hints for the system, so it can provide autofill */
-    autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
+type OnyxDataWithErrors = {
+    errors?: Errors | null;
 };
 
-const defaultProps = {
-    account: {},
+type BaseTwoFactorAuthFormProps = TwoFactorAuthStepOnyxProps & {
+    autoComplete: AutoCompleteVariant,
+    innerRef?: () => void,
+    ref: RefObject<HTMLFormElement> | (() => void),
 };
 
-function BaseTwoFactorAuthForm(props) {
-    const [formError, setFormError] = useState({});
+type MagicCodeInputHandle = {
+    focus: () => void;
+    focusLastSelected: () => void;
+    resetFocus: () => void;
+    clear: () => void;
+    blur: () => void;
+};
+
+
+function BaseTwoFactorAuthForm({
+    account,
+    autoComplete,
+    innerRef,
+}: BaseTwoFactorAuthFormProps) {
+    const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const inputRef = React.useRef(null);
+    const inputRef: Ref<MagicCodeInputHandle> = useRef(null);
+    const {translate} = useLocalize();
 
     /**
      * Handle text input and clear formError upon text change
-     *
-     * @param {String} text
      */
     const onTextInput = useCallback(
-        (text) => {
+        (text: string) => {
             setTwoFactorAuthCode(text);
             setFormError({});
 
-            if (props.account.errors) {
+            if (account?.errors) {
                 Session.clearAccountMessages();
             }
         },
-        [props.account.errors],
+        [account?.errors],
     );
 
     /**
@@ -71,7 +78,7 @@ function BaseTwoFactorAuthForm(props) {
         Session.validateTwoFactorAuth(twoFactorAuthCode);
     }, [twoFactorAuthCode]);
 
-    useImperativeHandle(props.innerRef, () => ({
+    useImperativeHandle(innerRef, () => ({
         validateAndSubmitForm() {
             validateAndSubmitForm();
         },
@@ -85,23 +92,17 @@ function BaseTwoFactorAuthForm(props) {
 
     return (
         <MagicCodeInput
-            autoComplete={props.autoComplete}
-            textContentType="oneTimeCode"
-            label={props.translate('common.twoFactorCode')}
-            id="twoFactorAuthCode"
+            autoComplete={autoComplete}
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
             onFulfill={validateAndSubmitForm}
-            errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+            errorText={formError.twoFactorAuthCode ? translate(formError.twoFactorAuthCode as TranslationPaths) : ErrorUtils.getLatestErrorMessage(account as OnyxDataWithErrors)}
             ref={inputRef}
             autoFocus={false}
         />
     );
 }
-
-BaseTwoFactorAuthForm.propTypes = propTypes;
-BaseTwoFactorAuthForm.defaultProps = defaultProps;
 
 const BaseTwoFactorAuthFormWithRef = forwardRef((props, ref) => (
     <BaseTwoFactorAuthForm
@@ -111,11 +112,8 @@ const BaseTwoFactorAuthFormWithRef = forwardRef((props, ref) => (
     />
 ));
 
-BaseTwoFactorAuthFormWithRef.displayName = 'BaseTwoFactorAuthFormWithRef';
+(BaseTwoFactorAuthFormWithRef as FC).displayName = 'BaseTwoFactorAuthFormWithRef';
 
-export default compose(
-    withLocalize,
-    withOnyx({
+export default withOnyx<BaseTwoFactorAuthFormProps, TwoFactorAuthStepOnyxProps>({
         account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(BaseTwoFactorAuthFormWithRef);
+})(BaseTwoFactorAuthFormWithRef);

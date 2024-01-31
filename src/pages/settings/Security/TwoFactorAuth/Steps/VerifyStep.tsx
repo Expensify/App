@@ -15,29 +15,18 @@ import Clipboard from '@libs/Clipboard';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import TwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthForm';
-import type TwoFactorAuthOnyxProps from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
-type VerifyStepProps =  TwoFactorAuthOnyxProps & {
-    /** Session of currently logged in user */
-    session: {
-        /** Email address */
-        email: string;
-    };
-};
-
-function VerifyStep({
-    account, 
-    session,
-}: VerifyStepProps) {
+function VerifyStep({account, session}: TwoFactorAuthStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const formRef = useRef<HTMLFormElement>(null);;
+    const formRef = useRef<HTMLFormElement>(null);
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -58,7 +47,7 @@ function VerifyStep({
     /**
      * Splits the two-factor auth secret key in 4 chunks
      */
-    function splitSecretInChunks(secret: string): string {
+    function splitSecretInChunks(secret: string) {
         if (secret.length !== 16) {
             return secret;
         }
@@ -70,8 +59,8 @@ function VerifyStep({
      * Builds the URL string to generate the QRCode, using the otpauth:// protocol,
      * so it can be detected by authenticator apps
      */
-    function buildAuthenticatorUrl(): string {
-        return `otpauth://totp/Expensify:${account?.primaryLogin ?? session.email}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
+    function buildAuthenticatorUrl() {
+        return `otpauth://totp/Expensify:${account?.primaryLogin ?? session?.email}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
     return (
@@ -83,7 +72,7 @@ function VerifyStep({
                 total: 3,
             }}
             onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES, CONST.ANIMATION_DIRECTION.OUT)}
-            onEntryTransitionEnd={() => formRef.current?.focus()}
+            onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
@@ -108,14 +97,14 @@ function VerifyStep({
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
+                            tooltipText=""
+                            tooltipTextChecked=""
                             icon={Expensicons.Copy}
                             inline={false}
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
                             accessible={false}
-                            tooltipText=''
-                            tooltipTextChecked=''
                         />
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
@@ -133,7 +122,7 @@ function VerifyStep({
                         if (!formRef.current) {
                             return;
                         }
-                        formRef.current?.validateAndSubmitForm();
+                        formRef.current.validateAndSubmitForm();
                     }}
                 />
             </FixedFooter>
@@ -143,8 +132,7 @@ function VerifyStep({
 
 VerifyStep.displayName = 'VerifyStep';
 
-// eslint-disable-next-line rulesdir/onyx-props-must-have-default
-export default withOnyx<VerifyStepProps, TwoFactorAuthOnyxProps>({
+export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     session: {key: ONYXKEYS.SESSION},
 })(VerifyStep);

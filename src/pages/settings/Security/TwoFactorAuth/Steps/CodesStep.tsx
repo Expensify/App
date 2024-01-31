@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { withOnyx } from 'react-native-onyx';
 import type { Route } from '@src/ROUTES';
+import type { TranslationPaths } from '@src/languages/types';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,19 +19,21 @@ import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
-import type TwoFactorAuthOnyxProps from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
+import type { TwoFactorAuthStepOnyxProps } from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { TranslationPaths } from '@src/languages/types';
 
-type CodesStepProps = TwoFactorAuthOnyxProps & {
+type CodesStepProps = TwoFactorAuthStepOnyxProps & {
     /** The route to go back to when the user cancels */
     backTo: Route | undefined;
 }
 
-function CodesStep({ account, backTo }: CodesStepProps) {
+function CodesStep({
+    account,
+    backTo,
+}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const { translate } = useLocalize();
@@ -77,15 +80,14 @@ function CodesStep({ account, backTo }: CodesStepProps) {
                             <>
                                 <View style={styles.twoFactorAuthCodesContainer}>
                                     {Boolean(account?.recoveryCodes) &&
-                                        (account?.recoveryCodes?.split(', ') ?? []).map((code) => (
+                                        (account?.recoveryCodes?.split(', ').map((code) => (
                                             <Text
                                                 style={styles.twoFactorAuthCode}
                                                 key={code}
                                             >
                                                 {code}
                                             </Text>
-                                        ))
-                                    }
+                                        )))}
 
                                 </View>
                                 <View style={styles.twoFactorAuthCodesButtonsContainer}>
@@ -126,7 +128,7 @@ function CodesStep({ account, backTo }: CodesStepProps) {
                     </View>
                 </Section>
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {!error && (
+                    {Object.keys(error).length !== 0 && (
                         <FormHelpMessage
                             isError
                             message={translate(error as TranslationPaths)}
@@ -152,7 +154,6 @@ function CodesStep({ account, backTo }: CodesStepProps) {
 
 CodesStep.displayName = 'CodesStep';
 
-export default withOnyx<CodesStepProps, TwoFactorAuthOnyxProps>({
+export default withOnyx<CodesStepProps, TwoFactorAuthStepOnyxProps>({
     account: { key: ONYXKEYS.ACCOUNT },
-    session: { key: ONYXKEYS.SESSION },
 })(CodesStep);

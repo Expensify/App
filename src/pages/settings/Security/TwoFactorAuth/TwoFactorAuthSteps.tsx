@@ -14,11 +14,11 @@ import EnabledStep from './Steps/EnabledStep';
 import SuccessStep from './Steps/SuccessStep';
 import VerifyStep from './Steps/VerifyStep';
 import TwoFactorAuthContext from './TwoFactorAuthContext';
-import type TwoFactorAuthOnyxProps from './TwoFactorAuthPropTypes';
+import type {TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps} from './TwoFactorAuthPropTypes';
 
-type TwoFactorAuthProps = TwoFactorAuthOnyxProps
-
-function TwoFactorAuthSteps({ account }: TwoFactorAuthProps) {
+function TwoFactorAuthSteps({
+    account,
+}: TwoFactorAuthStepProps) {
     const route = useRoute();
     const backTo = lodashGet(route.params, 'backTo', '');
     const [currentStep, setCurrentStep] = useState<TwoFactorAuthStep>(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
@@ -41,8 +41,7 @@ function TwoFactorAuthSteps({ account }: TwoFactorAuthProps) {
     }, [account?.requiresTwoFactorAuth, account?.twoFactorAuthStep]);
 
     const handleSetStep = useCallback(
-        (step: TwoFactorAuthStep) => {
-            const animationDirection = CONST.ANIMATION_DIRECTION.IN;
+        (step: TwoFactorAuthStep, animationDirection = CONST.ANIMATION_DIRECTION.IN) => {
             setAnimationDirection(animationDirection);
             TwoFactorAuthActions.setTwoFactorAuthStep(step);
             setCurrentStep(step);
@@ -72,7 +71,7 @@ function TwoFactorAuthSteps({ account }: TwoFactorAuthProps) {
 }
 
 // eslint-disable-next-line rulesdir/onyx-props-must-have-default
-export default withOnyx<TwoFactorAuthProps, TwoFactorAuthOnyxProps>({
+export default withOnyx<TwoFactorAuthStepProps, TwoFactorAuthStepOnyxBothProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     session: {key: ONYXKEYS.SESSION},
 })(TwoFactorAuthSteps);
