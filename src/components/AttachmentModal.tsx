@@ -131,7 +131,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     isWorkspaceAvatar?: boolean;
 
     /** Denotes whether it can be an icon (ex: SVG) */
-    maybeIcon?: boolean,
+    maybeIcon?: boolean;
 
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
