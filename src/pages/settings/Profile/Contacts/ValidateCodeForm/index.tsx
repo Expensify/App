@@ -1,7 +1,8 @@
 import React, {forwardRef} from 'react';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
+import type {BaseValidateCodeFormProps, ValidateCodeFormHandle} from './BaseValidateCodeForm';
 
-const ValidateCodeForm = forwardRef((props, ref) => (
+const ValidateCodeForm = forwardRef<ValidateCodeFormHandle, BaseValidateCodeFormProps>((props, ref) => (
     <BaseValidateCodeForm
         autoComplete="one-time-code"
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -9,7 +10,5 @@ const ValidateCodeForm = forwardRef((props, ref) => (
         innerRef={ref}
     />
 ));
-
-ValidateCodeForm.displayName = 'ValidateCodeForm';
 
 export default ValidateCodeForm;

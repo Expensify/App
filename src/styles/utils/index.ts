@@ -1209,7 +1209,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns link styles based on whether the link is disabled or not
      */
-    getDisabledLinkStyles: (isDisabled = false): ViewStyle => {
+    getDisabledLinkStyles: (isDisabled = false): TextStyle => {
         const disabledLinkStyles = {
             color: theme.textSupporting,
             ...styles.cursorDisabled,
