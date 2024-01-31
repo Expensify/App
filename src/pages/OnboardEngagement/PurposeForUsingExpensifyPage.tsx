@@ -1,5 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
@@ -8,9 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -80,20 +77,7 @@ const menuIcons = {
 function PurposeForUsingExpensifyModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const navigation = useNavigation();
     const theme = useTheme();
-
-    useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        const currentRoute = routes[navigationState.index];
-        if (currentRoute && NAVIGATORS.CENTRAL_PANE_NAVIGATOR !== currentRoute.name && currentRoute.name !== SCREENS.HOME) {
-            return;
-        }
-
-        Welcome.show(routes, () => {});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const navigateBack = useCallback(() => {
         Report.dismissEngagementModal();
