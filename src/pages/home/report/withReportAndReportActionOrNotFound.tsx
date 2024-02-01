@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type OnyxProps = {
+type OnyxPropsA = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -25,9 +25,6 @@ type OnyxProps = {
 
     /** Array of report actions for this report */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
@@ -39,7 +36,12 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps &
+type OnyxPropsB = {
+    /** The report's parentReportAction */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+};
+
+type ComponentProps = OnyxPropsA & OnyxPropsB &
     WindowDimensionsProps & {
         route: RouteProp<{params: {reportID: string; reportActionID: string}}>;
     };
@@ -96,15 +98,16 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
     return compose(
-        withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
+        withOnyx<TProps & RefAttributes<TRef>, OnyxPropsA>({
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
             },
-            isLoadingReportData: {
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            reportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+                canEvict: false,
             },
             betas: {
                 key: ONYXKEYS.BETAS,
@@ -112,10 +115,11 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
             policies: {
                 key: ONYXKEYS.COLLECTION.POLICY,
             },
-            reportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-                canEvict: false,
+            isLoadingReportData: {
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
             },
+        }),
+        withOnyx<TProps & RefAttributes<TRef>, OnyxPropsB>({
             parentReportAction: {
                 key: (props) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props?.report?.parentReportID ?? 0}`,
                 selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
