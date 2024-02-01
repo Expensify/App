@@ -21,8 +21,7 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
 } {
     const validTextInputComponents = [TextInput, AddressSearch, RoomNameInput] as TInput[];
     if (validTextInputComponents.includes(InputComponent)) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isEffectivelyMultiline = Boolean(multiline || autoGrowHeight);
+        const isEffectivelyMultiline = Boolean(multiline) || Boolean(autoGrowHeight);
 
         // We calculate the effective requested value of `shouldSubmitForm`, assuming that the default value should be
         // `true` for single-line inputs and `false` for multi-line inputs.
@@ -61,7 +60,7 @@ function computeComponentSpecificRegistrationParams<TInput extends ValidInputs>(
 }
 
 function InputWrapper<TInput extends ValidInputs>(props: InputWrapperProps<TInput>, ref: ForwardedRef<AnimatedTextInputRef>) {
-    const {InputComponent, inputID, valueType = 'string', ...rest} = props;
+    const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props;
     const {registerInput} = useContext(FormContext);
 
     const {shouldSetTouchedOnBlurOnly, blurOnSubmit, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props);
