@@ -32,6 +32,7 @@ const keysToPreserve: OnyxKey[] = [
     ONYXKEYS.SESSION,
     ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
 ];
 
 type BaseMenuItem = {
