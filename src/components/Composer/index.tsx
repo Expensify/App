@@ -164,11 +164,11 @@ function Composer(
             }
 
             if (textInput.current !== event.target) {
-                // To make sure the text input does not capture paste events from other inputs, we check where the event originated
-                // If it did originate in another input, we return early to prevent the text input from handling the paste
-                const target = event.target as HTMLInputElement;
-                const isTargetInput = (target && target.nodeName === 'INPUT') || target.nodeName === 'TEXTAREA' || target.contentEditable === 'true';
+                const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
 
+                // To make sure the composer does not capture paste events from other inputs, we check where the event originated
+                // If it did originate in another input, we return early to prevent the composer from handling the paste
+                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
                 if (isTargetInput) {
                     return true;
                 }
