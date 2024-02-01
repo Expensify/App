@@ -97,6 +97,8 @@ function SignInPageLayout(props) {
 
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
+    const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
+
     return (
         <View style={containerStyles}>
             {!props.shouldShowSmallScreen ? (
@@ -166,18 +168,11 @@ function SignInPageLayout(props) {
                             styles.flex1,
                             styles.flexColumn,
                             styles.overflowHidden,
-                            StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight)),
-                            {backgroundColor: theme.signInPage},
+                            StyleUtils.getMinimumHeight(backgroundImageHeight),
+                            StyleUtils.getBackgroundColorStyle(theme.signInPage),
                         ]}
                     >
-                        <View
-                            style={[
-                                styles.pAbsolute,
-                                styles.w100,
-                                StyleUtils.getHeight(Math.max(variables.signInContentMinHeight, containerHeight)),
-                                StyleUtils.getBackgroundColorStyle(theme.highlightBG),
-                            ]}
-                        >
+                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen
                                 pointerEvents="none"
