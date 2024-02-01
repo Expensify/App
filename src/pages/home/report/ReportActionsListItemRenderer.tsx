@@ -1,43 +1,35 @@
-import PropTypes from 'prop-types';
 import React, {memo, useMemo} from 'react';
-import _ from 'underscore';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
+import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
-import reportActionPropTypes from './reportActionPropTypes';
 
-const propTypes = {
+type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
-    reportAction: PropTypes.shape(reportActionPropTypes).isRequired,
+    reportAction: ReportAction;
 
     /** Position index of the report action in the overall report FlatList view */
-    index: PropTypes.number.isRequired,
+    index: number;
 
     /** Report for this action */
-    report: reportPropTypes.isRequired,
+    report: Report;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
-    displayAsGroup: PropTypes.bool.isRequired,
+    displayAsGroup: boolean;
 
     /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID: PropTypes.string,
+    mostRecentIOUReportActionID?: string;
 
     /** If the thread divider line should be hidden */
-    shouldHideThreadDividerLine: PropTypes.bool.isRequired,
+    shouldHideThreadDividerLine: boolean;
 
     /** Should we display the new marker on top of the comment? */
-    shouldDisplayNewMarker: PropTypes.bool.isRequired,
+    shouldDisplayNewMarker: boolean;
 
     /** Linked report action ID */
-    linkedReportActionID: PropTypes.string,
-};
-
-const defaultProps = {
-    mostRecentIOUReportActionID: '',
-    linkedReportActionID: '',
+    linkedReportActionID?: string;
 };
 
 function ReportActionsListItemRenderer({
@@ -45,11 +37,11 @@ function ReportActionsListItemRenderer({
     index,
     report,
     displayAsGroup,
-    mostRecentIOUReportActionID,
+    mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
-    linkedReportActionID,
-}) {
+    linkedReportActionID = '',
+}: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
         ReportUtils.isChatThread(report) &&
@@ -59,36 +51,37 @@ function ReportActionsListItemRenderer({
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
      * passing in only the required props.
      */
-    const action = useMemo(
-        () => ({
-            reportActionID: reportAction.reportActionID,
-            message: reportAction.message,
-            pendingAction: reportAction.pendingAction,
-            actionName: reportAction.actionName,
-            errors: reportAction.errors,
-            originalMessage: reportAction.originalMessage,
-            childCommenterCount: reportAction.childCommenterCount,
-            linkMetadata: reportAction.linkMetadata,
-            childReportID: reportAction.childReportID,
-            childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
-            whisperedToAccountIDs: reportAction.whisperedToAccountIDs,
-            error: reportAction.error,
-            created: reportAction.created,
-            actorAccountID: reportAction.actorAccountID,
-            childVisibleActionCount: reportAction.childVisibleActionCount,
-            childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
-            childType: reportAction.childType,
-            person: reportAction.person,
-            isOptimisticAction: reportAction.isOptimisticAction,
-            delegateAccountID: reportAction.delegateAccountID,
-            previousMessage: reportAction.previousMessage,
-            attachmentInfo: reportAction.attachmentInfo,
-            childStateNum: reportAction.childStateNum,
-            childStatusNum: reportAction.childStatusNum,
-            childReportName: reportAction.childReportName,
-            childManagerAccountID: reportAction.childManagerAccountID,
-            childMoneyRequestCount: reportAction.childMoneyRequestCount,
-        }),
+    const action: ReportAction = useMemo(
+        () =>
+            ({
+                reportActionID: reportAction.reportActionID,
+                message: reportAction.message,
+                pendingAction: reportAction.pendingAction,
+                actionName: reportAction.actionName,
+                errors: reportAction.errors,
+                originalMessage: reportAction.originalMessage,
+                childCommenterCount: reportAction.childCommenterCount,
+                linkMetadata: reportAction.linkMetadata,
+                childReportID: reportAction.childReportID,
+                childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
+                whisperedToAccountIDs: reportAction.whisperedToAccountIDs,
+                error: reportAction.error,
+                created: reportAction.created,
+                actorAccountID: reportAction.actorAccountID,
+                childVisibleActionCount: reportAction.childVisibleActionCount,
+                childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
+                childType: reportAction.childType,
+                person: reportAction.person,
+                isOptimisticAction: reportAction.isOptimisticAction,
+                delegateAccountID: reportAction.delegateAccountID,
+                previousMessage: reportAction.previousMessage,
+                attachmentInfo: reportAction.attachmentInfo,
+                childStateNum: reportAction.childStateNum,
+                childStatusNum: reportAction.childStatusNum,
+                childReportName: reportAction.childReportName,
+                childManagerAccountID: reportAction.childManagerAccountID,
+                childMoneyRequestCount: reportAction.childMoneyRequestCount,
+            } as ReportAction),
         [
             reportAction.actionName,
             reportAction.childCommenterCount,
@@ -130,6 +123,7 @@ function ReportActionsListItemRenderer({
         />
     ) : (
         <ReportActionItem
+            // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             report={report}
             action={action}
@@ -138,9 +132,8 @@ function ReportActionsListItemRenderer({
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
-                _.contains(
-                    [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED],
-                    reportAction.actionName,
+                [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
+                    (type) => type === reportAction.actionName,
                 )
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
@@ -149,8 +142,6 @@ function ReportActionsListItemRenderer({
     );
 }
 
-ReportActionsListItemRenderer.propTypes = propTypes;
-ReportActionsListItemRenderer.defaultProps = defaultProps;
 ReportActionsListItemRenderer.displayName = 'ReportActionsListItemRenderer';
 
 export default memo(ReportActionsListItemRenderer);

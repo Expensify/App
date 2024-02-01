@@ -180,6 +180,9 @@ type ReportActionBase = {
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
 
+    /** Error associated with the report action */
+    error: string;
+
     /** Whether the report action is attachment */
     isAttachment?: boolean;
 

@@ -23,7 +23,7 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import FloatingMessageCounter from './FloatingMessageCounter';
-import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
+import ListBoundaryLoader from './ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
