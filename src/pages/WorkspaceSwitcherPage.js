@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesUtils';
+import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,9 +79,9 @@ function WorkspaceSwitcherPage({policies}) {
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
 
     const getIndicatorTypeForPolicy = useCallback(
-        (policyId) => {
-            if (policyId && policyId !== activeWorkspaceID) {
-                return brickRoadsForPolicies[policyId];
+        (policyID) => {
+            if (policyID && policyID !== activeWorkspaceID) {
+                return brickRoadsForPolicies[policyID];
             }
 
             if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
@@ -100,9 +100,9 @@ function WorkspaceSwitcherPage({policies}) {
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
         // eslint-disable-next-line no-unused-vars
-        (policyId) => {
-            if (policyId) {
-                return unreadStatusesForPolicies[policyId];
+        (policyID) => {
+            if (policyID) {
+                return unreadStatusesForPolicies[policyID];
             }
 
             return _.some(_.values(unreadStatusesForPolicies), (status) => status);

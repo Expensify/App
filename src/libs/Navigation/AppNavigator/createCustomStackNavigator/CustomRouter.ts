@@ -15,6 +15,8 @@ function insertRootRoute(state: State<RootStackParamList>, routeToInsert: Naviga
     const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
 
+    // It's safe to modify this state before returning in getRehydratedState.
+
     // @ts-expect-error Updating read only property
     // noinspection JSConstantReassignment
     state.routes = [...nonModalRoutes, routeToInsert, ...modalRoutes]; // eslint-disable-line
@@ -48,7 +50,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
         }
 
         // We will generate a template state and compare the current state with it.
-        // If there is a differences in the screens that should be visible under the overlay, we will add the screen from templateState to the current state.
+        // If there is a difference in the screens that should be visible under the overlay, we will add the screen from templateState to the current state.
         const pathFromCurrentState = getPathFromState(state, linkingConfig.config);
         const {adaptedState: templateState} = getAdaptedStateFromPath(pathFromCurrentState, linkingConfig.config);
 

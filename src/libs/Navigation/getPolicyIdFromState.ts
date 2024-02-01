@@ -1,16 +1,16 @@
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import type {RootStackParamList, State} from './types';
 
-const getPolicyIdFromState = (state: State<RootStackParamList>): string | undefined => {
+const getPolicyIDFromState = (state: State<RootStackParamList>): string | undefined => {
     const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
 
-    const shouldAddPolicyIdToUrl = !!topmostBottomTabRoute && !!topmostBottomTabRoute.params && 'policyID' in topmostBottomTabRoute.params && !!topmostBottomTabRoute.params?.policyID;
+    const shouldAddPolicyIDToUrl = !!topmostBottomTabRoute && !!topmostBottomTabRoute.params && 'policyID' in topmostBottomTabRoute.params && !!topmostBottomTabRoute.params?.policyID;
 
-    if (!shouldAddPolicyIdToUrl) {
+    if (!shouldAddPolicyIDToUrl) {
         return undefined;
     }
 
     return topmostBottomTabRoute.params?.policyID as string;
 };
 
-export default getPolicyIdFromState;
+export default getPolicyIDFromState;
