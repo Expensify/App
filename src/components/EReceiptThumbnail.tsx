@@ -28,8 +28,9 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     transactionID: string;
     borderRadius?: number;
     fileExtension?: string;
-    isThumbnail?: boolean;
-    isStaticIconLayout?: boolean;
+
+    /** Whether it is a receipt thumbnail we are displaying. */
+    isReceiptThumbnail?: boolean;
 };
 
 const backgroundImages = {
@@ -41,7 +42,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnail = false, isStaticIconLayout = false}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -71,11 +72,11 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
     let receiptIconHeight: number = variables.eReceiptIconHeight;
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
 
-    if (isSmall && !isStaticIconLayout) {
+    if (isSmall && !isReceiptThumbnail) {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
-    } else if (isMedium || isStaticIconLayout) {
+    } else if (isMedium || isReceiptThumbnail) {
         receiptIconWidth = variables.eReceiptIconWidthMedium;
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
@@ -88,10 +89,10 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {},
                 styles.overflowHidden,
                 styles.alignItemsCenter,
-                isStaticIconLayout || (containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
+                isReceiptThumbnail || (containerHeight && containerHeight < variables.eReceiptThumnailCenterReceiptBreakpoint) ? styles.justifyContentCenter : {},
                 borderRadius ? {borderRadius} : {},
             ]}
-            onLayout={isStaticIconLayout ? undefined : onContainerLayout}
+            onLayout={isReceiptThumbnail ? undefined : onContainerLayout}
         >
             <Image
                 source={backgroundImage}
@@ -107,8 +108,8 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isThumbnai
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
                     />
-                    {isThumbnail && fileExtension && <Text style={{...styles.labelStrong, ...StyleUtils.getTextColorStyle(colors.black)}}>{fileExtension.toUpperCase()}</Text>}
-                    {MCCIcon && !isThumbnail ? (
+                    {isReceiptThumbnail && fileExtension && <Text style={[styles.labelStrong, StyleUtils.getTextColorStyle(colors.black)]}>{fileExtension.toUpperCase()}</Text>}
+                    {MCCIcon && !isReceiptThumbnail ? (
                         <Icon
                             src={MCCIcon}
                             height={receiptMCCSize}
