@@ -237,7 +237,14 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     // Iterate forwards through the array, starting from endIndex. This loop checks the continuity of actions by:
     // 1. Comparing the current item's previousReportActionID with the next item's reportActionID.
     //    This ensures that we are moving in a sequence of related actions from newer to older.
-    while (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) {
+    while (
+        (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
+        sortedReportActions[endIndex + 1]?.whisperedToAccountIDs?.length ||
+        sortedReportActions[endIndex]?.whisperedToAccountIDs?.length ||
+        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
+        sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED
+    ) {
         endIndex++;
     }
 
@@ -529,6 +536,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null, s
     let filteredReportActions;
 
     if (shouldIncludeInvisibleActions) {
+        // filteredReportActions = Object.values(reportActions ?? {}).filter((action) => action?.resolution !== CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE)
         filteredReportActions = Object.values(reportActions ?? {});
     } else {
         filteredReportActions = Object.entries(reportActions ?? {})
