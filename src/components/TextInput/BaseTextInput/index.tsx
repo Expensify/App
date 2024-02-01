@@ -36,6 +36,7 @@ function BaseTextInput(
         placeholder = '',
         errorText = '',
         icon = null,
+        iconLeft = null,
         textInputContainerStyles,
         touchableInputWrapperStyle,
         containerStyles,
@@ -317,6 +318,16 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                            {iconLeft && (
+                                <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                    <Icon
+                                        src={iconLeft}
+                                        fill={theme.icon}
+                                        height={variables.iconSizeNormal}
+                                        width={variables.iconSizeNormal}
+                                    />
+                                </View>
+                            )}
                             {Boolean(prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
