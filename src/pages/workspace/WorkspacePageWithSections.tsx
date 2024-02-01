@@ -44,7 +44,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         route: PolicyRoute;
 
         /** Main content of the page */
-        children: (hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => ReactNode;
+        children: (hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
