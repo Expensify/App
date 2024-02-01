@@ -64,6 +64,7 @@ type CategorySection = {
 type Category = {
     name: string;
     enabled: boolean;
+    isSelected?: boolean;
 };
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
