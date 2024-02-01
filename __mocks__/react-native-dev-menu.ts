@@ -1,11 +1,11 @@
 import type {addItem} from 'react-native-dev-menu';
 
-type ReactNativeDevMenu = {
+type ReactNativeDevMenuMock = {
     addItem: typeof addItem;
 };
 
-const ReactNativeDevMenuMock: ReactNativeDevMenu = {
+const reactNativeDevMenuMock: ReactNativeDevMenuMock = {
     addItem: jest.fn(),
 };
 
-export default ReactNativeDevMenuMock;
+export default reactNativeDevMenuMock;
