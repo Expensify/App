@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -37,7 +37,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
-    const onSubmit = (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
         const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
         const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
         const contactMethod = (validateIfnumber || values.partnerUserID).trim().toLowerCase();
@@ -53,7 +53,7 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
      * @returns - An object containing the errors for each inputID
      */
     const validate = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
             const errors = {};
             const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
             const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
