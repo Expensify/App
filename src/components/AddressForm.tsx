@@ -3,16 +3,19 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {AddressForm as AddressFormValues} from '@src/types/onyx';
+import type {Country} from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
+import type {OnyxFormValuesFields} from './Form/types';
 import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
@@ -21,7 +24,7 @@ type AddressFormProps = {
     city?: string;
 
     /** Address country field */
-    country?: keyof typeof CONST.COUNTRY_ZIP_REGEX_DATA | '';
+    country?: Country | '';
 
     /** Address state field */
     state?: keyof typeof COMMON_CONST.STATES | '';
@@ -36,7 +39,7 @@ type AddressFormProps = {
     zip?: string;
 
     /** Callback which is executed when the user changes address, city or state */
-    onAddressChanged?: (data: string, key: string) => void;
+    onAddressChanged?: (value: unknown, key: string) => void;
 
     /** Callback which is executed when the user submits his address changes */
     onSubmit: () => void;
@@ -48,15 +51,7 @@ type AddressFormProps = {
     submitButtonText?: string;
 
     /** A unique Onyx key identifying the form */
-    formID: OnyxFormKey;
-};
-
-type ValidatorErrors = {
-    addressLine1?: string;
-    city?: string;
-    country?: string;
-    state?: string;
-    zipPostCode?: Localize.MaybePhraseKey;
+    formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM;
 };
 
 function AddressForm({
@@ -94,8 +89,8 @@ function AddressForm({
      * @returns - An object containing the errors for each inputID
      */
 
-    const validator = useCallback((values: AddressFormValues): ValidatorErrors => {
-        const errors: ValidatorErrors = {};
+    const validator = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM>): Errors => {
+        const errors: Errors = {};
         const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
 
         // Check "State" dropdown is a valid state if selected Country is USA
@@ -114,7 +109,7 @@ function AddressForm({
         });
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = values.country ? CONST.COUNTRY_ZIP_REGEX_DATA[values.country] : {};
+        const countryRegexDetails = values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {};
 
         // The postal code system might not exist for a country, so no regex either for them.
         let countrySpecificZipRegex;
@@ -127,6 +122,8 @@ function AddressForm({
         if ('samples' in countryRegexDetails) {
             countryZipFormat = countryRegexDetails.samples as string;
         }
+
+        ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
 
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
@@ -144,7 +141,6 @@ function AddressForm({
     }, []);
 
     return (
-        // @ts-expect-error TODO: Remove this once FormProvider (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
         <FormProvider
             style={[styles.flexGrow1, styles.mh5]}
             formID={formID}
@@ -155,11 +151,10 @@ function AddressForm({
         >
             <View>
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                     InputComponent={AddressSearch}
                     inputID="addressLine1"
                     label={translate('common.addressLine', {lineNumber: 1})}
-                    onValueChange={(data: string, key: string) => {
+                    onValueChange={(data: unknown, key: string) => {
                         onAddressChanged(data, key);
                         // This enforces the country selector to use the country from address instead of the country from URL
                         Navigation.setParams({country: undefined});
@@ -179,7 +174,6 @@ function AddressForm({
             </View>
             <View style={styles.formSpaceVertical} />
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="addressLine2"
                 label={translate('common.addressLine', {lineNumber: 2})}
@@ -193,7 +187,6 @@ function AddressForm({
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                     InputComponent={CountrySelector}
                     inputID="country"
                     value={country}
@@ -204,7 +197,6 @@ function AddressForm({
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper
-                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                         InputComponent={StatePicker}
                         inputID="state"
                         defaultValue={state}
@@ -214,7 +206,6 @@ function AddressForm({
                 </View>
             ) : (
                 <InputWrapper
-                    // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                     InputComponent={TextInput}
                     inputID="state"
                     label={translate('common.stateOrProvince')}
@@ -229,7 +220,6 @@ function AddressForm({
             )}
             <View style={styles.formSpaceVertical} />
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="city"
                 label={translate('common.city')}
@@ -243,7 +233,6 @@ function AddressForm({
             />
             <View style={styles.formSpaceVertical} />
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="zipPostCode"
                 label={translate('common.zipPostCode')}

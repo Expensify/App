@@ -16,9 +16,10 @@ type RenamedInputKeysProps = {
     street2: string;
     city: string;
     state: string;
-    lat: string;
-    lng: string;
+    lat?: string;
+    lng?: string;
     zipCode: string;
+    country?: string;
 };
 
 type OnPressProps = {
@@ -58,7 +59,7 @@ type AddressSearchProps = {
     defaultValue?: string;
 
     /** A callback function when the value of this field has changed */
-    onInputChange: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
+    onInputChange?: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;

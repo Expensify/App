@@ -59,7 +59,7 @@ type PrivateNotesForm = Form<{
 
 type PersonalBankAccountForm = Form<PersonalBankAccount>;
 
-type AddressForm = Form & {
+type AddressForm = Form<{
     /** Address line 1 for delivery */
     addressLine1: string;
 
@@ -86,7 +86,7 @@ type AddressForm = Form & {
 
     /** Zip code  for delivery */
     zipPostCode: string;
-};
+}>;
 
 export default Form;
 
