@@ -34,4 +34,4 @@ function selectOption(s) {
     });
 }
 
-window.onload = selectOption(document.getElementsByClassName('platform')[0]);
+window.onload = selectOption(document.getElementsByClassName('selector')[0]);
