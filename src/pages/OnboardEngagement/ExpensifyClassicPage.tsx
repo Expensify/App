@@ -14,6 +14,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function ToExpensifyClassicModal() {
@@ -27,6 +29,10 @@ function ToExpensifyClassicModal() {
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.ONBOARD_MANAGE_EXPENSES);
+    };
+
+    const navigateToOldDot = () => {
+        Link.openOldDotLink(CONST.OLDDOT_URLS.DISMMISSED_REASON);
     };
 
     return (
@@ -70,7 +76,7 @@ function ToExpensifyClassicModal() {
                         medium={isExtraSmallScreenHeight}
                         style={[canUseTouchScreen ? styles.mt5 : styles.mt3, styles.w100]}
                         text={translate('expensifyClassic.buttonText')}
-                        onPress={() => {}}
+                        onPress={navigateToOldDot}
                     />
                 </View>
             </View>
