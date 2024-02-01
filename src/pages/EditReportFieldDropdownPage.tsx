@@ -1,43 +1,68 @@
 import React, {useMemo, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {RecentlyUsedReportFields} from '@src/types/onyx';
 
-type EditReportFieldDropdownPageProps = {
+type EditReportFieldDropdownPageComponentProps = {
     /** Value of the policy report field */
     fieldValue: string;
 
     /** Name of the policy report field */
     fieldName: string;
 
+    /** ID of the policy report field */
+    fieldID: string;
+
+    /** ID of the policy this report field belongs to */
+    // eslint-disable-next-line react/no-unused-prop-types
+    policyID: string;
+
     /** Options of the policy report field */
     fieldOptions: string[];
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: () => void;
+    onSubmit: (form: Record<string, string>) => void;
 };
 
-function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+type EditReportFieldDropdownPageOnyxProps = {
+    recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
+};
+
+type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
+
+function EditReportFieldDropdownPage({fieldName, onSubmit, fieldID, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
     const {getSafeAreaMargins} = useStyleUtils();
     const {translate} = useLocalize();
+    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldID] ?? [], [recentlyUsedReportFields, fieldID]);
 
     const sections = useMemo(() => {
-        const filteredOptions = fieldOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const filteredRecentOptions = recentlyUsedOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const filteredRestOfOptions = fieldOptions.filter((option) => !filteredRecentOptions.includes(option) && option.toLowerCase().includes(searchValue.toLowerCase()));
+
         return [
             {
                 title: translate('common.recents'),
                 shouldShow: true,
-                data: [],
+                data: filteredRecentOptions.map((option) => ({
+                    text: option,
+                    keyForList: option,
+                    searchText: option,
+                    tooltipText: option,
+                })),
             },
             {
                 title: translate('common.all'),
                 shouldShow: true,
-                data: filteredOptions.map((option) => ({
+                data: filteredRestOfOptions.map((option) => ({
                     text: option,
                     keyForList: option,
                     searchText: option,
@@ -45,7 +70,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                 })),
             },
         ];
-    }, [fieldOptions, searchValue, translate]);
+    }, [fieldOptions, recentlyUsedOptions, searchValue, translate]);
 
     return (
         <ScreenWrapper
@@ -66,7 +91,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
                         boldStyle
                         sections={sections}
                         value={searchValue}
-                        onSelectRow={onSubmit}
+                        onSelectRow={(option: Record<string, string>) => onSubmit({[fieldID]: option.text})}
                         onChangeText={setSearchValue}
                         highlightSelectedOptions
                         isRowMultilineSupported
@@ -79,4 +104,8 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldValue, fieldOpti
 
 EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
 
-export default EditReportFieldDropdownPage;
+export default withOnyx<EditReportFieldDropdownPageProps, EditReportFieldDropdownPageOnyxProps>({
+    recentlyUsedReportFields: {
+        key: () => ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
+    },
+})(EditReportFieldDropdownPage);

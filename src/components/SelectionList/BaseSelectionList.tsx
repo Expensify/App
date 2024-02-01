@@ -167,17 +167,7 @@ function BaseSelectionList<TItem extends User | RadioItem>(
             const itemIndex = item.index ?? -1;
             const sectionIndex = item.sectionIndex ?? -1;
 
-            // Note: react-native's SectionList automatically strips out any empty sections.
-            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-            let adjustedSectionIndex = sectionIndex;
-            for (let i = 0; i < sectionIndex; i++) {
-                if (sections[i].data) {
-                    adjustedSectionIndex--;
-                }
-            }
-
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight});
         },
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -360,11 +350,6 @@ function BaseSelectionList<TItem extends User | RadioItem>(
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
         if (isInitialSectionListRender) {
-            return;
-        }
-
-        // scroll is unnecessary if multiple options cannot be selected
-        if (!canSelectMultiple) {
             return;
         }
 

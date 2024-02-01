@@ -32,7 +32,7 @@ PODS:
     - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
-  - Expo (50.0.0-preview.10):
+  - Expo (50.0.4):
     - ExpoModulesCore
   - ExpoImage (1.10.1):
     - ExpoModulesCore
@@ -40,7 +40,7 @@ PODS:
     - SDWebImageAVIFCoder (~> 0.10.1)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.13.0)
-  - ExpoModulesCore (1.11.6):
+  - ExpoModulesCore (1.11.8):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2432,9 +2432,9 @@ SPEC CHECKSUMS:
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
-  Expo: 6017117f2ba561b4bf0423a031891a63db935c90
+  Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
-  ExpoModulesCore: 595a5eea91c0d30e7d71be433bd7c2fdd5662b80
+  ExpoModulesCore: 83dfc98358de225bd0953401ce5b0c14fa8eabd0
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10

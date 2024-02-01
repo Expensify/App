@@ -1,6 +1,5 @@
-import React, {useRef, useMemo} from 'react';
+import React, {useRef} from 'react';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
@@ -14,20 +13,19 @@ const ComposerWithSuggestionsWithFocus = React.forwardRef(({
     isNextModalWillOpenRef,
     editFocused,
     shouldShowComposeInput,
-    reportActions,
     parentReportActions,
-    report,
+    isEmptyChat,
+    parentReportActionID,
     ...props}, ref) => {
 
     const textInputRef = useRef(null);
     const modal = props.modal;
 
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
+    const parentReportAction = lodashGet(parentReportActions, [parentReportActionID]);
     const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ComposerWithSuggestions ref={ref} {...props} textInputRef={textInputRef} reportActions={reportActions} report={report} shouldAutoFocus={shouldAutoFocus} />;
+    return <ComposerWithSuggestions ref={ref} {...props} textInputRef={textInputRef} shouldAutoFocus={shouldAutoFocus} />;
 });
 
 ComposerWithSuggestionsWithFocus.displayName = 'ComposerWithSuggestionsWithRefAndFocus';
