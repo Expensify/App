@@ -58,7 +58,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.reimburse.trackDistance')}
+            headerText={translate('workspace.reimburse.trackDistanceUnitTitle')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
@@ -67,7 +67,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
         >
             {() => (
                 <>
-                    <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
+                    <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.reimburse.trackDistanceChooseUnit')}</Text>
 
                     <SelectionList
                         sections={[{data: unitOptions}]}

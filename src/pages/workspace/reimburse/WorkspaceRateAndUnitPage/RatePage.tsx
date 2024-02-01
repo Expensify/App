@@ -55,7 +55,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.reimburse.trackDistance')}
+            headerText={translate('workspace.reimburse.trackDistanceRateTitle')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
@@ -70,6 +70,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
                     onSubmit={submit}
                     enabledWhenOffline
                     style={[styles.flexGrow1, styles.mh5]}
+                    shouldHideFixErrorsAlert
                     // @ts-expect-error TODO: fix this
                     submitFlexEnabled={false}
                 >
