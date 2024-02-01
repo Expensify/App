@@ -83,7 +83,6 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-                        console.log(displayNames);
                         expect(lodashGet(displayNames, [0, 'props', 'children', 0])).toBe('Report (archived)');
 
                         const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
